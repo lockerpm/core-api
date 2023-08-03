@@ -2,7 +2,7 @@ from locker_server.api_orm.abstracts.relay.relay_addresses import AbstractRelayA
 
 
 class RelayAddressORM(AbstractRelayAddressORM):
-    class Meta:
+    class Meta(AbstractRelayAddressORM.Meta):
         swappable = 'LS_RELAY_ADDRESS_MODEL'
         db_table = 'cs_relay_addresses'
 

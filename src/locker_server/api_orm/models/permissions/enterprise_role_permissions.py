@@ -4,7 +4,7 @@ from cystack_models.models.permissions.permissions import Permission
 from cystack_models.models.enterprises.members.enterprise_member_roles import EnterpriseMemberRole
 
 
-class EnterpriseRolePermission(models.Model):
+class EnterpriseRolePermissionORM(models.Model):
     enterprise_role = models.ForeignKey(
         EnterpriseMemberRole, on_delete=models.CASCADE, related_name="enterprise_role_permissions"
     )

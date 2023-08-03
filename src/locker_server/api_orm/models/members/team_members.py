@@ -2,6 +2,6 @@ from locker_server.api_orm.abstracts.members.team_members import AbstractTeamMem
 
 
 class TeamMemberORM(AbstractTeamMemberORM):
-    class Meta:
+    class Meta(AbstractTeamMemberORM.Meta):
         swappable = 'LS_TEAM_MEMBER_MODEL'
         db_table = 'cs_team_members'

@@ -18,7 +18,7 @@ class AbstractDeviceAccessTokenORM(models.Model):
     grant_type = models.CharField(max_length=128, blank=True, null=True, default="")
     sso_token_id = models.CharField(max_length=128, null=True, default=None)
     device = models.ForeignKey(
-        locker_server_settings.LS_DEVICE_ORM, on_delete=models.CASCADE, related_name="device_access_tokens"
+        locker_server_settings.LS_DEVICE_MODEL, on_delete=models.CASCADE, related_name="device_access_tokens"
     )
 
     class Meta:

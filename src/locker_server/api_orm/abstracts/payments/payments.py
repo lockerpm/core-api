@@ -37,9 +37,6 @@ class AbstractPaymentORM(models.Model):
         null=True, default=None
     )
 
-    customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, related_name="payments", null=True)
-
-
     class Meta:
         abstract = True
 

@@ -37,6 +37,7 @@ LS_USER_PLAN_MODEL = getattr(settings, "LS_USER_PLAN_MODEL", "api_orm.PMUserPlan
 
 # -------- Notification Models ------- #
 LS_NOTIFICATION_CATEGORY_MODEL = getattr(settings, "LS_NOTIFICATION_CATEGORY_MODEL", "api_orm.NotificationCategoryORM")
+LS_NOTIFICATION_SETTING_MODEL = getattr(settings, "LS_NOTIFICATION_SETTING_MODEL", "api_orm.NotificationSettingORM")
 
 # -------- Emergency Access Models ------ #
 LS_EMERGENCY_ACCESS_MODEL = getattr(settings, "LS_EMERGENCY_ACCESS_MODEL", "api_orm.EmergencyAccessORM")
@@ -63,7 +64,7 @@ LS_MEMBER_ROLE_MODEL = getattr(settings, "LS_MEMBER_ROLE_MODEL", "api_orm.Member
 LS_TEAM_MEMBER_MODEL = getattr(settings, "LS_TEAM_MEMBER_MODEL", "api_orm.TeamMemberORM")
 LS_COLLECTION_MODEL = getattr(settings, "LS_COLLECTION_MODEL", "api_orm.CollectionORM")
 LS_COLLECTION_CIPHER_MODEL = getattr(settings, "LS_COLLECTION_CIPHER_MODEL", "api_orm.CollectionCipherORM")
-LS_COLLECTION_MEMBER_MODEL = getattr(settings, "LS_COLLECTION_MEMBER_ORM", "api_orm.CollectionMemberORM")
+LS_COLLECTION_MEMBER_MODEL = getattr(settings, "LS_COLLECTION_MEMBER_MODEL", "api_orm.CollectionMemberORM")
 LS_GROUP_MODEL = getattr(settings, "LS_GROUP_MODEL", "api_orm.GroupORM")
 LS_GROUP_MEMBER_MODEL = getattr(settings, "LS_GROUP_MEMBER_MODEL", "api_orm.GroupMemberORM")
 
@@ -100,6 +101,7 @@ DEFAULTS = {
     "LS_USER_PLAN_MODEL": LS_USER_PLAN_MODEL,
 
     "LS_NOTIFICATION_CATEGORY_MODEL": LS_NOTIFICATION_CATEGORY_MODEL,
+    'LS_NOTIFICATION_SETTING_MODEL': LS_NOTIFICATION_SETTING_MODEL,
 
     "LS_EMERGENCY_ACCESS_MODEL": LS_EMERGENCY_ACCESS_MODEL,
 

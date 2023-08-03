@@ -6,7 +6,7 @@ from locker_server.api_orm.abstracts.members.member_roles import AbstractMemberR
 class MemberRoleORM(AbstractMemberRoleORM):
     name = models.CharField(primary_key=True, max_length=45)
 
-    class Meta:
+    class Meta(AbstractMemberRoleORM.Meta):
         swappable = 'LS_MEMBER_ROLE_MODEL'
         db_table = 'cs_member_roles'
 

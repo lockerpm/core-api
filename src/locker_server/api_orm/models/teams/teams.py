@@ -2,7 +2,7 @@ from locker_server.api_orm.abstracts.teams.teams import AbstractTeamORM
 
 
 class TeamORM(AbstractTeamORM):
-    class Meta:
+    class Meta(AbstractTeamORM.Meta):
         swappable = 'LS_TEAM_MODEL'
         db_table = 'cs_teams'
 

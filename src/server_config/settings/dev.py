@@ -59,21 +59,6 @@ try:
                 'isolation_level': 'read committed'
             }
         },
-        # 'locker_tenant_3xu9cp': {
-        #     'ENGINE': "django.db.backends.mysql",
-        #     'NAME': os.getenv("MYSQL_DATABASE_TENANT"),
-        #     'USER': os.getenv("MYSQL_USERNAME_TENANT"),
-        #     'PASSWORD': os.getenv("MYSQL_PASSWORD_TENANT"),
-        #     'HOST': os.getenv("MYSQL_HOST_TENANT"),
-        #     'PORT': os.getenv("MYSQL_PORT_TENANT"),
-        #     'CONN_MAX_AGE': 120,
-        #     'OPTIONS': {
-        #         'init_command': "ALTER DATABASE `%s` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; "
-        #                         "SET block_encryption_mode = 'aes-256-cbc'" % (os.getenv("MYSQL_DATABASE_TENANT")),
-        #         'charset': 'utf8mb4',  # <--- Use this
-        #         'isolation_level': 'read committed'
-        #     }
-        # },
         'locker_statistics_db': {
             'ENGINE': "django.db.backends.mysql",
             'NAME': os.getenv("MYSQL_STATISTIC_DATABASE"),
@@ -158,12 +143,12 @@ try:
         'django.contrib.staticfiles',
         'corsheaders',
         'rest_framework',
-        'django_rq',
-        'cystack_models',
-        'v1_0',
-        'micro_services',
-        'relay',
-        'locker_statistic',
+        # 'django_rq',
+        # 'cystack_models',
+        # 'v1_0',
+        # 'micro_services',
+        # 'relay',
+        # 'locker_statistic',
         # 'api',
     ]
 

@@ -5,4 +5,3 @@ class EnterpriseMemberORM(AbstractEnterpriseMemberORM):
     class Meta(AbstractEnterpriseMemberORM.Meta):
         swappable = 'LS_ENTERPRISE_MEMBER_MODEL'
         db_table = 'e_members'
-        unique_together = ('user', 'enterprise', 'role')

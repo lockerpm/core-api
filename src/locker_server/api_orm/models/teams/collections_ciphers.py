@@ -2,6 +2,6 @@ from locker_server.api_orm.abstracts.teams.collections_ciphers import AbstractCo
 
 
 class CollectionCipherORM(AbstractCollectionCipherORM):
-    class Meta:
+    class Meta(AbstractCollectionCipherORM.Meta):
         swappable = 'LS_COLLECTION_CIPHER_MODEL'
         db_table = 'cs_collections_ciphers'

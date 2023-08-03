@@ -7,7 +7,7 @@ from locker_server.api_orm.models.payments.customers import CustomerORM
 class PaymentORM(AbstractPaymentORM):
     customer = models.ForeignKey(CustomerORM, on_delete=models.SET_NULL, related_name="payments", null=True)
 
-    class Meta:
+    class Meta(AbstractPaymentORM.Meta):
         swappable = 'LS_PAYMENT_MODEL'
         db_table = 'cs_payments'
 

@@ -2,7 +2,7 @@ from locker_server.api_orm.abstracts.enterprises.enterprises import AbstractEnte
 
 
 class EnterpriseORM(AbstractEnterpriseORM):
-    class Meta:
+    class Meta(AbstractEnterpriseORM.Meta):
         swappable = 'LS_ENTERPRISE_MODEL'
         db_table = 'e_enterprises'
 

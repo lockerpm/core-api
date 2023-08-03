@@ -1,15 +1,18 @@
 from django.db import models
 
-from shared.utils.app import now
-from cystack_models.models.user_plans.pm_user_plan import PMUserPlan
-from cystack_models.models.users.users import User
+from locker_server.settings import locker_server_settings
+from locker_server.shared.utils.app import now
 
 
-class PMUserPlanFamily(models.Model):
+class PMUserPlanFamilyORM(models.Model):
     created_time = models.IntegerField()
     email = models.CharField(max_length=128, null=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="pm_plan_family", null=True)
-    root_user_plan = models.ForeignKey(PMUserPlan, on_delete=models.CASCADE, related_name="pm_plan_family")
+    user = models.ForeignKey(
+        locker_server_settings.LS_USER_MODEL, on_delete=models.CASCADE, related_name="pm_plan_family", null=True
+    )
+    root_user_plan = models.ForeignKey(
+        locker_server_settings.LS_USER_PLAN_MODEL, on_delete=models.CASCADE, related_name="pm_plan_family"
+    )
 
     class Meta:
         db_table = 'cs_pm_user_plan_family'
@@ -23,7 +26,7 @@ class PMUserPlanFamily(models.Model):
         return new_pm_user_plan_family
 
     @classmethod
-    def create_multiple_by_email(cls, root_user_plan: PMUserPlan, *emails):
+    def create_multiple_by_email(cls, root_user_plan, *emails):
         pm_user_plan_family = []
         for email in emails:
             pm_user_plan_family.append(

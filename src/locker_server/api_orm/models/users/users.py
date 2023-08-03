@@ -28,7 +28,8 @@ class UserORM(AbstractUserORM):
             "email": email, "full_name": full_name, "creation_date": creation_date,
         })
         if is_created is True:
-            PMUserPlan.update_or_create(user)
+            from locker_server.api_orm.models.user_plans.pm_user_plan import PMUserPlanORM
+            PMUserPlanORM.update_or_create(user)
             return user
         return user
 
