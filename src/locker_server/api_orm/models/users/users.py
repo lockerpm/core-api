@@ -7,8 +7,8 @@ from locker_server.shared.utils.app import now
 
 
 class UserORM(AbstractUserORM):
-    email = models.EmailField(unique=True, max_length=255)
-    full_name = models.CharField(max_length=255)
+    email = models.EmailField(unique=True, max_length=255, null=True)
+    full_name = models.CharField(max_length=255, null=True)
     language = models.CharField(max_length=4, blank=False, default=LANG_ENGLISH)
     # FA2
     is_factor2 = models.BooleanField(default=False)

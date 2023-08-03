@@ -1,14 +1,15 @@
 from django.db import models
 
-from cystack_models.models.permissions.permissions import Permission
-from cystack_models.models.enterprises.members.enterprise_member_roles import EnterpriseMemberRole
+from locker_server.api_orm.models import PermissionORM
+from locker_server.settings import locker_server_settings
 
 
 class EnterpriseRolePermissionORM(models.Model):
     enterprise_role = models.ForeignKey(
-        EnterpriseMemberRole, on_delete=models.CASCADE, related_name="enterprise_role_permissions"
+        locker_server_settings.LS_ENTERPRISE_MEMBER_ROLE_MODEL, on_delete=models.CASCADE,
+        related_name="enterprise_role_permissions"
     )
-    permission = models.ForeignKey(Permission, on_delete=models.CASCADE, related_name="enterprise_role_permissions")
+    permission = models.ForeignKey(PermissionORM, on_delete=models.CASCADE, related_name="enterprise_role_permissions")
 
     class Meta:
         db_table = 'e_role_permissions'

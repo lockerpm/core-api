@@ -1,7 +1,5 @@
 from django.db import models
 
-from cystack_models.models.payments.payments import Payment
-
 from locker_server.settings import locker_server_settings
 
 
@@ -17,7 +15,7 @@ class PaymentItemORM(models.Model):
         db_table = 'cs_payment_items'
 
     @classmethod
-    def create_multiple(cls, payment: Payment, *items):
+    def create_multiple(cls, payment, *items):
         """
         Create multiple payment item
         :param payment: (obj) Payment object

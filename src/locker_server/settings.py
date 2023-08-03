@@ -48,6 +48,7 @@ LS_EVENT_MODEL = getattr(settings, "LS_EVENT_MODEL", "api_orm.EventORM")
 # -------- Reward Models ----------- #
 LS_MISSION_MODEL = getattr(settings, "LS_MISSION_MODEL", "api_orm.MissionORM")
 
+
 # -------- Relay Models ------------ #
 LS_RELAY_REPLY_MODEL = getattr(settings, "LS_RELAY_REPLY_MODEL", "api_orm.ReplyORM")
 LS_RELAY_DOMAIN_MODEL = getattr(settings, "LS_RELAY_DOMAIN_MODEL", "api_orm.RelayDomainORM")
@@ -59,7 +60,7 @@ LS_RELAY_ADDRESS_MODEL = getattr(settings, "LS_RELAY_ADDRESS_MODEL", "api_orm.Re
 # -------- Vault Models ------------- #
 LS_TEAM_MODEL = getattr(settings, "LS_TEAM_MODEL", "api_orm.TeamORM")
 LS_CIPHER_MODEL = getattr(settings, "LS_CIPHER_MODEL", "api_orm.CipherORM")
-LS_FOLDER_MODEL = getattr(settings, "LS_FOLDER_MODEL", "api_orm.FolderOMR")
+LS_FOLDER_MODEL = getattr(settings, "LS_FOLDER_MODEL", "api_orm.FolderORM")
 LS_MEMBER_ROLE_MODEL = getattr(settings, "LS_MEMBER_ROLE_MODEL", "api_orm.MemberRoleORM")
 LS_TEAM_MEMBER_MODEL = getattr(settings, "LS_TEAM_MEMBER_MODEL", "api_orm.TeamMemberORM")
 LS_COLLECTION_MODEL = getattr(settings, "LS_COLLECTION_MODEL", "api_orm.CollectionORM")
@@ -119,7 +120,7 @@ DEFAULTS = {
     "LS_CIPHER_MODEL": LS_CIPHER_MODEL,
     "LS_FOLDER_MODEL": LS_FOLDER_MODEL,
     "LS_MEMBER_ROLE_MODEL": LS_MEMBER_ROLE_MODEL,
-    "LS_TEAM_MEMBER_MODELd": LS_TEAM_MEMBER_MODEL,
+    "LS_TEAM_MEMBER_MODEL": LS_TEAM_MEMBER_MODEL,
     "LS_COLLECTION_MODEL": LS_COLLECTION_MODEL,
     "LS_COLLECTION_CIPHER_MODEL": LS_COLLECTION_CIPHER_MODEL,
     "LS_COLLECTION_MEMBER_MODEL": LS_COLLECTION_MEMBER_MODEL,

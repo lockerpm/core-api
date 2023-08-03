@@ -150,6 +150,7 @@ try:
         # 'relay',
         # 'locker_statistic',
         # 'api',
+        'locker_server.api_orm'
     ]
 
     AUTHENTICATION_BACKENDS = [
@@ -194,6 +195,56 @@ try:
         'default': {
             'USE_REDIS_CACHE': 'default',
         },
+    }
+
+    # Locker Server Settings
+    LS_RELEASE_MODEL = "api_orm.ReleaseORM"
+    LS_USER_MODEL = "api_orm.UserORM"
+    LS_DEVICE_MODEL = "api_orm.DeviceORM"
+    LS_DEVICE_ACCESS_TOKEN_MODEL = "api_orm.DeviceAccessTokenORM"
+    LS_PLAN_TYPE_MODEL = "api_orm.PlanTypeORM"
+    LS_PLAN_MODEL = "api_orm.PMPlanORM"
+    LS_PROMO_CODE_TYPE_MODEL = "api_orm.PromoCodeTypeORM"
+    LS_PROMO_CODE_MODEL = "api_orm.PromoCodeORM"
+    LS_PAYMENT_MODEL = "api_orm.PaymentORM"
+    LS_USER_PLAN_MODEL = "api_orm.PMUserPlanORM"
+    LS_NOTIFICATION_CATEGORY_MODEL = "api_orm.NotificationCategoryORM"
+    LS_NOTIFICATION_SETTING_MODEL = "api_orm.NotificationSettingORM"
+    LS_EMERGENCY_ACCESS_MODEL = "api_orm.EmergencyAccessORM"
+    LS_EVENT_MODEL = "api_orm.EventORM"
+    LS_MISSION_MODEL = "api_orm.MissionORM"
+    LS_RELAY_REPLY_MODEL = "api_orm.ReplyORM"
+    LS_RELAY_DOMAIN_MODEL = "api_orm.RelayDomainORM"
+    LS_RELAY_SUBDOMAIN_MODEL = "api_orm.RelaySubdomainORM"
+    LS_RELAY_DELETED_ADDRESS_MODEL = "api_orm.DeletedRelayAddressORM"
+    LS_RELAY_ADDRESS_MODEL = "api_orm.RelayAddressORM"
+    LS_TEAM_MODEL = "api_orm.TeamORM"
+    LS_CIPHER_MODEL = "api_orm.CipherORM"
+    LS_FOLDER_MODEL = "api_orm.FolderORM"
+    LS_MEMBER_ROLE_MODEL = "api_orm.MemberRoleORM"
+    LS_TEAM_MEMBER_MODEL = "api_orm.TeamMemberORM"
+    LS_COLLECTION_MODEL = "api_orm.CollectionORM"
+    LS_COLLECTION_CIPHER_MODEL = "api_orm.CollectionCipherORM"
+    LS_COLLECTION_MEMBER_MODEL = "api_orm.CollectionMemberORM"
+    LS_GROUP_MODEL = "api_orm.GroupORM"
+    LS_GROUP_MEMBER_MODEL = "api_orm.GroupMemberORM"
+    LS_ENTERPRISE_MODEL = "api_orm.EnterpriseORM"
+    LS_ENTERPRISE_DOMAIN_MODEL = "api_orm.DomainORM"
+    LS_ENTERPRISE_MEMBER_ROLE_MODEL = "api_orm.EnterpriseMemberRoleORM"
+    LS_ENTERPRISE_MEMBER_MODEL = "api_orm.EnterpriseMemberORM"
+    LS_ENTERPRISE_GROUP_MODEL = "api_orm.EnterpriseGroupORM"
+    LS_ENTERPRISE_GROUP_MEMBER_MODEL = "api_orm.EnterpriseGroupMemberORM"
+    LS_ENTERPRISE_POLICY_MODEL = "api_orm.EnterprisePolicyORM"
+    LS_QUICK_SHARE_MODEL = "api_orm.QuickShareORM"
+    LS_QUICK_SHARE_EMAIL_MODEL = "api_orm.QuickShareEmailORM"
+
+    LSCORE_SETTINGS = {
+        # "API_REPOSITORY_CLASS": "lscore.containers.defaults.repository.RepositoryFactory",
+        # "API_SERVICE_CLASS": "lscore.containers.defaults.service.ServiceFactory",
+        # "MODEL_PARSER_CLASS": "lscore.api_orm.model_parsers.model_parsers.ModelParser",
+        # "GEOIP_PATH": os.getenv("GEOIP_PATH", os.path.join(BASE_DIR, 'lscore', 'shared', 'geoip2')),
+        # "MAXMIND_API_KEY": os.getenv("MAXMIND_API_KEY"),
+        # "INIT_MAXMIND_DB": os.getenv("INIT_MAXMIND_DB", "1"),
     }
 
     # CORS Config
