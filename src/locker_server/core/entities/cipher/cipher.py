@@ -1,3 +1,4 @@
+from locker_server.core.entities.team.team import Team
 from locker_server.core.entities.user.user import User
 
 
