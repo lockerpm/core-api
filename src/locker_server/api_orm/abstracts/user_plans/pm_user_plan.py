@@ -56,16 +56,6 @@ class AbstractPMUserPlanORM(models.Model):
         :return:
         """
         raise NotImplementedError
-        plan_type = PMPlan.objects.get(alias=pm_plan_alias)
-        try:
-            user_plan = cls.objects.get(user=user)
-            user_plan.pm_plan = plan_type
-            user_plan.duration = duration
-            user_plan.save()
-        except cls.DoesNotExist:
-            user_plan = cls(pm_plan=plan_type, user=user, duration=duration)
-            user_plan.save()
-        return user_plan
 
     # @classmethod
     # def get_next_attempts_duration(cls, current_number_attempts):
@@ -140,10 +130,11 @@ class AbstractPMUserPlanORM(models.Model):
     #     self.promo_code = None
     #     self.save()
     # 
-    # def cancel_mobile_subscription(self):
-    #     # self.pm_mobile_subscription = None
-    #     self.promo_code = None
-    #     self.save()
+    def cancel_mobile_subscription(self):
+        # Set mobile subscription to Null
+        self.promo_code = None
+        # self.pm_mobile_subscription = None
+        self.save()
     # 
     # def get_next_billing_time(self, duration=None):
     #     """

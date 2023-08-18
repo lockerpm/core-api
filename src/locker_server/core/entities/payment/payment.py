@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from locker_server.core.entities.payment.customer import Customer
 from locker_server.core.entities.payment.promo_code import PromoCode
 from locker_server.core.entities.user.user import User
@@ -128,3 +130,22 @@ class Payment(object):
     @property
     def customer(self):
         return self._customer
+
+    def get_created_time_str(self):
+        return datetime.utcfromtimestamp(self.created_time).strftime('%H:%M:%S %d-%m-%Y') if self.created_time else None
+
+    def get_customer_dict(self):
+        if not self.customer:
+            return {}
+        return {
+            "full_name": self.customer.full_name,
+            "organization": self.customer.organization,
+            "address": self.customer.address,
+            "city": self.customer.city,
+            "state": self.customer.state,
+            "postal_code": self.customer.postal_code,
+            "phone_number": self.customer.phone_number,
+            "last4": self.customer.last4,
+            "brand": self.customer.brand,
+            "country": "" if not self.customer.country else self.customer.country.country_name
+        }

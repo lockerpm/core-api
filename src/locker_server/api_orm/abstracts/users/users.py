@@ -56,6 +56,9 @@ class AbstractUserORM(models.Model):
     def retrieve_or_create(cls, **kwargs):
         raise NotImplementedError
 
+    def get_from_cystack_id(self):
+        raise NotImplementedError
+
     def set_master_password(self, raw_password):
         self.master_password = make_password(raw_password)
         self._password = raw_password

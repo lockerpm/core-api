@@ -1,3 +1,5 @@
+import stripe
+
 from locker_server.core.entities.payment.promo_code import PromoCode
 from locker_server.core.entities.user.user import User
 from locker_server.core.entities.user_plan.pm_plan import PMPlan
@@ -126,3 +128,11 @@ class PMUserPlan(object):
     @property
     def promo_code(self):
         return self._promo_code
+
+    def is_personal_trial_applied(self) -> bool:
+        return self.personal_trial_applied
+
+    def get_stripe_subscription(self):
+        if not self.pm_stripe_subscription:
+            return None
+        return stripe.Subscription.retrieve(self.pm_stripe_subscription)

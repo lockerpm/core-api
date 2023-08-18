@@ -3,7 +3,7 @@ import traceback
 
 from django.db import connection
 
-from lscore.shared.log.cylog import CyLog
+from locker_server.shared.log.cylog import CyLog
 
 
 class BackgroundThread:

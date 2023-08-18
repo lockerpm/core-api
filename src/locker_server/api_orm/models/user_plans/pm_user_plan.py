@@ -1,4 +1,5 @@
 from locker_server.api_orm.abstracts.user_plans.pm_user_plan import AbstractPMUserPlanORM
+from locker_server.api_orm.models import PMPlanORM
 from locker_server.shared.constants.transactions import PLAN_TYPE_PM_FREE, DURATION_MONTHLY
 
 
@@ -16,4 +17,12 @@ class PMUserPlanORM(AbstractPMUserPlanORM):
         :param duration: (str) duration of this plan
         :return:
         """
-        pass
+        plan_type = PMPlanORM.objects.get(alias=pm_plan_alias)
+        user_plan, is_created = PMUserPlanORM.objects.update_or_create(
+            user=user, defaults={
+                "pm_plan": plan_type,
+                "duration": duration,
+                "user": user
+            }
+        )
+        return user_plan

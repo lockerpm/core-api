@@ -25,3 +25,10 @@ class AbstractEnterpriseORM(models.Model):
     @classmethod
     def create(cls, **data):
         raise NotImplementedError
+
+    def lock_enterprise(self, lock: bool):
+        self.locked = lock
+        if lock is True:
+            self.init_seats = None
+            self.init_seats_expired_time = None
+        self.save()

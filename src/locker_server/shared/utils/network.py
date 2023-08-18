@@ -1,5 +1,6 @@
 import ipaddress
 import os
+import tldextract
 
 
 def get_ip_by_request(request):
@@ -78,3 +79,13 @@ def is_valid_ipv6_address(ip_address: str) -> bool:
         return False
     except:
         return False
+
+
+def extract_root_domain(domain: str) -> str:
+    """
+    Get root domain of domain
+    :param domain:
+    :return:
+    """
+    extracted = tldextract.extract(domain)
+    return "{}.{}".format(extracted.domain, extracted.suffix)

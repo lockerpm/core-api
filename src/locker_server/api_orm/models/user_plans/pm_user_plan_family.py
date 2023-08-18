@@ -18,9 +18,9 @@ class PMUserPlanFamilyORM(models.Model):
         db_table = 'cs_pm_user_plan_family'
 
     @classmethod
-    def create(cls, root_user_plan, user, email):
+    def create(cls, root_user_plan_id, user_id, email):
         new_pm_user_plan_family = cls(
-            root_user_plan=root_user_plan, email=email, user=user, created_time=now()
+            root_user_plan_id=root_user_plan_id, email=email, user_id=user_id, created_time=now()
         )
         new_pm_user_plan_family.save()
         return new_pm_user_plan_family

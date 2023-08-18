@@ -23,3 +23,7 @@ class AbstractTeamORM(models.Model):
     @classmethod
     def create(cls, **data):
         raise NotImplementedError
+
+    def lock_pm_team(self, lock: bool):
+        self.locked = lock
+        self.save()

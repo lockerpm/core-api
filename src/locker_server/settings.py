@@ -138,6 +138,10 @@ DEFAULTS = {
     "LS_QUICK_SHARE_MODEL": LS_QUICK_SHARE_MODEL,
     "LS_QUICK_SHARE_EMAIL_MODEL": LS_QUICK_SHARE_EMAIL_MODEL,
 
+    "API_REPOSITORY_CLASS": "locker_server.containers.defaults.repository.RepositoryFactory",
+    "API_SERVICE_CLASS": "locker_server.containers.defaults.service.ServiceFactory",
+    "MODEL_PARSER_CLASS": "locker_server.api_orm.model_parsers.model_parsers.ModelParser",
+
     "GEOIP_PATH": os.path.join(settings.BASE_DIR, 'locker_server', 'shared', 'geoip2'),
     "MAXMIND_API_KEY": None,
     "INIT_MAXMIND_DB": "1"
