@@ -1,8 +1,9 @@
-from typing import Union, Dict, Optional
+from typing import Union, Dict, Optional, List
 from abc import ABC, abstractmethod
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_user_model, get_team_member_model
+from locker_server.core.entities.team.team import Team
 from locker_server.core.entities.user.user import User
 from locker_server.core.repositories.team_member_repository import TeamMemberRepository
 from locker_server.shared.constants.members import PM_MEMBER_STATUS_INVITED
@@ -26,6 +27,18 @@ class TeamMemberORMRepository(TeamMemberRepository):
             return None
 
     # ------------------------ List TeamMember resource ------------------- #
+    def list_member_user_ids(self, team_ids: List[str], status: str = None, personal_share: bool = None) -> List[int]:
+        members_orm = TeamMemberORM.objects.filter(team_id__in=team_ids)
+        if status is not None:
+            members_orm = members_orm.filter(status=status)
+        if personal_share is not None:
+            members_orm = members_orm.filter(team__personal_share=personal_share)
+        return list(members_orm.values_list('user_id', flat=True))
+
+    def list_member_user_ids_by_teams(self, teams: List[Team], status: str = None,
+                                      personal_share: bool = None) -> List[int]:
+        team_ids = [team.team_id for team in teams]
+        return self.list_member_user_ids(team_ids=team_ids, status=status, personal_share=personal_share)
 
     # ------------------------ Get TeamMember resource --------------------- #
 

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from locker_server.shared.constants.account import LOGIN_METHOD_PASSWORD, LOGIN_METHOD_PASSWORDLESS
 from locker_server.shared.constants.ciphers import KDF_TYPE
 from locker_server.shared.constants.device_type import LIST_CLIENT_ID, LIST_DEVICE_TYPE
 from locker_server.shared.constants.transactions import *
@@ -90,3 +91,24 @@ class UserSessionSerializer(serializers.Serializer):
 class DeviceFcmSerializer(serializers.Serializer):
     fcm_id = serializers.CharField(max_length=255, allow_null=True)
     device_identifier = serializers.CharField(max_length=128)
+
+
+class UserChangePasswordSerializer(serializers.Serializer):
+    key = serializers.CharField()
+    master_password_hash = serializers.CharField()
+    new_master_password_hash = serializers.CharField()
+    new_master_password_hint = serializers.CharField(allow_blank=True, max_length=128, required=False)
+    score = serializers.FloatField(required=False, allow_null=True)
+    login_method = serializers.ChoiceField(choices=[LOGIN_METHOD_PASSWORD, LOGIN_METHOD_PASSWORDLESS], required=False)
+
+    # def validate(self, data):
+    #     user = self.context["request"].user
+    #     master_password_hash = data.get("master_password_hash")
+    #     if user.check_master_password(master_password_hash) is False:
+    #         raise serializers.ValidationError(detail={"master_password_hash": ["The master password is not correct"]})
+    #
+    #     # Check login method: if user sets normal login method, we will check enterprise policy
+    #     login_method = data.get("login_method")     # or user.login_method
+    #     if login_method and login_method == LOGIN_METHOD_PASSWORD and user.enterprise_require_passwordless is True:
+    #         raise serializers.ValidationError(detail={"login_method": ["Your enterprise requires passwordless method"]})
+    #     return data

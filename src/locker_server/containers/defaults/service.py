@@ -32,6 +32,12 @@ class ServiceFactory(containers.DeclarativeContainer):
         enterprise_policy_repository=RepositoryFactory.enterprise_policy_repository
     )
 
+    team_member_service = providers.Factory(
+        TeamMemberService,
+        team_member_repository=RepositoryFactory.team_member_repository,
+
+    )
+
     enterprise_group_service = providers.Factory(
         EnterpriseGroupService,
 

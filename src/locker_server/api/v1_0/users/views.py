@@ -13,7 +13,7 @@ from locker_server.core.exceptions.user_exception import UserDoesNotExistExcepti
     User2FARequireException
 from locker_server.shared.error_responses.error import refer_error, gen_error
 from .serializers import UserMeSerializer, UserUpdateMeSerializer, UserRegisterSerializer, UserSessionSerializer, \
-    DeviceFcmSerializer
+    DeviceFcmSerializer, UserChangePasswordSerializer
 
 
 class UserPwdViewSet(APIBaseViewSet):
@@ -36,6 +36,8 @@ class UserPwdViewSet(APIBaseViewSet):
             self.serializer_class = UserSessionSerializer
         elif self.action == "fcm_id":
             self.serializer_class = DeviceFcmSerializer
+        elif self.action == "password":
+            self.serializer_class = UserChangePasswordSerializer
         return super().get_serializer_class()
 
     @action(methods=["post"], detail=False)
@@ -209,3 +211,85 @@ class UserPwdViewSet(APIBaseViewSet):
         except DeviceDoesNotExistException:
             raise ValidationError(detail={"device_identifier": ["The device identifier does not exist"]})
         return Response(status=status.HTTP_200_OK, data={"success": True})
+
+    @action(methods=["post"], detail=False)
+    def password(self, request, *args, **kwargs):
+        user = self.request.user
+        ip = self.get_ip()
+        # self.check_pwd_session_auth(request=request)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        new_master_password_hash = validated_data.get("new_master_password_hash")
+        new_master_password_hint = validated_data.get("new_master_password_hint", user.master_password_hint)
+        key = validated_data.get("key")
+        score = validated_data.get("score", user.master_password_score)
+        login_method = validated_data.get("login_method", user.login_method)
+
+        # Update the master password cipher
+        master_password_cipher = request.data.get("master_password_cipher")
+
+
+        master_pwd_item_obj = user.created_ciphers.filter(type=CIPHER_TYPE_MASTER_PASSWORD).first()
+
+        if master_password_cipher:
+            if not master_pwd_item_obj:
+                # Create master password item
+                self.serializer_class = VaultItemSerializer
+                serializer = VaultItemSerializer(
+                    data=master_password_cipher, **{"context": self.get_serializer_context()}
+                )
+                serializer.is_valid(raise_exception=True)
+                team = serializer.validated_data.get("team")
+                cipher_detail = serializer.save(**{"check_plan": False})
+                cipher_detail.pop("team", None)
+                cipher_detail = json.loads(json.dumps(cipher_detail))
+                new_cipher = self.cipher_repository.save_new_cipher(cipher_data=cipher_detail)
+                # Send sync message
+                PwdSync(event=SYNC_EVENT_CIPHER_UPDATE, user_ids=[request.user.user_id], team=team, add_all=True).send(
+                    data={"id": str(new_cipher.id)}
+                )
+            else:
+                # Check permission
+                self.serializer_class = UpdateVaultItemSerializer
+                serializer = UpdateVaultItemSerializer(
+                    data=master_password_cipher, **{"context": self.get_serializer_context()}
+                )
+                # serializer = self.get_serializer(data=master_password_cipher)
+                serializer.is_valid(raise_exception=True)
+                team = serializer.validated_data.get("team")
+                cipher_detail = serializer.save(**{"cipher": master_pwd_item_obj})
+                cipher_detail.pop("team", None)
+                cipher_detail = json.loads(json.dumps(cipher_detail))
+                master_password_cipher_obj = self.cipher_repository.save_update_cipher(
+                    cipher=master_pwd_item_obj, cipher_data=cipher_detail
+                )
+                PwdSync(event=SYNC_EVENT_CIPHER_UPDATE, user_ids=[request.user.user_id], team=team, add_all=True).send(
+                    data={"id": master_password_cipher_obj.id}
+                )
+
+        self.user_repository.change_master_password_hash(
+            user=user, new_master_password_hash=new_master_password_hash, key=key, score=score,
+            login_method=login_method, new_master_password_hint=new_master_password_hint
+        )
+        # Revoke all sessions
+        exclude_sso_token_ids = None
+        client = None
+        if request.data.get("login_method"):
+            decoded_token = self.decode_token(request.auth)
+            sso_token_id = decoded_token.get("sso_token_id") if decoded_token else None
+            exclude_sso_token_ids = [sso_token_id] if sso_token_id else None
+
+            exclude_device_access_token = DeviceAccessToken.objects.filter(
+                device__user=user, sso_token_id__in=exclude_sso_token_ids
+            ).order_by('-id').first()
+            client = exclude_device_access_token.device.client_id if exclude_device_access_token else None
+
+        self.user_repository.revoke_all_sessions(user=user, exclude_sso_token_ids=exclude_sso_token_ids)
+        mail_user_ids = NotificationSetting.get_user_mail(
+            category_id=NOTIFY_CHANGE_MASTER_PASSWORD, user_ids=[user.user_id]
+        )
+        return Response(status=200, data={
+            "notification": True if user.user_id in mail_user_ids else False,
+            "client": client
+        })

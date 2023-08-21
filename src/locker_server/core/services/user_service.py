@@ -18,6 +18,7 @@ from locker_server.core.repositories.plan_repository import PlanRepository
 from locker_server.core.repositories.team_member_repository import TeamMemberRepository
 from locker_server.core.repositories.user_plan_repository import UserPlanRepository
 from locker_server.core.repositories.user_repository import UserRepository
+from locker_server.shared.constants.account import LOGIN_METHOD_PASSWORD
 from locker_server.shared.constants.enterprise_members import *
 from locker_server.shared.constants.event import EVENT_USER_LOGIN_FAILED, EVENT_USER_LOGIN, EVENT_USER_BLOCK_LOGIN
 from locker_server.shared.constants.transactions import *
@@ -389,3 +390,12 @@ class UserService:
         if not device:
             raise DeviceDoesNotExistException
         return device
+
+    def change_master_password(self, user: User, key: str, master_password_hash: str, new_master_password_hash: str,
+                               new_master_password_hint: str = None, score: float = None, login_method: str = None,
+                               master_password_cipher=None):
+        if self.auth_repository.check_master_password(user=user, raw_password=master_password_hash) is False:
+            raise UserAuthFailedException
+        if login_method and login_method == LOGIN_METHOD_PASSWORD and \
+                self.is_require_passwordless(user_id=user.user_id) is True:
+            raise UserAuthFailedPasswordlessRequiredException

@@ -19,6 +19,12 @@ class UserAuthFailedException(UserException):
     """
 
 
+class UserAuthFailedPasswordlessRequiredException(UserAuthFailedException):
+    """
+
+    """
+
+
 class UserAuthBlockingEnterprisePolicyException(UserAuthFailedException):
     def __init__(self, wait, message="Login locked due to the enterprise's policy"):
         super().__init__(message)
