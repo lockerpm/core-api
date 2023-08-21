@@ -75,13 +75,13 @@ class AbstractDeviceORM(models.Model):
         return new_device
 
     @classmethod
-    def retrieve_or_create(cls, user, **data):
+    def retrieve_or_create(cls, user_id: int, **data):
         device_identifier = data.get("device_identifier")
         os = data.get("os") or ""
         browser = data.get("browser") or ""
         device_obj, is_created = cls.objects.get_or_create(
-            device_identifier=device_identifier, user=user, defaults={
-                "user": user,
+            device_identifier=device_identifier, user_id=user_id, defaults={
+                "user_id": user_id,
                 "refresh_token": data.get("refresh_token"),
                 "token_type": data.get("token_type"),
                 "scope": data.get("scope"),

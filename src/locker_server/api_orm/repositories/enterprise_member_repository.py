@@ -4,9 +4,11 @@ from abc import ABC, abstractmethod
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_user_model, get_enterprise_domain_model, \
     get_enterprise_member_model, get_enterprise_group_member_model
+from locker_server.core.entities.enterprise.member.enterprise_member import EnterpriseMember
 from locker_server.core.entities.user.user import User
 from locker_server.core.repositories.enterprise_member_repository import EnterpriseMemberRepository
-from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_MEMBER
+from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_MEMBER, E_MEMBER_STATUS_REQUESTED, \
+    E_MEMBER_STATUS_INVITED
 from locker_server.shared.constants.members import PM_MEMBER_STATUS_INVITED
 from locker_server.shared.log.cylog import CyLog
 from locker_server.shared.utils.network import extract_root_domain
@@ -34,6 +36,28 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
     # ------------------------ List EnterpriseMember resource ------------------- #
 
     # ------------------------ Get EnterpriseMember resource --------------------- #
+    def get_primary_member(self, enterprise_id: str) -> Optional[EnterpriseMember]:
+        try:
+            enterprise_member_orm = EnterpriseMemberORM.objects.get(
+                enterprise_id=enterprise_id, is_primary=True
+            )
+        except EnterpriseMemberORM.DoesNotExist:
+            return None
+        return ModelParser.enterprise_parser().parse_enterprise_member(enterprise_member_orm=enterprise_member_orm)
+
+    def get_enterprise_member_by_user_id(self, enterprise_id: str, user_id: int) -> Optional[EnterpriseMember]:
+        try:
+            enterprise_member_orm = EnterpriseMemberORM.objects.get(
+                enterprise_id=enterprise_id, user_id=user_id
+            )
+            return ModelParser.enterprise_parser().parse_enterprise_member(enterprise_member_orm=enterprise_member_orm)
+        except EnterpriseMemberORM.DoesNotExist:
+            return None
+
+    def lock_login_account_belong_enterprise(self, user_id: int) -> bool:
+        return EnterpriseMemberORM.objects.filter(
+            user_id=user_id, status__in=[E_MEMBER_STATUS_REQUESTED, E_MEMBER_STATUS_INVITED], domain__isnull=False
+        ).exists()
 
     # ------------------------ Create EnterpriseMember resource --------------------- #
 

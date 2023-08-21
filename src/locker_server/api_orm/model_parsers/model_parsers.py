@@ -2,6 +2,7 @@ from .user_parsers import UserParser
 from .user_plan_parsers import UserPlanParser
 from .payment_parsers import PaymentParser
 from .enterprise_parser import EnterpriseParser
+from .event_parsers import EventParser
 
 
 class ModelParser:
@@ -24,3 +25,7 @@ class ModelParser:
     @classmethod
     def enterprise_parser(cls):
         return EnterpriseParser
+
+    @classmethod
+    def event_parser(cls):
+        return EventParser

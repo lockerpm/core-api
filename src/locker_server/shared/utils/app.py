@@ -1,6 +1,8 @@
 import random
 import string
 import time
+from datetime import datetime, timezone
+from dateutil import relativedelta
 # import pyotp
 from typing import List
 from user_agents import parse
@@ -121,3 +123,11 @@ def random_string_characters(alpha: bool, upper: bool, lower: bool, numeric: boo
     if special:
         characters += "!@#$%^*&"
     return characters
+
+
+def start_end_month_current():
+    current_time = datetime.now(timezone.utc)
+    start_ts = current_time.replace(day=1, hour=0, minute=0, second=0, microsecond=0).timestamp()
+    end_ts = (current_time + relativedelta.relativedelta(months=1)).timestamp()
+    return start_ts, end_ts
+

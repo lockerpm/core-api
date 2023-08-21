@@ -5,10 +5,14 @@ from .plan_repository import PlanORMRepository
 from .user_plan_repository import UserPlanORMRepository
 from .payment_repository import PaymentORMRepository
 
+from .device_repository import DeviceORMRepository
 from .device_access_token_repository import DeviceAccessTokenORMRepository
 
 from .team_member_repository import TeamMemberORMRepository
 
 
+from .enterprise_repository import EnterpriseORMRepository
 from .enterprise_member_repository import EnterpriseMemberORMRepository
+from .enterprise_policy_repository import EnterprisePolicyORMRepository
 
+from .event_repository import EventORMRepository

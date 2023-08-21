@@ -5,6 +5,7 @@ from locker_server.shared.general_view import AppGeneralViewSet
 from locker_server.api.authentications.token_authentication import TokenAuthentication
 from locker_server.api.permissions.app import APIPermission
 from locker_server.containers.containers import *
+from locker_server.shared.utils.network import get_ip_by_request
 
 
 class APIBaseViewSet(AppGeneralViewSet):
@@ -26,3 +27,10 @@ class APIBaseViewSet(AppGeneralViewSet):
     def check_pwd_session_auth(self, request):
         # TODO: Check pwd session token
         return True
+
+    def get_client_agent(self):
+        return self.request.META.get("HTTP_LOCKER_CLIENT_AGENT") or self.request.META.get("HTTP_USER_AGENT") or ''
+
+    def get_ip(self):
+        return self.request.data.get("ip") or get_ip_by_request(request=self.request)
+

@@ -12,3 +12,4 @@ else:
 
 auth_service = ServiceFactory.auth_service()
 user_service = ServiceFactory.user_service()
+event_service = ServiceFactory.event_service()

@@ -27,6 +27,18 @@ class UserRepository(ABC):
                                 require_enterprise_member_status: str = E_MEMBER_STATUS_CONFIRMED) -> bool:
         pass
 
+    @abstractmethod
+    def is_block_by_2fa_policy(self, user_id: int, is_factor2: bool) -> bool:
+        pass
+
+    @abstractmethod
+    def count_failed_login_event(self, user_id: int) -> int:
+        pass
+
+    @abstractmethod
+    def has_master_pw_item(self, user_id: int) -> bool:
+        pass
+
     # ------------------------ Create User resource --------------------- #
     @abstractmethod
     def retrieve_or_create_by_id(self, user_id, creation_date=None) -> Tuple[User, bool]:
@@ -35,6 +47,10 @@ class UserRepository(ABC):
     # ------------------------ Update User resource --------------------- #
     @abstractmethod
     def update_user(self, user_id: int, user_update_data) -> Optional[User]:
+        pass
+
+    @abstractmethod
+    def update_login_time_user(self, user_id: int, update_data) -> Optional[User]:
         pass
 
     # ------------------------ Delete User resource --------------------- #

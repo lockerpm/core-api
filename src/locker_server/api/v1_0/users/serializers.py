@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from locker_server.shared.constants.ciphers import KDF_TYPE
+from locker_server.shared.constants.device_type import LIST_CLIENT_ID, LIST_DEVICE_TYPE
 from locker_server.shared.constants.transactions import *
 
 
@@ -70,3 +71,22 @@ class UserRegisterSerializer(serializers.Serializer):
             })
 
         return data
+
+
+class UserSessionSerializer(serializers.Serializer):
+    client_id = serializers.ChoiceField(choices=LIST_CLIENT_ID)
+    device_identifier = serializers.CharField()
+    device_name = serializers.CharField(required=False, allow_blank=True)
+    device_type = serializers.IntegerField(required=False)
+    password = serializers.CharField()
+
+    def validate(self, data):
+        device_type = data.get("device_type")
+        if device_type and device_type not in LIST_DEVICE_TYPE:
+            raise serializers.ValidationError(detail={"device_type": ["The device type is not valid"]})
+        return data
+
+
+class DeviceFcmSerializer(serializers.Serializer):
+    fcm_id = serializers.CharField(max_length=255, allow_null=True)
+    device_identifier = serializers.CharField(max_length=128)
