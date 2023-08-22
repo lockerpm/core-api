@@ -16,6 +16,7 @@ class APIBaseViewSet(AppGeneralViewSet):
 
     auth_service = auth_service
     user_service = user_service
+    cipher_service = cipher_service
 
     def get_throttles(self):
         if self.request.user and not isinstance(self.request.user, AnonymousUser):

@@ -29,7 +29,16 @@ class ServiceFactory(containers.DeclarativeContainer):
         team_member_repository=RepositoryFactory.team_member_repository,
         enterprise_repository=RepositoryFactory.enterprise_repository,
         enterprise_member_repository=RepositoryFactory.enterprise_member_repository,
-        enterprise_policy_repository=RepositoryFactory.enterprise_policy_repository
+        enterprise_policy_repository=RepositoryFactory.enterprise_policy_repository,
+        notification_setting_repository=RepositoryFactory.notification_setting_repository,
+    )
+
+    cipher_service = providers.Factory(
+        CipherService,
+        cipher_repository=RepositoryFactory.cipher_repository,
+        team_repository=RepositoryFactory.team_repository,
+        team_member_repository=RepositoryFactory.team_member_repository,
+        user_plan_repository=RepositoryFactory.user_plan_repository,
     )
 
     team_member_service = providers.Factory(

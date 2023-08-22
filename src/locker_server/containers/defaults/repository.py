@@ -16,6 +16,9 @@ class RepositoryFactory(containers.DeclarativeContainer):
     device_repository = providers.Factory(DeviceORMRepository)
     device_access_token_repository = providers.Factory(DeviceAccessTokenORMRepository)
 
+    cipher_repository = providers.Factory(CipherORMRepository)
+
+    team_repository = providers.Factory(TeamORMRepository)
     team_member_repository = providers.Factory(TeamMemberORMRepository)
 
     enterprise_repository = providers.Factory(EnterpriseORMRepository)
@@ -23,3 +26,6 @@ class RepositoryFactory(containers.DeclarativeContainer):
     enterprise_policy_repository = providers.Factory(EnterprisePolicyORMRepository)
 
     event_repository = providers.Factory(EventORMRepository)
+
+    notification_category_repository = providers.Factory(NotificationCategoryORMRepository)
+    notification_setting_repository = providers.Factory(NotificationSettingORMRepository)

@@ -101,14 +101,10 @@ class UserChangePasswordSerializer(serializers.Serializer):
     score = serializers.FloatField(required=False, allow_null=True)
     login_method = serializers.ChoiceField(choices=[LOGIN_METHOD_PASSWORD, LOGIN_METHOD_PASSWORDLESS], required=False)
 
-    # def validate(self, data):
-    #     user = self.context["request"].user
-    #     master_password_hash = data.get("master_password_hash")
-    #     if user.check_master_password(master_password_hash) is False:
-    #         raise serializers.ValidationError(detail={"master_password_hash": ["The master password is not correct"]})
-    #
-    #     # Check login method: if user sets normal login method, we will check enterprise policy
-    #     login_method = data.get("login_method")     # or user.login_method
-    #     if login_method and login_method == LOGIN_METHOD_PASSWORD and user.enterprise_require_passwordless is True:
-    #         raise serializers.ValidationError(detail={"login_method": ["Your enterprise requires passwordless method"]})
-    #     return data
+
+class UserNewPasswordSerializer(serializers.Serializer):
+    key = serializers.CharField()
+    new_master_password_hash = serializers.CharField()
+    new_master_password_hint = serializers.CharField(allow_blank=True, max_length=128, required=False)
+    score = serializers.FloatField(required=False, allow_null=True)
+    login_method = serializers.ChoiceField(choices=[LOGIN_METHOD_PASSWORD, LOGIN_METHOD_PASSWORDLESS])

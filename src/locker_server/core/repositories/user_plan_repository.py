@@ -20,6 +20,10 @@ class UserPlanRepository(ABC):
                                create_if_not_exist=False) -> Optional[Enterprise]:
         pass
 
+    @abstractmethod
+    def get_max_allow_cipher_type(self, user: User) -> Dict:
+        pass
+
     # ------------------------ Create PMUserPlan resource --------------------- #
     @abstractmethod
     def add_to_family_sharing(self, family_user_plan_id: int, user_id: int = None,

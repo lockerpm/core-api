@@ -53,5 +53,12 @@ class UserRepository(ABC):
     def update_login_time_user(self, user_id: int, update_data) -> Optional[User]:
         pass
 
-    # ------------------------ Delete User resource --------------------- #
+    @abstractmethod
+    def change_master_password(self, user: User, new_master_password_hash: str, new_master_password_hint: str = None,
+                               key: str = None, score=None, login_method: str = None):
+        pass
 
+    # ------------------------ Delete User resource --------------------- #
+    @abstractmethod
+    def revoke_all_sessions(self, user: User, exclude_sso_token_ids=None) -> User:
+        pass

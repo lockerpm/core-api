@@ -16,6 +16,11 @@ class DeviceAccessTokenRepository(ABC):
     def get_device_access_token_by_id(self, device_access_token_id: str) -> Optional[DeviceAccessToken]:
         pass
 
+    @abstractmethod
+    def get_first_device_access_token_by_sso_ids(self, user_id: int,
+                                                 sso_token_ids: List[str]) -> Optional[DeviceAccessToken]:
+        pass
+
     # ------------------------ Create DeviceAccessToken resource --------------------- #
     @abstractmethod
     def fetch_device_access_token(self, device: Device, renewal: bool = False,

@@ -3,9 +3,10 @@ import string
 import time
 from datetime import datetime, timezone
 from dateutil import relativedelta
-# import pyotp
 from typing import List
 from user_agents import parse
+
+from locker_server.shared.constants.ciphers import *
 
 
 def now(return_float=False):
@@ -131,3 +132,35 @@ def start_end_month_current():
     end_ts = (current_time + relativedelta.relativedelta(months=1)).timestamp()
     return start_ts, end_ts
 
+
+def get_cipher_detail_data(cipher):
+    cipher_type = cipher.get("type")
+    if cipher_type == CIPHER_TYPE_LOGIN:
+        data = dict(cipher.get("login") or {})
+    elif cipher_type == CIPHER_TYPE_CARD:
+        data = dict(cipher.get("card") or {})
+    elif cipher_type == CIPHER_TYPE_IDENTITY:
+        data = dict(cipher.get("identity") or {})
+    elif cipher_type == CIPHER_TYPE_NOTE:
+        data = dict(cipher.get("secureNote") or {})
+    elif cipher_type == CIPHER_TYPE_TOTP:
+        data = dict(cipher.get("secureNote") or {})
+    elif cipher_type == CIPHER_TYPE_CRYPTO_ACCOUNT:
+        data = dict(cipher.get("cryptoAccount") or {})
+    elif cipher_type == CIPHER_TYPE_CRYPTO_WALLET:
+        data = dict(cipher.get("cryptoWallet") or {})
+    elif cipher_type == CIPHER_TYPE_MASTER_PASSWORD:
+        data = dict(cipher.get("login") or {})
+    elif cipher_type in [CIPHER_TYPE_DRIVER_LICENSE, CIPHER_TYPE_CITIZEN_ID, CIPHER_TYPE_PASSPORT,
+                         CIPHER_TYPE_SOCIAL_SECURITY_NUMBER, CIPHER_TYPE_WIRELESS_ROUTER, CIPHER_TYPE_SERVER,
+                         CIPHER_TYPE_API, CIPHER_TYPE_DATABASE]:
+        data = dict(cipher.get("secureNote") or {})
+    else:
+        data = dict()
+    data.update({
+        "name": cipher.get("name"),
+        "fields": cipher.get("fields")
+    })
+    if cipher.get("notes"):
+        data.update({"notes": cipher.get("notes")})
+    return data

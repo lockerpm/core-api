@@ -29,6 +29,15 @@ class DeviceAccessTokenORMRepository(DeviceAccessTokenRepository):
             return None
         return ModelParser.user_parser().parse_device_access_token(device_access_token_orm=device_access_token_orm)
 
+    def get_first_device_access_token_by_sso_ids(self, user_id: int,
+                                                 sso_token_ids: List[str]) -> Optional[DeviceAccessToken]:
+        device_access_token_orm = DeviceAccessTokenORM.objects.filter(
+            device__user_id=user_id, sso_token_id__in=sso_token_ids
+        ).order_by('-id').first()
+        if not device_access_token_orm:
+            return None
+        return ModelParser.user_parser().parse_device_access_token(device_access_token_orm=device_access_token_orm)
+
     # ------------------------ Create DeviceAccessToken resource --------------------- #
     def fetch_device_access_token(self, device: Device, renewal: bool = False,
                                   sso_token_id: str = None) -> DeviceAccessToken:

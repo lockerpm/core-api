@@ -1,3 +1,5 @@
+import json
+
 from django.conf import settings
 from rest_framework import status
 from rest_framework.decorators import action
@@ -6,14 +8,22 @@ from rest_framework.response import Response
 
 from locker_server.api.api_base_view import APIBaseViewSet
 from locker_server.api.permissions.locker_permissions.user_pwd_permission import UserPwdPermission
+from locker_server.core.exceptions.cipher_exception import FolderDoesNotExistException, CipherMaximumReachedException
+from locker_server.core.exceptions.collection_exception import CollectionDoesNotExistException, \
+    CollectionCannotRemoveException, CollectionCannotAddException
 from locker_server.core.exceptions.device_exception import DeviceDoesNotExistException
+from locker_server.core.exceptions.team_exception import TeamDoesNotExistException, TeamLockedException
+from locker_server.core.exceptions.team_member_exception import TeamMemberDoesNotExistException, \
+    OnlyAllowOwnerUpdateException
 from locker_server.core.exceptions.user_exception import UserDoesNotExistException, \
     UserAuthBlockingEnterprisePolicyException, UserAuthFailedException, UserAuthBlockedEnterprisePolicyException, \
     UserIsLockedByEnterpriseException, UserEnterprisePlanExpiredException, UserBelongEnterpriseException, \
-    User2FARequireException
+    User2FARequireException, UserAuthFailedPasswordlessRequiredException
 from locker_server.shared.error_responses.error import refer_error, gen_error
+from locker_server.api.v1_0.ciphers.serializers import VaultItemSerializer, UpdateVaultItemSerializer
+from locker_server.shared.external_services.pm_sync import PwdSync, SYNC_EVENT_CIPHER_UPDATE
 from .serializers import UserMeSerializer, UserUpdateMeSerializer, UserRegisterSerializer, UserSessionSerializer, \
-    DeviceFcmSerializer, UserChangePasswordSerializer
+    DeviceFcmSerializer, UserChangePasswordSerializer, UserNewPasswordSerializer
 
 
 class UserPwdViewSet(APIBaseViewSet):
@@ -38,6 +48,8 @@ class UserPwdViewSet(APIBaseViewSet):
             self.serializer_class = DeviceFcmSerializer
         elif self.action == "password":
             self.serializer_class = UserChangePasswordSerializer
+        elif self.action == "new_password":
+            self.serializer_class = UserNewPasswordSerializer
         return super().get_serializer_class()
 
     @action(methods=["post"], detail=False)
@@ -212,6 +224,55 @@ class UserPwdViewSet(APIBaseViewSet):
             raise ValidationError(detail={"device_identifier": ["The device identifier does not exist"]})
         return Response(status=status.HTTP_200_OK, data={"success": True})
 
+    def _create_master_pwd_cipher(self, cipher_data):
+        try:
+            new_cipher = self.cipher_service.create_cipher(
+                user=self.request.user, cipher_data=cipher_data, check_plan=False
+            )
+            return new_cipher
+        except FolderDoesNotExistException:
+            raise ValidationError(detail={"folderId": ["This folder does not exist"]})
+        except TeamDoesNotExistException:
+            raise ValidationError(detail={"organizationId": [
+                "This team does not exist", "Team này không tồn tại"
+            ]})
+        except TeamLockedException:
+            raise ValidationError({"non_field_errors": [gen_error("3003")]})
+        except CollectionDoesNotExistException as e:
+            raise ValidationError(detail={
+                "collectionIds": ["The team collection id {} does not exist".format(e.collection_id)]
+            })
+        except CipherMaximumReachedException:
+            raise ValidationError(detail={"non_field_errors": [gen_error("5002")]})
+
+    def _update_master_pwd_cipher(self, master_pwd_item_obj, cipher_data):
+        try:
+            return self.cipher_service.update_cipher(
+                cipher=master_pwd_item_obj, user=self.request.user, cipher_data=cipher_data,
+            )
+        except FolderDoesNotExistException:
+            raise ValidationError(detail={"folderId": ["This folder does not exist"]})
+        except TeamDoesNotExistException:
+            raise ValidationError(detail={"organizationId": [
+                "This team does not exist", "Team này không tồn tại"
+            ]})
+        except TeamLockedException:
+            raise ValidationError({"non_field_errors": [gen_error("3003")]})
+        except CollectionCannotRemoveException as e:
+            raise ValidationError(detail={"collectionIds": [
+                f"You can not remove collection {e.collection_id}"
+            ]})
+        except CollectionCannotAddException as e:
+            raise ValidationError(detail={"collectionIds": [
+                f"You can not add collection {e.collection_id}"
+            ]})
+        except OnlyAllowOwnerUpdateException:
+            raise ValidationError(detail={
+                "organizationId": ["You must be owner of the item to change this field"]
+            })
+        except CipherMaximumReachedException:
+            raise ValidationError(detail={"non_field_errors": [gen_error("5002")]})
+
     @action(methods=["post"], detail=False)
     def password(self, request, *args, **kwargs):
         user = self.request.user
@@ -220,76 +281,60 @@ class UserPwdViewSet(APIBaseViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
+        master_password_hash = validated_data.get("master_password_hash")
         new_master_password_hash = validated_data.get("new_master_password_hash")
         new_master_password_hint = validated_data.get("new_master_password_hint", user.master_password_hint)
         key = validated_data.get("key")
         score = validated_data.get("score", user.master_password_score)
         login_method = validated_data.get("login_method", user.login_method)
 
+        try:
+            decoded_token = self.auth_service.decode_token(request.auth, secret=settings.SECRET_KEY)
+            sso_token_id = decoded_token.get("sso_token_id") if decoded_token else None
+            result = self.user_service.change_master_password(
+                user=user, key=key, master_password_hash=master_password_hash,
+                new_master_password_hash=new_master_password_hash,
+                new_master_password_hint=new_master_password_hint,
+                score=score, login_method=login_method,
+                current_sso_token_id=sso_token_id
+            )
+        except UserAuthFailedPasswordlessRequiredException:
+            raise ValidationError(detail={"login_method": ["Your enterprise requires passwordless method"]})
+        except UserAuthFailedException:
+            raise ValidationError(detail={"master_password_hash": ["The master password is not correct"]})
+
         # Update the master password cipher
         master_password_cipher = request.data.get("master_password_cipher")
-
-
-        master_pwd_item_obj = user.created_ciphers.filter(type=CIPHER_TYPE_MASTER_PASSWORD).first()
-
+        master_pwd_item_obj = self.cipher_service.get_master_pwd_item(user_id=user.user_id)
         if master_password_cipher:
             if not master_pwd_item_obj:
-                # Create master password item
-                self.serializer_class = VaultItemSerializer
                 serializer = VaultItemSerializer(
                     data=master_password_cipher, **{"context": self.get_serializer_context()}
                 )
                 serializer.is_valid(raise_exception=True)
-                team = serializer.validated_data.get("team")
-                cipher_detail = serializer.save(**{"check_plan": False})
-                cipher_detail.pop("team", None)
+                cipher_detail = serializer.save()
                 cipher_detail = json.loads(json.dumps(cipher_detail))
-                new_cipher = self.cipher_repository.save_new_cipher(cipher_data=cipher_detail)
-                # Send sync message
-                PwdSync(event=SYNC_EVENT_CIPHER_UPDATE, user_ids=[request.user.user_id], team=team, add_all=True).send(
-                    data={"id": str(new_cipher.id)}
+                new_cipher = self._create_master_pwd_cipher(cipher_data=cipher_detail)
+                PwdSync(event=SYNC_EVENT_CIPHER_UPDATE, user_ids=[user.user_id]).send(
+                    data={"id": str(new_cipher.cipher_id)}
                 )
             else:
-                # Check permission
-                self.serializer_class = UpdateVaultItemSerializer
                 serializer = UpdateVaultItemSerializer(
                     data=master_password_cipher, **{"context": self.get_serializer_context()}
                 )
-                # serializer = self.get_serializer(data=master_password_cipher)
                 serializer.is_valid(raise_exception=True)
-                team = serializer.validated_data.get("team")
-                cipher_detail = serializer.save(**{"cipher": master_pwd_item_obj})
-                cipher_detail.pop("team", None)
+                serializer.is_valid(raise_exception=True)
+                cipher_detail = serializer.save()
                 cipher_detail = json.loads(json.dumps(cipher_detail))
-                master_password_cipher_obj = self.cipher_repository.save_update_cipher(
-                    cipher=master_pwd_item_obj, cipher_data=cipher_detail
+                master_password_cipher_obj = self._update_master_pwd_cipher(
+                    master_pwd_item_obj=master_pwd_item_obj, cipher_data=cipher_detail
                 )
-                PwdSync(event=SYNC_EVENT_CIPHER_UPDATE, user_ids=[request.user.user_id], team=team, add_all=True).send(
-                    data={"id": master_password_cipher_obj.id}
+                PwdSync(event=SYNC_EVENT_CIPHER_UPDATE, user_ids=[request.user.user_id]).send(
+                    data={"id": str(master_password_cipher_obj.cipher_id)}
                 )
 
-        self.user_repository.change_master_password_hash(
-            user=user, new_master_password_hash=new_master_password_hash, key=key, score=score,
-            login_method=login_method, new_master_password_hint=new_master_password_hint
-        )
-        # Revoke all sessions
-        exclude_sso_token_ids = None
-        client = None
-        if request.data.get("login_method"):
-            decoded_token = self.decode_token(request.auth)
-            sso_token_id = decoded_token.get("sso_token_id") if decoded_token else None
-            exclude_sso_token_ids = [sso_token_id] if sso_token_id else None
+        return Response(status=status.HTTP_200_OK, data=result)
 
-            exclude_device_access_token = DeviceAccessToken.objects.filter(
-                device__user=user, sso_token_id__in=exclude_sso_token_ids
-            ).order_by('-id').first()
-            client = exclude_device_access_token.device.client_id if exclude_device_access_token else None
-
-        self.user_repository.revoke_all_sessions(user=user, exclude_sso_token_ids=exclude_sso_token_ids)
-        mail_user_ids = NotificationSetting.get_user_mail(
-            category_id=NOTIFY_CHANGE_MASTER_PASSWORD, user_ids=[user.user_id]
-        )
-        return Response(status=200, data={
-            "notification": True if user.user_id in mail_user_ids else False,
-            "client": client
-        })
+    @action(methods=["post"], detail=False)
+    def new_password(self, request, *args, **kwargs):
+        return self.password(request, *args, **kwargs)

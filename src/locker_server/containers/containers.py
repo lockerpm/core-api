@@ -13,6 +13,8 @@ else:
 auth_service = ServiceFactory.auth_service()
 user_service = ServiceFactory.user_service()
 
+cipher_service = ServiceFactory.cipher_service()
+
 team_member_service = ServiceFactory.team_member_service()
 
 event_service = ServiceFactory.event_service()

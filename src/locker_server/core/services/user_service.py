@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
+from locker_server.core.entities.cipher.cipher import Cipher
 from locker_server.core.entities.enterprise.enterprise import Enterprise
 from locker_server.core.entities.user.device import Device
 from locker_server.core.entities.user.user import User
@@ -8,11 +9,13 @@ from locker_server.core.entities.user_plan.pm_user_plan import PMUserPlan
 from locker_server.core.exceptions.device_exception import DeviceDoesNotExistException
 from locker_server.core.exceptions.user_exception import *
 from locker_server.core.repositories.auth_repository import AuthRepository
+from locker_server.core.repositories.cipher_repository import CipherRepository
 from locker_server.core.repositories.device_access_token_repository import DeviceAccessTokenRepository
 from locker_server.core.repositories.device_repository import DeviceRepository
 from locker_server.core.repositories.enterprise_member_repository import EnterpriseMemberRepository
 from locker_server.core.repositories.enterprise_policy_repository import EnterprisePolicyRepository
 from locker_server.core.repositories.enterprise_repository import EnterpriseRepository
+from locker_server.core.repositories.notification_setting_repository import NotificationSettingRepository
 from locker_server.core.repositories.payment_repository import PaymentRepository
 from locker_server.core.repositories.plan_repository import PlanRepository
 from locker_server.core.repositories.team_member_repository import TeamMemberRepository
@@ -22,6 +25,7 @@ from locker_server.shared.constants.account import LOGIN_METHOD_PASSWORD
 from locker_server.shared.constants.enterprise_members import *
 from locker_server.shared.constants.event import EVENT_USER_LOGIN_FAILED, EVENT_USER_LOGIN, EVENT_USER_BLOCK_LOGIN
 from locker_server.shared.constants.transactions import *
+from locker_server.shared.constants.user_notification import NOTIFY_CHANGE_MASTER_PASSWORD
 from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
 from locker_server.shared.external_services.locker_background.constants import BG_NOTIFY, BG_EVENT
 from locker_server.shared.utils.app import secure_random_string, now
@@ -42,7 +46,8 @@ class UserService:
                  team_member_repository: TeamMemberRepository,
                  enterprise_repository: EnterpriseRepository,
                  enterprise_member_repository: EnterpriseMemberRepository,
-                 enterprise_policy_repository: EnterprisePolicyRepository):
+                 enterprise_policy_repository: EnterprisePolicyRepository,
+                 notification_setting_repository: NotificationSettingRepository):
         self.user_repository = user_repository
         self.auth_repository = auth_repository
         self.device_repository = device_repository
@@ -54,6 +59,7 @@ class UserService:
         self.enterprise_repository = enterprise_repository
         self.enterprise_member_repository = enterprise_member_repository
         self.enterprise_policy_repository = enterprise_policy_repository
+        self.notification_setting_repository = notification_setting_repository
 
     def get_current_plan(self, user: User) -> PMUserPlan:
         return self.user_plan_repository.get_user_plan(user_id=user.user_id)
@@ -393,9 +399,32 @@ class UserService:
 
     def change_master_password(self, user: User, key: str, master_password_hash: str, new_master_password_hash: str,
                                new_master_password_hint: str = None, score: float = None, login_method: str = None,
-                               master_password_cipher=None):
-        if self.auth_repository.check_master_password(user=user, raw_password=master_password_hash) is False:
-            raise UserAuthFailedException
+                               current_sso_token_id: str = None):
+        if master_password_hash:
+            if self.auth_repository.check_master_password(user=user, raw_password=master_password_hash) is False:
+                raise UserAuthFailedException
         if login_method and login_method == LOGIN_METHOD_PASSWORD and \
                 self.is_require_passwordless(user_id=user.user_id) is True:
             raise UserAuthFailedPasswordlessRequiredException
+        self.user_repository.change_master_password(
+            user=user, new_master_password_hash=new_master_password_hash,
+            new_master_password_hint=new_master_password_hint,
+            key=key, score=score, login_method=login_method
+        )
+        exclude_sso_token_ids = None
+        client = None
+        if login_method:
+            exclude_sso_token_ids = [current_sso_token_id] if current_sso_token_id else None
+            exclude_device_access_token = self.device_access_token_repository.get_first_device_access_token_by_sso_ids(
+                user_id=user.user_id, sso_token_ids=exclude_sso_token_ids
+            )
+            client = exclude_device_access_token.device.client_id if exclude_device_access_token else None
+        self.user_repository.revoke_all_sessions(user=user, exclude_sso_token_ids=exclude_sso_token_ids)
+        mail_user_ids = self.notification_setting_repository.get_user_mail(
+            category_id=NOTIFY_CHANGE_MASTER_PASSWORD, user_ids=[user.user_id]
+        )
+        return {
+            "notification": True if user.user_id in mail_user_ids else False,
+            "client": client
+        }
+

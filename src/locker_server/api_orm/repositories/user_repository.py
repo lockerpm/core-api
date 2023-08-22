@@ -5,7 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models import UserScoreORM
 from locker_server.api_orm.models.wrapper import get_user_model, get_enterprise_member_model, get_enterprise_model, \
-    get_event_model, get_cipher_model
+    get_event_model, get_cipher_model, get_device_access_token_model
 from locker_server.core.entities.user.user import User
 from locker_server.core.repositories.user_repository import UserRepository
 from locker_server.shared.constants.account import ACCOUNT_TYPE_ENTERPRISE, ACCOUNT_TYPE_PERSONAL
@@ -17,6 +17,7 @@ from locker_server.shared.constants.policy import POLICY_TYPE_PASSWORDLESS, POLI
 from locker_server.shared.utils.app import now, start_end_month_current
 
 UserORM = get_user_model()
+DeviceAccessTokenORM = get_device_access_token_model()
 CipherORM = get_cipher_model()
 EnterpriseORM = get_enterprise_model()
 EnterpriseMemberORM = get_enterprise_member_model()
@@ -159,5 +160,25 @@ class UserORMRepository(UserRepository):
         user_orm.save()
         return ModelParser.user_parser().parse_user(user_orm=user_orm)
 
-    # ------------------------ Delete User resource --------------------- #
+    def change_master_password(self, user: User, new_master_password_hash: str, new_master_password_hint: str = None,
+                               key: str = None, score=None, login_method: str = None):
+        try:
+            user_orm = UserORM.objects.get(user_id=user.user_id)
+        except UserORM.DoesNotExist:
+            return None
+        user_orm.set_master_password(new_master_password_hash)
+        user_orm.key = key or user_orm.key
+        user_orm.master_password_hint = new_master_password_hint or user.master_password_hint
+        if score:
+            user_orm.master_password_score = score
+        if login_method:
+            user_orm.login_method = login_method
+        user_orm.save()
 
+    # ------------------------ Delete User resource --------------------- #
+    def revoke_all_sessions(self, user: User, exclude_sso_token_ids=None) -> User:
+        device_access_tokens = DeviceAccessTokenORM.objects.filter(device__user_id=user.user_id)
+        if exclude_sso_token_ids:
+            device_access_tokens = device_access_tokens.exclude(sso_token_id__in=exclude_sso_token_ids)
+        device_access_tokens.delete()
+        return user

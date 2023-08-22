@@ -14,6 +14,7 @@ from locker_server.core.entities.user.user import User
 from locker_server.core.entities.user_plan.pm_user_plan import PMUserPlan
 from locker_server.core.exceptions.payment_exception import PaymentMethodNotSupportException
 from locker_server.core.repositories.user_plan_repository import UserPlanRepository
+from locker_server.shared.constants.ciphers import *
 from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_PRIMARY_ADMIN, E_MEMBER_STATUS_CONFIRMED
 from locker_server.shared.constants.transactions import *
 from locker_server.shared.external_services.payment_method.payment_method_factory import PaymentMethodFactory
@@ -139,6 +140,36 @@ class UserPlanORMRepository(UserPlanRepository):
             default_enterprise_orm = multiple_default_enterprises_orm.first().team
             multiple_default_enterprises_orm.exclude(enterprise_id=default_enterprise_orm.id).delete()
         return ModelParser.enterprise_parser().parse_enterprise(enterprise_orm=default_enterprise_orm)
+
+    def get_max_allow_cipher_type(self, user: User) -> Dict:
+        user_orm = self._get_user_orm(user_id=user.user_id)
+        user_enterprise_ids = user_orm.enterprise_members.filter(
+            status=E_MEMBER_STATUS_CONFIRMED, is_activated=True,
+            enterprise__locked=False
+        ).values_list('enterprise_id', flat=True)
+        primary_admins = EnterpriseMemberORM.objects.filter(enterprise_id__in=list(user_enterprise_ids)).filter(
+            role_id=E_MEMBER_ROLE_PRIMARY_ADMIN
+        ).values_list('user_id', flat=True)
+        personal_plans_orm = PMUserPlanORM.objects.filter(
+            user_id__in=list(primary_admins) + [user.user_id]
+        ).select_related('pm_plan')
+        cipher_limits = PMPlanORM.objects.filter(id__in=personal_plans_orm.values_list('pm_plan_id')).values(
+            'limit_password', 'limit_secure_note', 'limit_identity', 'limit_payment_card', 'limit_crypto_asset'
+        )
+        limit_password = [cipher_limit.get("limit_password") for cipher_limit in cipher_limits]
+        limit_secure_note = [cipher_limit.get("limit_secure_note") for cipher_limit in cipher_limits]
+        limit_identity = [cipher_limit.get("limit_identity") for cipher_limit in cipher_limits]
+        limit_payment_card = [cipher_limit.get("limit_payment_card") for cipher_limit in cipher_limits]
+        limit_crypto_asset = [cipher_limit.get("limit_crypto_asset") for cipher_limit in cipher_limits]
+        return {
+            CIPHER_TYPE_LOGIN: None if None in limit_password else max(limit_password),
+            CIPHER_TYPE_NOTE: None if None in limit_secure_note else max(limit_secure_note),
+            CIPHER_TYPE_IDENTITY: None if None in limit_identity else max(limit_identity),
+            CIPHER_TYPE_CARD: None if None in limit_payment_card else max(limit_payment_card),
+            CIPHER_TYPE_CRYPTO_ACCOUNT: None if None in limit_crypto_asset else max(limit_crypto_asset),
+            CIPHER_TYPE_CRYPTO_WALLET: None if None in limit_crypto_asset else max(limit_crypto_asset),
+            CIPHER_TYPE_TOTP: None
+        }
 
     # ------------------------ Create PMUserPlan resource --------------------- #
     def add_to_family_sharing(self, family_user_plan_id: int, user_id: int = None,

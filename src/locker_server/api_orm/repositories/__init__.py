@@ -8,6 +8,9 @@ from .payment_repository import PaymentORMRepository
 from .device_repository import DeviceORMRepository
 from .device_access_token_repository import DeviceAccessTokenORMRepository
 
+from .cipher_repository import CipherORMRepository
+
+from .team_repository import TeamORMRepository
 from .team_member_repository import TeamMemberORMRepository
 
 
@@ -16,3 +19,7 @@ from .enterprise_member_repository import EnterpriseMemberORMRepository
 from .enterprise_policy_repository import EnterprisePolicyORMRepository
 
 from .event_repository import EventORMRepository
+
+
+from .notification_category_repository import NotificationCategoryORMRepository
+from .notification_setting_repository import NotificationSettingORMRepository
