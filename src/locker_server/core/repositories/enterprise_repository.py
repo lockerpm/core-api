@@ -18,3 +18,10 @@ class EnterpriseRepository(ABC):
     # ------------------------ Update Enterprise resource --------------------- #
 
     # ------------------------ Delete EnterpriseMember resource --------------------- #
+    @abstractmethod
+    def delete_completely(self, enterprise: Enterprise):
+        pass
+
+    @abstractmethod
+    def clear_data(self, enterprise: Enterprise):
+        pass

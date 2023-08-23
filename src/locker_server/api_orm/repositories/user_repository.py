@@ -1,11 +1,13 @@
 from typing import Union, Dict, Optional, Tuple
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Subquery, OuterRef
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models import UserScoreORM
 from locker_server.api_orm.models.wrapper import get_user_model, get_enterprise_member_model, get_enterprise_model, \
-    get_event_model, get_cipher_model, get_device_access_token_model
+    get_event_model, get_cipher_model, get_device_access_token_model, get_team_model, get_team_member_model
+from locker_server.api_orm.utils.revision_date import bump_account_revision_date
 from locker_server.core.entities.user.user import User
 from locker_server.core.repositories.user_repository import UserRepository
 from locker_server.shared.constants.account import ACCOUNT_TYPE_ENTERPRISE, ACCOUNT_TYPE_PERSONAL
@@ -13,10 +15,13 @@ from locker_server.shared.constants.ciphers import CIPHER_TYPE_MASTER_PASSWORD
 from locker_server.shared.constants.enterprise_members import E_MEMBER_STATUS_CONFIRMED, E_MEMBER_ROLE_PRIMARY_ADMIN, \
     E_MEMBER_ROLE_ADMIN
 from locker_server.shared.constants.event import EVENT_USER_BLOCK_LOGIN
+from locker_server.shared.constants.members import MEMBER_ROLE_OWNER
 from locker_server.shared.constants.policy import POLICY_TYPE_PASSWORDLESS, POLICY_TYPE_2FA
 from locker_server.shared.utils.app import now, start_end_month_current
 
 UserORM = get_user_model()
+TeamORM = get_team_model()
+TeamMemberORM = get_team_member_model()
 DeviceAccessTokenORM = get_device_access_token_model()
 CipherORM = get_cipher_model()
 EnterpriseORM = get_enterprise_model()
@@ -176,6 +181,60 @@ class UserORMRepository(UserRepository):
         user_orm.save()
 
     # ------------------------ Delete User resource --------------------- #
+    def purge_account(self, user: User):
+        try:
+            user_orm = UserORM.objects.get(user_id=user.user_id)
+        except UserORM.DoesNotExist:
+            return None
+        # Delete all their folders
+        user_orm.folders.all().delete()
+        # Delete all personal ciphers
+        user_orm.ciphers.all().delete()
+        # Delete all team ciphers
+        owners_orm = user_orm.team_members.filter(role_id=MEMBER_ROLE_OWNER, team__personal_share=True)
+        team_ids = owners_orm.values_list('team_id', flat=True)
+        other_members_orm = TeamMemberORM.objects.filter(
+            team_id__in=team_ids, is_primary=False, team_id=OuterRef('team_id')
+        ).order_by('id')
+        shared_ciphers_orm = CipherORM.objects.filter(team_id__in=team_ids)
+        shared_ciphers_members_orm = shared_ciphers_orm.annotate(
+            shared_member=Subquery(other_members_orm.values('user_id')[:1])
+        ).exclude(shared_member__isnull=True).values('id', 'shared_member')
+        shared_ciphers_orm.delete()
+        TeamORM.objects.filter(id__in=team_ids).delete()
+        # Bump revision date
+        bump_account_revision_date(user=user_orm)
+        return list(shared_ciphers_members_orm)
+
+    def delete_account(self, user: User):
+        try:
+            user_orm = UserORM.objects.get(user_id=user.user_id)
+        except UserORM.DoesNotExist:
+            return None
+
+        # Then, delete related data: device sessions, folders, ciphers
+        user_orm.user_devices.all().delete()
+        user_orm.folders.all().delete()
+        user_orm.ciphers.all().delete()
+        user_orm.exclude_domains.all().delete()
+
+        # We only soft-delete this user. The plan of user is still available (but it will be canceled at the end period)
+        # If user registers again, the data is deleted but the plan is still available.
+        # User must restart the plan manually. Otherwise, the plan is still removed at the end period
+        user_orm.revision_date = None
+        user_orm.activated = False
+        user_orm.account_revision_date = None
+        user_orm.delete_account_date = now()
+        user_orm.master_password = None
+        user_orm.master_password_hint = None
+        user_orm.master_password_score = 0
+        user_orm.security_stamp = None
+        user_orm.key = None
+        user_orm.public_key = None
+        user_orm.private_key = None
+        user_orm.save()
+
+
     def revoke_all_sessions(self, user: User, exclude_sso_token_ids=None) -> User:
         device_access_tokens = DeviceAccessTokenORM.objects.filter(device__user_id=user.user_id)
         if exclude_sso_token_ids:

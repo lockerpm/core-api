@@ -23,7 +23,8 @@ from locker_server.shared.error_responses.error import refer_error, gen_error
 from locker_server.api.v1_0.ciphers.serializers import VaultItemSerializer, UpdateVaultItemSerializer
 from locker_server.shared.external_services.pm_sync import PwdSync, SYNC_EVENT_CIPHER_UPDATE
 from .serializers import UserMeSerializer, UserUpdateMeSerializer, UserRegisterSerializer, UserSessionSerializer, \
-    DeviceFcmSerializer, UserChangePasswordSerializer, UserNewPasswordSerializer
+    DeviceFcmSerializer, UserChangePasswordSerializer, UserNewPasswordSerializer, UserCheckPasswordSerializer, \
+    UserMasterPasswordHashSerializer
 
 
 class UserPwdViewSet(APIBaseViewSet):
@@ -50,6 +51,10 @@ class UserPwdViewSet(APIBaseViewSet):
             self.serializer_class = UserChangePasswordSerializer
         elif self.action == "new_password":
             self.serializer_class = UserNewPasswordSerializer
+        elif self.action == "check_password":
+            self.serializer_class = UserCheckPasswordSerializer
+        elif self.action in ["delete_me", "purge_me", "revoke_all_sessions"]:
+            self.serializer_class = UserMasterPasswordHashSerializer
         return super().get_serializer_class()
 
     @action(methods=["post"], detail=False)
@@ -338,3 +343,61 @@ class UserPwdViewSet(APIBaseViewSet):
     @action(methods=["post"], detail=False)
     def new_password(self, request, *args, **kwargs):
         return self.password(request, *args, **kwargs)
+
+    @action(methods=["post"], detail=False)
+    def check_password(self, request, *args, **kwargs):
+        user = self.request.user
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        master_password_hash = serializer.validated_data.get("master_password_hash")
+        valid = self.user_service.check_master_password(user=user, master_password_hash=master_password_hash)
+        return Response(status=200, data={"valid": valid})
+
+    @action(methods=["post"], detail=False)
+    def password_hint(self, request, *args, **kwargs):
+        user_id = request.data.get("user_id")
+        try:
+            user = self.user_service.retrieve_by_id(user_id=user_id)
+            if user.activated is False:
+                raise ValidationError(detail={"email": ["There’s no account associated with this email"]})
+        except UserDoesNotExistException:
+            raise ValidationError(detail={"email": ["There’s no account associated with this email"]})
+        master_password_hint = user.master_password_hint
+        return Response(status=200, data={"master_password_hint": master_password_hint})
+
+    @action(methods=["post"], detail=False)
+    def revoke_all_sessions(self, request, *args, **kwargs):
+        user = self.request.user
+        self.check_pwd_session_auth(request=request)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        master_password_hash = serializer.validated_data.get("master_password_hash")
+        if not self.user_service.check_master_password(user=user, master_password_hash=master_password_hash):
+            raise ValidationError(detail={"master_password_hash": ["The master password is not correct"]})
+        self.user_service.revoke_all_sessions(user)
+        return Response(status=200, data={"success": True})
+
+    @action(methods=["post"], detail=False)
+    def delete_me(self, request, *args, **kwargs):
+        user = self.request.user
+        self.check_pwd_session_auth(request=request)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        master_password_hash = serializer.validated_data.get("master_password_hash")
+        if not self.user_service.check_master_password(user=user, master_password_hash=master_password_hash):
+            raise ValidationError(detail={"master_password_hash": ["The master password is not correct"]})
+        self.user_service.delete_locker_user(user=user)
+        return Response(status=200, data={"success": True})
+
+    @action(methods=["post"], detail=False)
+    def purge_me(self, request, *args, **kwargs):
+        user = self.request.user
+        self.check_pwd_session_auth(request=request)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        master_password_hash = serializer.validated_data.get("master_password_hash")
+        if not self.user_service.check_master_password(user=user, master_password_hash=master_password_hash):
+            raise ValidationError(detail={"master_password_hash": ["The master password is not correct"]})
+        notification = self.user_service.purge_user(user=user)
+        return Response(status=200, data=notification)
+

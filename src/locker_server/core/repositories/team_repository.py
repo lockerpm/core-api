@@ -10,6 +10,10 @@ class TeamRepository(ABC):
     def list_team_collection_ids(self, team_id: str) -> List[str]:
         pass
 
+    @abstractmethod
+    def list_owner_sharing_ids(self, user_id: int) -> List[str]:
+        pass
+
     # ------------------------ Get Team resource --------------------- #
     @abstractmethod
     def get_default_collection(self, team_id: str) -> Optional[Collection]:
@@ -20,4 +24,10 @@ class TeamRepository(ABC):
     # ------------------------ Update Team resource --------------------- #
 
     # ------------------------ Delete Team resource --------------------- #
+    @abstractmethod
+    def delete_multiple_teams(self, team_ids: List[str]):
+        pass
 
+    @abstractmethod
+    def delete_sharing_with_me(self, user_id: int):
+        pass

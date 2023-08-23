@@ -2,7 +2,8 @@ from typing import Union, Dict, Optional, List
 from abc import ABC, abstractmethod
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
-from locker_server.api_orm.models.wrapper import get_cipher_model, get_folder_model, get_collection_cipher_model
+from locker_server.api_orm.models.wrapper import get_cipher_model, get_folder_model, get_collection_cipher_model, \
+    get_team_model
 from locker_server.api_orm.utils.revision_date import bump_account_revision_date
 from locker_server.core.entities.cipher.cipher import Cipher
 from locker_server.core.entities.cipher.folder import Folder
@@ -13,6 +14,8 @@ from locker_server.shared.constants.ciphers import CIPHER_TYPE_MASTER_PASSWORD
 from locker_server.shared.constants.members import MEMBER_ROLE_OWNER, MEMBER_ROLE_ADMIN
 from locker_server.shared.utils.app import now, diff_list
 
+
+TeamORM = get_team_model()
 CipherORM = get_cipher_model()
 CollectionCipherORM = get_collection_cipher_model()
 FolderORM = get_folder_model()
@@ -130,7 +133,7 @@ class CipherORMRepository(CipherRepository):
             removed_collection_ids = diff_list(existed_collection_ids, collection_ids)
             added_collection_ids = diff_list(collection_ids, existed_collection_ids)
             cipher_orm.collections_ciphers.filter(collection_id__in=removed_collection_ids).delete()
-            cipher_orm.collections_ciphers.model.create_multiple(cipher.id, *added_collection_ids)
+            cipher_orm.collections_ciphers.model.create_multiple(cipher_orm.id, *added_collection_ids)
         else:
             cipher_orm.collections_ciphers.all().delete()
 
@@ -145,3 +148,13 @@ class CipherORMRepository(CipherRepository):
         return ModelParser.cipher_parser().parse_cipher(cipher_orm=cipher_orm)
 
     # ------------------------ Delete Cipher resource --------------------- #
+    def delete_permanent_multiple_cipher_by_teams(self, team_ids):
+        """
+        Delete permanently ciphers by team ids
+        :param team_ids:
+        :return:
+        """
+        teams_orm = TeamORM.objects.filter(id__in=team_ids)
+        CipherORM.objects.filter(team_id__in=team_ids).delete()
+        for team_orm in teams_orm:
+            bump_account_revision_date(team=team_orm)

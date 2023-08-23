@@ -1,7 +1,6 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
-from locker_server.core.entities.cipher.cipher import Cipher
 from locker_server.core.entities.enterprise.enterprise import Enterprise
 from locker_server.core.entities.user.device import Device
 from locker_server.core.entities.user.user import User
@@ -19,15 +18,17 @@ from locker_server.core.repositories.notification_setting_repository import Noti
 from locker_server.core.repositories.payment_repository import PaymentRepository
 from locker_server.core.repositories.plan_repository import PlanRepository
 from locker_server.core.repositories.team_member_repository import TeamMemberRepository
+from locker_server.core.repositories.team_repository import TeamRepository
 from locker_server.core.repositories.user_plan_repository import UserPlanRepository
 from locker_server.core.repositories.user_repository import UserRepository
 from locker_server.shared.constants.account import LOGIN_METHOD_PASSWORD
 from locker_server.shared.constants.enterprise_members import *
 from locker_server.shared.constants.event import EVENT_USER_LOGIN_FAILED, EVENT_USER_LOGIN, EVENT_USER_BLOCK_LOGIN
 from locker_server.shared.constants.transactions import *
-from locker_server.shared.constants.user_notification import NOTIFY_CHANGE_MASTER_PASSWORD
+from locker_server.shared.constants.user_notification import NOTIFY_CHANGE_MASTER_PASSWORD, NOTIFY_SHARING
 from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
 from locker_server.shared.external_services.locker_background.constants import BG_NOTIFY, BG_EVENT
+from locker_server.shared.external_services.pm_sync import SYNC_EVENT_MEMBER_UPDATE, PwdSync, SYNC_EVENT_VAULT
 from locker_server.shared.utils.app import secure_random_string, now
 from locker_server.shared.utils.network import detect_device
 
@@ -43,7 +44,9 @@ class UserService:
                  device_access_token_repository: DeviceAccessTokenRepository,
                  user_plan_repository: UserPlanRepository,
                  payment_repository: PaymentRepository, plan_repository: PlanRepository,
+                 team_repository: TeamRepository,
                  team_member_repository: TeamMemberRepository,
+                 cipher_repository: CipherRepository,
                  enterprise_repository: EnterpriseRepository,
                  enterprise_member_repository: EnterpriseMemberRepository,
                  enterprise_policy_repository: EnterprisePolicyRepository,
@@ -55,7 +58,9 @@ class UserService:
         self.user_plan_repository = user_plan_repository
         self.payment_repository = payment_repository
         self.plan_repository = plan_repository
+        self.team_repository = team_repository
         self.team_member_repository = team_member_repository
+        self.cipher_repository = cipher_repository
         self.enterprise_repository = enterprise_repository
         self.enterprise_member_repository = enterprise_member_repository
         self.enterprise_policy_repository = enterprise_policy_repository
@@ -428,3 +433,42 @@ class UserService:
             "client": client
         }
 
+    def check_master_password(self, user: User, master_password_hash: str) -> bool:
+        try:
+            return self.auth_repository.check_master_password(user=user, raw_password=master_password_hash)
+        except TypeError:
+            return False
+
+    def revoke_all_sessions(self, user: User, exclude_sso_token_ids: List[str]):
+        self.user_repository.revoke_all_sessions(user=user, exclude_sso_token_ids=exclude_sso_token_ids)
+
+    def delete_locker_user(self, user: User):
+        # Check if user is the owner of the enterprise
+        default_enterprise = self.get_default_enterprise(user_id=user.user_id)
+        # Clear data of the default enterprise
+        if default_enterprise:
+            self.enterprise_repository.delete_completely(enterprise=default_enterprise)
+
+        # Remove all user's share teams
+        personal_sharing_ids = self.team_repository.list_owner_sharing_ids(user_id=user.user_id)
+        self.cipher_repository.delete_permanent_multiple_cipher_by_teams(team_ids=personal_sharing_ids)
+        self.team_repository.delete_multiple_teams(team_ids=personal_sharing_ids)
+
+        # Delete sharing with me
+        owners_share_with_me = self.team_repository.delete_sharing_with_me(user_id=user.user_id)
+        PwdSync(event=SYNC_EVENT_MEMBER_UPDATE, user_ids=owners_share_with_me).send()
+
+        # Deactivated this account and cancel the current plan immediately
+        self.user_plan_repository.cancel_plan(user=user, immediately=True)
+        self.user_repository.delete_account(user)
+
+    def purge_user(self, user: User):
+        shared_ciphers_members = self.user_repository.purge_account(user=user)
+        shared_member_user_ids = [cipher_member.get("shared_member") for cipher_member in shared_ciphers_members]
+        PwdSync(event=SYNC_EVENT_VAULT, user_ids=[user.user_id] + shared_member_user_ids).send()
+
+        notification_user_ids = self.notification_setting_repository.get_user_notification(
+            category_id=NOTIFY_SHARING, user_ids=shared_member_user_ids
+        )
+        notification = [c for c in shared_ciphers_members if c.get("shared_member") in notification_user_ids]
+        return notification

@@ -49,4 +49,7 @@ class UserPlanRepository(ABC):
         pass
 
     # ------------------------ Delete PMUserPlan resource --------------------- #
+    @abstractmethod
+    def cancel_plan(self, user: User, immediately=False, **kwargs):
+        pass
 

@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_user_model, get_enterprise_domain_model, \
-    get_enterprise_member_model, get_enterprise_group_member_model, get_enterprise_model
+    get_enterprise_member_model, get_enterprise_group_member_model, get_enterprise_model, get_event_model
 from locker_server.core.entities.enterprise.enterprise import Enterprise
 from locker_server.core.entities.user.user import User
 from locker_server.core.repositories.enterprise_member_repository import EnterpriseMemberRepository
@@ -22,6 +22,7 @@ EnterpriseGroupMemberORM = get_enterprise_group_member_model()
 # EnterpriseMemberRoleORM = get_enterprise_member_role_model()
 # EnterpriseMemberORM = get_enterprise_member_model()
 EnterpriseORM = get_enterprise_model()
+EventORM = get_event_model()
 ModelParser = get_model_parser()
 
 
@@ -31,6 +32,13 @@ class EnterpriseORMRepository(EnterpriseRepository):
         try:
             return UserORM.objects.get(id=user_id)
         except UserORM.DoesNotExist:
+            return None
+
+    @staticmethod
+    def _get_enterprise_orm(enterprise_id: str) -> Optional[UserORM]:
+        try:
+            return EnterpriseORM.objects.get(id=enterprise_id)
+        except EnterpriseORM.DoesNotExist:
             return None
 
     # ------------------------ List Enterprise resource ------------------- #
@@ -54,4 +62,21 @@ class EnterpriseORMRepository(EnterpriseRepository):
     # ------------------------ Update Enterprise resource --------------------- #
 
     # ------------------------ Delete Enterprise resource --------------------- #
+    def delete_completely(self, enterprise: Enterprise):
+        enterprise_id = enterprise.enterprise_id
+        self.clear_data(enterprise=enterprise)
+        try:
+            EnterpriseORM.objects.get(id=enterprise_id).delete()
+        except EnterpriseORM.DoesNotExist:
+            pass
+        # Delete all events
+        EventORM.objects.filter(team_id=enterprise_id).delete()
 
+    def clear_data(self, enterprise: Enterprise):
+        enterprise_orm = self._get_enterprise_orm(enterprise_id=enterprise.enterprise_id)
+        enterprise_orm.enterprise_members.order_by('id').delete()
+        enterprise_orm.policies.order_by('id').delete()
+        enterprise_orm.domains.all().order_by('id').delete()
+        groups_orm = enterprise_orm.groups.order_by('id')
+        for group_orm in groups_orm:
+            group_orm.full_delete()

@@ -60,5 +60,13 @@ class UserRepository(ABC):
 
     # ------------------------ Delete User resource --------------------- #
     @abstractmethod
+    def purge_account(self, user: User):
+        pass
+
+    @abstractmethod
+    def delete_account(self, user: User):
+        pass
+
+    @abstractmethod
     def revoke_all_sessions(self, user: User, exclude_sso_token_ids=None) -> User:
         pass

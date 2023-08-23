@@ -1,6 +1,5 @@
 import ast
-from typing import Union, Dict, Optional
-from abc import ABC, abstractmethod
+from typing import Dict, Optional
 
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned
@@ -20,6 +19,7 @@ from locker_server.shared.constants.transactions import *
 from locker_server.shared.external_services.payment_method.payment_method_factory import PaymentMethodFactory
 from locker_server.shared.log.cylog import CyLog
 from locker_server.shared.utils.app import now
+
 
 UserORM = get_user_model()
 PMPlanORM = get_plan_model()
@@ -89,7 +89,9 @@ class UserPlanORMRepository(UserPlanRepository):
         return user_plan_orm
 
     def __create_enterprise(self, user_id, enterprise_name):
-        enterprise = self.get_default_enterprise(user_id=user_id, enterprise_name=enterprise_name, create_if_not_exist=True)
+        enterprise = self.get_default_enterprise(
+            user_id=user_id, enterprise_name=enterprise_name, create_if_not_exist=True
+        )
         return enterprise
 
     def __create_default_enterprise_orm(self, user_id: int, enterprise_name: str) -> EnterpriseORM:
@@ -365,4 +367,20 @@ class UserPlanORMRepository(UserPlanRepository):
         return user
 
     # ------------------------ Delete PMUserPlan resource --------------------- #
-
+    def cancel_plan(self, user: User, immediately=False, **kwargs):
+        current_plan = self.get_user_plan(user_id=user.user_id)
+        pm_plan_alias = current_plan.pm_plan.alias
+        if pm_plan_alias == PLAN_TYPE_PM_FREE:
+            return
+        stripe_subscription = current_plan.get_stripe_subscription()
+        payment_method = PAYMENT_METHOD_CARD if stripe_subscription else PAYMENT_METHOD_WALLET
+        if immediately is False:
+            end_time = PaymentMethodFactory.get_method(
+                user_plan=current_plan, scope=settings.SCOPE_PWD_MANAGER, payment_method=payment_method
+            ).cancel_recurring_subscription(**kwargs)
+        else:
+            PaymentMethodFactory.get_method(
+                user_plan=current_plan, scope=settings.SCOPE_PWD_MANAGER, payment_method=payment_method
+            ).cancel_immediately_recurring_subscription()
+            end_time = now()
+        return end_time

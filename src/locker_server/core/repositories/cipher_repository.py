@@ -28,11 +28,16 @@ class CipherRepository(ABC):
         pass
 
     # ------------------------ Create Cipher resource --------------------- #
+    @abstractmethod
     def create_cipher(self, cipher_data: Dict) -> Cipher:
         pass
 
     # ------------------------ Update Cipher resource --------------------- #
+    @abstractmethod
     def update_cipher(self, cipher_id: str, cipher_data: Dict) -> Cipher:
         pass
 
     # ------------------------ Delete Cipher resource --------------------- #
+    @abstractmethod
+    def delete_permanent_multiple_cipher_by_teams(self, team_ids):
+        pass
