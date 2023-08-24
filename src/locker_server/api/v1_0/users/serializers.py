@@ -116,3 +116,56 @@ class UserCheckPasswordSerializer(serializers.Serializer):
 
 class UserMasterPasswordHashSerializer(serializers.Serializer):
     master_password_hash = serializers.CharField()
+
+
+class UpdateOnboardingProcessSerializer(serializers.Serializer):
+    vault_to_dashboard = serializers.BooleanField(required=False)
+    welcome = serializers.BooleanField(required=False)
+    tutorial = serializers.BooleanField(required=False)
+    tutorial_process = serializers.ListField(
+        child=serializers.CharField(max_length=128), required=False, allow_empty=True, max_length=16
+    )
+    enterprise_onboarding = serializers.ListField(
+        child=serializers.IntegerField(), required=False, max_length=10
+    )
+    enterprise_onboarding_skip = serializers.BooleanField(required=False)
+
+    def validate(self, data):
+        enterprise_onboarding = data.get("enterprise_onboarding")
+        if enterprise_onboarding:
+            if len([e for e in enterprise_onboarding if e > 10]) > 0:
+                raise serializers.ValidationError(detail={
+                    "enterprise_onboarding": ["The enterprise onboarding is not valid"]
+                })
+        return data
+
+
+class UserPwdInvitationSerializer(serializers.Serializer):
+    def to_representation(self, instance):
+        data = {
+            "id": instance.team_member_id,
+            "access_time": instance.access_time,
+            "role": instance.role.name,
+            "status": instance.status,
+            "team": {
+                "id": instance.team.team_id,
+                "organization_id": instance.team.team_id,
+                "name": instance.team.name
+            }
+        }
+        return data
+
+
+class UserDeviceSerializer(serializers.Serializer):
+    def to_representation(self, instance):
+        data = {
+            "client_id": instance.client_id,
+            "device_name": instance.device_name,
+            "device_type": instance.device_type,
+            "device_identifier": instance.device_identifier,
+            "last_login": instance.last_login,
+            "os": instance.os,
+            "browser": instance.browser,
+            "is_active": instance.is_active
+        }
+        return data

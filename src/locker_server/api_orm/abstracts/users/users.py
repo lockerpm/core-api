@@ -1,3 +1,4 @@
+import ast
 import uuid
 
 from django.contrib.auth.hashers import check_password, make_password
@@ -77,3 +78,9 @@ class AbstractUserORM(models.Model):
         if not self.master_password:
             return False
         return check_password(raw_password, self.master_password, setter)
+
+    def get_onboarding_process(self):
+        if not self.onboarding_process:
+            return DEFAULT_ONBOARDING_PROCESS
+        return ast.literal_eval(str(self.onboarding_process))
+

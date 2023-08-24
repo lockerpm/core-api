@@ -6,6 +6,7 @@ from locker_server.core.entities.user.device import Device
 from locker_server.core.entities.user.user import User
 from locker_server.core.entities.user_plan.pm_user_plan import PMUserPlan
 from locker_server.core.exceptions.device_exception import DeviceDoesNotExistException
+from locker_server.core.exceptions.team_member_exception import TeamMemberDoesNotExistException
 from locker_server.core.exceptions.user_exception import *
 from locker_server.core.repositories.auth_repository import AuthRepository
 from locker_server.core.repositories.cipher_repository import CipherRepository
@@ -24,11 +25,13 @@ from locker_server.core.repositories.user_repository import UserRepository
 from locker_server.shared.constants.account import LOGIN_METHOD_PASSWORD
 from locker_server.shared.constants.enterprise_members import *
 from locker_server.shared.constants.event import EVENT_USER_LOGIN_FAILED, EVENT_USER_LOGIN, EVENT_USER_BLOCK_LOGIN
+from locker_server.shared.constants.members import PM_MEMBER_STATUS_INVITED, PM_MEMBER_STATUS_ACCEPTED
 from locker_server.shared.constants.transactions import *
 from locker_server.shared.constants.user_notification import NOTIFY_CHANGE_MASTER_PASSWORD, NOTIFY_SHARING
 from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
 from locker_server.shared.external_services.locker_background.constants import BG_NOTIFY, BG_EVENT
-from locker_server.shared.external_services.pm_sync import SYNC_EVENT_MEMBER_UPDATE, PwdSync, SYNC_EVENT_VAULT
+from locker_server.shared.external_services.pm_sync import SYNC_EVENT_MEMBER_UPDATE, PwdSync, SYNC_EVENT_VAULT, \
+    SYNC_EVENT_MEMBER_ACCEPTED
 from locker_server.shared.utils.app import secure_random_string, now
 from locker_server.shared.utils.network import detect_device
 
@@ -472,3 +475,46 @@ class UserService:
         )
         notification = [c for c in shared_ciphers_members if c.get("shared_member") in notification_user_ids]
         return notification
+
+    def list_sharing_invitations(self, user: User):
+        return self.team_member_repository.list_members_by_user_id(
+            user_id=user.user_id, **{
+                "statuses": [PM_MEMBER_STATUS_INVITED, PM_MEMBER_STATUS_ACCEPTED]
+            }
+        )
+
+    def update_sharing_invitation(self, user: User, member_id: int, status: str):
+        team_member = self.team_member_repository.get_team_member_by_id(team_member_id=member_id)
+        if not team_member:
+            raise TeamMemberDoesNotExistException
+        if team_member.status != PM_MEMBER_STATUS_INVITED:
+            raise TeamMemberDoesNotExistException
+        if team_member.user.user.activated is False or team_member.team.key is None:
+            raise TeamMemberDoesNotExistException
+        if status == "accept":
+            team_member = self.team_member_repository.accept_invitation(team_member_id=team_member.team_member_id)
+            primary_owner = self.team_member_repository.get_primary_member(team_id=team_member.team.team_id)
+            PwdSync(event=SYNC_EVENT_MEMBER_ACCEPTED, user_ids=[primary_owner.user.user_id, user.user_id]).send()
+            result = {"status": status, "owner": primary_owner.user.user_id, "team_name": team_member.team.name}
+
+        else:
+            self.team_member_repository.reject_invitation(team_member_id=member_id)
+            PwdSync(event=SYNC_EVENT_MEMBER_ACCEPTED, user_ids=[user.user_id]).send()
+            result = {"status": status}
+        return result
+
+    def list_team_ids_owner_family_plan(self, user_id: int) -> List[str]:
+        return self.team_member_repository.list_team_ids_owner_family_plan(user_id=user_id)
+
+    def list_user_devices(self, user_id: int) -> List[Device]:
+        all_devices = self.device_repository.list_user_devices(user_id=user_id)
+        for device in all_devices:
+            device.is_active = self.device_repository.is_active(device_id=device.device_id)
+        return all_devices
+
+    def remove_user_device(self, user_id: int, device_identifier: str) -> List[str]:
+        device = self.device_repository.get_device_by_identifier(user_id=user_id, device_identifier=device_identifier)
+        if not device:
+            raise DeviceDoesNotExistException
+        sso_token_ids = self.device_repository.destroy_device(device=device)
+        return sso_token_ids

@@ -121,6 +121,7 @@ class UserORMRepository(UserRepository):
         except UserORM.DoesNotExist:
             return None
         scores = user_update_data.get("scores", {})
+        onboarding_process = user_update_data.get("onboarding_process")
         user_orm.timeout = user_update_data.get("timeout", user_orm.timeout)
         user_orm.timeout_action = user_update_data.get("timeout_action", user_orm.timeout_action)
 
@@ -151,6 +152,8 @@ class UserORMRepository(UserRepository):
             user_score_orm.cipher6 = scores.get("6", user_score_orm.cipher6)
             user_score_orm.cipher7 = scores.get("7", user_score_orm.cipher7)
             user_score_orm.save()
+        if onboarding_process:
+            user_orm.onboarding_process = onboarding_process
         user_orm.save()
         return ModelParser.user_parser().parse_user(user_orm=user_orm)
 
@@ -233,7 +236,6 @@ class UserORMRepository(UserRepository):
         user_orm.public_key = None
         user_orm.private_key = None
         user_orm.save()
-
 
     def revoke_all_sessions(self, user: User, exclude_sso_token_ids=None) -> User:
         device_access_tokens = DeviceAccessTokenORM.objects.filter(device__user_id=user.user_id)

@@ -4,11 +4,14 @@ from abc import ABC, abstractmethod
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_user_model, get_team_member_model, get_group_member_model, \
     get_collection_member_model
+from locker_server.api_orm.utils.revision_date import bump_account_revision_date
 from locker_server.core.entities.member.team_member import TeamMember
 from locker_server.core.entities.team.team import Team
 from locker_server.core.entities.user.user import User
 from locker_server.core.repositories.team_member_repository import TeamMemberRepository
-from locker_server.shared.constants.members import PM_MEMBER_STATUS_INVITED
+from locker_server.shared.constants.members import PM_MEMBER_STATUS_INVITED, PM_MEMBER_STATUS_CONFIRMED, \
+    PM_MEMBER_STATUS_ACCEPTED, MEMBER_ROLE_OWNER
+from locker_server.shared.constants.transactions import PLAN_TYPE_PM_FAMILY
 
 UserORM = get_user_model()
 TeamMemberORM = get_team_member_model()
@@ -30,7 +33,29 @@ class TeamMemberORMRepository(TeamMemberRepository):
         except UserORM.DoesNotExist:
             return None
 
+    @staticmethod
+    def _get_team_member_orm(team_member_id: int) -> Optional[TeamMemberORM]:
+        try:
+            team_member_orm = TeamMemberORM.objects.get(id=team_member_id)
+            return team_member_orm
+        except TeamMemberORM.DoesNotExist:
+            return None
+
     # ------------------------ List TeamMember resource ------------------- #
+    def list_members_by_user_id(self, user_id: int, **filter_params) -> List[TeamMember]:
+        personal_share = filter_params.get("personal_share", True)
+        members_orm = TeamMemberORM.objects.filter(
+            user_id=user_id, team__personal_share=personal_share,
+        ).select_related('team').select_related('user').order_by('access_time')
+
+        status_params = filter_params.get("statuses")
+        if status_params:
+            members_orm = members_orm.filter(status__in=status_params)
+        members = []
+        for member_orm in members_orm:
+            members.append(ModelParser.team_parser().parse_team_member(team_member_orm=member_orm))
+        return members
+
     def list_member_user_ids(self, team_ids: List[str], status: str = None, personal_share: bool = None) -> List[int]:
         members_orm = TeamMemberORM.objects.filter(team_id__in=team_ids)
         if status is not None:
@@ -54,10 +79,31 @@ class TeamMemberORMRepository(TeamMemberRepository):
             CollectionMemberORM.objects.filter(member_id=team_member_id).values_list('collection_id', flat=True)
         )
 
+    def list_team_ids_owner_family_plan(self, user_id: int) -> List[str]:
+        team_ids = TeamMemberORM.objects.filter(user_id=user_id, status=PM_MEMBER_STATUS_CONFIRMED).filter(
+            user__pm_user_plan__pm_plan__alias=PLAN_TYPE_PM_FAMILY,
+            role_id=MEMBER_ROLE_OWNER,
+            is_default=True, is_primary=True
+        ).values_list('team_id', flat=True)
+        return team_ids
+
     # ------------------------ Get TeamMember resource --------------------- #
+    def get_team_member_by_id(self, team_member_id: int) -> Optional[TeamMember]:
+        team_member_orm = self._get_team_member_orm(team_member_id=team_member_id)
+        if not team_member_orm:
+            return None
+        return ModelParser.team_parser().parse_team_member(team_member_orm=team_member_orm)
+
     def get_user_team_member(self, user_id: int, team_id: str) -> Optional[TeamMember]:
         try:
             team_member_orm = TeamMemberORM.objects.get(user_id=user_id, team_id=team_id)
+            return ModelParser.team_parser().parse_team_member(team_member_orm=team_member_orm)
+        except TeamMemberORM.DoesNotExist:
+            return None
+
+    def get_primary_member(self, team_id: str) -> Optional[TeamMember]:
+        try:
+            team_member_orm = TeamMemberORM.objects.get(team_id=team_id, is_primary=True)
             return ModelParser.team_parser().parse_team_member(team_member_orm=team_member_orm)
         except TeamMemberORM.DoesNotExist:
             return None
@@ -78,6 +124,36 @@ class TeamMemberORMRepository(TeamMemberRepository):
         )
         sharing_invitations.update(email=None, token_invitation=None, user=user_orm)
         return user
+
+    def reject_invitation(self, team_member_id: int):
+        team_member_orm = self._get_team_member_orm(team_member_id=team_member_id)
+        if not team_member_orm:
+            return False
+        team_member_orm.delete()
+        return True
+
+    def confirm_invitation(self, team_member_id: int, key: str) -> Optional[TeamMember]:
+        team_member_orm = self._get_team_member_orm(team_member_id=team_member_id)
+        if not team_member_orm:
+            return None
+        team_member_orm.email = None
+        team_member_orm.key = key
+        team_member_orm.status = PM_MEMBER_STATUS_CONFIRMED
+        team_member_orm.save()
+        bump_account_revision_date(user=team_member_orm.user)
+        return ModelParser.team_parser().parse_team_member(team_member_orm=team_member_orm)
+
+    def accept_invitation(self, team_member_id: int) -> Optional[TeamMember]:
+        team_member_orm = self._get_team_member_orm(team_member_id=team_member_id)
+        if not team_member_orm:
+            return None
+        if team_member_orm.key:
+            team_member_orm.status = PM_MEMBER_STATUS_CONFIRMED
+        else:
+            team_member_orm.status = PM_MEMBER_STATUS_ACCEPTED
+        team_member_orm.save()
+        bump_account_revision_date(user=team_member_orm.user)
+        return ModelParser.team_parser().parse_team_member(team_member_orm=team_member_orm)
 
     # ------------------------ Delete TeamMember resource --------------------- #
 

@@ -39,7 +39,7 @@ class UserParser:
             login_method=user_orm.login_method,
             fd_credential_id=user_orm.fd_credential_id,
             fd_random=user_orm.fd_random,
-            onboarding_process=user_orm.onboarding_process,
+            onboarding_process=user_orm.get_onboarding_process(),
             saas_source=user_orm.saas_source,
             email=user_orm.email,
             full_name=user_orm.full_name,
@@ -76,8 +76,8 @@ class UserParser:
             device_identifier=device_orm.device_identifier,
             fcm_id=device_orm.fcm_id,
             last_login=device_orm.last_login,
-            os=device_orm.os,
-            browser=device_orm.browser,
+            os=device_orm.get_os(),
+            browser=device_orm.get_browser(),
             user=cls.parse_user(user_orm=device_orm.user)
         )
 

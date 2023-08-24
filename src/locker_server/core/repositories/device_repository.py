@@ -20,6 +20,10 @@ class DeviceRepository(ABC):
     def get_fcm_ids_by_user_ids(self, user_ids: List[int]) -> List[str]:
         pass
 
+    @abstractmethod
+    def is_active(self, device_id) -> bool:
+        pass
+
     # ------------------------ Create Device resource --------------------- #
     @abstractmethod
     def retrieve_or_create(self, user_id: int, **data) -> Device:
@@ -35,3 +39,6 @@ class DeviceRepository(ABC):
         pass
 
     # ------------------------ Delete Device resource --------------------- #
+    @abstractmethod
+    def destroy_device(self, device: Device) -> List[str]:
+        pass

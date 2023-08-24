@@ -19,12 +19,14 @@ from locker_server.core.exceptions.user_exception import UserDoesNotExistExcepti
     UserAuthBlockingEnterprisePolicyException, UserAuthFailedException, UserAuthBlockedEnterprisePolicyException, \
     UserIsLockedByEnterpriseException, UserEnterprisePlanExpiredException, UserBelongEnterpriseException, \
     User2FARequireException, UserAuthFailedPasswordlessRequiredException
+from locker_server.shared.constants.account import *
 from locker_server.shared.error_responses.error import refer_error, gen_error
 from locker_server.api.v1_0.ciphers.serializers import VaultItemSerializer, UpdateVaultItemSerializer
 from locker_server.shared.external_services.pm_sync import PwdSync, SYNC_EVENT_CIPHER_UPDATE
 from .serializers import UserMeSerializer, UserUpdateMeSerializer, UserRegisterSerializer, UserSessionSerializer, \
     DeviceFcmSerializer, UserChangePasswordSerializer, UserNewPasswordSerializer, UserCheckPasswordSerializer, \
-    UserMasterPasswordHashSerializer
+    UserMasterPasswordHashSerializer, UpdateOnboardingProcessSerializer, UserPwdInvitationSerializer, \
+    UserDeviceSerializer
 
 
 class UserPwdViewSet(APIBaseViewSet):
@@ -55,6 +57,12 @@ class UserPwdViewSet(APIBaseViewSet):
             self.serializer_class = UserCheckPasswordSerializer
         elif self.action in ["delete_me", "purge_me", "revoke_all_sessions"]:
             self.serializer_class = UserMasterPasswordHashSerializer
+        elif self.action == "onboarding_process":
+            self.serializer_class = UpdateOnboardingProcessSerializer
+        elif self.action == "invitations":
+            self.serializer_class = UserPwdInvitationSerializer
+        elif self.action == "devices":
+            self.serializer_class = UserDeviceSerializer
         return super().get_serializer_class()
 
     @action(methods=["post"], detail=False)
@@ -401,3 +409,92 @@ class UserPwdViewSet(APIBaseViewSet):
         notification = self.user_service.purge_user(user=user)
         return Response(status=200, data=notification)
 
+    @action(methods=["get", "put"], detail=False)
+    def onboarding_process(self, request, *args, **kwargs):
+        user = self.request.user
+        onboarding_process = user.onboarding_process
+        if request.method == "GET":
+            return Response(status=200, data=onboarding_process)
+        elif request.method == "PUT":
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            validated_data = serializer.validated_data
+            vault_to_dashboard = validated_data.get(
+                "vault_to_dashboard", onboarding_process.get(ONBOARDING_CATEGORY_TO_DASHBOARD)
+            )
+            welcome = validated_data.get("welcome", onboarding_process.get(ONBOARDING_CATEGORY_WELCOME))
+            tutorial = validated_data.get("tutorial", onboarding_process.get(ONBOARDING_CATEGORY_TUTORIAL))
+            tutorial_process = validated_data.get(
+                "tutorial_process", onboarding_process.get(ONBOARDING_CATEGORY_TUTORIAL_PROCESS, [])
+            )
+            enterprise_onboarding = validated_data.get(
+                "enterprise_onboarding", onboarding_process.get(ONBOARDING_CATEGORY_ENTERPRISE)
+            )
+            enterprise_onboarding_skip = validated_data.get(
+                "enterprise_onboarding_skip", onboarding_process.get(ONBOARDING_CATEGORY_ENTERPRISE_SKIP)
+            )
+            onboarding_process.update({
+                ONBOARDING_CATEGORY_TO_DASHBOARD: vault_to_dashboard,
+                ONBOARDING_CATEGORY_WELCOME: welcome,
+                ONBOARDING_CATEGORY_TUTORIAL: tutorial,
+                ONBOARDING_CATEGORY_TUTORIAL_PROCESS: tutorial_process,
+                ONBOARDING_CATEGORY_ENTERPRISE: enterprise_onboarding,
+                ONBOARDING_CATEGORY_ENTERPRISE_SKIP: enterprise_onboarding_skip,
+            })
+            user = self.user_service.update_user(user_id=user.user_id, user_update_data={
+                "onboarding_process": onboarding_process
+            })
+            return Response(status=200, data=user.onboarding_process)
+
+    @action(methods=["get"], detail=False)
+    def invitations(self, request, *args, **kwargs):
+        user = self.request.user
+        self.check_pwd_session_auth(request=request)
+        member_invitations = self.user_service.list_sharing_invitations(user=user)
+        serializer = self.get_serializer(member_invitations, many=True)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+    @action(methods=["put"], detail=False)
+    def invitation_update(self, request, *args, **kwargs):
+        self.check_pwd_session_auth(request=request)
+        user = self.request.user
+        status_param = request.data.get("status")
+        if status_param not in ["accept", "reject"]:
+            raise ValidationError(detail={"status": ["This status is not valid"]})
+        try:
+            result = self.user_service.update_sharing_invitation(
+                user=user,
+                member_id=kwargs.get("pk"),
+                status=status_param
+            )
+        except TeamMemberDoesNotExistException:
+            return NotFound
+        return Response(status=status.HTTP_200_OK, data=result)
+
+    @action(methods=["get"], detail=False)
+    def family(self, request, *args, **kwargs):
+        user = self.request.user
+        self.check_pwd_session_auth(request)
+        team_ids = self.user_service.list_team_ids_owner_family_plan(user_id=user.user_id)
+        return Response(status=status.HTTP_200_OK, data=list(team_ids))
+
+    @action(methods=["get"], detail=False)
+    def devices(self, request, *args, **kwargs):
+        user = request.user
+        self.check_pwd_session_auth(request)
+        devices = self.device_destroy.list_user_devices(user_id=user.user_id)
+        serializer = self.get_serializer(devices, many=True)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+    @action(methods=["delete"], detail=False)
+    def device_destroy(self, request, *args, **kwargs):
+        user = request.user
+        device_identifier = kwargs.get("pk")
+        self.check_pwd_session_auth(request)
+        try:
+            sso_token_ids = self.user_service.remove_user_device(
+                user_id=user.user_id, device_identifier=device_identifier
+            )
+        except DeviceDoesNotExistException:
+            raise NotFound
+        return Response(status=status.HTTP_200_OK, data={"sso_token_ids": sso_token_ids})
