@@ -19,10 +19,10 @@ class AbstractExcludeDomainORM(models.Model):
         unique_together = ('user', 'domain')
 
     @classmethod
-    def retrieve_or_create(cls, domain, user):
+    def retrieve_or_create(cls, domain, user_id):
         exclude_domain, is_created = cls.objects.get_or_create(
-            domain=domain, user=user, defaults={
-                "user": user, "domain": domain, "created_time": now()
+            domain=domain, user_id=user_id, defaults={
+                "user_id": user_id, "domain": domain, "created_time": now()
             }
         )
         return exclude_domain

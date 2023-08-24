@@ -35,6 +35,11 @@ class ServiceFactory(containers.DeclarativeContainer):
         notification_setting_repository=RepositoryFactory.notification_setting_repository,
     )
 
+    exclude_domain_service = providers.Factory(
+        ExcludeDomainService,
+        exclude_domain_repository=RepositoryFactory.exclude_domain_repository
+    )
+
     cipher_service = providers.Factory(
         CipherService,
         cipher_repository=RepositoryFactory.cipher_repository,

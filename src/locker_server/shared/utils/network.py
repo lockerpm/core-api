@@ -1,5 +1,7 @@
 import ipaddress
 import os
+import re
+
 import tldextract
 from user_agents import parse
 
@@ -80,6 +82,21 @@ def is_valid_ipv6_address(ip_address: str) -> bool:
         return False
     except:
         return False
+
+
+def is_valid_domain(domain: str):
+    """
+    Check a string is a domain or not
+    :param domain:
+    :return:
+    """
+    pattern = re.compile(
+        r'^(([a-zA-Z]{1})|([a-zA-Z]{1}[a-zA-Z]{1})|'
+        r'([a-zA-Z]{1}[0-9]{1})|([0-9]{1}[a-zA-Z]{1})|'
+        r'([a-zA-Z0-9][-_.a-zA-Z0-9]{0,61}[a-zA-Z0-9]))\.'
+        r'([a-zA-Z]{2,13}|[a-zA-Z0-9-]{2,30}.[a-zA-Z]{2,3})$'
+    )
+    return True if pattern.match(domain) else False
 
 
 def extract_root_domain(domain: str) -> str:

@@ -13,6 +13,8 @@ class RepositoryFactory(containers.DeclarativeContainer):
     user_plan_repository = providers.Factory(UserPlanORMRepository)
     payment_repository = providers.Factory(PaymentORMRepository)
 
+    exclude_domain_repository = providers.Factory(ExcludeDomainORMRepository)
+
     device_repository = providers.Factory(DeviceORMRepository)
     device_access_token_repository = providers.Factory(DeviceAccessTokenORMRepository)
 

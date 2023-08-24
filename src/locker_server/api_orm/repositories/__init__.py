@@ -5,6 +5,8 @@ from .plan_repository import PlanORMRepository
 from .user_plan_repository import UserPlanORMRepository
 from .payment_repository import PaymentORMRepository
 
+from .exclude_domain_repository import ExcludeDomainORMRepository
+
 from .device_repository import DeviceORMRepository
 from .device_access_token_repository import DeviceAccessTokenORMRepository
 
