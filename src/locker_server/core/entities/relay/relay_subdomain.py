@@ -6,6 +6,7 @@ class RelaySubdomain(object):
     def __init__(self, relay_subdomain_id: int, subdomain: str, created_time: float = None, is_deleted: bool = False,
                  user: User = None, domain: RelayDomain = None):
         self._relay_subdomain_id = relay_subdomain_id
+        self._subdomain = subdomain
         self._created_time = created_time
         self._is_deleted = is_deleted
         self._user = user
@@ -14,6 +15,10 @@ class RelaySubdomain(object):
     @property
     def relay_subdomain_id(self):
         return self._relay_subdomain_id
+
+    @property
+    def subdomain(self):
+        return self._subdomain
 
     @property
     def created_time(self):
@@ -30,5 +35,3 @@ class RelaySubdomain(object):
     @property
     def domain(self):
         return self._domain
-
-
