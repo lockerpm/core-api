@@ -18,6 +18,12 @@ class APIBaseViewSet(AppGeneralViewSet):
     user_service = user_service
     exclude_domain_service = exclude_domain_service
     cipher_service = cipher_service
+    folder_service = folder_service
+
+    team_member_service = team_member_service
+    collection_service = collection_service
+
+    enterprise_service = enterprise_service
 
     def get_throttles(self):
         if self.request.user and not isinstance(self.request.user, AnonymousUser):

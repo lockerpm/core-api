@@ -16,7 +16,11 @@ user_service = ServiceFactory.user_service()
 exclude_domain_service = ServiceFactory.exclude_domain_service()
 
 cipher_service = ServiceFactory.cipher_service()
+folder_service = ServiceFactory.folder_service()
 
 team_member_service = ServiceFactory.team_member_service()
+collection_service = ServiceFactory.collection_service()
+
+enterprise_service = ServiceFactory.enterprise_service()
 
 event_service = ServiceFactory.event_service()

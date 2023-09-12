@@ -3,7 +3,8 @@ from typing import List, Optional, Dict
 from locker_server.core.entities.cipher.cipher import Cipher
 from locker_server.core.entities.member.team_member import TeamMember
 from locker_server.core.entities.user.user import User
-from locker_server.core.exceptions.cipher_exception import FolderDoesNotExistException, CipherMaximumReachedException
+from locker_server.core.exceptions.cipher_exception import FolderDoesNotExistException, CipherMaximumReachedException, \
+    CipherDoesNotExistException
 from locker_server.core.exceptions.collection_exception import CollectionDoesNotExistException, \
     CollectionCannotRemoveException, CollectionCannotAddException
 from locker_server.core.exceptions.team_exception import TeamDoesNotExistException, TeamLockedException
@@ -188,3 +189,11 @@ class CipherService:
         cipher = self.cipher_repository.update_cipher(cipher_id=cipher.cipher_id, cipher_data=cipher_data)
         return cipher
 
+    def check_member_belongs_cipher_collections(self, cipher: Cipher, member: TeamMember) -> bool:
+        return self.cipher_repository.check_member_belongs_cipher_collections(cipher, member)
+
+    def get_by_id(self, cipher_id: str) -> Optional[Cipher]:
+        cipher = self.cipher_repository.get_by_id(cipher_id=cipher_id)
+        if not cipher:
+            raise CipherDoesNotExistException
+        return cipher

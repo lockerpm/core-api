@@ -5,6 +5,8 @@ from datetime import datetime, timezone
 from dateutil import relativedelta
 from typing import List
 from user_agents import parse
+import json
+import humps
 
 from locker_server.shared.constants.ciphers import *
 
@@ -20,7 +22,7 @@ def now(return_float=False):
 
 def diff_list(in_list: List, not_in_list: List) -> List:
     """
-    This function gets all elment in `in_list` without not in `not_in_list`
+    This function gets all elements in `in_list` without not in `not_in_list`
     :param in_list: (list)
     :param not_in_list: (list)
     :return:
@@ -164,3 +166,33 @@ def get_cipher_detail_data(cipher):
     if cipher.get("notes"):
         data.update({"notes": cipher.get("notes")})
     return data
+
+
+def camel_snake_data(json_data, camel_to_snake=False, snake_to_camel=False):
+    """
+    Get JSON response data from HTTPResponse
+    :param json_data: (dict) The data is needed to convert
+    :param camel_to_snake: (bool) Convert from camel case to snake case
+    :param snake_to_camel: (bool) Convert from snake case to camel case
+    :return: (dict)
+    """
+    try:
+        if camel_to_snake is True:
+            return humps.decamelize(json_data)
+        if snake_to_camel is True:
+            return humps.camelize(json_data)
+        return json_data
+    except json.decoder.JSONDecodeError:
+        return json_data
+
+
+def convert_readable_date(timestamp, datetime_format="%Y-%m-%dT%H:%M:%S.%fZ"):
+    """
+    Convert timestamp to readable date string
+    :param timestamp: (int)
+    :param datetime_format
+    :return:
+    """
+    if timestamp is None or timestamp < 0:
+        return None
+    return datetime.utcfromtimestamp(timestamp).strftime(datetime_format)

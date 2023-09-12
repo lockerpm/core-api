@@ -108,6 +108,16 @@ class TeamMemberORMRepository(TeamMemberRepository):
         except TeamMemberORM.DoesNotExist:
             return None
 
+    def get_role_notify_dict(self, team_id: str, user_id: int) -> Dict:
+        try:
+            team_member_orm = TeamMemberORM.objects.get(user_id=user_id, team_id=team_id)
+            return {
+                "role": team_member_orm.role_id,
+                "is_default": team_member_orm.is_default
+            }
+        except TeamMemberORM.DoesNotExist:
+            return {"role": None, "is_default": None}
+
     # ------------------------ Create TeamMember resource --------------------- #
 
     # ------------------------ Update TeamMember resource --------------------- #

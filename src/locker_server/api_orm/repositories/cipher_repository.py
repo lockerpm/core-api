@@ -3,10 +3,11 @@ from abc import ABC, abstractmethod
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_cipher_model, get_folder_model, get_collection_cipher_model, \
-    get_team_model
+    get_team_model, get_collection_member_model
 from locker_server.api_orm.utils.revision_date import bump_account_revision_date
 from locker_server.core.entities.cipher.cipher import Cipher
 from locker_server.core.entities.cipher.folder import Folder
+from locker_server.core.entities.member.team_member import TeamMember
 from locker_server.core.entities.user.device import Device
 from locker_server.core.entities.user.user import User
 from locker_server.core.repositories.cipher_repository import CipherRepository
@@ -18,6 +19,7 @@ from locker_server.shared.utils.app import now, diff_list
 TeamORM = get_team_model()
 CipherORM = get_cipher_model()
 CollectionCipherORM = get_collection_cipher_model()
+CollectionMemberORM = get_collection_member_model()
 FolderORM = get_folder_model()
 ModelParser = get_model_parser()
 
@@ -32,6 +34,12 @@ class CipherORMRepository(CipherRepository):
             return None
 
     # ------------------------ List Cipher resource ------------------- #
+    def get_by_id(self, cipher_id: str) -> Optional[Cipher]:
+        cipher_orm = self._get_cipher_orm(cipher_id=cipher_id)
+        if not cipher_orm:
+            return None
+        return ModelParser.cipher_parser().parse_cipher(cipher_orm=cipher_orm)
+
     def list_cipher_collection_ids(self, cipher_id: str) -> List[str]:
         return list(CollectionCipherORM.objects.filter(cipher_id=cipher_id).values_list('collection_id', flat=True))
 
@@ -53,6 +61,13 @@ class CipherORMRepository(CipherRepository):
     def get_master_pwd_item(self, user_id: int) -> Optional[Cipher]:
         master_pwd_item = CipherORM.objects.filter(created_by_id=user_id, type=CIPHER_TYPE_MASTER_PASSWORD).first()
         return ModelParser.cipher_parser().parse_cipher(cipher_orm=master_pwd_item) if master_pwd_item else None
+
+    def check_member_belongs_cipher_collections(self, cipher: Cipher, member: TeamMember) -> bool:
+        cipher_collection_ids = self.list_cipher_collection_ids(cipher_id=cipher.cipher_id)
+        member_collection_ids = list(
+            CollectionMemberORM.objects.filter(member_id=member.team_member_id).values_list('collection_id', flat=True)
+        )
+        return any(collection_id in cipher_collection_ids for collection_id in member_collection_ids)
 
     # ------------------------ Create Cipher resource --------------------- #
     def create_cipher(self, cipher_data: Dict) -> Cipher:

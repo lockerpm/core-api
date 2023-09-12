@@ -6,6 +6,7 @@ from locker_server.core.entities.enterprise.domain.ownership import Ownership
 from locker_server.core.entities.enterprise.enterprise import Enterprise
 from locker_server.core.entities.enterprise.member.enterprise_member import EnterpriseMember
 from locker_server.core.entities.enterprise.member.enterprise_member_role import EnterpriseMemberRole
+from locker_server.core.entities.enterprise.policy.policy import EnterprisePolicy
 from locker_server.core.entities.enterprise.policy.policy_2fa import Policy2FA
 from locker_server.core.entities.enterprise.policy.policy_failed_login import PolicyFailedLogin
 from locker_server.core.entities.enterprise.policy.policy_master_password import PolicyMasterPassword
@@ -84,6 +85,17 @@ class EnterpriseParser:
             role=cls.parse_enterprise_member_role(enterprise_member_role_orm=enterprise_member_orm.role),
             domain=domain
         )
+
+    @classmethod
+    def parse_enterprise_policy(cls, enterprise_policy_orm: EnterprisePolicyORM) -> EnterprisePolicy:
+        enterprise_policy = EnterprisePolicy(
+            policy_id=enterprise_policy_orm.id,
+            enterprise=cls.parse_enterprise(enterprise_orm=enterprise_policy_orm.enterprise),
+            policy_type=enterprise_policy_orm.policy_type,
+            enabled=enterprise_policy_orm.enabled
+        )
+        enterprise_policy.config = enterprise_policy_orm.get_config_json()
+        return enterprise_policy
 
     @classmethod
     def parse_policy_2fa(cls, policy_2fa_orm: Policy2FAORM) -> Policy2FA:

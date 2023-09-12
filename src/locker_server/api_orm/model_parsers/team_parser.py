@@ -51,6 +51,10 @@ class TeamParser:
 
     @classmethod
     def parse_collection(cls, collection_orm: CollectionORM) -> Collection:
+        try:
+            hide_passwords = getattr(collection_orm, "hide_passwords")
+        except AttributeError:
+            hide_passwords = True
         return Collection(
             collection_id=collection_orm.id,
             name=collection_orm.name,
@@ -58,5 +62,6 @@ class TeamParser:
             revision_date=collection_orm.revision_date,
             external_id=collection_orm.external_id,
             is_default=collection_orm.is_default,
+            hide_passwords=hide_passwords,
             team=cls.parse_team(team_orm=collection_orm.team)
         )

@@ -22,6 +22,7 @@ from locker_server.core.repositories.team_member_repository import TeamMemberRep
 from locker_server.core.repositories.team_repository import TeamRepository
 from locker_server.core.repositories.user_plan_repository import UserPlanRepository
 from locker_server.core.repositories.user_repository import UserRepository
+from locker_server.shared.caching.sync_cache import delete_sync_cache_data, get_sync_cache_key
 from locker_server.shared.constants.account import LOGIN_METHOD_PASSWORD
 from locker_server.shared.constants.enterprise_members import *
 from locker_server.shared.constants.event import EVENT_USER_LOGIN_FAILED, EVENT_USER_LOGIN, EVENT_USER_BLOCK_LOGIN
@@ -518,3 +519,11 @@ class UserService:
             raise DeviceDoesNotExistException
         sso_token_ids = self.device_repository.destroy_device(device=device)
         return sso_token_ids
+
+    @staticmethod
+    def delete_sync_cache_data(user_id: int):
+        delete_sync_cache_data(user_id=user_id)
+
+    @staticmethod
+    def get_sync_cache_key(user_id, page=1, size=100):
+        return get_sync_cache_key(user_id=user_id, page=page, size=size)

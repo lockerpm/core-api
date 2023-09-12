@@ -11,9 +11,11 @@ from .device_repository import DeviceORMRepository
 from .device_access_token_repository import DeviceAccessTokenORMRepository
 
 from .cipher_repository import CipherORMRepository
+from .folder_repository import FolderORMRepository
 
 from .team_repository import TeamORMRepository
 from .team_member_repository import TeamMemberORMRepository
+from .collection_repository import CollectionORMRepository
 
 
 from .enterprise_repository import EnterpriseORMRepository
