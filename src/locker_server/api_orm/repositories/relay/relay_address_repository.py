@@ -3,7 +3,7 @@ from typing import Optional, List
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_relay_address_model
 from locker_server.core.entities.relay.relay_address import RelayAddress
-from locker_server.core.repositories.relay_address_repository import RelayAddressRepository
+from locker_server.core.repositories.relay.relay_address_repository import RelayAddressRepository
 from locker_server.shared.constants.token import *
 from locker_server.shared.utils.app import now
 

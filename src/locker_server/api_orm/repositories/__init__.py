@@ -15,16 +15,14 @@ from .cipher_repository import CipherORMRepository
 from .team_repository import TeamORMRepository
 from .team_member_repository import TeamMemberORMRepository
 
-
 from .enterprise_repository import EnterpriseORMRepository
 from .enterprise_member_repository import EnterpriseMemberORMRepository
 from .enterprise_policy_repository import EnterprisePolicyORMRepository
 
 from .event_repository import EventORMRepository
 
-
 from .notification_category_repository import NotificationCategoryORMRepository
 from .notification_setting_repository import NotificationSettingORMRepository
 
-from .deleted_relay_address_repository import DeletedRelayAddressORMRepository
-from .relay_address_repository import RelayAddressORMRepository
+from .relay.deleted_relay_address_repository import DeletedRelayAddressORMRepository
+from .relay.relay_address_repository import RelayAddressORMRepository

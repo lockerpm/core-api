@@ -1,9 +1,9 @@
 import re
 from hashlib import sha256
-from typing import Tuple, Dict, List, Optional
-from locker_server.core.repositories.relay_address_repository import RelayAddressRepository
+from typing import Optional
+from locker_server.core.repositories.relay.relay_address_repository import RelayAddressRepository
 from locker_server.core.repositories.user_repository import UserRepository
-from locker_server.core.repositories.deleted_relay_address_repository import DeletedRelayAddressRepository
+from locker_server.core.repositories.relay.deleted_relay_address_repository import DeletedRelayAddressRepository
 
 from locker_server.core.exceptions.relay_address_exception import *
 from locker_server.core.exceptions.user_exception import UserDoesNotExistException
