@@ -5,7 +5,7 @@ from django.db.models import Value, BooleanField, Q, Case, When, Count
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_cipher_model, get_folder_model, get_collection_cipher_model, \
-    get_team_model, get_collection_member_model, get_team_member_model
+    get_team_model, get_collection_member_model, get_team_member_model, get_user_model
 from locker_server.api_orm.utils.revision_date import bump_account_revision_date
 from locker_server.core.entities.cipher.cipher import Cipher
 from locker_server.core.entities.cipher.folder import Folder
@@ -13,11 +13,12 @@ from locker_server.core.entities.member.team_member import TeamMember
 from locker_server.core.entities.user.device import Device
 from locker_server.core.entities.user.user import User
 from locker_server.core.repositories.cipher_repository import CipherRepository
-from locker_server.shared.constants.ciphers import CIPHER_TYPE_MASTER_PASSWORD
+from locker_server.shared.constants.ciphers import CIPHER_TYPE_MASTER_PASSWORD, IMMUTABLE_CIPHER_TYPES
 from locker_server.shared.constants.members import *
 from locker_server.shared.utils.app import now, diff_list
 
 
+UserORM = get_user_model()
 TeamORM = get_team_model()
 TeamMemberORM = get_team_member_model()
 CipherORM = get_cipher_model()
@@ -34,6 +35,14 @@ class CipherORMRepository(CipherRepository):
             cipher_orm = CipherORM.objects.get(id=cipher_id)
             return cipher_orm
         except CipherORM.DoesNotExist:
+            return None
+
+    @staticmethod
+    def _get_user_orm(user_id: int) -> Optional[UserORM]:
+        try:
+            user_orm = UserORM.objects.get(user_id=user_id)
+            return user_orm
+        except UserORM.DoesNotExist:
             return None
 
     @staticmethod
@@ -320,6 +329,12 @@ class CipherORMRepository(CipherRepository):
 
         return ModelParser.cipher_parser().parse_cipher(cipher_orm=cipher_orm)
 
+    def update_folders(self, cipher_id: str, new_folders_data) -> Cipher:
+        cipher_orm = self._get_cipher_orm(cipher_id=cipher_id)
+        cipher_orm.folders = new_folders_data
+        cipher_orm.save()
+        return ModelParser.cipher_parser().parse_cipher(cipher_orm=cipher_orm)
+
     # ------------------------ Delete Cipher resource --------------------- #
     def delete_permanent_multiple_cipher_by_teams(self, team_ids):
         """
@@ -331,3 +346,25 @@ class CipherORMRepository(CipherRepository):
         CipherORM.objects.filter(team_id__in=team_ids).delete()
         for team_orm in teams_orm:
             bump_account_revision_date(team=team_orm)
+
+    def delete_multiple_cipher(self, cipher_ids: list, user_id_deleted: int):
+        current_time = now()
+        # Update deleted_date of the ciphers
+        ciphers_orm = self._get_multiple_ciphers_orm_by_user(
+            user_id=user_id_deleted, only_deleted=True
+        ).filter(
+            id__in=cipher_ids, deleted_date__isnull=True
+        ).exclude(type__in=IMMUTABLE_CIPHER_TYPES)
+        deleted_cipher_ids = list(ciphers_orm.values_list('id', flat=True))
+        for cipher_orm in ciphers_orm:
+            cipher_orm.revision_date = current_time
+            cipher_orm.deleted_date = current_time
+        CipherORM.objects.bulk_update(ciphers_orm, ['revision_date', 'deleted_date'], batch_size=100)
+
+        # Bump revision date: teams and user
+        team_ids = ciphers_orm.exclude(team__isnull=True).values_list('team_id', flat=True)
+        teams_orm = TeamORM.objects.filter(id__in=team_ids)
+        for team_orm in teams_orm:
+            bump_account_revision_date(team=team_orm)
+        bump_account_revision_date(user=self._get_user_orm(user_id=user_id_deleted))
+        return deleted_cipher_ids

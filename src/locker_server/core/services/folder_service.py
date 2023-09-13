@@ -28,7 +28,23 @@ class FolderService:
         return self.folder_repository.update_folder(user_id=user_id, folder_id=folder_id, name=name)
 
     def destroy_folder(self, folder_id: str, user_id: int):
-        pass
+        # Get list ciphers in this folder then re-set folder of cipher
+        ciphers = self.cipher_repository.get_multiple_by_user(user_id=user_id)
+        soft_delete_cipher = []
+        for cipher in ciphers:
+            folders_dict = cipher.folders
+            cipher_folder_id = folders_dict.get(user_id, None)
+            if cipher_folder_id == folder_id:
+                folders_dict.pop(user_id, None)
+
+                self.cipher_repository.update_folders(cipher_id=cipher.cipher_id, new_folders_data=folders_dict)
+                if not cipher.team:
+                    soft_delete_cipher.append(cipher.cipher_id)
+        # Soft delete all ciphers in folder
+        self.cipher_repository.delete_multiple_cipher(cipher_ids=soft_delete_cipher, user_id_deleted=user_id)
+
+        # Delete this folder object
+        self.folder_repository.destroy_folder(folder_id=folder_id, user_id=user_id)
 
     def get_multiple_by_user(self, user_id: int) -> List[Folder]:
         return self.folder_repository.list_by_user_id(user_id=user_id)

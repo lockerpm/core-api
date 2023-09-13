@@ -57,7 +57,16 @@ class CipherRepository(ABC):
     def update_cipher(self, cipher_id: str, cipher_data: Dict) -> Cipher:
         pass
 
+    @abstractmethod
+    def update_folders(self, cipher_id: str, new_folders_data) -> Cipher:
+        pass
+
     # ------------------------ Delete Cipher resource --------------------- #
     @abstractmethod
     def delete_permanent_multiple_cipher_by_teams(self, team_ids):
         pass
+
+    @abstractmethod
+    def delete_multiple_cipher(self, cipher_ids: list, user_id_deleted: int):
+        pass
+
