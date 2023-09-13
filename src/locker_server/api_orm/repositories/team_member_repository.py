@@ -49,8 +49,11 @@ class TeamMemberORMRepository(TeamMemberRepository):
         ).select_related('team').select_related('user').order_by('access_time')
 
         status_params = filter_params.get("statuses")
+        team_key_null = filter_params.get("team_key_null")
         if status_params:
             members_orm = members_orm.filter(status__in=status_params)
+        if isinstance(team_key_null, bool):
+            members_orm = members_orm.filter(team__key__isnull=team_key_null)
         members = []
         for member_orm in members_orm:
             members.append(ModelParser.team_parser().parse_team_member(team_member_orm=member_orm))

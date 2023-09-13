@@ -20,6 +20,14 @@ class TeamMemberService:
             teams=teams, status=status, personal_share=personal_share
         )
 
+    def list_member_by_user(self, user_id: int, status: str = None, personal_share: bool = True,
+                            team_key_null: bool = None) -> List[TeamMember]:
+        return self.team_member_repository.list_members_by_user_id(user_id=user_id, **{
+            "statuses": [status],
+            "team_key_null": team_key_null,
+            "personal_share": personal_share
+        })
+
     def get_team_member(self, user_id: int, team_id: str) -> Optional[TeamMember]:
         member = self.team_member_repository.get_user_team_member(user_id=user_id, team_id=team_id)
         if not member:

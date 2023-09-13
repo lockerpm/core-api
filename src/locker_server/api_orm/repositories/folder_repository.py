@@ -13,6 +13,9 @@ ModelParser = get_model_parser()
 
 class FolderORMRepository(FolderRepository):
     # ------------------------ List Folder resource ------------------- #
+    def list_by_user_id(self, user_id: int) -> List[Folder]:
+        folders_orm = FolderORM.objects.filter(user_id=user_id)
+        return [ModelParser.cipher_parser().parse_folder(folder_orm=folder_orm) for folder_orm in folders_orm]
 
     # ------------------------ Get Folder resource --------------------- #
     def get_by_id(self, folder_id: str) -> Optional[Folder]:

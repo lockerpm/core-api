@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from locker_server.core.entities.cipher.folder import Folder
 from locker_server.core.exceptions.cipher_exception import FolderDoesNotExistException
@@ -29,3 +29,6 @@ class FolderService:
 
     def destroy_folder(self, folder_id: str, user_id: int):
         pass
+
+    def get_multiple_by_user(self, user_id: int) -> List[Folder]:
+        return self.folder_repository.list_by_user_id(user_id=user_id)

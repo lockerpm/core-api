@@ -197,3 +197,21 @@ class CipherService:
         if not cipher:
             raise CipherDoesNotExistException
         return cipher
+
+    def get_multiple_by_user(self, user_id: int, only_personal=False, only_managed_team=False,
+                             only_edited=False, only_deleted=False,
+                             exclude_team_ids=None, filter_ids=None, exclude_types=None) -> List[Cipher]:
+        return self.cipher_repository.get_multiple_by_user(
+            user_id=user_id, only_personal=only_personal, only_managed_team=only_managed_team,
+            only_edited=only_edited, only_deleted=only_deleted, exclude_team_ids=exclude_team_ids,
+            filter_ids=filter_ids, exclude_types=exclude_types
+        )
+
+    def sync_and_statistic_ciphers(self, user_id: int, only_personal=False, only_managed_team=False,
+                                   only_edited=False, only_deleted=False,
+                                   exclude_team_ids=None, filter_ids=None, exclude_types=None) -> Dict:
+        return self.cipher_repository.sync_and_statistic_ciphers(
+            user_id=user_id, only_personal=only_personal, only_managed_team=only_managed_team,
+            only_edited=only_edited, only_deleted=only_deleted,
+            exclude_team_ids=exclude_team_ids, filter_ids=filter_ids, exclude_types=exclude_types
+        )

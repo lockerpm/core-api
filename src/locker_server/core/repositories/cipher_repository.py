@@ -14,6 +14,12 @@ class CipherRepository(ABC):
     def list_cipher_collection_ids(self, cipher_id: str) -> List[str]:
         pass
 
+    @abstractmethod
+    def get_multiple_by_user(self, user_id: int, only_personal=False, only_managed_team=False,
+                             only_edited=False, only_deleted=False,
+                             exclude_team_ids=None, filter_ids=None, exclude_types=None) -> List[Cipher]:
+        pass
+
     # ------------------------ Get Cipher resource --------------------- #
     @abstractmethod
     def get_by_id(self, cipher_id: str) -> Optional[Cipher]:
@@ -33,6 +39,12 @@ class CipherRepository(ABC):
 
     @abstractmethod
     def check_member_belongs_cipher_collections(self, cipher: Cipher, member: TeamMember) -> bool:
+        pass
+
+    @abstractmethod
+    def sync_and_statistic_ciphers(self, user_id: int, only_personal=False, only_managed_team=False,
+                                   only_edited=False, only_deleted=False,
+                                   exclude_team_ids=None, filter_ids=None, exclude_types=None) -> Dict:
         pass
 
     # ------------------------ Create Cipher resource --------------------- #

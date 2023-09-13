@@ -6,6 +6,9 @@ from locker_server.core.entities.cipher.folder import Folder
 
 class FolderRepository(ABC):
     # ------------------------ List Folder resource ------------------- #
+    @abstractmethod
+    def list_by_user_id(self, user_id: int) -> List[Folder]:
+        pass
 
     # ------------------------ Get Folder resource --------------------- #
     @abstractmethod

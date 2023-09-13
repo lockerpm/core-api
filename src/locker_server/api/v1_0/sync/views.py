@@ -1,27 +1,33 @@
 from django.core.cache import cache
+from django.core.paginator import Paginator, EmptyPage
 from rest_framework import status
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
 from locker_server.api.api_base_view import APIBaseViewSet
-from locker_server.api.permissions.locker_permissions.exclude_domain_pwd_permission import ExcludeDomainPwdPermission
 from locker_server.api.permissions.locker_permissions.sync_pwd_permission import SyncPwdPermission
 from locker_server.core.exceptions.cipher_exception import FolderDoesNotExistException, CipherDoesNotExistException
 from locker_server.core.exceptions.collection_exception import CollectionDoesNotExistException
-from locker_server.core.exceptions.exclude_domain_exception import ExcludeDomainNotExistException
+from locker_server.core.exceptions.team_member_exception import TeamMemberDoesNotExistException
 from locker_server.shared.caching.sync_cache import SYNC_CACHE_TIMEOUT
 from locker_server.shared.constants.account import LOGIN_METHOD_PASSWORDLESS
 from locker_server.shared.constants.ciphers import CIPHER_TYPE_MASTER_PASSWORD
 from locker_server.shared.constants.members import MEMBER_ROLE_MEMBER
-from locker_server.shared.external_services.pm_sync import SYNC_EVENT_FOLDER_UPDATE, PwdSync, SYNC_EVENT_FOLDER_DELETE
 from locker_server.shared.utils.app import camel_snake_data
-from .serializers import SyncFolderSerializer, SyncCollectionSerializer, SyncEnterprisePolicySerializer
+from .serializers import SyncFolderSerializer, SyncCollectionSerializer, SyncEnterprisePolicySerializer, \
+    SyncCipherSerializer, SyncProfileSerializer, SyncOrgDetailSerializer
 
 
 class SyncPwdViewSet(APIBaseViewSet):
     permission_classes = (SyncPwdPermission, )
     http_method_names = ["head", "options", "get"]
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["list_group_member_roles_func"] = self.team_member_service.list_group_member_roles
+        context["list_member_by_user_func"] = self.team_member_service.list_member_by_user
+        return context
 
     def get_cipher_obj(self):
         try:
@@ -68,7 +74,7 @@ class SyncPwdViewSet(APIBaseViewSet):
         cache_key = self.user_service.get_sync_cache_key(user_id=user.user_id, page=page_param, size=page_size_param)
         response_cache_data = cache.get(cache_key)
         if response_cache_data:
-            return Response(status=200, data=response_cache_data)
+            return Response(status=status.HTTP_200_OK, data=response_cache_data)
 
         policies = self.enterprise_service.list_policies_by_user(user_id=user)
 
@@ -84,16 +90,12 @@ class SyncPwdViewSet(APIBaseViewSet):
         if user.login_method == LOGIN_METHOD_PASSWORDLESS:
             exclude_types = [CIPHER_TYPE_MASTER_PASSWORD]
 
-        ciphers = self.cipher_repository.get_multiple_by_user(
-            user=user, exclude_team_ids=block_team_ids, exclude_types=exclude_types
-        ).order_by('-revision_date').prefetch_related('collections_ciphers')
-        total_cipher = ciphers.count()
-        not_deleted_ciphers = ciphers.filter(deleted_date__isnull=True)
-        not_deleted_ciphers_statistic = not_deleted_ciphers.values('type').annotate(
-            count=Count('type')
-        ).order_by('-count')
-        not_deleted_ciphers_count = {item["type"]: item["count"] for item in list(not_deleted_ciphers_statistic)}
-        # ciphers_page = self.paginate_queryset(ciphers)
+        sync_statistic_ciphers = self.cipher_service.sync_and_statistic_ciphers(
+            user_id=user.user_id, exclude_team_ids=block_team_ids, exclude_types=exclude_types
+        )
+        statistic_count = sync_statistic_ciphers.get("count")
+        ciphers = sync_statistic_ciphers.get("ciphers")
+
         if paging_param == "0":
             ciphers_page = ciphers
         else:
@@ -104,22 +106,14 @@ class SyncPwdViewSet(APIBaseViewSet):
                 ciphers_page = []
 
         ciphers_serializer = SyncCipherSerializer(ciphers_page, many=True, context={"user": user})
-
-        folders = self.folder_repository.get_multiple_by_user(user=user)
-        collections = self.collection_repository.get_multiple_user_collections(
-            user=user, exclude_team_ids=block_team_ids
-        ).select_related('team')
-
+        folders = self.folder_service.get_multiple_by_user(user_id=user.user_id)
+        collections = self.collection_service.list_user_collections(
+            user_id=user.user_id, exclude_team_ids=block_team_ids
+        )
         sync_data = {
             "object": "sync",
-            "count": {
-                "ciphers": total_cipher,
-                "not_deleted_ciphers": {
-                    "total": not_deleted_ciphers.count(),
-                    "ciphers": not_deleted_ciphers_count
-                },
-            },
-            "profile": SyncProfileSerializer(user, many=False).data,
+            "count": statistic_count,
+            "profile": SyncProfileSerializer(user, many=False, context=self.get_serializer_context()).data,
             "ciphers": ciphers_serializer.data,
             "collections": SyncCollectionSerializer(collections, many=True, context={"user": user}).data,
             "folders": SyncFolderSerializer(folders, many=True).data,
@@ -142,46 +136,40 @@ class SyncPwdViewSet(APIBaseViewSet):
         if user.login_method == LOGIN_METHOD_PASSWORDLESS:
             exclude_types = [CIPHER_TYPE_MASTER_PASSWORD]
 
-        ciphers = self.cipher_repository.get_multiple_by_user(
-            user=user, exclude_team_ids=block_team_ids, exclude_types=exclude_types
-        ).order_by('-revision_date')
-        total_cipher = ciphers.count()
-        not_deleted_ciphers = ciphers.filter(deleted_date__isnull=True)
-        not_deleted_ciphers_statistic = not_deleted_ciphers.values('type').annotate(
-            count=Count('type')
-        ).order_by('-count')
-        not_deleted_ciphers_count = {item["type"]: item["count"] for item in list(not_deleted_ciphers_statistic)}
-        total_folders = self.folder_repository.get_multiple_by_user(user=user).count()
-        total_collections = self.collection_repository.get_multiple_user_collections(
-            user=user, exclude_team_ids=block_team_ids
-        ).count()
-
+        sync_statistic_ciphers = self.cipher_service.sync_and_statistic_ciphers(
+            user_id=user.user_id, exclude_team_ids=block_team_ids, exclude_types=exclude_types
+        )
+        statistic_count = sync_statistic_ciphers.get("count")
+        total_folders = len(self.folder_service.get_multiple_by_user(user_id=user.user_id))
+        total_collections = len(self.collection_service.list_user_collections(
+            user_id=user.user_id, exclude_team_ids=block_team_ids
+        ))
+        statistic_count.update({
+            "folders": total_folders,
+            "collections": total_collections
+        })
         sync_count_data = {
             "object": "sync_count",
-            "count": {
-                "ciphers": total_cipher,
-                "not_deleted_ciphers": {
-                    "total": not_deleted_ciphers.count(),
-                    "ciphers": not_deleted_ciphers_count
-                },
-                "folders": total_folders,
-                "collections": total_collections
-            }
+            "count": statistic_count
         }
         sync_count_data = camel_snake_data(sync_count_data, snake_to_camel=True)
-        return Response(status=200, data=sync_count_data)
+        return Response(status=status.HTTP_200_OK, data=sync_count_data)
 
     @action(methods=["get"], detail=False)
     def sync_cipher_detail(self, request, *args, **kwargs):
         user = self.request.user
         self.check_pwd_session_auth(request=request)
         cipher = self.get_cipher_obj()
-        cipher_obj = self.cipher_repository.get_multiple_by_user(
-            user=user, filter_ids=[cipher.id]
-        ).prefetch_related('collections_ciphers').first()
+        # Check permission
+        try:
+            cipher_obj = self.cipher_service.get_multiple_by_user(
+                user_id=user.user_id, filter_ids=[cipher.cipher_id]
+            )[0]
+        except IndexError:
+            raise NotFound
         serializer = SyncCipherSerializer(cipher_obj, context={"user": user}, many=False)
         result = camel_snake_data(serializer.data, snake_to_camel=True)
-        return Response(status=200, data=result)
+        return Response(status=status.HTTP_200_OK, data=result)
 
     @action(methods=["get"], detail=False)
     def sync_folder_detail(self, request, *args, **kwargs):
@@ -189,7 +177,7 @@ class SyncPwdViewSet(APIBaseViewSet):
         folder = self.get_folder_obj()
         serializer = SyncFolderSerializer(folder, many=False)
         result = camel_snake_data(serializer.data, snake_to_camel=True)
-        return Response(status=200, data=result)
+        return Response(status=status.HTTP_200_OK, data=result)
 
     @action(methods=["get"], detail=False)
     def sync_collection_detail(self, request, *args, **kwargs):
@@ -203,25 +191,24 @@ class SyncPwdViewSet(APIBaseViewSet):
         ).get("role")
         serializer_data["read_only"] = True if role_id == MEMBER_ROLE_MEMBER else False
         result = camel_snake_data(serializer_data, snake_to_camel=True)
-        return Response(status=200, data=result)
+        return Response(status=status.HTTP_200_OK, data=result)
 
     @action(methods=["get"], detail=False)
     def sync_profile_detail(self, request, *args, **kwargs):
         user = self.request.user
         self.check_pwd_session_auth(request=request)
-        serializer = SyncProfileSerializer(user, many=False)
+        serializer = SyncProfileSerializer(user, many=False, context=self.get_serializer_context())
         result = camel_snake_data(serializer.data, snake_to_camel=True)
-        return Response(status=200, data=result)
+        return Response(status=status.HTTP_200_OK, data=result)
 
     @action(methods=["get"], detail=False)
     def sync_org_detail(self, request, *args, **kwargs):
         user = self.request.user
         self.check_pwd_session_auth(request=request)
         try:
-            team_member = user.team_members.get(team_id=kwargs.get("pk"), team__key__isnull=False)
-        except ObjectDoesNotExist:
+            team_member = self.team_member_service.get_team_member(user_id=user.user_id, team_id=kwargs.get("pk"))
+        except TeamMemberDoesNotExistException:
             raise NotFound
-
-        serializer = SyncOrgDetailSerializer(team_member, many=False)
+        serializer = SyncOrgDetailSerializer(team_member, many=False, context=self.get_serializer_context())
         result = camel_snake_data(serializer.data, snake_to_camel=True)
-        return Response(status=200, data=result)
+        return Response(status=status.HTTP_200_OK, data=result)
