@@ -37,3 +37,6 @@ class RelayAddressRepository(ABC):
     def update_relay_address(self, relay_address_id: str, relay_address_update_data):
         pass
     # ------------------------ Delete RelayAddress resource --------------------- #
+    @abstractmethod
+    def delete_relay_address_by_id(self, relay_address_id: str) -> bool:
+        pass

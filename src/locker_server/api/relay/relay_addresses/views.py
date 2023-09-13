@@ -1,5 +1,5 @@
 from rest_framework import status
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
 
 from locker_server.api.api_base_view import APIBaseViewSet
@@ -84,10 +84,10 @@ class RelayAddressViewSet(APIBaseViewSet):
                 relay_address_create_data=validated_data
             )
         except UserDoesNotExistException:
-            raise ValidationError({"non_field_errors": [gen_error("8000")]})
+            raise NotFound
         except RelayAddressReachedException:
             raise ValidationError({"non_field_errors": [gen_error("8000")]})
-        return Response(status=201, data=DetailRelayAddressSerializer(new_relay_address).data)
+        return Response(status=HTTP_201_CREATED, data=DetailRelayAddressSerializer(new_relay_address).data)
 
     def update(self, request, *args, **kwargs):
         user = self.request.user
@@ -102,15 +102,28 @@ class RelayAddressViewSet(APIBaseViewSet):
                 relay_address=relay_address,
                 relay_address_update_data=validated_data
             )
-        except:
-            pass
-        return Response(status=200, data={"id": relay_address.id})
+        except RelayAddressUpdateDeniedException:
+            raise PermissionDenied
+        except RelayAddressExistedException:
+            raise ValidationError(detail={"address": ["This address exists", "Địa chỉ đã tồn tại"]})
+        except RelayAddressInvalidException:
+            raise ValidationError(detail={"address": [
+                "This address is not valid (has black words, blocked words, etc...)",
+                "Địa chỉ này có chứa từ khóa không hợp lệ"
+            ]})
+        except RelayAddressDoesNotExistException:
+            raise NotFound
+        return Response(status=status.HTTP_200_OK, data={"id": updated_relay_address.relay_address_id})
 
     def destroy(self, request, *args, **kwargs):
         relay_address = self.get_object()
-        # Create deleted address
-        relay_address.delete_permanently()
-        return Response(status=204)
+        try:
+            relay_address_id = self.relay_address_service.delete_relay_address(
+                relay_address=relay_address
+            )
+        except RelayAddressDoesNotExistException:
+            raise NotFound
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(methods=["put"], detail=True)
     def block_spam(self, request, *args, **kwargs):
@@ -118,13 +131,23 @@ class RelayAddressViewSet(APIBaseViewSet):
         allow_relay_premium = self.allow_relay_premium()
         if allow_relay_premium is False:
             raise ValidationError({"non_field_errors": [gen_error("7002")]})
-        relay_address.block_spam = not relay_address.block_spam
-        relay_address.save()
-        return Response(status=200, data={"id": relay_address.id, "block_spam": relay_address.block_spam})
+        try:
+            updated_relay_address = self.relay_address_service.update_block_spam(
+                relay_address=relay_address
+            )
+        except RelayAddressDoesNotExistException:
+            raise NotFound
+        return Response(status=HTTP_200_OK, data={"id": updated_relay_address.relay_address_id,
+                                                  "block_spam": updated_relay_address.block_spam})
 
     @action(methods=["put"], detail=True)
     def enabled(self, request, *args, **kwargs):
         relay_address = self.get_object()
-        relay_address.enabled = not relay_address.enabled
-        relay_address.save()
-        return Response(status=200, data={"id": relay_address.id, "enabled": relay_address.enabled})
+        try:
+            updated_relay_address = self.relay_address_service.update_enabled(
+                relay_address=relay_address
+            )
+        except RelayAddressDoesNotExistException:
+            raise NotFound
+        return Response(status=HTTP_200_OK,
+                        data={"id": updated_relay_address.relay_address_id, "enabled": updated_relay_address.enabled})

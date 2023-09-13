@@ -25,3 +25,6 @@ from .event_repository import EventORMRepository
 
 from .notification_category_repository import NotificationCategoryORMRepository
 from .notification_setting_repository import NotificationSettingORMRepository
+
+from .deleted_relay_address_repository import DeletedRelayAddressORMRepository
+from .relay_address_repository import RelayAddressORMRepository

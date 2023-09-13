@@ -1,11 +1,16 @@
+import re
 from hashlib import sha256
 from typing import Tuple, Dict, List, Optional
 from locker_server.core.repositories.relay_address_repository import RelayAddressRepository
 from locker_server.core.repositories.user_repository import UserRepository
+from locker_server.core.repositories.deleted_relay_address_repository import DeletedRelayAddressRepository
 
 from locker_server.core.exceptions.relay_address_exception import *
 from locker_server.core.exceptions.user_exception import UserDoesNotExistException
 from locker_server.core.entities.relay.relay_address import RelayAddress
+from locker_server.shared.constants.relay_address import MAX_FREE_RElAY_DOMAIN
+from locker_server.shared.constants.relay_blacklist import RELAY_BAD_WORDS, RELAY_BLOCKLISTED, \
+    RELAY_LOCKER_BLOCKED_CHARACTER
 
 
 class RelayAddressService:
@@ -13,9 +18,11 @@ class RelayAddressService:
     This class represents Use Cases related authentication
     """
 
-    def __init__(self, relay_address_repository: RelayAddressRepository, user_repository: UserRepository):
+    def __init__(self, relay_address_repository: RelayAddressRepository, user_repository: UserRepository,
+                 deleted_relay_address_repository: DeletedRelayAddressRepository):
         self.relay_address_repository = relay_address_repository
         self.user_repository = user_repository
+        self.deleted_relay_address_repository = deleted_relay_address_repository
 
     def list_user_relay_addresses(self, user_id: str, **filters):
         return self.relay_address_repository.list_user_relay_addresses(
@@ -57,8 +64,8 @@ class RelayAddressService:
             existed_address = self.relay_address_repository.get_relay_address_by_address(address=address)
             if existed_address:
                 raise RelayAddressExistedException
-            # TODO: check valid address
-            valid_address = self.check_valid_address(address=address, domain=relay_address.domain.relay_domain_id)
+            full_domain = self.get_full_domain(relay_address=relay_address)
+            valid_address = self.check_valid_address(address=address, domain=full_domain)
             if not valid_address:
                 raise RelayAddressInvalidException
             relay_address.address = address
@@ -79,6 +86,47 @@ class RelayAddressService:
             raise RelayAddressDoesNotExistException
         return relay_address
 
+    def delete_relay_address(self, relay_address: RelayAddress) -> bool:
+        deleted_relay_address = self.relay_address_repository.delete_relay_address_by_id(
+            relay_address_id=relay_address.relay_address_id
+        )
+        if not deleted_relay_address:
+            raise RelayAddressDoesNotExistException
+        full_domain = self.get_full_domain(relay_address=relay_address)
+        self.deleted_relay_address_repository.create_deleted_relay_address(
+            deleted_relay_address_create_data={
+                "address_hash": self.hash_address(address=relay_address.address, domain=full_domain),
+                "num_forwarded": relay_address.num_forwarded,
+                "num_blocked": relay_address.num_blocked,
+                "num_replied": relay_address.num_replied,
+                "num_spam": relay_address.num_spam,
+            })
+        return relay_address.relay_address_id
+
+    def update_block_spam(self, relay_address: RelayAddress) -> Optional[RelayAddress]:
+        relay_address_update_data = {
+            'block_spam': not relay_address.block_spam
+        }
+        updated_relay_address = self.relay_address_repository.update_relay_address(
+            relay_address_id=relay_address.relay_address_id,
+            relay_address_update_data=relay_address_update_data
+        )
+        if not updated_relay_address:
+            raise RelayAddressDoesNotExistException
+        return updated_relay_address
+
+    def update_enabled(self, relay_address: RelayAddress) -> Optional[RelayAddress]:
+        relay_address_update_data = {
+            'enabled': not relay_address.enabled
+        }
+        updated_relay_address = self.relay_address_repository.update_relay_address(
+            relay_address_id=relay_address.relay_address_id,
+            relay_address_update_data=relay_address_update_data
+        )
+        if not updated_relay_address:
+            raise RelayAddressDoesNotExistException
+        return updated_relay_address
+
     def check_valid_address(self, address: str, domain: str):
         address_pattern_valid = self.valid_address_pattern(address)
         address_contains_bad_word = self.has_bad_words(address)
@@ -86,19 +134,24 @@ class RelayAddressService:
         address_is_locker_blocked = self.is_locker_blocked(address)
         address_already_deleted = self.deleted_relay_address_repository.check_exist_address_hash(
             address_hash=self.hash_address(address, domain)
-        ).exists()
+        )
         if address_already_deleted is True or address_contains_bad_word or address_is_blocklisted or \
                 not address_pattern_valid or address_is_locker_blocked:
             return False
         return True
 
+    @classmethod
+    def get_full_domain(cls, relay_address: RelayAddress):
+        if relay_address.subdomain:
+            return f"{relay_address.subdomain.subdomain}.{relay_address.domain.relay_domain_id}"
+        else:
+            return relay_address.domain.relay_domain_id
 
     @classmethod
     def valid_address_pattern(cls, address):
         # The address can't start or end with a hyphen, must be 1 - 63 lowercase alphanumeric characters
         valid_address_pattern = re.compile("^(?!-)[a-z0-9-]{1,63}(?<!-)$")
         return valid_address_pattern.match(address) is not None
-
 
     @classmethod
     def has_bad_words(cls, value):
@@ -110,11 +163,9 @@ class RelayAddressService:
                 return True
         return False
 
-
     @classmethod
     def is_blocklisted(cls, value):
         return any(blocked_word == value for blocked_word in RELAY_BLOCKLISTED)
-
 
     @classmethod
     def is_locker_blocked(cls, value):
@@ -122,7 +173,6 @@ class RelayAddressService:
             if blocked_word in value:
                 return True
         return False
-
 
     @classmethod
     def hash_address(cls, address, domain):

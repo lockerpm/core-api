@@ -51,3 +51,8 @@ class RelayParser:
         return RelayDomain(
             relay_domain_id=relay_domain_orm.id
         )
+    @classmethod
+    def parse_deleted_relay_address(cls,deleted_relay_address_orm:DeletedRelayAddressORM)->DeletedRelayAddress:
+        return DeletedRelayAddress(
+
+        )

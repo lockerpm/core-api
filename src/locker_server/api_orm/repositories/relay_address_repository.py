@@ -64,3 +64,10 @@ class RelayAddressORMRepository(RelayAddressRepository):
         return ModelParser.relay_parser().parse_relay_address(relay_address_orm=relay_address_orm)
 
     # ------------------------ Delete RelayAddress resource --------------------- #
+    def delete_relay_address_by_id(self, relay_address_id: str) -> bool:
+        try:
+            relay_address_orm = RelayAddressORM.objects.get(id=relay_address_id)
+        except RelayAddressORM.DoesNotExist:
+            return False
+        relay_address_orm.delete()
+        return True
