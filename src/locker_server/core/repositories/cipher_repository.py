@@ -20,6 +20,10 @@ class CipherRepository(ABC):
                              exclude_team_ids=None, filter_ids=None, exclude_types=None) -> List[Cipher]:
         pass
 
+    @abstractmethod
+    def get_multiple_by_ids(self, cipher_ids: List[str]) -> List[Cipher]:
+        pass
+
     # ------------------------ Get Cipher resource --------------------- #
     @abstractmethod
     def get_by_id(self, cipher_id: str) -> Optional[Cipher]:
@@ -52,6 +56,10 @@ class CipherRepository(ABC):
     def create_cipher(self, cipher_data: Dict) -> Cipher:
         pass
 
+    @abstractmethod
+    def sync_personal_cipher_offline(self, user_id: int, ciphers: List, folders: List, folder_relationships: List):
+        pass
+
     # ------------------------ Update Cipher resource --------------------- #
     @abstractmethod
     def update_cipher(self, cipher_id: str, cipher_data: Dict) -> Cipher:
@@ -61,12 +69,27 @@ class CipherRepository(ABC):
     def update_folders(self, cipher_id: str, new_folders_data) -> Cipher:
         pass
 
+    @abstractmethod
+    def update_cipher_use(self, cipher_id: str, cipher_use_data: Dict) -> Cipher:
+        pass
+
+    @abstractmethod
+    def move_multiple_cipher(self, cipher_ids: List[str], user_id_moved: int, folder_id: str):
+        pass
+
     # ------------------------ Delete Cipher resource --------------------- #
     @abstractmethod
     def delete_permanent_multiple_cipher_by_teams(self, team_ids):
         pass
 
     @abstractmethod
-    def delete_multiple_cipher(self, cipher_ids: list, user_id_deleted: int):
+    def delete_permanent_multiple_cipher(self, cipher_ids: List[str], user_id_deleted: int) -> List[str]:
         pass
 
+    @abstractmethod
+    def delete_multiple_cipher(self, cipher_ids: List[str], user_id_deleted: int) -> List[str]:
+        pass
+
+    @abstractmethod
+    def restore_multiple_cipher(self, cipher_ids: List[str], user_id_restored: int) -> List[str]:
+        pass

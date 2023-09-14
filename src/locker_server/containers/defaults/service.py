@@ -43,6 +43,7 @@ class ServiceFactory(containers.DeclarativeContainer):
     cipher_service = providers.Factory(
         CipherService,
         cipher_repository=RepositoryFactory.cipher_repository,
+        folder_repository=RepositoryFactory.folder_repository,
         team_repository=RepositoryFactory.team_repository,
         team_member_repository=RepositoryFactory.team_member_repository,
         user_plan_repository=RepositoryFactory.user_plan_repository,
@@ -61,6 +62,10 @@ class ServiceFactory(containers.DeclarativeContainer):
     collection_service = providers.Factory(
         CollectionService,
         collection_repository=RepositoryFactory.collection_repository
+    )
+    sharing_service = providers.Factory(
+        SharingService,
+        sharing_repository=RepositoryFactory.sharing_repository
     )
 
     enterprise_service = providers.Factory(

@@ -22,6 +22,7 @@ class APIBaseViewSet(AppGeneralViewSet):
 
     team_member_service = team_member_service
     collection_service = collection_service
+    sharing_service = sharing_service
 
     enterprise_service = enterprise_service
 

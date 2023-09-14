@@ -1,6 +1,9 @@
 from rest_framework import serializers
 
+from locker_server.api.v1_0.folders.serializers import FolderSerializer
+from locker_server.api.v1_0.sync.serializers import SyncCipherSerializer
 from locker_server.shared.constants.ciphers import *
+from locker_server.shared.error_responses.error import gen_error
 from locker_server.shared.utils.app import get_cipher_detail_data
 
 
@@ -143,3 +146,76 @@ class VaultItemSerializer(serializers.Serializer):
 
 class UpdateVaultItemSerializer(VaultItemSerializer):
     pass
+
+
+class MultipleItemIdsSerializer(serializers.Serializer):
+    ids = serializers.ListField(child=serializers.CharField(), allow_empty=False, allow_null=False, required=True)
+
+    def validate(self, data):
+        ids = data.get("ids")
+        if not ids:
+            raise serializers.ValidationError(detail={"ids": ["This field is required"]})
+        if len(ids) > 10000:
+            raise serializers.ValidationError({"non_field_errors": [gen_error("5001")]})
+        return data
+
+
+class DetailCipherSerializer(SyncCipherSerializer):
+    def to_representation(self, instance):
+        return super(DetailCipherSerializer, self).to_representation(instance)
+
+
+class UpdateCipherUseSerializer(serializers.Serializer):
+    favorite = serializers.BooleanField(default=False, required=False)
+    use = serializers.BooleanField(default=False, required=False)
+
+
+class MultipleMoveSerializer(serializers.Serializer):
+    ids = serializers.ListField(child=serializers.CharField(), allow_empty=False, allow_null=False, required=True)
+    folderId = serializers.CharField(allow_null=True)
+
+    def validate(self, data):
+        ids = data.get("ids")
+        if not ids:
+            raise serializers.ValidationError(detail={"ids": ["This field is required"]})
+        if len(ids) > 200:
+            raise serializers.ValidationError(detail={"ids": ["You can only select up to 200 items at a time"]})
+        return data
+
+
+class SyncOfflineVaultItemSerializer(VaultItemSerializer):
+    id = serializers.CharField(required=False, allow_null=True)
+    deletedDate = serializers.FloatField(required=False, allow_null=True)
+
+    def to_representation(self, instance):
+        data = super(SyncOfflineVaultItemSerializer, self).to_representation(instance)
+        data["deleted_date"] = self.validated_data.get("deletedDate")
+        return data
+
+
+class SyncOfflineFolderSerializer(FolderSerializer):
+    id = serializers.CharField(required=False, allow_null=True)
+
+
+class FolderRelationshipSerializer(serializers.Serializer):
+    key = serializers.IntegerField(min_value=0)
+    value = serializers.IntegerField(min_value=0)
+
+
+class SyncOfflineCipherSerializer(serializers.Serializer):
+    ciphers = SyncOfflineVaultItemSerializer(many=True)
+    folders = SyncOfflineFolderSerializer(many=True)
+    folderRelationships = FolderRelationshipSerializer(many=True)
+
+    def validate(self, data):
+        ciphers = data.get("ciphers", [])
+        folders = data.get("folders", [])
+        folder_relationships = data.get("folderRelationships", [])
+        if len(ciphers) > 1000:
+            raise serializers.ValidationError(detail={"ciphers": ["You cannot import this much data at once"]})
+        if len(folder_relationships) > 1000:
+            raise serializers.ValidationError(
+                detail={"folderRelationships": ["You cannot import this much data at once"]})
+        if len(folders) > 200:
+            raise serializers.ValidationError(detail={"folders": ["You cannot import this much data at once"]})
+        return data

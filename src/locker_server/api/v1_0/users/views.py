@@ -336,7 +336,6 @@ class UserPwdViewSet(APIBaseViewSet):
                     data=master_password_cipher, **{"context": self.get_serializer_context()}
                 )
                 serializer.is_valid(raise_exception=True)
-                serializer.is_valid(raise_exception=True)
                 cipher_detail = serializer.save()
                 cipher_detail = json.loads(json.dumps(cipher_detail))
                 master_password_cipher_obj = self._update_master_pwd_cipher(

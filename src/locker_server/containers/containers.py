@@ -20,6 +20,7 @@ folder_service = ServiceFactory.folder_service()
 
 team_member_service = ServiceFactory.team_member_service()
 collection_service = ServiceFactory.collection_service()
+sharing_service = ServiceFactory.sharing_service()
 
 enterprise_service = ServiceFactory.enterprise_service()
 

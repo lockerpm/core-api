@@ -16,7 +16,7 @@ from .folder_repository import FolderORMRepository
 from .team_repository import TeamORMRepository
 from .team_member_repository import TeamMemberORMRepository
 from .collection_repository import CollectionORMRepository
-
+from .sharing_repository import SharingORMRepository
 
 from .enterprise_repository import EnterpriseORMRepository
 from .enterprise_member_repository import EnterpriseMemberORMRepository

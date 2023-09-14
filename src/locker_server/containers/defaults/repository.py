@@ -24,6 +24,7 @@ class RepositoryFactory(containers.DeclarativeContainer):
     team_repository = providers.Factory(TeamORMRepository)
     team_member_repository = providers.Factory(TeamMemberORMRepository)
     collection_repository = providers.Factory(CollectionORMRepository)
+    sharing_repository = providers.Factory(SharingORMRepository)
 
     enterprise_repository = providers.Factory(EnterpriseORMRepository)
     enterprise_member_repository = providers.Factory(EnterpriseMemberORMRepository)
