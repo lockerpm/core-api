@@ -91,6 +91,11 @@ class UserService:
             raise UserDoesNotExistException
         return user
 
+    def update_passwordless_cred(self, user: User, fd_credential_id: str, fd_random: str) -> User:
+        return self.user_repository.update_passwordless_cred(
+            user_id=user.user_id, fd_credential_id=fd_credential_id, fd_random=fd_random
+        )
+
     def retrieve_by_id(self, user_id: int) -> User:
         user = self.user_repository.get_user_by_id(user_id=user_id)
         if not user:
