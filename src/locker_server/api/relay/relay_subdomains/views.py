@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
 
-from slocker_server.api.api_base_view import APIBaseViewSet
+from locker_server.api.api_base_view import APIBaseViewSet
 from locker_server.core.exceptions.relay_exceptions.relay_subdomain_exception import *
 from locker_server.core.exceptions.user_exception import UserDoesNotExistException
 from .serializers import *
