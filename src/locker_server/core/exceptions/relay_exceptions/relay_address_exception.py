@@ -19,10 +19,16 @@ class RelayAddressReachedException(RelayAddressException):
     """
 
 
+class RelayAddressInvalidException(RelayAddressException):
+    """The address have invalid word"""
+
+
 class RelayAddressUpdateDeniedException(RelayAddressException):
     """
     The RelayAddress is not oldest
     """
+
+
 class RelayAddressExistedException(RelayAddressException):
     """
     The address already exist

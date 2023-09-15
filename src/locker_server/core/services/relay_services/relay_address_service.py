@@ -1,21 +1,22 @@
 import re
 from hashlib import sha256
-from typing import Optional
-from locker_server.core.repositories.relay.relay_address_repository import RelayAddressRepository
-from locker_server.core.repositories.user_repository import UserRepository
-from locker_server.core.repositories.relay.deleted_relay_address_repository import DeletedRelayAddressRepository
+from typing import Optional, NoReturn
+from src.locker_server.core.repositories.relay_repositories.relay_address_repository import RelayAddressRepository
+from src.locker_server.core.repositories.user_repository import UserRepository
+from src.locker_server.core.repositories.relay_repositories.deleted_relay_address_repository import \
+    DeletedRelayAddressRepository
 
-from locker_server.core.exceptions.relay_address_exception import *
-from locker_server.core.exceptions.user_exception import UserDoesNotExistException
-from locker_server.core.entities.relay.relay_address import RelayAddress
-from locker_server.shared.constants.relay_address import MAX_FREE_RElAY_DOMAIN
-from locker_server.shared.constants.relay_blacklist import RELAY_BAD_WORDS, RELAY_BLOCKLISTED, \
+from src.locker_server.core.exceptions.relay_exceptions.relay_address_exception import *
+from src.locker_server.core.exceptions.user_exception import UserDoesNotExistException
+from src.locker_server.core.entities.relay.relay_address import RelayAddress
+from src.locker_server.shared.constants.relay_address import MAX_FREE_RElAY_DOMAIN
+from src.locker_server.shared.constants.relay_blacklist import RELAY_BAD_WORDS, RELAY_BLOCKLISTED, \
     RELAY_LOCKER_BLOCKED_CHARACTER
 
 
 class RelayAddressService:
     """
-    This class represents Use Cases related authentication
+    This class represents Use Cases related relay address
     """
 
     def __init__(self, relay_address_repository: RelayAddressRepository, user_repository: UserRepository,
@@ -103,6 +104,13 @@ class RelayAddressService:
             })
         return relay_address.relay_address_id
 
+    def delete_relay_addresses_by_subdomain_id(self, subdomain_id: str) -> NoReturn:
+        relay_addresses = self.relay_address_repository.list_relay_addresses(**{
+            "subdomain_id": subdomain_id
+        })
+        for relay_address in relay_addresses:
+            self.delete_relay_address(relay_address=relay_address)
+
     def update_block_spam(self, relay_address: RelayAddress) -> Optional[RelayAddress]:
         relay_address_update_data = {
             'block_spam': not relay_address.block_spam
@@ -126,6 +134,15 @@ class RelayAddressService:
         if not updated_relay_address:
             raise RelayAddressDoesNotExistException
         return updated_relay_address
+
+    def get_relay_address_by_full_domain(self, address: str, domain_id: str, subdomain: str = None) -> Optional[
+        RelayAddress]:
+        relay_address = self.relay_address_repository.get_relay_address_by_full_domain(
+            address=address,
+            domain_id=domain_id,
+            subdomain=subdomain
+        )
+        return relay_address
 
     def check_valid_address(self, address: str, domain: str):
         address_pattern_valid = self.valid_address_pattern(address)

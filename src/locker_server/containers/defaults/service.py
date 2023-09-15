@@ -69,3 +69,11 @@ class ServiceFactory(containers.DeclarativeContainer):
         user_repository=RepositoryFactory.user_repository,
         deleted_relay_address_repository=RepositoryFactory.deleted_relay_address_repository
     )
+    relay_subdomain_service = providers.Factory(
+        RelaySubdomianService,
+        relay_subdomain_repository=RepositoryFactory.relay_subdomain_repository
+    )
+    reply_service = providers.Factory(
+        ReplyService,
+        reply_repository=RepositoryFactory.reply_repository
+    )

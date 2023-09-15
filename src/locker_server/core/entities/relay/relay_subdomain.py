@@ -4,13 +4,16 @@ from locker_server.core.entities.user.user import User
 
 class RelaySubdomain(object):
     def __init__(self, relay_subdomain_id: int, subdomain: str, created_time: float = None, is_deleted: bool = False,
-                 user: User = None, domain: RelayDomain = None):
+                 user: User = None, domain: RelayDomain = None, num_alias=None, num_spam=None, num_forwarded=None):
         self._relay_subdomain_id = relay_subdomain_id
         self._subdomain = subdomain
         self._created_time = created_time
         self._is_deleted = is_deleted
         self._user = user
         self._domain = domain
+        self._num_alias = num_alias
+        self._num_spam = num_spam
+        self._num_forwarded = num_forwarded
 
     @property
     def relay_subdomain_id(self):
@@ -35,3 +38,15 @@ class RelaySubdomain(object):
     @property
     def domain(self):
         return self._domain
+
+    @property
+    def num_alias(self):
+        return self._num_alias
+
+    @property
+    def num_spam(self):
+        return self._num_spam
+
+    @property
+    def num_forwarded(self):
+        return self._num_forwarded

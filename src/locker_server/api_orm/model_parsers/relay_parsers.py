@@ -1,11 +1,11 @@
 from locker_server.api_orm.model_parsers.wrapper_specific_model_parser import get_specific_model_parser
-from src.locker_server.api_orm.models import *
-from locker_server.core.entities.user.device import Device
-from locker_server.core.entities.user.device_access_token import DeviceAccessToken
-from locker_server.core.entities.user.exclude_domain import ExcludeDomain
-from src.locker_server.core.entities.relay.relay_address import RelayAddress
-from src.locker_server.core.entities.relay.relay_domain import RelayDomain
-from src.locker_server.core.entities.relay.relay_subdomain import RelaySubdomain
+from locker_server.api_orm.models import *
+from locker_server.core.entities.relay.deleted_relay_address import DeletedRelayAddress
+
+from locker_server.core.entities.relay.relay_address import RelayAddress
+from locker_server.core.entities.relay.relay_domain import RelayDomain
+from locker_server.core.entities.relay.relay_subdomain import RelaySubdomain
+from locker_server.core.entities.relay.reply import Reply
 
 
 class RelayParser:
@@ -37,13 +37,26 @@ class RelayParser:
         user_parser = get_specific_model_parser("UserParser")
         user = user_parser.parse_user(user_orm=relay_subdomain_orm.user)
         domain = cls.parse_relay_domain(relay_domain_orm=relay_subdomain_orm.domain)
+        num_alias = None
+        num_spam = None
+        num_forwarded = None
+        if hasattr(relay_subdomain_orm, "num_alias"):
+            num_alias = relay_subdomain_orm.num_alias
+        if hasattr(relay_subdomain_orm, "num_spam"):
+            num_spam = relay_subdomain_orm.num_spam
+        if hasattr(relay_subdomain_orm, "num_forwarded"):
+            num_forwarded = relay_subdomain_orm.num_forwarded
+
         return RelaySubdomain(
             relay_subdomain_id=relay_subdomain_orm.id,
             subdomain=relay_subdomain_orm.subdomain,
             created_time=relay_subdomain_orm.created_time,
             is_deleted=relay_subdomain_orm.is_deleted,
             user=user,
-            domain=domain
+            domain=domain,
+            num_alias=num_alias,
+            num_spam=num_spam,
+            num_forwarded=num_forwarded
         )
 
     @classmethod
@@ -51,8 +64,23 @@ class RelayParser:
         return RelayDomain(
             relay_domain_id=relay_domain_orm.id
         )
-    @classmethod
-    def parse_deleted_relay_address(cls,deleted_relay_address_orm:DeletedRelayAddressORM)->DeletedRelayAddress:
-        return DeletedRelayAddress(
 
+    @classmethod
+    def parse_deleted_relay_address(cls, deleted_relay_address_orm: DeletedRelayAddressORM) -> DeletedRelayAddress:
+        return DeletedRelayAddress(
+            deleted_relay_address_id=deleted_relay_address_orm.id,
+            address_hash=deleted_relay_address_orm.address_hash,
+            num_forwarded=deleted_relay_address_orm.num_forwarded,
+            num_blocked=deleted_relay_address_orm.num_blocked,
+            num_replied=deleted_relay_address_orm.num_replied,
+            num_spam=deleted_relay_address_orm.num_spam,
+        )
+
+    @classmethod
+    def parse_relay_reply(cls, reply_orm: ReplyORM) -> Reply:
+        return Reply(
+            reply_id=reply_orm.id,
+            lookup=reply_orm.lookup,
+            encrypted_metadata=reply_orm.encrypted_metadata,
+            created_at=reply_orm.created_at
         )

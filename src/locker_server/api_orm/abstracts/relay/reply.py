@@ -1,6 +1,6 @@
 from django.db import models
 
-from shared.utils.app import now
+from locker_server.shared.utils.app import now
 
 
 class AbstractReplyORM(models.Model):
@@ -11,8 +11,3 @@ class AbstractReplyORM(models.Model):
     class Meta:
         abstract = True
 
-    @classmethod
-    def create(cls, lookup, encrypted_metadata):
-        new_reply = cls(lookup=lookup, encrypted_metadata=encrypted_metadata, created_at=now(return_float=True))
-        new_reply.save()
-        return new_reply

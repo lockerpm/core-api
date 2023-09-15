@@ -26,6 +26,11 @@ class RelayAddressRepository(ABC):
     def get_oldest_user_relay_address(self, user_id: int) -> Optional[RelayAddress]:
         pass
 
+    @abstractmethod
+    def get_relay_address_by_full_domain(self, address: str, domain_id: str, subdomain: str = None) \
+            -> Optional[RelayAddress]:
+        pass
+
     # ------------------------ Create RelayAddress resource --------------------- #
     @abstractmethod
     def create_relay_address(self, relay_address_create_data):
@@ -36,7 +41,12 @@ class RelayAddressRepository(ABC):
     @abstractmethod
     def update_relay_address(self, relay_address_id: str, relay_address_update_data):
         pass
+
     # ------------------------ Delete RelayAddress resource --------------------- #
     @abstractmethod
     def delete_relay_address_by_id(self, relay_address_id: str) -> bool:
+        pass
+
+    @abstractmethod
+    def delete_subdomain_relay_addresses(self, relay_subdomain_id: str) -> bool:
         pass

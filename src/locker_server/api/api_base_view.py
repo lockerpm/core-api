@@ -19,6 +19,8 @@ class APIBaseViewSet(AppGeneralViewSet):
     exclude_domain_service = exclude_domain_service
     cipher_service = cipher_service
     relay_address_service = relay_address_service
+    relay_subdomain_service = relay_subdomain_service
+    reply_service = reply_service
 
     def get_throttles(self):
         if self.request.user and not isinstance(self.request.user, AnonymousUser):

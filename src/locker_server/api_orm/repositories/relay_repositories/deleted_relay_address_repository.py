@@ -3,7 +3,8 @@ from typing import Optional, List
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_relay_deleted_address_model
 from locker_server.core.entities.relay.deleted_relay_address import DeletedRelayAddress
-from locker_server.core.repositories.relay.deleted_relay_address_repository import DeletedRelayAddressRepository
+from locker_server.core.repositories.relay_repositories.deleted_relay_address_repository import \
+    DeletedRelayAddressRepository
 from locker_server.shared.constants.token import *
 
 DeletedRelayAddressORM = get_relay_deleted_address_model()

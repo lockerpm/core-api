@@ -1,12 +1,15 @@
 from rest_framework import status
-from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound, ValidationError, PermissionDenied
 from rest_framework.response import Response
 
-from locker_server.api.api_base_view import APIBaseViewSet
-from locker_server.api.permissions.locker_permissions.relay_address_permission import RelayAddressPermission
-from locker_server.core.exceptions.relay_address_exception import RelayAddressDoesNotExistException
-
+from locker_server.core.exceptions.relay_exceptions.relay_address_exception import *
+from locker_server.core.exceptions.user_exception import UserDoesNotExistException
+from locker_server.shared.constants.relay_address import DEFAULT_RELAY_DOMAIN
+from locker_server.shared.error_responses.error import gen_error
 from .serializers import *
+from locker_server.api.api_base_view import APIBaseViewSet
+from locker_server.api.permissions.relay_permissions.relay_address_permission import RelayAddressPermission
 
 
 class RelayAddressViewSet(APIBaseViewSet):
@@ -46,13 +49,15 @@ class RelayAddressViewSet(APIBaseViewSet):
 
     def get_subdomain(self):
         user = self.request.user
-        # TODO: using relay_subdomains service to get first subdomain for this function
-        subdomain = user.relay_subdomains.filter(is_deleted=False, domain_id=DEFAULT_RELAY_DOMAIN).first()
+        subdomain = self.relay_subdomain_service.get_first_subdomain_by_domain_id(
+            user_id=user.user_id,
+            domain_id=DEFAULT_RELAY_DOMAIN
+        )
         return subdomain
 
     def allow_relay_premium(self) -> bool:
         user = self.request.user
-        current_plan = self.user_repository.get_current_plan(user=user, scope=settings.SCOPE_PWD_MANAGER)
+        current_plan = self.user_service.get_current_plan(user=user)
         plan_obj = current_plan.get_plan_obj()
         return plan_obj.allow_relay_premium() or user.is_active_enterprise_member()
 
@@ -87,7 +92,7 @@ class RelayAddressViewSet(APIBaseViewSet):
             raise NotFound
         except RelayAddressReachedException:
             raise ValidationError({"non_field_errors": [gen_error("8000")]})
-        return Response(status=HTTP_201_CREATED, data=DetailRelayAddressSerializer(new_relay_address).data)
+        return Response(status=status.HTTP_201_CREATED, data=DetailRelayAddressSerializer(new_relay_address).data)
 
     def update(self, request, *args, **kwargs):
         user = self.request.user
@@ -137,8 +142,8 @@ class RelayAddressViewSet(APIBaseViewSet):
             )
         except RelayAddressDoesNotExistException:
             raise NotFound
-        return Response(status=HTTP_200_OK, data={"id": updated_relay_address.relay_address_id,
-                                                  "block_spam": updated_relay_address.block_spam})
+        return Response(status=status.HTTP_200_OK, data={"id": updated_relay_address.relay_address_id,
+                                                         "block_spam": updated_relay_address.block_spam})
 
     @action(methods=["put"], detail=True)
     def enabled(self, request, *args, **kwargs):
@@ -149,5 +154,5 @@ class RelayAddressViewSet(APIBaseViewSet):
             )
         except RelayAddressDoesNotExistException:
             raise NotFound
-        return Response(status=HTTP_200_OK,
+        return Response(status=status.HTTP_200_OK,
                         data={"id": updated_relay_address.relay_address_id, "enabled": updated_relay_address.enabled})
