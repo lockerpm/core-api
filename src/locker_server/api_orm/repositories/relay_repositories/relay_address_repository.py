@@ -67,6 +67,13 @@ class RelayAddressORMRepository(RelayAddressRepository):
             return None
         return ModelParser.relay_parser().parse_relay_address(relay_address_orm=relay_address_orm)
 
+    def get_relay_address_by_address(self, address: str) -> Optional[RelayAddress]:
+        try:
+            relay_address_orm = RelayAddressORM.objects.get(address=address)
+        except RelayAddressORM.DoesNotExist:
+            return None
+        return ModelParser.relay_parser().parse_relay_address(relay_address_orm=relay_address_orm)
+
     # ------------------------ Create RelayAddress resource --------------------- #
     def create_relay_address(self, relay_address_create_data):
         relay_address_orm = RelayAddressORM.create(**relay_address_create_data)
@@ -102,4 +109,4 @@ class RelayAddressORMRepository(RelayAddressRepository):
 
     def delete_subdomain_relay_addresses(self, relay_subdomain_id: str) -> bool:
         RelayAddressORM.objects.filter(subdomain_id=relay_subdomain_id).delete()
-        return relay_subdomain_id
+        return True

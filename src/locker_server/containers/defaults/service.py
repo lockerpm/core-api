@@ -90,7 +90,7 @@ class ServiceFactory(containers.DeclarativeContainer):
         deleted_relay_address_repository=RepositoryFactory.deleted_relay_address_repository
     )
     relay_subdomain_service = providers.Factory(
-        RelaySubdomianService,
+        RelaySubdomainService,
         relay_subdomain_repository=RepositoryFactory.relay_subdomain_repository
     )
     reply_service = providers.Factory(

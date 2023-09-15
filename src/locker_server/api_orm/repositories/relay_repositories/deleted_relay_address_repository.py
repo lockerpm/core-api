@@ -20,8 +20,14 @@ class DeletedRelayAddressORMRepository(DeletedRelayAddressRepository):
         pass
 
     # ------------------------ Get DeletedRelayAddress resource --------------------- #
-    def get_deleted_relay_address_by_id(self, relay_address_id: str) -> Optional[DeletedRelayAddress]:
-        pass
+    def get_deleted_relay_address_by_id(self, deleted_relay_address_id: str) -> Optional[DeletedRelayAddress]:
+        try:
+            deleted_relay_address_orm = DeletedRelayAddressORM.objects.get(id=deleted_relay_address_id)
+        except DeletedRelayAddressORM.DoesNotExist:
+            return None
+        return ModelParser.relay_parser().parse_deleted_relay_address(
+            deleted_relay_address_orm=deleted_relay_address_orm
+        )
 
     def check_exist_address_hash(self, address_hash: str) -> bool:
         existed = DeletedRelayAddressORM.objects.filter(
@@ -31,9 +37,9 @@ class DeletedRelayAddressORMRepository(DeletedRelayAddressRepository):
 
     # ------------------------ Create DeletedRelayAddress resource --------------------- #
     def create_deleted_relay_address(self, deleted_relay_address_create_data) -> DeletedRelayAddress:
-        deleted_relay_orm = DeletedRelayAddressORM.create(**deleted_relay_address_create_data)
+        deleted_relay_address_orm = DeletedRelayAddressORM.create(**deleted_relay_address_create_data)
         return ModelParser.relay_parser().parse_deleted_relay_address(
-            deleted_relay_address_orm=deleted_relay_orm
+            deleted_relay_address_orm=deleted_relay_address_orm
         )
 
     # ------------------------ Update DeletedRelayAddress resource --------------------- #

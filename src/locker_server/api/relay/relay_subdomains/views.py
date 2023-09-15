@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
 
-from locker_server.api.api_base_view import APIBaseViewSet
+from slocker_server.api.api_base_view import APIBaseViewSet
 from locker_server.core.exceptions.relay_exceptions.relay_subdomain_exception import *
 from locker_server.core.exceptions.user_exception import UserDoesNotExistException
 from .serializers import *
@@ -98,6 +98,7 @@ class RelaySubdomainViewSet(APIBaseViewSet):
             action_msg = {'action': 'create',
                           'domain': f"{new_relay_subdomain.subdomain}.{new_relay_subdomain.domain.relay_domain_id}"}
             create_msg = {'Type': 'DomainIdentity', 'Message': json.dumps(action_msg)}
+            #TODO: sqs service
             sqs_service.send_message(message_body=json.dumps(create_msg))
 
         return Response(status=status.HTTP_201_CREATED,
@@ -142,6 +143,7 @@ class RelaySubdomainViewSet(APIBaseViewSet):
                     action_create_msg = {'action': 'create',
                                          'domain': f"{subdomain}.{updated_relay_subdomain.domain.relay_domain_id}"}
                     create_msg = {'Type': 'DomainIdentity', 'Message': json.dumps(action_create_msg)}
+                    #TODO: handle sqs_service
                     sqs_service.send_message(message_body=json.dumps(create_msg))
             except RelaySubdomainAlreadyUsedException:
                 raise ValidationError(detail={"subdomain": [

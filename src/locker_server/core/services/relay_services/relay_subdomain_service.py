@@ -2,7 +2,7 @@ import re
 from typing import Optional
 
 from locker_server.core.repositories.relay_repositories.relay_address_repository import RelayAddressRepository
-from src.locker_server.core.repositories.relay_repositories.relay_subdomain_repository import RelaySubdomainRepository
+from locker_server.core.repositories.relay_repositories.relay_subdomain_repository import RelaySubdomainRepository
 
 from locker_server.core.exceptions.relay_exceptions.relay_subdomain_exception import *
 from locker_server.core.exceptions.user_exception import UserDoesNotExistException
@@ -56,8 +56,8 @@ class RelaySubdomainService:
             relay_subdomain_create_data=relay_subdomain_create_data)
         return new_relay_subdomain
 
-    def update_relay_subdomain(self, user_id: str, relay_subdomain_id: str, relay_subdomain_update_data) -> Optional[
-        RelaySubdomain]:
+    def update_relay_subdomain(self, user_id: str, relay_subdomain_id: str, relay_subdomain_update_data) \
+            -> Optional[RelaySubdomain]:
         new_subdomain = relay_subdomain_update_data.get("subdomain")
         is_valid_subdomain = self.valid_subdomain(subdomain=new_subdomain)
         if not is_valid_subdomain:
