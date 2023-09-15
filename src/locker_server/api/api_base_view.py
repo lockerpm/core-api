@@ -16,6 +16,7 @@ class APIBaseViewSet(AppGeneralViewSet):
 
     auth_service = auth_service
     user_service = user_service
+    family_service = family_service
     exclude_domain_service = exclude_domain_service
     cipher_service = cipher_service
     folder_service = folder_service

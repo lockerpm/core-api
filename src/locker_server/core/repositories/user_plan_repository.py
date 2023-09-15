@@ -1,9 +1,10 @@
-from typing import Union, Dict, Optional
+from typing import Union, Dict, Optional, List
 from abc import ABC, abstractmethod
 
 from locker_server.core.entities.enterprise.enterprise import Enterprise
 from locker_server.core.entities.user.user import User
 from locker_server.core.entities.user_plan.pm_user_plan import PMUserPlan
+from locker_server.core.entities.user_plan.pm_user_plan_family import PMUserPlanFamily
 from locker_server.shared.constants.transactions import DURATION_MONTHLY
 
 
@@ -22,6 +23,22 @@ class UserPlanRepository(ABC):
 
     @abstractmethod
     def get_max_allow_cipher_type(self, user: User) -> Dict:
+        pass
+
+    @abstractmethod
+    def is_in_family_plan(self, user_id: int) -> bool:
+        pass
+
+    @abstractmethod
+    def get_family_members(self, user_id: int) -> Dict:
+        pass
+
+    @abstractmethod
+    def get_family_member(self, owner_user_id: int, family_member_id: int) -> Optional[PMUserPlanFamily]:
+        pass
+
+    @abstractmethod
+    def count_family_members(self, user_id: int) -> int:
         pass
 
     # ------------------------ Create PMUserPlan resource --------------------- #
@@ -51,5 +68,9 @@ class UserPlanRepository(ABC):
     # ------------------------ Delete PMUserPlan resource --------------------- #
     @abstractmethod
     def cancel_plan(self, user: User, immediately=False, **kwargs):
+        pass
+
+    @abstractmethod
+    def delete_family_member(self, family_member_id: int):
         pass
 

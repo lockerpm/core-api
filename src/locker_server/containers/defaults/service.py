@@ -33,6 +33,11 @@ class ServiceFactory(containers.DeclarativeContainer):
         enterprise_policy_repository=RepositoryFactory.enterprise_policy_repository,
         notification_setting_repository=RepositoryFactory.notification_setting_repository,
     )
+    family_service = providers.Factory(
+        FamilyService,
+        user_repository=RepositoryFactory.user_repository,
+        user_plan_repository=RepositoryFactory.user_plan_repository,
+    )
 
     exclude_domain_service = providers.Factory(
         ExcludeDomainService,
@@ -90,7 +95,7 @@ class ServiceFactory(containers.DeclarativeContainer):
         deleted_relay_address_repository=RepositoryFactory.deleted_relay_address_repository
     )
     relay_subdomain_service = providers.Factory(
-        RelaySubdomianService,
+        RelaySubdomainService,
         relay_subdomain_repository=RepositoryFactory.relay_subdomain_repository
     )
     reply_service = providers.Factory(
