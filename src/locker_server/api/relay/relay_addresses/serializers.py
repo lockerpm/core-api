@@ -6,7 +6,7 @@ class ListRelayAddressSerializer(serializers.Serializer):
         data = {
             "id": instance.relay_address_id,
             "address": instance.address,
-            "subdomain": instance.subdomain.subdomain,
+            "subdomain": instance.subdomain.subdomain if instance.subdomain else None,
             "domain": instance.domain.relay_domain_id,
             "enabled": instance.domain.enabled,
             "block_spam": instance.block_spam,
@@ -16,15 +16,9 @@ class ListRelayAddressSerializer(serializers.Serializer):
             "num_forwarded": instance.num_forwarded,
             "num_blocked": instance.num_blocked,
             "num_replied": instance.num_replied,
-            "num_spam": instance.num_spam
+            "num_spam": instance.num_spam,
+            "full_address": instance.full_address,
         }
-        if instance.subdomain:
-            full_address = f"{data['address']}@{data['subdomain']}.{data['domain']}"
-        else:
-            full_address = f"{data['address']}@{data['domain']}"
-        data.update({
-            'full_address': full_address
-        })
         return data
 
 

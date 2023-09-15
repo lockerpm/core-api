@@ -73,6 +73,8 @@ class RelaySubdomainORMRepository(RelaySubdomainRepository):
             domain_id=domain_id,
             is_deleted=False
         ).first()
+        if not relay_subdomain_orm:
+            return None
         return ModelParser.relay_parser().parse_relay_subdomain(relay_subdomain_orm=relay_subdomain_orm)
 
     # ------------------------ Create RelaySubdomain resource --------------------- #
