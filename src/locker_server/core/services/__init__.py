@@ -14,3 +14,5 @@ from .enterprise_service import EnterpriseService
 from .enterprise_group_service import EnterpriseGroupService
 
 from .event_service import EventService
+
+from .relay_services.relay_address_service import RelayAddressService

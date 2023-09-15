@@ -133,6 +133,7 @@ class UserORMRepository(UserRepository):
         user_orm.master_password_hint = user_update_data.get("master_password_hint", user_orm.master_password_hint)
         user_orm.master_password_score = user_update_data.get("master_password_score", user_orm.master_password_score)
         user_orm.api_key = user_update_data.get("api_key", user_orm.api_key)
+        user_orm.use_relay_subdomain = user_update_data.get("use_relay_subdomain", user_orm.use_relay_subdomain)
         user_orm.activated = user_update_data.get("activated", user_orm.activated)
         user_orm.activated_date = user_update_data.get("activated_date", user_orm.activated_date)
         user_orm.revision_date = user_update_data.get("revision_date", user_orm.revision_date)

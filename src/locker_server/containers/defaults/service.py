@@ -4,7 +4,6 @@ import dependency_injector.providers as providers
 from locker_server.core.services import *
 from locker_server.settings import locker_server_settings
 
-
 RepositoryFactory = locker_server_settings.API_REPOSITORY_CLASS
 
 
@@ -82,4 +81,19 @@ class ServiceFactory(containers.DeclarativeContainer):
     event_service = providers.Factory(
         EventService,
         event_repository=RepositoryFactory.event_repository,
+    )
+
+    relay_address_service = providers.Factory(
+        RelayAddressService,
+        relay_address_repository=RepositoryFactory.relay_address_repository,
+        user_repository=RepositoryFactory.user_repository,
+        deleted_relay_address_repository=RepositoryFactory.deleted_relay_address_repository
+    )
+    relay_subdomain_service = providers.Factory(
+        RelaySubdomianService,
+        relay_subdomain_repository=RepositoryFactory.relay_subdomain_repository
+    )
+    reply_service = providers.Factory(
+        ReplyService,
+        reply_repository=RepositoryFactory.reply_repository
     )

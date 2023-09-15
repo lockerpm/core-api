@@ -26,6 +26,9 @@ class APIBaseViewSet(AppGeneralViewSet):
 
     enterprise_service = enterprise_service
 
+    relay_address_service = relay_address_service
+    relay_subdomain_service = relay_subdomain_service
+    reply_service = reply_service
     def get_throttles(self):
         if self.request.user and not isinstance(self.request.user, AnonymousUser):
             self.throttle_scope = 'user_authenticated'
