@@ -1,6 +1,5 @@
 from .auth_service import AuthService
 from .user_service import UserService
-from .family_service import FamilyService
 
 from .exclude_domain_service import ExcludeDomainService
 

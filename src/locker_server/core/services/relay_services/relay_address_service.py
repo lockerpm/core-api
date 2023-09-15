@@ -1,16 +1,16 @@
 import re
 from hashlib import sha256
 from typing import Optional, NoReturn
-from src.locker_server.core.repositories.relay_repositories.relay_address_repository import RelayAddressRepository
-from src.locker_server.core.repositories.user_repository import UserRepository
-from src.locker_server.core.repositories.relay_repositories.deleted_relay_address_repository import \
+from locker_server.core.repositories.relay_repositories.relay_address_repository import RelayAddressRepository
+from locker_server.core.repositories.user_repository import UserRepository
+from locker_server.core.repositories.relay_repositories.deleted_relay_address_repository import \
     DeletedRelayAddressRepository
 
-from src.locker_server.core.exceptions.relay_exceptions.relay_address_exception import *
-from src.locker_server.core.exceptions.user_exception import UserDoesNotExistException
-from src.locker_server.core.entities.relay.relay_address import RelayAddress
-from src.locker_server.shared.constants.relay_address import MAX_FREE_RElAY_DOMAIN
-from src.locker_server.shared.constants.relay_blacklist import RELAY_BAD_WORDS, RELAY_BLOCKLISTED, \
+from locker_server.core.exceptions.relay_exceptions.relay_address_exception import *
+from locker_server.core.exceptions.user_exception import UserDoesNotExistException
+from locker_server.core.entities.relay.relay_address import RelayAddress
+from locker_server.shared.constants.relay_address import MAX_FREE_RElAY_DOMAIN
+from locker_server.shared.constants.relay_blacklist import RELAY_BAD_WORDS, RELAY_BLOCKLISTED, \
     RELAY_LOCKER_BLOCKED_CHARACTER
 
 
@@ -25,7 +25,7 @@ class RelayAddressService:
         self.user_repository = user_repository
         self.deleted_relay_address_repository = deleted_relay_address_repository
 
-    def list_user_relay_addresses(self, user_id: str, **filters):
+    def list_user_relay_addresses(self, user_id: int, **filters):
         return self.relay_address_repository.list_user_relay_addresses(
             user_id=user_id,
             **filters
@@ -42,13 +42,16 @@ class RelayAddressService:
         if not user:
             raise UserDoesNotExistException
         allow_relay_premium = relay_address_create_data.get("allow_relay_premium", False)
-        user_relay_addresses_num = self.relay_address_repository.count_user_addresses(user_id=user_id)
+        user_relay_addresses_num = self.relay_address_repository.count_user_relay_addresses(user_id=user_id)
         if not allow_relay_premium and user_relay_addresses_num >= MAX_FREE_RElAY_DOMAIN:
             raise RelayAddressReachedException
         relay_address_create_data.update({
             'user_id': user_id
         })
-        new_relay_address = self.relay_address_repository.create_relay_address()
+        new_relay_address = self.relay_address_repository.create_relay_address(
+            relay_address_create_data=relay_address_create_data
+        )
+        return new_relay_address
 
     def update_relay_address(self, user_id: int, relay_address: RelayAddress, relay_address_update_data: dict) -> \
             Optional[
@@ -69,7 +72,7 @@ class RelayAddressService:
             valid_address = self.check_valid_address(address=address, domain=full_domain)
             if not valid_address:
                 raise RelayAddressInvalidException
-            relay_address.address = address
+
         relay_address_update_data.update({
             'address': address
         })
