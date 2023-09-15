@@ -6,6 +6,7 @@ from .cipher_parsers import CipherParser
 from .team_parser import TeamParser
 from .enterprise_parser import EnterpriseParser
 from .event_parsers import EventParser
+from .relay_parsers import RelayParser
 
 
 class ModelParser:
@@ -44,3 +45,7 @@ class ModelParser:
     @classmethod
     def event_parser(cls):
         return EventParser
+
+    @classmethod
+    def relay_parser(cls):
+        return RelayParser

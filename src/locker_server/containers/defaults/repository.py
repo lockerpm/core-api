@@ -34,3 +34,8 @@ class RepositoryFactory(containers.DeclarativeContainer):
 
     notification_category_repository = providers.Factory(NotificationCategoryORMRepository)
     notification_setting_repository = providers.Factory(NotificationSettingORMRepository)
+
+    relay_address_repository = providers.Factory(RelayAddressORMRepository)
+    deleted_relay_address_repository = providers.Factory(DeletedRelayAddressORMRepository)
+    relay_subdomain_repository = providers.Factory(RelaySubdomainORMRepository)
+    reply_repository = providers.Factory(ReplyORMRepository)
