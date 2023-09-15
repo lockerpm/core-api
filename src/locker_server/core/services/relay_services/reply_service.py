@@ -1,9 +1,9 @@
 from typing import Optional
 
-from src.locker_server.core.entities.relay.reply import Reply
-from src.locker_server.core.exceptions.relay_exceptions.reply_exception import ReplyDoesNotExistException, \
+from locker_server.core.entities.relay.reply import Reply
+from locker_server.core.exceptions.relay_exceptions.reply_exception import ReplyDoesNotExistException, \
     ReplyLookupExistedException
-from src.locker_server.core.repositories.relay_repositories.reply_repository import ReplyRepository
+from locker_server.core.repositories.relay_repositories.reply_repository import ReplyRepository
 
 
 class ReplyService:
@@ -15,7 +15,7 @@ class ReplyService:
         self.reply_repository = reply_repository
 
     def get_reply_by_lookup(self, lookup: str) -> Optional[Reply]:
-        reply = self.reply_repository.get_reply_by_id()
+        reply = self.reply_repository.get_reply_by_lookup(lookup=lookup)
         if not reply:
             raise ReplyDoesNotExistException
         return reply
