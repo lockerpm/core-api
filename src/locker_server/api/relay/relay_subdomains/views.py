@@ -41,7 +41,9 @@ class RelaySubdomainViewSet(APIBaseViewSet):
     def get_object(self):
         user = self.request.user
         try:
-            relay_subdomain = self.relay_subdomain_service.objects.get(id=self.kwargs.get("pk"), user=self.request.user)
+            relay_subdomain = self.relay_subdomain_service.get_relay_subdomain_by_id(
+                relay_subdomain_id=self.kwargs.get("pk")
+            )
             if relay_subdomain.user.user_id != user.user_id:
                 raise NotFound
             self.check_object_permissions(request=self.request, obj=relay_subdomain)
