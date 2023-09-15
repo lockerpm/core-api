@@ -32,6 +32,10 @@ class RelayAddress(object):
         return self._user
 
     @property
+    def address(self):
+        return self._address
+
+    @property
     def subdomain(self):
         return self._subdomain
 
@@ -76,5 +80,7 @@ class RelayAddress(object):
         return self._num_spam
 
     @property
-    def address(self):
-        return self._address
+    def full_address(self):
+        if self.subdomain:
+            return f"{self.address}@{self.subdomain.subdomain}.{self.domain.relay_domain_id}"
+        return f"{self.address}@{self.domain.relay_domain_id}"

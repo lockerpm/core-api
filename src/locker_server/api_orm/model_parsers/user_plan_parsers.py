@@ -3,6 +3,7 @@ from locker_server.api_orm.models import *
 from locker_server.core.entities.user_plan.plan_type import PlanType
 from locker_server.core.entities.user_plan.pm_plan import PMPlan
 from locker_server.core.entities.user_plan.pm_user_plan import PMUserPlan
+from locker_server.core.entities.user_plan.pm_user_plan_family import PMUserPlanFamily
 
 
 class UserPlanParser:
@@ -74,4 +75,15 @@ class UserPlanParser:
             attempts=user_plan_orm.attempts,
             pm_plan=cls.parse_plan(plan_orm=user_plan_orm.pm_plan),
             promo_code=promo_code
+        )
+
+    @classmethod
+    def parse_user_plan_family(cls, user_plan_family_orm: PMUserPlanFamilyORM) -> PMUserPlanFamily:
+        user_parser = get_specific_model_parser("UserParser")
+        return PMUserPlanFamily(
+            pm_user_plan_family_id=user_plan_family_orm.id,
+            created_time=user_plan_family_orm.created_time,
+            email=user_plan_family_orm.email,
+            user=user_parser.parse_user(user_orm=user_plan_family_orm.user) if user_plan_family_orm.user else None,
+            root_user_plan=cls.parse_user_plan(user_plan_orm=user_plan_family_orm.root_user_plan)
         )

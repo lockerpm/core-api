@@ -58,6 +58,10 @@ class RelayAddressViewSet(APIBaseViewSet):
     def allow_relay_premium(self) -> bool:
         user = self.request.user
         current_plan = self.user_service.get_current_plan(user=user)
+        plan = current_plan.pm_plan
+        is_active_enterprise_member = self.user_service.h
+        return plan.relay_premium or is_active_enterprise_member
+
         plan_obj = current_plan.get_plan_obj()
         return plan_obj.allow_relay_premium() or user.is_active_enterprise_member()
 

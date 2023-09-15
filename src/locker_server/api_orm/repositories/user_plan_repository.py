@@ -1,5 +1,5 @@
 import ast
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned
@@ -11,6 +11,7 @@ from locker_server.api_orm.models.wrapper import get_user_model, get_user_plan_m
 from locker_server.core.entities.enterprise.enterprise import Enterprise
 from locker_server.core.entities.user.user import User
 from locker_server.core.entities.user_plan.pm_user_plan import PMUserPlan
+from locker_server.core.entities.user_plan.pm_user_plan_family import PMUserPlanFamily
 from locker_server.core.exceptions.payment_exception import PaymentMethodNotSupportException
 from locker_server.core.repositories.user_plan_repository import UserPlanRepository
 from locker_server.shared.constants.ciphers import *
@@ -172,6 +173,47 @@ class UserPlanORMRepository(UserPlanRepository):
             CIPHER_TYPE_CRYPTO_WALLET: None if None in limit_crypto_asset else max(limit_crypto_asset),
             CIPHER_TYPE_TOTP: None
         }
+
+    def is_in_family_plan(self, user_id: int) -> bool:
+        return PMUserPlanFamilyORM.objects.filter(user_id=user_id).exists()
+
+    def get_family_members(self, user_id: int) -> Dict:
+        current_plan_orm = self._get_current_plan_orm(user_id=user_id)
+        pm_current_plan_alias = current_plan_orm.pm_plan.alias
+
+        # The retrieving user is owner of the family plan
+        if pm_current_plan_alias == PLAN_TYPE_PM_FAMILY:
+            owner_orm = current_plan_orm.user
+            family_members_orm = current_plan_orm.pm_plan_family.all().order_by('-user_id', '-created_time')
+        # Else, user is a member
+        else:
+            user_orm = current_plan_orm.user
+            family_user_plan_orm = user_orm.pm_plan_family.first()
+            if family_user_plan_orm:
+                family_members_orm = family_user_plan_orm.root_user_plan.pm_plan_family.all().order_by(
+                    '-user_id', '-created_time'
+                )
+                owner_orm = family_user_plan_orm.root_user_plan.user
+            else:
+                family_members_orm = []
+                owner_orm = None
+        return {
+            "family_members": [
+                ModelParser.user_plan_parser().parse_user_plan_family(user_plan_family_orm=m)
+                for m in family_members_orm
+            ],
+            "owner": ModelParser.user_parser().parse_user(user_orm=owner_orm) if owner_orm else None
+        }
+
+    def get_family_member(self, owner_user_id: int, family_member_id: int) -> Optional[PMUserPlanFamily]:
+        try:
+            family_member_orm = PMUserPlanFamilyORM.objects.filter(root_user_plan_id=owner_user_id, id=family_member_id)
+            return ModelParser.user_plan_parser().parse_user_plan_family(user_plan_family_orm=family_member_orm)
+        except PMUserPlanFamilyORM.DoesNotExist:
+            return None
+
+    def count_family_members(self, user_id: int) -> int:
+        return PMUserPlanFamilyORM.objects.filter(root_user_plan_id=user_id).count()
 
     # ------------------------ Create PMUserPlan resource --------------------- #
     def add_to_family_sharing(self, family_user_plan_id: int, user_id: int = None,
@@ -384,3 +426,17 @@ class UserPlanORMRepository(UserPlanRepository):
             ).cancel_immediately_recurring_subscription()
             end_time = now()
         return end_time
+
+    def delete_family_member(self, family_member_id: int):
+        try:
+            family_member_orm = PMUserPlanFamilyORM.objects.get(id=family_member_id)
+        except PMUserPlanFamilyORM.DoesNotExist:
+            return
+        if family_member_orm.user:
+            self.update_plan(
+                user_id=family_member_orm.user_id, plan_type_alias=PLAN_TYPE_PM_FREE, scope=settings.SCOPE_PWD_MANAGER
+            )
+        family_user_id = family_member_orm.user_id
+        family_email = family_member_orm.email
+        family_member_orm.delete()
+        return family_user_id, family_email
