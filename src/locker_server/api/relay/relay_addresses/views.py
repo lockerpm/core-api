@@ -39,7 +39,7 @@ class RelayAddressViewSet(APIBaseViewSet):
     def get_object(self):
         user = self.request.user
         try:
-            relay_address = self.relay_service.objects.get(id=self.kwargs.get("pk"), user=self.request.user)
+            relay_address = self.relay_address_service.get_relay_address_by_id(relay_address_id=self.kwargs.get("pk"))
             if relay_address.user.user_id != user.user_id:
                 raise NotFound
             self.check_object_permissions(request=self.request, obj=relay_address)

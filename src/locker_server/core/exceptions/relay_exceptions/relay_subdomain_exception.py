@@ -29,3 +29,9 @@ class RelaySubdomainInvalidException(RelaySubdomainException):
     """
     The subdomain is not valid (has black words, blocked words, etc...)
     """
+
+
+class RelaySubdomainAlreadyUsedException(RelaySubdomainException):
+    """
+    The subdomain is used
+    """

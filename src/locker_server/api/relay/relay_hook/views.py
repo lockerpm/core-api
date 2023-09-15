@@ -9,7 +9,7 @@ from rest_framework.decorators import action
 
 from locker_server.core.exceptions.relay_exceptions.reply_exception import *
 from locker_server.core.exceptions.user_exception import UserDoesNotExistException
-from .serializer import ReplySerializer, StatisticSerializer
+from .serializers import ReplySerializer, StatisticSerializer
 from locker_server.shared.constants.relay_address import RELAY_STATISTIC_TYPE_FORWARDED, \
     RELAY_STATISTIC_TYPE_BLOCKED_SPAM
 from locker_server.shared.log.cylog import CyLog
@@ -202,14 +202,15 @@ class RelayHookViewSet(APIBaseViewSet):
         if not relay_address:
             CyLog.debug(**{"message": "Can not statistics relay address destination: {}".format(relay_address)})
             raise ValidationError(detail={"relay_address": ["The relay address does not exist"]})
+        relay_address_update_data = {}
         if statistic_type == RELAY_STATISTIC_TYPE_FORWARDED:
-            relay_address_update_data = {
+            relay_address_update_data.update({
                 'num_forwarded': relay_address.num_forwarded + amount
-            }
+            })
         elif statistic_type == RELAY_STATISTIC_TYPE_BLOCKED_SPAM:
-            relay_address_update_data = {
+            relay_address_update_data.update({
                 'num_spam': relay_address.num_spam + amount
-            }
+            })
         updated_relay_address = self.relay_address_service.update_relay_address(
             user_id=relay_address.user.user_id,
             relay_address=relay_address,

@@ -1,14 +1,14 @@
 import re
 from typing import Optional
 
-from src.locker_server.core.repositories.relay_repositories.relay_address_repository import RelayAddressRepository
+from locker_server.core.repositories.relay_repositories.relay_address_repository import RelayAddressRepository
 from src.locker_server.core.repositories.relay_repositories.relay_subdomain_repository import RelaySubdomainRepository
 
-from src.locker_server.core.exceptions.relay_exceptions.relay_subdomain_exception import *
-from src.locker_server.core.exceptions.user_exception import UserDoesNotExistException
-from src.locker_server.core.repositories.user_repository import UserRepository
-from src.locker_server.core.entities.relay.relay_subdomain import RelaySubdomain
-from src.locker_server.shared.constants.relay_blacklist import RELAY_BAD_WORDS, RELAY_BLOCKLISTED, \
+from locker_server.core.exceptions.relay_exceptions.relay_subdomain_exception import *
+from locker_server.core.exceptions.user_exception import UserDoesNotExistException
+from locker_server.core.repositories.user_repository import UserRepository
+from locker_server.core.entities.relay.relay_subdomain import RelaySubdomain
+from locker_server.shared.constants.relay_blacklist import RELAY_BAD_WORDS, RELAY_BLOCKLISTED, \
     RELAY_LOCKER_BLOCKED_CHARACTER
 
 
@@ -81,6 +81,14 @@ class RelaySubdomainService:
             user_id=user_id,
             domain_id=domain_id
         )
+
+    def get_relay_subdomain_by_id(self, relay_subdomain_id) -> Optional[RelaySubdomain]:
+        relay_subdomain = self.relay_subdomain_repository.get_relay_subdomain_by_id(
+            relay_subdomain_id=relay_subdomain_id
+        )
+        if not relay_subdomain:
+            raise RelaySubdomainDoesNotExistException
+        return relay_subdomain
 
     def soft_delete_relay_subdomain(self, relay_subdomain: RelaySubdomain) -> bool:
         relay_subdomain_update_data = {
