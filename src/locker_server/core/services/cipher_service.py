@@ -3,12 +3,14 @@ from typing import List, Optional, Dict
 from locker_server.core.entities.cipher.cipher import Cipher
 from locker_server.core.entities.member.team_member import TeamMember
 from locker_server.core.entities.user.user import User
-from locker_server.core.exceptions.cipher_exception import FolderDoesNotExistException, CipherMaximumReachedException
+from locker_server.core.exceptions.cipher_exception import FolderDoesNotExistException, CipherMaximumReachedException, \
+    CipherDoesNotExistException
 from locker_server.core.exceptions.collection_exception import CollectionDoesNotExistException, \
     CollectionCannotRemoveException, CollectionCannotAddException
 from locker_server.core.exceptions.team_exception import TeamDoesNotExistException, TeamLockedException
 from locker_server.core.exceptions.team_member_exception import OnlyAllowOwnerUpdateException
 from locker_server.core.repositories.cipher_repository import CipherRepository
+from locker_server.core.repositories.folder_repository import FolderRepository
 from locker_server.core.repositories.team_member_repository import TeamMemberRepository
 from locker_server.core.repositories.team_repository import TeamRepository
 from locker_server.core.repositories.user_plan_repository import UserPlanRepository
@@ -21,10 +23,13 @@ class CipherService:
     This class represents Use Cases related Cipher
     """
 
-    def __init__(self, cipher_repository: CipherRepository, team_repository: TeamRepository,
+    def __init__(self, cipher_repository: CipherRepository,
+                 folder_repository: FolderRepository,
+                 team_repository: TeamRepository,
                  team_member_repository: TeamMemberRepository,
                  user_plan_repository: UserPlanRepository):
         self.cipher_repository = cipher_repository
+        self.folder_repository = folder_repository
         self.team_repository = team_repository
         self.team_member_repository = team_member_repository
         self.user_plan_repository = user_plan_repository
@@ -188,3 +193,67 @@ class CipherService:
         cipher = self.cipher_repository.update_cipher(cipher_id=cipher.cipher_id, cipher_data=cipher_data)
         return cipher
 
+    def update_cipher_use(self, cipher: Cipher, cipher_use_data: Dict) -> Cipher:
+        cipher = self.cipher_repository.update_cipher_use(cipher_id=cipher.cipher_id, cipher_use_data=cipher_use_data)
+        if not cipher:
+            raise CipherDoesNotExistException
+        return cipher
+
+    def move_multiple_cipher(self, cipher_ids: List[str], user_id_moved: int, folder_id: str):
+        if folder_id:
+            folder = self.folder_repository.get_by_id(folder_id=folder_id)
+            if not folder or folder.user.user_id != user_id_moved:
+                raise FolderDoesNotExistException
+        self.cipher_repository.move_multiple_cipher(
+            cipher_ids=cipher_ids, user_id_moved=user_id_moved, folder_id=folder_id
+        )
+
+    def check_member_belongs_cipher_collections(self, cipher: Cipher, member: TeamMember) -> bool:
+        return self.cipher_repository.check_member_belongs_cipher_collections(cipher, member)
+
+    def get_by_id(self, cipher_id: str) -> Optional[Cipher]:
+        cipher = self.cipher_repository.get_by_id(cipher_id=cipher_id)
+        if not cipher:
+            raise CipherDoesNotExistException
+        return cipher
+
+    def get_multiple_by_ids(self, cipher_ids: List[str]) -> List[Cipher]:
+        return self.cipher_repository.get_multiple_by_ids(cipher_ids=cipher_ids)
+
+    def get_multiple_by_user(self, user_id: int, only_personal=False, only_managed_team=False,
+                             only_edited=False, only_deleted=False,
+                             exclude_team_ids=None, filter_ids=None, exclude_types=None) -> List[Cipher]:
+        return self.cipher_repository.get_multiple_by_user(
+            user_id=user_id, only_personal=only_personal, only_managed_team=only_managed_team,
+            only_edited=only_edited, only_deleted=only_deleted, exclude_team_ids=exclude_team_ids,
+            filter_ids=filter_ids, exclude_types=exclude_types
+        )
+
+    def sync_and_statistic_ciphers(self, user_id: int, only_personal=False, only_managed_team=False,
+                                   only_edited=False, only_deleted=False,
+                                   exclude_team_ids=None, filter_ids=None, exclude_types=None) -> Dict:
+        return self.cipher_repository.sync_and_statistic_ciphers(
+            user_id=user_id, only_personal=only_personal, only_managed_team=only_managed_team,
+            only_edited=only_edited, only_deleted=only_deleted,
+            exclude_team_ids=exclude_team_ids, filter_ids=filter_ids, exclude_types=exclude_types
+        )
+
+    def delete_multiple_ciphers(self, cipher_ids: List[str], user_id_deleted: int) -> List[str]:
+        return self.cipher_repository.delete_multiple_cipher(
+            cipher_ids=cipher_ids, user_id_deleted=user_id_deleted
+        )
+
+    def delete_permanent_multiple_cipher(self, cipher_ids: List[str], user_id_deleted) -> List[str]:
+        return self.cipher_repository.delete_permanent_multiple_cipher(
+            cipher_ids=cipher_ids, user_id_deleted=user_id_deleted
+        )
+
+    def restore_multiple_ciphers(self, cipher_ids: List[str], user_id_restored: int) -> List[str]:
+        return self.cipher_repository.restore_multiple_cipher(
+            cipher_ids=cipher_ids, user_id_restored=user_id_restored
+        )
+
+    def sync_personal_cipher_offline(self, user: User, ciphers, folders, folder_relationships):
+        return self.cipher_repository.sync_personal_cipher_offline(
+            user_id=user.user_id, ciphers=ciphers, folders=folders, folder_relationships=folder_relationships
+        )

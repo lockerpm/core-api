@@ -6,7 +6,7 @@ class Cipher(object):
     def __init__(self, cipher_id: str, creation_date: float = None, revision_date: float = None,
                  deleted_date: float = None, last_use_date: float = None, num_use: int = 0, reprompt: int = 0,
                  score: float = 0,  cipher_type: int = None, data: str = None, favorites: str = 0, folders: str = "",
-                 user: User = None, created_by: User = None, team: Team = None):
+                 view_password: bool = True, user: User = None, created_by: User = None, team: Team = None):
         self._cipher_id = cipher_id
         self._creation_date = creation_date
         self._revision_date = revision_date
@@ -19,6 +19,8 @@ class Cipher(object):
         self._data = data
         self._favorites = favorites
         self._folders = folders
+        self._view_password = view_password
+        self._collection_ids = []
         self._user = user
         self._created_by = created_by
         self._team = team
@@ -82,3 +84,19 @@ class Cipher(object):
     @property
     def created_by(self):
         return self._created_by
+
+    @property
+    def view_password(self):
+        return self._view_password
+
+    @view_password.setter
+    def view_password(self, view_password_value):
+        self._view_password = view_password_value
+
+    @property
+    def collection_ids(self):
+        return self._collection_ids
+
+    @collection_ids.setter
+    def collection_ids(self, collection_ids_value):
+        self._collection_ids = collection_ids_value

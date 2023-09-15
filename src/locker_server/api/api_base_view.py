@@ -18,10 +18,17 @@ class APIBaseViewSet(AppGeneralViewSet):
     user_service = user_service
     exclude_domain_service = exclude_domain_service
     cipher_service = cipher_service
+    folder_service = folder_service
+
+    team_member_service = team_member_service
+    collection_service = collection_service
+    sharing_service = sharing_service
+
+    enterprise_service = enterprise_service
+
     relay_address_service = relay_address_service
     relay_subdomain_service = relay_subdomain_service
     reply_service = reply_service
-
     def get_throttles(self):
         if self.request.user and not isinstance(self.request.user, AnonymousUser):
             self.throttle_scope = 'user_authenticated'
@@ -38,3 +45,4 @@ class APIBaseViewSet(AppGeneralViewSet):
 
     def get_ip(self):
         return self.request.data.get("ip") or get_ip_by_request(request=self.request)
+

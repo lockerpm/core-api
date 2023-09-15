@@ -49,8 +49,11 @@ class TeamMemberORMRepository(TeamMemberRepository):
         ).select_related('team').select_related('user').order_by('access_time')
 
         status_params = filter_params.get("statuses")
+        team_key_null = filter_params.get("team_key_null")
         if status_params:
             members_orm = members_orm.filter(status__in=status_params)
+        if isinstance(team_key_null, bool):
+            members_orm = members_orm.filter(team__key__isnull=team_key_null)
         members = []
         for member_orm in members_orm:
             members.append(ModelParser.team_parser().parse_team_member(team_member_orm=member_orm))
@@ -107,6 +110,16 @@ class TeamMemberORMRepository(TeamMemberRepository):
             return ModelParser.team_parser().parse_team_member(team_member_orm=team_member_orm)
         except TeamMemberORM.DoesNotExist:
             return None
+
+    def get_role_notify_dict(self, team_id: str, user_id: int) -> Dict:
+        try:
+            team_member_orm = TeamMemberORM.objects.get(user_id=user_id, team_id=team_id)
+            return {
+                "role": team_member_orm.role_id,
+                "is_default": team_member_orm.is_default
+            }
+        except TeamMemberORM.DoesNotExist:
+            return {"role": None, "is_default": None}
 
     # ------------------------ Create TeamMember resource --------------------- #
 

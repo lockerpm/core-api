@@ -46,6 +46,10 @@ class TeamMemberRepository(ABC):
     def get_primary_member(self, team_id: str) -> Optional[TeamMember]:
         pass
 
+    @abstractmethod
+    def get_role_notify_dict(self, team_id: str, user_id: int) -> Dict:
+        pass
+
     # ------------------------ Create TeamMember resource --------------------- #
 
     # ------------------------ Update TeamMember resource --------------------- #

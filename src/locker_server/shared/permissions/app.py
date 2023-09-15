@@ -19,3 +19,4 @@ class AppBasePermission(BasePermission):
         if request.user and (request.auth is not None):
             return False if isinstance(request.user, AnonymousUser) else True
         return False
+

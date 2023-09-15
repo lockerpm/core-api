@@ -8,7 +8,7 @@ from locker_server.core.exceptions.exclude_domain_exception import ExcludeDomain
 from .serializers import ExcludeDomainSerializer
 
 
-class UserPwdViewSet(APIBaseViewSet):
+class ExcludeDomainPwdViewSet(APIBaseViewSet):
     permission_classes = (ExcludeDomainPwdPermission,)
     http_method_names = ["options", "head", "get", "post", "put", "delete"]
     lookup_value_regex = r'[0-9a-z-]+'

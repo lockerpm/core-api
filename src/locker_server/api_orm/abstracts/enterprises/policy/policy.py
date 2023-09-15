@@ -1,4 +1,5 @@
 from django.db import models
+from django.forms import model_to_dict
 
 from locker_server.settings import locker_server_settings
 from locker_server.shared.constants.policy import *
@@ -56,22 +57,22 @@ class AbstractEnterprisePolicyORM(models.Model):
             from cystack_models.models.enterprises.policy.policy_2fa import Policy2FA
             Policy2FA.create(self, **kwargs)
 
-    # def get_config_obj(self):
-    #     policy_type = self.policy_type
-    #     if policy_type == POLICY_TYPE_PASSWORD_REQUIREMENT:
-    #         return self.policy_password_requirement
-    #     elif policy_type == POLICY_TYPE_MASTER_PASSWORD_REQUIREMENT:
-    #         return self.policy_master_password_requirement
-    #     elif policy_type == POLICY_TYPE_BLOCK_FAILED_LOGIN:
-    #         return self.policy_failed_login
-    #     elif policy_type == POLICY_TYPE_PASSWORDLESS:
-    #         return self.policy_passwordless
-    #     elif policy_type == POLICY_TYPE_2FA:
-    #         return self.policy_2fa
-    #
-    # def get_config_json(self):
-    #     config_obj = self.get_config_obj()
-    #     config_json = model_to_dict(
-    #         config_obj, fields=[field.name for field in config_obj._meta.fields if field.name != 'policy']
-    #     )
-    #     return config_json
+    def get_config_obj(self):
+        policy_type = self.policy_type
+        if policy_type == POLICY_TYPE_PASSWORD_REQUIREMENT:
+            return self.policy_password_requirement
+        elif policy_type == POLICY_TYPE_MASTER_PASSWORD_REQUIREMENT:
+            return self.policy_master_password_requirement
+        elif policy_type == POLICY_TYPE_BLOCK_FAILED_LOGIN:
+            return self.policy_failed_login
+        elif policy_type == POLICY_TYPE_PASSWORDLESS:
+            return self.policy_passwordless
+        elif policy_type == POLICY_TYPE_2FA:
+            return self.policy_2fa
+
+    def get_config_json(self):
+        config_obj = self.get_config_obj()
+        config_json = model_to_dict(
+            config_obj, fields=[field.name for field in config_obj._meta.fields if field.name != 'policy']
+        )
+        return config_json

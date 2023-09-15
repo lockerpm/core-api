@@ -19,9 +19,12 @@ class RepositoryFactory(containers.DeclarativeContainer):
     device_access_token_repository = providers.Factory(DeviceAccessTokenORMRepository)
 
     cipher_repository = providers.Factory(CipherORMRepository)
+    folder_repository = providers.Factory(FolderORMRepository)
 
     team_repository = providers.Factory(TeamORMRepository)
     team_member_repository = providers.Factory(TeamMemberORMRepository)
+    collection_repository = providers.Factory(CollectionORMRepository)
+    sharing_repository = providers.Factory(SharingORMRepository)
 
     enterprise_repository = providers.Factory(EnterpriseORMRepository)
     enterprise_member_repository = providers.Factory(EnterpriseMemberORMRepository)

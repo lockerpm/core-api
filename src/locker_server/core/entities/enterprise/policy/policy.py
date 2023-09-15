@@ -7,6 +7,7 @@ class EnterprisePolicy(object):
         self._enterprise = enterprise
         self._policy_type = policy_type
         self._enabled = enabled
+        self._config = None
 
     @property
     def policy_id(self):
@@ -24,3 +25,10 @@ class EnterprisePolicy(object):
     def enabled(self):
         return self._enabled
 
+    @property
+    def config(self):
+        return self._config
+
+    @config.setter
+    def config(self, config_value):
+        self._config = config_value
