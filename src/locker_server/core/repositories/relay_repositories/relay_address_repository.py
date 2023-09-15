@@ -27,13 +27,21 @@ class RelayAddressRepository(ABC):
         pass
 
     @abstractmethod
-    def get_relay_address_by_full_domain(self, address: str, domain_id: str, subdomain: str = None) \
-            -> Optional[RelayAddress]:
+    def get_relay_address_by_full_domain(self, address: str, domain_id: str,
+                                         subdomain: str = None) -> Optional[RelayAddress]:
+        pass
+
+    @abstractmethod
+    def generate_relay_address(self, domain_id: str) -> str:
+        pass
+
+    @abstractmethod
+    def check_valid_address(self, address: str, domain_id: str) -> bool:
         pass
 
     # ------------------------ Create RelayAddress resource --------------------- #
     @abstractmethod
-    def create_relay_address(self, relay_address_create_data):
+    def create_relay_address(self, relay_address_create_data) -> Optional[RelayAddress]:
         pass
 
     # ------------------------ Update RelayAddress resource --------------------- #

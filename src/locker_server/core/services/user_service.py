@@ -532,3 +532,6 @@ class UserService:
     @staticmethod
     def get_sync_cache_key(user_id, page=1, size=100):
         return get_sync_cache_key(user_id=user_id, page=page, size=size)
+
+    def is_active_enterprise_member(self, user_id: int) -> bool:
+        return self.enterprise_member_repository.is_active_enterprise_member(user_id=user_id)

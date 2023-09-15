@@ -8,7 +8,7 @@ from locker_server.core.entities.enterprise.member.enterprise_member import Ente
 from locker_server.core.entities.user.user import User
 from locker_server.core.repositories.enterprise_member_repository import EnterpriseMemberRepository
 from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_MEMBER, E_MEMBER_STATUS_REQUESTED, \
-    E_MEMBER_STATUS_INVITED
+    E_MEMBER_STATUS_INVITED, E_MEMBER_STATUS_CONFIRMED
 from locker_server.shared.constants.members import PM_MEMBER_STATUS_INVITED
 from locker_server.shared.log.cylog import CyLog
 from locker_server.shared.utils.network import extract_root_domain
@@ -58,6 +58,11 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
         return EnterpriseMemberORM.objects.filter(
             user_id=user_id, status__in=[E_MEMBER_STATUS_REQUESTED, E_MEMBER_STATUS_INVITED], domain__isnull=False
         ).exists()
+
+    def is_active_enterprise_member(self, user_id: int) -> bool:
+        return EnterpriseMemberORM.objects.filter(
+            user_id=user_id, status=E_MEMBER_STATUS_CONFIRMED, is_activated=True, enterprise__locked=False
+        )
 
     # ------------------------ Create EnterpriseMember resource --------------------- #
 

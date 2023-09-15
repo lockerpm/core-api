@@ -37,22 +37,20 @@ class RelayAddressService:
             raise RelayAddressDoesNotExistException
         return relay_address
 
-    def create_relay_address(self, user_id: int, relay_address_create_data):
+    def create_relay_address(self, user_id: int, relay_address_create_data) -> Optional[RelayAddress]:
         user = self.user_repository.get_user_by_id(user_id=user_id)
         if not user:
             raise UserDoesNotExistException
-        allow_relay_premium = relay_address_create_data.get("allow_relay_premium", False)
-        user_relay_addresses_num = self.relay_address_repository.count_user_addresses(user_id=user_id)
-        if not allow_relay_premium and user_relay_addresses_num >= MAX_FREE_RElAY_DOMAIN:
-            raise RelayAddressReachedException
         relay_address_create_data.update({
             'user_id': user_id
         })
-        new_relay_address = self.relay_address_repository.create_relay_address()
+        new_relay_address = self.relay_address_repository.create_relay_address(relay_address_create_data)
+        if not new_relay_address:
+            raise RelayAddressReachedException
+        return new_relay_address
 
-    def update_relay_address(self, user_id: int, relay_address: RelayAddress, relay_address_update_data: dict) -> \
-            Optional[
-                RelayAddress]:
+    def update_relay_address(self, user_id: int, relay_address: RelayAddress,
+                             relay_address_update_data: dict) -> Optional[RelayAddress]:
         address = relay_address_update_data.get("address") or relay_address.address
 
         if address != relay_address.address:
