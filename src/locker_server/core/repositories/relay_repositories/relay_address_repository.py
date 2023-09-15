@@ -32,14 +32,6 @@ class RelayAddressRepository(ABC):
         pass
 
     @abstractmethod
-    def generate_relay_address(self, domain_id: str) -> str:
-        pass
-
-    @abstractmethod
-    def check_valid_address(self, address: str, domain_id: str) -> bool:
-        pass
-
-    @abstractmethod
     def get_relay_address_by_address(self, address: str) -> Optional[RelayAddress]:
         pass
 

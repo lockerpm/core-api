@@ -102,11 +102,14 @@ class RelayAddressViewSet(APIBaseViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
+
         try:
             updated_relay_address = self.relay_address_service.update_relay_address(
                 user_id=user.user_id,
                 relay_address=relay_address,
-                relay_address_update_data=validated_data
+
+                relay_address_update_data=validated_data,
+                allow_relay_premium=self.allow_relay_premium(),
             )
         except RelayAddressUpdateDeniedException:
             raise PermissionDenied

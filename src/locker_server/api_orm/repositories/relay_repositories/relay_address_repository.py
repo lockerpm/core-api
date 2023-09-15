@@ -104,28 +104,6 @@ class RelayAddressORMRepository(RelayAddressRepository):
             return None
         return ModelParser.relay_parser().parse_relay_address(relay_address_orm=relay_address_orm)
 
-    def generate_relay_address(self, domain_id: str) -> str:
-        while True:
-            address = random_n_digit(n=6)
-            if RelayAddressORM.objects.filter(address=address).exists() is True:
-                continue
-            if self.check_valid_address(address=address, domain_id=domain_id) is False:
-                continue
-            return address
-
-    def check_valid_address(self, address: str, domain_id: str) -> bool:
-        address_pattern_valid = self._valid_address_pattern(address)
-        address_contains_bad_word = self._has_bad_words(address)
-        address_is_blocklisted = self._is_blocklisted(address)
-        address_is_locker_blocked = self._is_locker_blocked(address)
-        address_already_deleted = DeletedRelayAddressORM.objects.filter(
-            address_hash=RelayAddress.hash_address(address, domain_id)
-        ).exists()
-        if address_already_deleted is True or address_contains_bad_word or address_is_blocklisted or \
-                not address_pattern_valid or address_is_locker_blocked:
-            return False
-        return True
-
     def get_relay_address_by_address(self, address: str) -> Optional[RelayAddress]:
         try:
             relay_address_orm = RelayAddressORM.objects.get(address=address)
@@ -136,12 +114,6 @@ class RelayAddressORMRepository(RelayAddressRepository):
     # ------------------------ Create RelayAddress resource --------------------- #
     def create_relay_address(self, relay_address_create_data) -> Optional[RelayAddress]:
         user_id = relay_address_create_data.get("user_id")
-        address = self.generate_relay_address(
-            domain_id=relay_address_create_data.get("domain_id") or DEFAULT_RELAY_DOMAIN
-        )
-        relay_address_create_data.update({
-            "address": address
-        })
         with transaction.atomic():
             try:
                 user_orm = UserORM.objects.filter(user_id=user_id).select_for_update().get()
