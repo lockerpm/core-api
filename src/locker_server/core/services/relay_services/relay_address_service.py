@@ -121,12 +121,15 @@ class RelayAddressService:
         return relay_address
 
     def delete_relay_address(self, relay_address: RelayAddress) -> bool:
+        if relay_address.subdomain:
+            full_domain = f"{relay_address.subdomain.subdomain}.{relay_address.domain.relay_domain_id}"
+        else:
+            full_domain = relay_address.domain.relay_domain_id
         deleted_relay_address = self.relay_address_repository.delete_relay_address_by_id(
             relay_address_id=relay_address.relay_address_id
         )
         if not deleted_relay_address:
             raise RelayAddressDoesNotExistException
-        full_domain = self.get_full_domain(relay_address=relay_address)
         self.deleted_relay_address_repository.create_deleted_relay_address(
             deleted_relay_address_create_data={
                 "address_hash": RelayAddress.hash_address(address=relay_address.address, domain=full_domain),
@@ -134,7 +137,8 @@ class RelayAddressService:
                 "num_blocked": relay_address.num_blocked,
                 "num_replied": relay_address.num_replied,
                 "num_spam": relay_address.num_spam,
-            })
+            }
+        )
         return relay_address.relay_address_id
 
     def delete_relay_addresses_by_subdomain_id(self, subdomain_id: str) -> NoReturn:

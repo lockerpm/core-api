@@ -107,7 +107,6 @@ class RelayAddressViewSet(APIBaseViewSet):
             updated_relay_address = self.relay_address_service.update_relay_address(
                 user_id=user.user_id,
                 relay_address=relay_address,
-
                 relay_address_update_data=validated_data,
                 allow_relay_premium=self.allow_relay_premium(),
             )
@@ -127,9 +126,7 @@ class RelayAddressViewSet(APIBaseViewSet):
     def destroy(self, request, *args, **kwargs):
         relay_address = self.get_object()
         try:
-            relay_address_id = self.relay_address_service.delete_relay_address(
-                relay_address=relay_address
-            )
+            self.relay_address_service.delete_relay_address(relay_address=relay_address)
         except RelayAddressDoesNotExistException:
             raise NotFound
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -146,8 +143,10 @@ class RelayAddressViewSet(APIBaseViewSet):
             )
         except RelayAddressDoesNotExistException:
             raise NotFound
-        return Response(status=status.HTTP_200_OK, data={"id": updated_relay_address.relay_address_id,
-                                                         "block_spam": updated_relay_address.block_spam})
+        return Response(status=status.HTTP_200_OK, data={
+            "id": updated_relay_address.relay_address_id,
+            "block_spam": updated_relay_address.block_spam
+        })
 
     @action(methods=["put"], detail=True)
     def enabled(self, request, *args, **kwargs):
@@ -158,5 +157,7 @@ class RelayAddressViewSet(APIBaseViewSet):
             )
         except RelayAddressDoesNotExistException:
             raise NotFound
-        return Response(status=status.HTTP_200_OK,
-                        data={"id": updated_relay_address.relay_address_id, "enabled": updated_relay_address.enabled})
+        return Response(status=status.HTTP_200_OK, data={
+            "id": updated_relay_address.relay_address_id,
+            "enabled": updated_relay_address.enabled
+        })
