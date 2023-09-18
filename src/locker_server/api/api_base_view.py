@@ -30,6 +30,9 @@ class APIBaseViewSet(AppGeneralViewSet):
     relay_address_service = relay_address_service
     relay_subdomain_service = relay_subdomain_service
     reply_service = reply_service
+
+    affiliate_submission_service = affiliate_submission_service
+
     def get_throttles(self):
         if self.request.user and not isinstance(self.request.user, AnonymousUser):
             self.throttle_scope = 'user_authenticated'
@@ -46,4 +49,3 @@ class APIBaseViewSet(AppGeneralViewSet):
 
     def get_ip(self):
         return self.request.data.get("ip") or get_ip_by_request(request=self.request)
-

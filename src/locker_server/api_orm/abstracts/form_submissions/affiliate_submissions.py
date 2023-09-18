@@ -13,3 +13,7 @@ class AbstractAffiliateSubmissionORM(models.Model):
 
     class Meta:
         abstract = True
+
+    @classmethod
+    def create(cls, **data):
+        raise NotImplementedError
