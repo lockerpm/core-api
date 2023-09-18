@@ -141,12 +141,15 @@ class RelayAddressService:
         )
         return relay_address.relay_address_id
 
-    def delete_relay_addresses_by_subdomain_id(self, subdomain_id: str) -> NoReturn:
+    def delete_relay_addresses_by_subdomain_id(self, subdomain_id: str):
         relay_addresses = self.relay_address_repository.list_relay_addresses(**{
             "subdomain_id": subdomain_id
         })
         for relay_address in relay_addresses:
-            self.delete_relay_address(relay_address=relay_address)
+            try:
+                self.delete_relay_address(relay_address=relay_address)
+            except RelayAddressDoesNotExistException:
+                continue
 
     def update_block_spam(self, relay_address: RelayAddress) -> Optional[RelayAddress]:
         relay_address_update_data = {
