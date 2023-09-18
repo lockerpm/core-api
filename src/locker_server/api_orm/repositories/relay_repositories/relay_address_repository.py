@@ -4,7 +4,6 @@ from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_relay_address_model
 from locker_server.core.entities.relay.relay_address import RelayAddress
 from locker_server.core.repositories.relay_repositories.relay_address_repository import RelayAddressRepository
-from locker_server.shared.constants.token import *
 from locker_server.shared.utils.app import now
 
 RelayAddressORM = get_relay_address_model()
@@ -20,15 +19,19 @@ class RelayAddressORMRepository(RelayAddressRepository):
             relay_addresses_orm = relay_addresses_orm.filter(
                 subdomain_id=subdomain_id_param
             )
-        return [ModelParser.relay_parser().parse_relay_address(relay_address_orm=relay_address_orm)
-                for relay_address_orm in relay_addresses_orm]
+        return [
+            ModelParser.relay_parser().parse_relay_address(relay_address_orm=relay_address_orm)
+            for relay_address_orm in relay_addresses_orm
+        ]
 
     def list_user_relay_addresses(self, user_id: int, **filters) -> List[RelayAddress]:
         relay_addresses_orm = RelayAddressORM.objects.filter(
             user_id=user_id
         ).order_by('created_time')
-        return [ModelParser.relay_parser().parse_relay_address(relay_address_orm=relay_address_orm)
-                for relay_address_orm in relay_addresses_orm]
+        return [
+            ModelParser.relay_parser().parse_relay_address(relay_address_orm=relay_address_orm)
+            for relay_address_orm in relay_addresses_orm
+        ]
 
     def count_user_relay_addresses(self, user_id: int, **filters) -> int:
         user_relay_addresses_num = RelayAddressORM.objects.filter(user_id=user_id).count()
@@ -75,12 +78,12 @@ class RelayAddressORMRepository(RelayAddressRepository):
         return ModelParser.relay_parser().parse_relay_address(relay_address_orm=relay_address_orm)
 
     # ------------------------ Create RelayAddress resource --------------------- #
-    def create_relay_address(self, relay_address_create_data):
+    def create_relay_address(self, relay_address_create_data) -> RelayAddress:
         relay_address_orm = RelayAddressORM.create(**relay_address_create_data)
-        return ModelParser.relay_parser.parse_relay_address(relay_address_orm=relay_address_orm)
+        return ModelParser.relay_parser().parse_relay_address(relay_address_orm=relay_address_orm)
 
     # ------------------------ Update RelayAddress resource --------------------- #
-    def update_relay_address(self, relay_address_id: str, relay_address_update_data):
+    def update_relay_address(self, relay_address_id: str, relay_address_update_data) -> Optional[RelayAddress]:
         try:
             relay_address_orm = RelayAddressORM.objects.get(id=relay_address_id)
         except RelayAddressORM.DoesNotExist:

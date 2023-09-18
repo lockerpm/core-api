@@ -37,13 +37,13 @@ class RelayAddressRepository(ABC):
 
     # ------------------------ Create RelayAddress resource --------------------- #
     @abstractmethod
-    def create_relay_address(self, relay_address_create_data):
+    def create_relay_address(self, relay_address_create_data) -> RelayAddress:
         pass
 
     # ------------------------ Update RelayAddress resource --------------------- #
 
     @abstractmethod
-    def update_relay_address(self, relay_address_id: str, relay_address_update_data):
+    def update_relay_address(self, relay_address_id: str, relay_address_update_data) -> Optional[RelayAddress]:
         pass
 
     # ------------------------ Delete RelayAddress resource --------------------- #

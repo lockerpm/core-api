@@ -37,7 +37,7 @@ class RelayAddressService:
             raise RelayAddressDoesNotExistException
         return relay_address
 
-    def create_relay_address(self, user_id: int, relay_address_create_data):
+    def create_relay_address(self, user_id: int, relay_address_create_data) -> RelayAddress:
         user = self.user_repository.get_user_by_id(user_id=user_id)
         if not user:
             raise UserDoesNotExistException
@@ -54,8 +54,7 @@ class RelayAddressService:
         return new_relay_address
 
     def update_relay_address(self, user_id: int, relay_address: RelayAddress, relay_address_update_data: dict) -> \
-            Optional[
-                RelayAddress]:
+            Optional[RelayAddress]:
         address = relay_address_update_data.get("address") or relay_address.address
 
         if address != relay_address.address:
@@ -138,8 +137,8 @@ class RelayAddressService:
             raise RelayAddressDoesNotExistException
         return updated_relay_address
 
-    def get_relay_address_by_full_domain(self, address: str, domain_id: str, subdomain: str = None) -> Optional[
-        RelayAddress]:
+    def get_relay_address_by_full_domain(self, address: str, domain_id: str, subdomain: str = None) \
+            -> Optional[RelayAddress]:
         relay_address = self.relay_address_repository.get_relay_address_by_full_domain(
             address=address,
             domain_id=domain_id,
@@ -147,7 +146,7 @@ class RelayAddressService:
         )
         return relay_address
 
-    def check_valid_address(self, address: str, domain: str):
+    def check_valid_address(self, address: str, domain: str) -> bool:
         address_pattern_valid = self.valid_address_pattern(address)
         address_contains_bad_word = self.has_bad_words(address)
         address_is_blocklisted = self.is_blocklisted(address)

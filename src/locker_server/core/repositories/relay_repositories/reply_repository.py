@@ -21,7 +21,7 @@ class ReplyRepository(ABC):
 
     # ------------------------ Create Reply resource --------------------- #
     @abstractmethod
-    def create_reply(self, **reply_create_data):
+    def create_reply(self, **reply_create_data) -> Reply:
         pass
 
     # ------------------------ Update Reply resource --------------------- #

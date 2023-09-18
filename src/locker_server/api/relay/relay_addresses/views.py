@@ -146,8 +146,11 @@ class RelayAddressViewSet(APIBaseViewSet):
             )
         except RelayAddressDoesNotExistException:
             raise NotFound
-        return Response(status=status.HTTP_200_OK, data={"id": updated_relay_address.relay_address_id,
-                                                         "block_spam": updated_relay_address.block_spam})
+        return Response(
+            status=status.HTTP_200_OK,
+            data={"id": updated_relay_address.relay_address_id,
+                  "block_spam": updated_relay_address.block_spam}
+        )
 
     @action(methods=["put"], detail=True)
     def enabled(self, request, *args, **kwargs):
@@ -158,5 +161,7 @@ class RelayAddressViewSet(APIBaseViewSet):
             )
         except RelayAddressDoesNotExistException:
             raise NotFound
-        return Response(status=status.HTTP_200_OK,
-                        data={"id": updated_relay_address.relay_address_id, "enabled": updated_relay_address.enabled})
+        return Response(
+            status=status.HTTP_200_OK,
+            data={"id": updated_relay_address.relay_address_id, "enabled": updated_relay_address.enabled}
+        )

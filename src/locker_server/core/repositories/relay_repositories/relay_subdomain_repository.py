@@ -36,13 +36,13 @@ class RelaySubdomainRepository(ABC):
 
     # ------------------------ Create RelaySubdomain resource --------------------- #
     @abstractmethod
-    def create_relay_subdomain(self, relay_subdomain_create_data):
+    def create_relay_subdomain(self, relay_subdomain_create_data) -> RelaySubdomain:
         pass
 
     # ------------------------ Update RelaySubdomain resource --------------------- #
 
     @abstractmethod
-    def update_relay_subdomain(self, relay_subdomain_id: str, relay_subdomain_update_data):
+    def update_relay_subdomain(self, relay_subdomain_id: str, relay_subdomain_update_data) -> Optional[RelaySubdomain]:
         pass
 
     # ------------------------ Delete RelaySubdomain resource --------------------- #
