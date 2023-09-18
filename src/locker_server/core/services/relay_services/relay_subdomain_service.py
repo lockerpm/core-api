@@ -156,7 +156,7 @@ class RelaySubdomainService:
             raise RelaySubdomainDoesNotExistException
         return relay_subdomain
 
-    def soft_delete_relay_subdomain(self, relay_subdomain: RelaySubdomain) -> bool:
+    def soft_delete_relay_subdomain(self, relay_subdomain: RelaySubdomain) -> RelaySubdomain:
         relay_subdomain_update_data = {
             "is_deleted": True
         }

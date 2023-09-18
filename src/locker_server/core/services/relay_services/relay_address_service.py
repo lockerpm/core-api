@@ -184,7 +184,7 @@ class RelayAddressService:
         )
         return relay_address
 
-    def check_valid_address(self, address: str, domain: str):
+    def check_valid_address(self, address: str, domain: str) -> bool:
         address_pattern_valid = self.valid_address_pattern(address)
         address_contains_bad_word = self.has_bad_words(address)
         address_is_blocklisted = self.is_blocklisted(address)

@@ -59,15 +59,19 @@ class RelayAddressORMRepository(RelayAddressRepository):
             relay_addresses_orm = relay_addresses_orm.filter(
                 subdomain_id=subdomain_id_param
             )
-        return [ModelParser.relay_parser().parse_relay_address(relay_address_orm=relay_address_orm)
-                for relay_address_orm in relay_addresses_orm]
+        return [
+            ModelParser.relay_parser().parse_relay_address(relay_address_orm=relay_address_orm)
+            for relay_address_orm in relay_addresses_orm
+        ]
 
     def list_user_relay_addresses(self, user_id: int, **filters) -> List[RelayAddress]:
         relay_addresses_orm = RelayAddressORM.objects.filter(
             user_id=user_id
         ).order_by('created_time')
-        return [ModelParser.relay_parser().parse_relay_address(relay_address_orm=relay_address_orm)
-                for relay_address_orm in relay_addresses_orm]
+        return [
+            ModelParser.relay_parser().parse_relay_address(relay_address_orm=relay_address_orm)
+            for relay_address_orm in relay_addresses_orm
+        ]
 
     def count_user_relay_addresses(self, user_id: int, **filters) -> int:
         user_relay_addresses_num = RelayAddressORM.objects.filter(user_id=user_id).count()
@@ -128,7 +132,7 @@ class RelayAddressORMRepository(RelayAddressRepository):
             return ModelParser.relay_parser().parse_relay_address(relay_address_orm=relay_address_orm)
 
     # ------------------------ Update RelayAddress resource --------------------- #
-    def update_relay_address(self, relay_address_id: str, relay_address_update_data):
+    def update_relay_address(self, relay_address_id: str, relay_address_update_data) -> Optional[RelayAddress]:
         try:
             relay_address_orm = RelayAddressORM.objects.get(id=relay_address_id)
         except RelayAddressORM.DoesNotExist:

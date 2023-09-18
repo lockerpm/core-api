@@ -16,7 +16,16 @@ ModelParser = get_model_parser()
 class RelaySubdomainORMRepository(RelaySubdomainRepository):
     # ------------------------ List RelaySubdomain resource ------------------- #
     def list_relay_subdomains(self, **filters) -> List[RelaySubdomain]:
-        pass
+        relay_subdomains_orm = RelaySubdomainORM.objects.all().annotate(
+            num_alias=Count('relay_addresses'),
+            num_spam=Sum('relay_addresses__num_spam'),
+            num_forwarded=Sum('relay_addresses__num_forwarded'),
+        ).order_by('created_time')
+
+        return [
+            ModelParser.relay_parser().parse_relay_subdomain(relay_domain_orm=relay_subdomain_orm)
+            for relay_subdomain_orm in relay_subdomains_orm
+        ]
 
     def list_user_relay_subdomains(self, user_id: int, **filters) -> List[RelaySubdomain]:
         relay_subdomains_orm = RelaySubdomainORM.objects.filter(user_id=user_id).annotate(
@@ -31,8 +40,10 @@ class RelaySubdomainORMRepository(RelaySubdomainRepository):
             elif is_deleted_param is True or is_deleted_param.lower() is "true":
                 relay_subdomains_orm = relay_subdomains_orm.filter(is_deleted=True)
 
-        return [ModelParser.relay_parser().parse_relay_subdomain(relay_domain_orm=relay_subdomain_orm)
-                for relay_subdomain_orm in relay_subdomains_orm]
+        return [
+            ModelParser.relay_parser().parse_relay_subdomain(relay_domain_orm=relay_subdomain_orm)
+            for relay_subdomain_orm in relay_subdomains_orm
+        ]
 
     def check_existed(self, **filters) -> bool:
         user_id_param = filters.get("user_id")
