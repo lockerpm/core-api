@@ -39,6 +39,10 @@ class UserRepository(ABC):
     def has_master_pw_item(self, user_id: int) -> bool:
         pass
 
+    @abstractmethod
+    def get_from_cystack_id(self, user_id: int) -> Dict:
+        pass
+
     # ------------------------ Create User resource --------------------- #
     @abstractmethod
     def retrieve_or_create_by_id(self, user_id, creation_date=None) -> Tuple[User, bool]:

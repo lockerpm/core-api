@@ -196,3 +196,11 @@ class RelayAddressService:
                 not address_pattern_valid or address_is_locker_blocked:
             return False
         return True
+
+    def update_relay_address_statistic(self, relay_address_id: str, statistic_type: str, amount: int) -> [Optional]:
+        relay_address = self.relay_address_repository.update_relay_address_statistic(
+            relay_address_id=relay_address_id, statistic_type=statistic_type, amount=amount
+        )
+        if not relay_address:
+            raise RelayAddressDoesNotExistException
+        return relay_address

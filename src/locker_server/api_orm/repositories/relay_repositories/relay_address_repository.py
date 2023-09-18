@@ -2,13 +2,15 @@ import re
 from typing import Optional, List
 
 from django.db import transaction
+from django.db.models import F
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_relay_address_model, get_relay_deleted_address_model, \
     get_user_model
 from locker_server.core.entities.relay.relay_address import RelayAddress
 from locker_server.core.repositories.relay_repositories.relay_address_repository import RelayAddressRepository
-from locker_server.shared.constants.relay_address import DEFAULT_RELAY_DOMAIN, MAX_FREE_RElAY_DOMAIN
+from locker_server.shared.constants.relay_address import DEFAULT_RELAY_DOMAIN, MAX_FREE_RElAY_DOMAIN, \
+    RELAY_STATISTIC_TYPE_FORWARDED, RELAY_STATISTIC_TYPE_BLOCKED_SPAM
 from locker_server.shared.constants.relay_blacklist import RELAY_BAD_WORDS, RELAY_BLOCKLISTED, \
     RELAY_LOCKER_BLOCKED_CHARACTER
 from locker_server.shared.constants.token import *
@@ -141,6 +143,19 @@ class RelayAddressORMRepository(RelayAddressRepository):
         relay_address_orm.num_blocked = relay_address_update_data.get('num_blocked', relay_address_orm.num_blocked)
         relay_address_orm.num_replied = relay_address_update_data.get('num_replied', relay_address_orm.num_replied)
         relay_address_orm.updated_time = relay_address_update_data.get('updated_time', now())
+        relay_address_orm.save()
+        return ModelParser.relay_parser().parse_relay_address(relay_address_orm=relay_address_orm)
+
+    def update_relay_address_statistic(self, relay_address_id: str, statistic_type: str,
+                                       amount: int) -> Optional[RelayAddress]:
+        try:
+            relay_address_orm = RelayAddressORM.objects.get(id=relay_address_id)
+        except RelayAddressORM.DoesNotExist:
+            return None
+        if statistic_type == RELAY_STATISTIC_TYPE_FORWARDED:
+            relay_address_orm.num_forwarded = F('num_forwarded') + amount
+        elif statistic_type == RELAY_STATISTIC_TYPE_BLOCKED_SPAM:
+            relay_address_orm.num_spam = F('num_spam') + amount
         relay_address_orm.save()
         return ModelParser.relay_parser().parse_relay_address(relay_address_orm=relay_address_orm)
 
