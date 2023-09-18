@@ -36,6 +36,10 @@ class RelaySubdomainRepository(ABC):
 
     # ------------------------ Create RelaySubdomain resource --------------------- #
     @abstractmethod
+    def create_atomic_relay_subdomain(self, relay_subdomain_create_data) -> RelaySubdomain:
+        pass
+
+    @abstractmethod
     def create_relay_subdomain(self, relay_subdomain_create_data) -> RelaySubdomain:
         pass
 

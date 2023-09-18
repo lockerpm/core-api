@@ -47,9 +47,9 @@ class UserORM(AbstractUserORM):
 
     def get_from_cystack_id(self):
         """
-                Request to API Gateway to get user information
-                :return:
-                """
+        Request to API Gateway to get user information
+        :return:
+        """
         url = "{}/micro_services/users/{}".format(settings.GATEWAY_API, self.user_id)
         headers = {'Authorization': settings.MICRO_SERVICE_USER_AUTH}
         try:

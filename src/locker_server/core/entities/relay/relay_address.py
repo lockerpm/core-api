@@ -1,3 +1,5 @@
+from hashlib import sha256
+
 from locker_server.core.entities.relay.relay_domain import RelayDomain
 from locker_server.core.entities.relay.relay_subdomain import RelaySubdomain
 from locker_server.core.entities.user.user import User
@@ -84,3 +86,7 @@ class RelayAddress(object):
         if self.subdomain:
             return f"{self.address}@{self.subdomain.subdomain}.{self.domain.relay_domain_id}"
         return f"{self.address}@{self.domain.relay_domain_id}"
+
+    @classmethod
+    def hash_address(cls, address, domain):
+        return sha256(f"{address}@{domain}".encode("utf-8")).hexdigest()

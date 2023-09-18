@@ -43,10 +43,22 @@ class RelaySubdomain(object):
     def num_alias(self):
         return self._num_alias
 
+    @num_alias.setter
+    def num_alias(self, num_alias_value):
+        self._num_alias = num_alias_value
+
     @property
     def num_spam(self):
         return self._num_spam
 
+    @num_spam.setter
+    def num_spam(self, num_spam_value):
+        self._num_spam = num_spam_value
+
     @property
     def num_forwarded(self):
         return self._num_forwarded
+
+    @num_forwarded.setter
+    def num_forwarded(self, num_forwarded_value):
+        self._num_forwarded = num_forwarded_value

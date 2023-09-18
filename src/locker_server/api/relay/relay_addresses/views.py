@@ -3,13 +3,13 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, ValidationError, PermissionDenied
 from rest_framework.response import Response
 
+from locker_server.api.api_base_view import APIBaseViewSet
+from locker_server.api.permissions.relay_permissions.relay_address_permission import RelayAddressPermission
 from locker_server.core.exceptions.relay_exceptions.relay_address_exception import *
 from locker_server.core.exceptions.user_exception import UserDoesNotExistException
 from locker_server.shared.constants.relay_address import DEFAULT_RELAY_DOMAIN
 from locker_server.shared.error_responses.error import gen_error
 from .serializers import *
-from locker_server.api.api_base_view import APIBaseViewSet
-from locker_server.api.permissions.relay_permissions.relay_address_permission import RelayAddressPermission
 
 
 class RelayAddressViewSet(APIBaseViewSet):
@@ -59,20 +59,17 @@ class RelayAddressViewSet(APIBaseViewSet):
         user = self.request.user
         current_plan = self.user_service.get_current_plan(user=user)
         plan = current_plan.pm_plan
-        is_active_enterprise_member = self.user_service.h
+        is_active_enterprise_member = self.user_service.is_active_enterprise_member(user_id=user.user_id)
         return plan.relay_premium or is_active_enterprise_member
-
-        plan_obj = current_plan.get_plan_obj()
-        return plan_obj.allow_relay_premium() or user.is_active_enterprise_member()
 
     def list(self, request, *args, **kwargs):
         paging_param = self.request.query_params.get("paging", "1")
-        size_param = self.request.query_params.get("size", 50)
+        size_param = self.request.query_params.get("size", 10)
         page_size_param = self.check_int_param(size_param)
         if paging_param == "0":
             self.pagination_class = None
         else:
-            self.pagination_class.page_size = page_size_param or 50
+            self.pagination_class.page_size = page_size_param or 10
         return super().list(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
@@ -86,9 +83,9 @@ class RelayAddressViewSet(APIBaseViewSet):
         # Check the user uses subdomain or not
         if user.use_relay_subdomain is True and allow_relay_premium is True:
             subdomain = self.get_subdomain()
-            validated_data.update({"subdomain_id": subdomain.relay_subdomain_id})
+            validated_data.update({"subdomain_id": subdomain.relay_subdomain_id if subdomain else None})
         try:
-            new_relay_address = self.relay_address_service.create_relay_service(
+            new_relay_address = self.relay_address_service.create_relay_address(
                 user_id=user.user_id,
                 relay_address_create_data=validated_data
             )
@@ -105,11 +102,13 @@ class RelayAddressViewSet(APIBaseViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
+
         try:
             updated_relay_address = self.relay_address_service.update_relay_address(
                 user_id=user.user_id,
                 relay_address=relay_address,
-                relay_address_update_data=validated_data
+                relay_address_update_data=validated_data,
+                allow_relay_premium=self.allow_relay_premium(),
             )
         except RelayAddressUpdateDeniedException:
             raise PermissionDenied
@@ -127,9 +126,7 @@ class RelayAddressViewSet(APIBaseViewSet):
     def destroy(self, request, *args, **kwargs):
         relay_address = self.get_object()
         try:
-            relay_address_id = self.relay_address_service.delete_relay_address(
-                relay_address=relay_address
-            )
+            self.relay_address_service.delete_relay_address(relay_address=relay_address)
         except RelayAddressDoesNotExistException:
             raise NotFound
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -146,11 +143,10 @@ class RelayAddressViewSet(APIBaseViewSet):
             )
         except RelayAddressDoesNotExistException:
             raise NotFound
-        return Response(
-            status=status.HTTP_200_OK,
-            data={"id": updated_relay_address.relay_address_id,
-                  "block_spam": updated_relay_address.block_spam}
-        )
+        return Response(status=status.HTTP_200_OK, data={
+            "id": updated_relay_address.relay_address_id,
+            "block_spam": updated_relay_address.block_spam
+        })
 
     @action(methods=["put"], detail=True)
     def enabled(self, request, *args, **kwargs):
@@ -161,7 +157,7 @@ class RelayAddressViewSet(APIBaseViewSet):
             )
         except RelayAddressDoesNotExistException:
             raise NotFound
-        return Response(
-            status=status.HTTP_200_OK,
-            data={"id": updated_relay_address.relay_address_id, "enabled": updated_relay_address.enabled}
-        )
+        return Response(status=status.HTTP_200_OK, data={
+            "id": updated_relay_address.relay_address_id,
+            "enabled": updated_relay_address.enabled
+        })

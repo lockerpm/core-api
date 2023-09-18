@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 from locker_server.core.entities.enterprise.enterprise import Enterprise
 from locker_server.core.entities.user.device import Device
@@ -107,6 +107,9 @@ class UserService:
         if is_created is True:
             self.get_current_plan(user=user)
         return user
+
+    def get_from_cystack_id(self, user_id: int) -> Dict:
+        return self.user_repository.get_from_cystack_id(user_id=user_id)
 
     def register_user(self, user_id: int, master_password_hash: str, key: str, keys, **kwargs):
         user = self.retrieve_or_create_by_id(user_id=user_id)
@@ -532,3 +535,6 @@ class UserService:
     @staticmethod
     def get_sync_cache_key(user_id, page=1, size=100):
         return get_sync_cache_key(user_id=user_id, page=page, size=size)
+
+    def is_active_enterprise_member(self, user_id: int) -> bool:
+        return self.enterprise_member_repository.is_active_enterprise_member(user_id=user_id)
