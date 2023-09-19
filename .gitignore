@@ -1,7 +1,9 @@
 # Python
 *.pyc
 projectenv/
+venv/
 env/
+.idea/
 src/.idea/
 *.iml
 *.conf
