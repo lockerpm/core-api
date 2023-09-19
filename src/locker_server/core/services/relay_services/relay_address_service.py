@@ -121,12 +121,15 @@ class RelayAddressService:
         return relay_address
 
     def delete_relay_address(self, relay_address: RelayAddress) -> bool:
+        if relay_address.subdomain:
+            full_domain = f"{relay_address.subdomain.subdomain}.{relay_address.domain.relay_domain_id}"
+        else:
+            full_domain = relay_address.domain.relay_domain_id
         deleted_relay_address = self.relay_address_repository.delete_relay_address_by_id(
             relay_address_id=relay_address.relay_address_id
         )
         if not deleted_relay_address:
             raise RelayAddressDoesNotExistException
-        full_domain = self.get_full_domain(relay_address=relay_address)
         self.deleted_relay_address_repository.create_deleted_relay_address(
             deleted_relay_address_create_data={
                 "address_hash": RelayAddress.hash_address(address=relay_address.address, domain=full_domain),
@@ -134,15 +137,19 @@ class RelayAddressService:
                 "num_blocked": relay_address.num_blocked,
                 "num_replied": relay_address.num_replied,
                 "num_spam": relay_address.num_spam,
-            })
+            }
+        )
         return relay_address.relay_address_id
 
-    def delete_relay_addresses_by_subdomain_id(self, subdomain_id: str) -> NoReturn:
+    def delete_relay_addresses_by_subdomain_id(self, subdomain_id: str):
         relay_addresses = self.relay_address_repository.list_relay_addresses(**{
             "subdomain_id": subdomain_id
         })
         for relay_address in relay_addresses:
-            self.delete_relay_address(relay_address=relay_address)
+            try:
+                self.delete_relay_address(relay_address=relay_address)
+            except RelayAddressDoesNotExistException:
+                continue
 
     def update_block_spam(self, relay_address: RelayAddress) -> Optional[RelayAddress]:
         relay_address_update_data = {
@@ -177,7 +184,7 @@ class RelayAddressService:
         )
         return relay_address
 
-    def check_valid_address(self, address: str, domain: str):
+    def check_valid_address(self, address: str, domain: str) -> bool:
         address_pattern_valid = self.valid_address_pattern(address)
         address_contains_bad_word = self.has_bad_words(address)
         address_is_blocklisted = self.is_blocklisted(address)
@@ -189,3 +196,11 @@ class RelayAddressService:
                 not address_pattern_valid or address_is_locker_blocked:
             return False
         return True
+
+    def update_relay_address_statistic(self, relay_address_id: str, statistic_type: str, amount: int) -> [Optional]:
+        relay_address = self.relay_address_repository.update_relay_address_statistic(
+            relay_address_id=relay_address_id, statistic_type=statistic_type, amount=amount
+        )
+        if not relay_address:
+            raise RelayAddressDoesNotExistException
+        return relay_address

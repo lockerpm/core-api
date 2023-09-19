@@ -1,22 +1,19 @@
 import json
 
 from django.conf import settings
-
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied, NotFound, ValidationError
 from rest_framework.decorators import action
 
-from locker_server.core.exceptions.relay_exceptions.reply_exception import *
-from locker_server.core.exceptions.user_exception import UserDoesNotExistException
-from .serializers import ReplySerializer, StatisticSerializer
-from locker_server.shared.constants.relay_address import RELAY_STATISTIC_TYPE_FORWARDED, \
-    RELAY_STATISTIC_TYPE_BLOCKED_SPAM
-from locker_server.shared.log.cylog import CyLog
-from locker_server.shared.services.rabbitmq.rabbitmq import RelayQueue
-
 from locker_server.api.api_base_view import APIBaseViewSet
 from locker_server.api.permissions.relay_permissions.relay_hook_permission import RelayHookPermission
+from locker_server.core.exceptions.relay_exceptions.reply_exception import *
+from locker_server.core.exceptions.user_exception import UserDoesNotExistException
+from locker_server.shared.constants.relay_address import *
+from locker_server.shared.external_services.rabbitmq.rabbitmq import RelayQueue
+from locker_server.shared.log.cylog import CyLog
+from .serializers import ReplySerializer, StatisticSerializer
 
 
 class RelayHookViewSet(APIBaseViewSet):
@@ -47,14 +44,11 @@ class RelayHookViewSet(APIBaseViewSet):
             raise PermissionDenied
 
     def allow_relay_premium(self, user) -> bool:
+        user = self.request.user
         current_plan = self.user_service.get_current_plan(user=user)
-        # TODO: update get_plan_obj()
-        plan_obj = current_plan.get_plan_obj()
-        if plan_obj.allow_relay_premium():
-            return True
-        if user.is_active_enterprise_member():
-            return True
-        return False
+        plan = current_plan.pm_plan
+        is_active_enterprise_member = self.user_service.is_active_enterprise_member(user_id=user.user_id)
+        return plan.relay_premium or is_active_enterprise_member
 
     def get_relay_address(self, email: str):
         address = email.split("@")[0]
@@ -98,7 +92,6 @@ class RelayHookViewSet(APIBaseViewSet):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": ["Invalid JSON data"]})
 
         receiver = self.get_receiver(mail_data=mail_data)
-
         relay_address = self.get_relay_address(email=receiver)
         if not relay_address:
             return Response(status=status.HTTP_200_OK, data={
@@ -107,8 +100,7 @@ class RelayHookViewSet(APIBaseViewSet):
             })
 
         user = relay_address.user
-        # TODO: use user_service to get email of user
-        email = user.get_from_cystack_id().get("email")
+        email = self.user_service.get_from_cystack_id().get("email")
         if not email:
             return Response(status=status.HTTP_200_OK, data={
                 "success": False,
@@ -129,7 +121,7 @@ class RelayHookViewSet(APIBaseViewSet):
         if not relay_address:
             # CyLog.debug(**{"message": "Can not get relay address destination: {}".format(relay_address)})
             raise NotFound
-        return Response(status=status.HTTP_200_OK, data={"user_id": relay_address.user_id})
+        return Response(status=status.HTTP_200_OK, data={"user_id": relay_address.user.user_id})
 
     @action(methods=["post"], detail=False)
     def reply(self, request, *args, **kwargs):
@@ -202,19 +194,9 @@ class RelayHookViewSet(APIBaseViewSet):
         if not relay_address:
             CyLog.debug(**{"message": "Can not statistics relay address destination: {}".format(relay_address)})
             raise ValidationError(detail={"relay_address": ["The relay address does not exist"]})
-        relay_address_update_data = {}
-        if statistic_type == RELAY_STATISTIC_TYPE_FORWARDED:
-            relay_address_update_data.update({
-                'num_forwarded': relay_address.num_forwarded + amount
-            })
-        elif statistic_type == RELAY_STATISTIC_TYPE_BLOCKED_SPAM:
-            relay_address_update_data.update({
-                'num_spam': relay_address.num_spam + amount
-            })
-        updated_relay_address = self.relay_address_service.update_relay_address(
-            user_id=relay_address.user.user_id,
-            relay_address=relay_address,
-            relay_address_update_data=relay_address_update_data
+        self.relay_address_service.update_relay_address_statistic(
+            relay_address_id=relay_address.relay_address_id,
+            statistic_type=statistic_type,
+            amount=amount
         )
-
         return Response(status=status.HTTP_200_OK, data={"success": True})

@@ -35,7 +35,7 @@ class ReplyORMRepository(ReplyRepository):
         return ModelParser.relay_parser().parse_relay_reply(reply_orm=reply_orm)
 
     # ------------------------ Create Reply resource --------------------- #
-    def create_reply(self, **reply_create_data):
+    def create_reply(self, **reply_create_data) -> Reply:
         new_reply_orm = ReplyORM.create(**reply_create_data)
         return ModelParser.relay_parser().parse_relay_reply(reply_orm=new_reply_orm)
 

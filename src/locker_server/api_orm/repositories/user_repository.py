@@ -98,6 +98,13 @@ class UserORMRepository(UserRepository):
     def has_master_pw_item(self, user_id: int) -> bool:
         return CipherORM.objects.filter(created_by_id=user_id, type=CIPHER_TYPE_MASTER_PASSWORD).exists()
 
+    def get_from_cystack_id(self, user_id: int) -> Dict:
+        try:
+            user_orm = UserORM.objects.get(user_id=user_id)
+            return user_orm.get_from_cystack_id()
+        except UserORM.DoesNotExist:
+            return {}
+
     @staticmethod
     def _retrieve_or_create_user_score_orm(user_orm):
         try:

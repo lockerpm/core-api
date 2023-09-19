@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_team_model, get_collection_model, get_team_member_model
 from locker_server.core.entities.team.collection import Collection
+from locker_server.core.entities.team.team import Team
 from locker_server.core.repositories.team_repository import TeamRepository
 from locker_server.shared.constants.members import MEMBER_ROLE_OWNER
 
@@ -14,6 +15,14 @@ ModelParser = get_model_parser()
 
 
 class TeamORMRepository(TeamRepository):
+    @staticmethod
+    def _get_team_orm(team_id: str) -> Optional[TeamORM]:
+        try:
+            team_orm = TeamORM.objects.get(id=team_id)
+            return team_orm
+        except TeamORM.DoesNotExist:
+            return None
+
     # ------------------------ List Team resource ------------------- #
     def list_team_collection_ids(self, team_id: str) -> List[str]:
         return list(CollectionORM.objects.filter(team_id=team_id).values_list('id', flat=True))
@@ -34,6 +43,10 @@ class TeamORMRepository(TeamRepository):
         return list(owner_teams.values_list('team_id', flat=True))
 
     # ------------------------ Get Team resource --------------------- #
+    def get_by_id(self, team_id: str) -> Optional[Team]:
+        team_orm = self._get_team_orm(team_id=team_id)
+        return ModelParser.team_parser().parse_team(team_orm=team_orm) if team_orm else None
+
     def get_default_collection(self, team_id: str) -> Optional[Collection]:
         try:
             collection_orm = CollectionORM.objects.get(team_id=team_id, is_default=True)

@@ -35,6 +35,10 @@ class RelayAddressRepository(ABC):
     def get_relay_address_by_address(self, address: str) -> Optional[RelayAddress]:
         pass
 
+    @abstractmethod
+    def get_relay_address_by_address(self, address: str) -> Optional[RelayAddress]:
+        pass
+
     # ------------------------ Create RelayAddress resource --------------------- #
     @abstractmethod
     def create_relay_address(self, relay_address_create_data) -> Optional[RelayAddress]:
@@ -43,7 +47,12 @@ class RelayAddressRepository(ABC):
     # ------------------------ Update RelayAddress resource --------------------- #
 
     @abstractmethod
-    def update_relay_address(self, relay_address_id: str, relay_address_update_data):
+    def update_relay_address(self, relay_address_id: str, relay_address_update_data) -> Optional[RelayAddress]:
+        pass
+
+    @abstractmethod
+    def update_relay_address_statistic(self, relay_address_id: str, statistic_type: str,
+                                       amount: int) -> Optional[RelayAddress]:
         pass
 
     # ------------------------ Delete RelayAddress resource --------------------- #

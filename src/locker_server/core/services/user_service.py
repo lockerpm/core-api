@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 from locker_server.core.entities.enterprise.enterprise import Enterprise
 from locker_server.core.entities.user.device import Device
@@ -107,6 +107,9 @@ class UserService:
         if is_created is True:
             self.get_current_plan(user=user)
         return user
+
+    def get_from_cystack_id(self, user_id: int) -> Dict:
+        return self.user_repository.get_from_cystack_id(user_id=user_id)
 
     def register_user(self, user_id: int, master_password_hash: str, key: str, keys, **kwargs):
         user = self.retrieve_or_create_by_id(user_id=user_id)

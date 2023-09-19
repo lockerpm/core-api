@@ -2,6 +2,7 @@ from typing import Union, Dict, Optional, List
 from abc import ABC, abstractmethod
 
 from locker_server.core.entities.team.collection import Collection
+from locker_server.core.entities.team.team import Team
 
 
 class TeamRepository(ABC):
@@ -15,6 +16,10 @@ class TeamRepository(ABC):
         pass
 
     # ------------------------ Get Team resource --------------------- #
+    @abstractmethod
+    def get_by_id(self, team_id: str) -> Optional[Team]:
+        pass
+
     @abstractmethod
     def get_default_collection(self, team_id: str) -> Optional[Collection]:
         pass

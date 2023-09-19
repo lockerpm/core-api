@@ -17,3 +17,9 @@ class OnlyAllowOwnerUpdateException(TeamMemberException):
     """
 
     """
+
+
+class OwnerDoesNotExistException(TeamMemberException):
+    """
+    The Owner does not exist in team
+    """

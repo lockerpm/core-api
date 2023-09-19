@@ -25,3 +25,7 @@ class CreateRelaySubdomainSerializer(serializers.Serializer):
 
 class UpdateRelaySubdomainSerializer(CreateRelaySubdomainSerializer):
     """"""
+
+
+class UseRelaySubdomainSerializer(serializers.Serializer):
+    use_relay_subdomain = serializers.BooleanField()
