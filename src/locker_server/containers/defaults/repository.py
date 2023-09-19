@@ -43,3 +43,5 @@ class RepositoryFactory(containers.DeclarativeContainer):
     affiliate_submission_repository = providers.Factory(AffiliateSubmissionORMRepository)
 
     country_repository = providers.Factory(CountryORMRepository)
+
+    release_repository = providers.Factory(ReleaseORMRepository)

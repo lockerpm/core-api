@@ -34,3 +34,5 @@ from .relay_repositories.relay_address_repository import RelayAddressORMReposito
 from .relay_repositories.reply_repository import ReplyORMRepository
 
 from .affiliate_submission_repository import AffiliateSubmissionORMRepository
+
+from .release_repository import ReleaseORMRepository

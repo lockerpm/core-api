@@ -6,6 +6,7 @@ class AffiliateSubmissionORM(AbstractAffiliateSubmissionORM):
     class Meta(AbstractAffiliateSubmissionORM.Meta):
         db_table = 'cs_affiliate_submissions'
 
+    @classmethod
     def create(cls, **data):
         new_affiliate_submission_orm = AffiliateSubmissionORM(
             created_time=data.get("created_time", now()),

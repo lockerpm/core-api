@@ -54,3 +54,7 @@ class ModelParser:
     @classmethod
     def form_submission_parser(cls):
         return FormSubmissionParser
+
+    @classmethod
+    def release_parser(cls):
+        return

@@ -32,6 +32,7 @@ class APIBaseViewSet(AppGeneralViewSet):
     reply_service = reply_service
 
     affiliate_submission_service = affiliate_submission_service
+    release_service = release_service
 
     def get_throttles(self):
         if self.request.user and not isinstance(self.request.user, AnonymousUser):

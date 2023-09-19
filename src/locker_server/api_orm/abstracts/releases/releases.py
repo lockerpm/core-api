@@ -20,18 +20,8 @@ class AbstractReleaseORM(models.Model):
 
     @classmethod
     def create(cls, **data):
-        new_release = cls(
-            created_time=now(),
-            major=data.get("major"),
-            minor=data.get("minor"),
-            patch=data.get("patch", ""),
-            build_number=data.get("build_number", ""),
-            description_en=data.get("description_en", ""),
-            client_id=data.get("client_id"),
-            environment=data.get("environment", "prod")
-        )
-        new_release.save()
-        return new_release
+        raise NotImplementedError
+
 
     @property
     def version(self):
