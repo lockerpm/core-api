@@ -191,3 +191,13 @@ def get_quick_share_model():
 def get_quick_share_email_model():
     """ Return the QuickShareEmail model that is active in this LockerServer """
     return apps.get_model(locker_server_settings.LS_QUICK_SHARE_EMAIL_MODEL)
+
+
+def get_affiliate_submission_model():
+    """ Return the AffiliateSubmission model that is active in this LockerServer """
+    return apps.get_model(locker_server_settings.LS_AFFILIATE_SUBMISSION_MODEL)
+
+
+def get_release_model():
+    """ Return the Release model that is active in this LockerServer """
+    return apps.get_model(locker_server_settings.LS_RELEASE_MODEL)

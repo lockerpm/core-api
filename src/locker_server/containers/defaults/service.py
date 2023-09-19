@@ -102,3 +102,12 @@ class ServiceFactory(containers.DeclarativeContainer):
         ReplyService,
         reply_repository=RepositoryFactory.reply_repository
     )
+    affiliate_submission_service = providers.Factory(
+        AffiliateSubmissionService,
+        affiliate_repository=RepositoryFactory.affiliate_submission_repository,
+        country_repository=RepositoryFactory.country_repository
+    )
+    release_service = providers.Factory(
+        ReleaseService,
+        release_repository=RepositoryFactory.release_repository
+    )

@@ -4,6 +4,7 @@ from .user_repository import UserORMRepository
 from .plan_repository import PlanORMRepository
 from .user_plan_repository import UserPlanORMRepository
 from .payment_repository import PaymentORMRepository
+from .country_repository import CountryORMRepository
 
 from .exclude_domain_repository import ExcludeDomainORMRepository
 
@@ -24,7 +25,6 @@ from .enterprise_policy_repository import EnterprisePolicyORMRepository
 
 from .event_repository import EventORMRepository
 
-
 from .notification_category_repository import NotificationCategoryORMRepository
 from .notification_setting_repository import NotificationSettingORMRepository
 
@@ -32,3 +32,7 @@ from .relay_repositories.deleted_relay_address_repository import DeletedRelayAdd
 from .relay_repositories.relay_subdomain_repository import RelaySubdomainORMRepository
 from .relay_repositories.relay_address_repository import RelayAddressORMRepository
 from .relay_repositories.reply_repository import ReplyORMRepository
+
+from .affiliate_submission_repository import AffiliateSubmissionORMRepository
+
+from .release_repository import ReleaseORMRepository

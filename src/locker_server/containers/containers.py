@@ -27,3 +27,7 @@ event_service = ServiceFactory.event_service()
 relay_address_service = ServiceFactory.relay_address_service()
 relay_subdomain_service = ServiceFactory.relay_subdomain_service()
 reply_service = ServiceFactory.reply_service()
+
+affiliate_submission_service = ServiceFactory.affiliate_submission_service()
+
+release_service = ServiceFactory.release_service()

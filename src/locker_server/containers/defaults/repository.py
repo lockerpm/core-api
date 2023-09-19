@@ -39,3 +39,9 @@ class RepositoryFactory(containers.DeclarativeContainer):
     deleted_relay_address_repository = providers.Factory(DeletedRelayAddressORMRepository)
     relay_subdomain_repository = providers.Factory(RelaySubdomainORMRepository)
     reply_repository = providers.Factory(ReplyORMRepository)
+
+    affiliate_submission_repository = providers.Factory(AffiliateSubmissionORMRepository)
+
+    country_repository = providers.Factory(CountryORMRepository)
+
+    release_repository = providers.Factory(ReleaseORMRepository)

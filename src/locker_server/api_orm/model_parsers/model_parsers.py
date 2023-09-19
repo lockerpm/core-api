@@ -7,6 +7,7 @@ from .team_parser import TeamParser
 from .enterprise_parser import EnterpriseParser
 from .event_parsers import EventParser
 from .relay_parsers import RelayParser
+from .form_submission_parsers import FormSubmissionParser
 
 
 class ModelParser:
@@ -49,3 +50,11 @@ class ModelParser:
     @classmethod
     def relay_parser(cls):
         return RelayParser
+
+    @classmethod
+    def form_submission_parser(cls):
+        return FormSubmissionParser
+
+    @classmethod
+    def release_parser(cls):
+        return
