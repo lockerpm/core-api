@@ -52,3 +52,12 @@ class Release(object):
     @property
     def environment(self):
         return self._environment
+
+    @property
+    def version(self):
+        ver = f"{self._major}.{self._minor}"
+        if self._patch:
+            ver += f".{self._patch}"
+        if self._build_number:
+            ver += f".{self._build_number}"
+        return ver

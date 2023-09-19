@@ -2,7 +2,7 @@
 from locker_server.api.permissions.app import APIPermission
 
 
-class ToolPermission(APIPermission):
+class ToolPwdPermission(APIPermission):
     def has_permission(self, request, view):
         if view.action in ["public_breach"]:
             return True

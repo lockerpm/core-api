@@ -24,8 +24,8 @@ class AffiliateSubmissionRepository(ABC):
     # ------------------------ Update AffiliateSubmission resource --------------------- #
 
     @abstractmethod
-    def update_affiliate_submission(self, affiliate_submission_id: str, affiliate_submission_update_data) \
-            -> Optional[AffiliateSubmission]:
+    def update_affiliate_submission(self, affiliate_submission_id: str,
+                                    affiliate_submission_update_data) -> Optional[AffiliateSubmission]:
         pass
 
     # ------------------------ Delete AffiliateSubmission resource --------------------- #

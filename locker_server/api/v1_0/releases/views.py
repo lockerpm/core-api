@@ -3,14 +3,14 @@ from rest_framework.decorators import action
 from rest_framework import status
 
 from locker_server.api.api_base_view import APIBaseViewSet
-from locker_server.api.permissions.locker_permissions.release_permission import ReleasePermission
+from locker_server.api.permissions.locker_permissions.release_pwd_permission import ReleasePwdPermission
 from locker_server.shared.constants.device_type import CLIENT_ID_DESKTOP
 from locker_server.shared.constants.release import RELEASE_ENVIRONMENT_PROD
 from .serializers import NewReleaseSerializer, NextReleaseSerializer
 
 
 class ReleaseViewSet(APIBaseViewSet):
-    permission_classes = (ReleasePermission,)
+    permission_classes = (ReleasePwdPermission,)
     http_method_names = ["head", "options", "get", "post"]
 
     def get_serializer_class(self):
@@ -25,16 +25,11 @@ class ReleaseViewSet(APIBaseViewSet):
         if request.method == "GET":
             client_id = self.request.query_params.get("client_id", CLIENT_ID_DESKTOP)
             environment = self.request.query_params.get("environment", RELEASE_ENVIRONMENT_PROD)
-
             latest_release = self.release_service.get_latest_release(
                 client_id=client_id,
                 environment=environment
             )
-
-            if not latest_release:
-                version = "1.0.0"
-            else:
-                version = latest_release.version
+            version = latest_release.version if latest_release else "1.0.0"
             data = {
                 "version": version,
                 "environment": environment
@@ -47,16 +42,13 @@ class ReleaseViewSet(APIBaseViewSet):
             validated_data = serializer.validated_data
             client_id = validated_data.get("client_id")
             environment = validated_data.get("environment")
-            next_release = self.release_service.create_next_release(client_id=client_id, environment=environment)
+            next_release = self.release_service.generate_next_release(client_id=client_id, environment=environment)
             if not next_release:
-                version = "1.0.0"
-            else:
-                version = next_release.version
-            data = {
-                "version": version,
-                "environment": environment
-            }
-            return Response(status=status.HTTP_200_OK, data=data)
+                return Response(status=status.HTTP_200_OK, data={"version": "1.0.0", "environment": environment})
+            return Response(status=status.HTTP_200_OK, data={
+                "version": next_release.version,
+                "environment": next_release.environment
+            })
 
     @action(methods=["post"], detail=False)
     def new(self, request, *args, **kwargs):

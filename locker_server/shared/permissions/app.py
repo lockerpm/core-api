@@ -1,6 +1,9 @@
+import jwt
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from rest_framework.permissions import BasePermission
 
+from locker_server.shared.constants.token import TOKEN_PREFIX
 
 CACHE_ROLE_PERMISSION_PREFIX = "cs_role_permission_"
 
@@ -20,3 +23,27 @@ class AppBasePermission(BasePermission):
             return False if isinstance(request.user, AnonymousUser) else True
         return False
 
+    @staticmethod
+    def _decode_token(token_value):
+        # Remove `cs.` and decode
+        if not isinstance(token_value, str):
+            try:
+                non_prefix_token = getattr(token_value, "access_token")
+            except AttributeError:
+                return None
+        else:
+            non_prefix_token = token_value[len(TOKEN_PREFIX):]
+        try:
+            payload = jwt.decode(non_prefix_token, settings.SECRET_KEY, algorithms=['HS256'])
+            return payload
+        except (jwt.InvalidSignatureError, jwt.DecodeError, jwt.exceptions.InvalidAlgorithmError):
+            return None
+
+    def is_admin(self, request):
+        if self.is_auth(request):
+            token = request.auth
+            payload = self._decode_token(token)
+            check_admin = payload.get("is_admin") if payload is not None else False
+            if (check_admin == "1") or (check_admin == 1) or (check_admin is True):
+                return True
+        return False

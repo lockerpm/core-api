@@ -4,14 +4,15 @@ from rest_framework.exceptions import ValidationError
 from rest_framework import status
 
 from locker_server.api.api_base_view import APIBaseViewSet
-from locker_server.api.permissions.locker_permissions.tool_permission import ToolPermission
+from locker_server.api.permissions.locker_permissions.tool_pwd_permission import ToolPwdPermission
 from locker_server.shared.error_responses.error import gen_error
+from locker_server.shared.external_services.hibp.hibp_service import HibpService
 from locker_server.shared.utils.app import camel_snake_data
 from .serializers import BreachSerializer
 
 
 class ToolViewSet(APIBaseViewSet):
-    permission_classes = (ToolPermission,)
+    permission_classes = (ToolPwdPermission,)
 
     def get_serializer_class(self):
         if self.action in ["breach", "public_breach"]:
@@ -22,13 +23,11 @@ class ToolViewSet(APIBaseViewSet):
         user = self.request.user
         # Only premium plan
         current_plan = self.user_service.get_current_plan(user=user)
-        # TODO: replace get_plan_obj()
-        plan_obj = current_plan.get_plan_obj()
+        plan_obj = current_plan.pm_plan
 
         if self.action == "breach":
             is_active_enterprise_member = self.user_service.is_active_enterprise_member(user_id=user.user_id)
-            # TODO: replace allow_tools_data_breach
-            if is_active_enterprise_member is False and plan_obj.allow_tools_data_breach() is False:
+            if is_active_enterprise_member is False and plan_obj.tools_data_breach is False:
                 raise ValidationError({"non_field_errors": [gen_error("7002")]})
 
         return user
@@ -40,7 +39,6 @@ class ToolViewSet(APIBaseViewSet):
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
         email = validated_data.get("email")
-        # TODO import HibpService from locker_server
         # Request to https://haveibeenpwned.com/api/v3/breachedaccount
         hibp_check = HibpService(retries_number=1).check_breach(email=email)
         if not hibp_check:
@@ -54,7 +52,6 @@ class ToolViewSet(APIBaseViewSet):
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
         email = validated_data.get("email")
-        # TODO import HibpService from locker_server
         hibp_check = HibpService(retries_number=1).check_breach(email=email)
         if not hibp_check:
             return Response(status=status.HTTP_200_OK, data=[])

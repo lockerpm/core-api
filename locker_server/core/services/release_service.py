@@ -22,6 +22,39 @@ class ReleaseService:
     def create_release(self, release_create_data) -> Release:
         return self.release_repository.create_release(release_create_data=release_create_data)
 
+    def generate_next_release(self, client_id: str, environment: str) -> Optional[Release]:
+        latest_release = self.get_latest_release(client_id=client_id, environment=environment)
+        if not latest_release:
+            return None
+        if not latest_release.patch:
+            next_minor = int(latest_release.minor) + 1
+            return Release(
+                release_id=None,
+                major=latest_release.major,
+                minor=next_minor,
+                client_id=client_id,
+                environment=environment
+            )
+        if not latest_release.build_number:
+            next_patch = int(latest_release.patch) + 1
+            return Release(
+                release_id=None,
+                major=latest_release.major,
+                minor=latest_release.minor,
+                patch=next_patch,
+                client_id=client_id,
+                environment=environment
+            )
+        next_build_number = int(latest_release.build_number) + 1
+        return Release(
+            release_id=None,
+            major=latest_release.major,
+            patch=latest_release.patch,
+            build_number=next_build_number,
+            client_id=client_id,
+            environment=environment
+        )
+
     def create_next_release(self, client_id: str, environment: str) -> Optional[Release]:
         latest_release = self.get_latest_release(
             client_id=client_id,
