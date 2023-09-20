@@ -28,3 +28,4 @@ from .affiliate_submission_service import AffiliateSubmissionService
 
 from .release_service import ReleaseService
 
+from .notification_setting_service import NotificationSettingService

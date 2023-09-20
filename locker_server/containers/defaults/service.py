@@ -123,3 +123,8 @@ class ServiceFactory(containers.DeclarativeContainer):
         ReleaseService,
         release_repository=RepositoryFactory.release_repository
     )
+    notification_setting_service = providers.Factory(
+        NotificationSettingService,
+        notification_setting_repository=RepositoryFactory.notification_setting_repository,
+        user_repository=RepositoryFactory.user_repository
+    )
