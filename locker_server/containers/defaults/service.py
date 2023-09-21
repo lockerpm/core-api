@@ -78,6 +78,15 @@ class ServiceFactory(containers.DeclarativeContainer):
         sharing_repository=RepositoryFactory.sharing_repository,
         team_repository=RepositoryFactory.team_repository,
         team_member_repository=RepositoryFactory.team_member_repository,
+        team_group_repository=RepositoryFactory.team_group_repository,
+        user_repository=RepositoryFactory.user_repository,
+        notification_setting_repository=RepositoryFactory.notification_setting_repository,
+        device_repository=RepositoryFactory.device_repository,
+        enterprise_group_repository=RepositoryFactory.enterprise_group_repository,
+        enterprise_group_member_repository=RepositoryFactory.enterprise_group_member_repository,
+        cipher_repository=RepositoryFactory.cipher_repository,
+        folder_repository=RepositoryFactory.folder_repository,
+        enterprise_repository=RepositoryFactory.enterprise_repository,
     )
 
     enterprise_service = providers.Factory(

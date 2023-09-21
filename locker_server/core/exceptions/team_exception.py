@@ -17,3 +17,9 @@ class TeamLockedException(TeamException):
     """
     The Team is locked
     """
+
+
+class TeamGroupDoesNotExistException(TeamException):
+    """
+    The sharing group does not exist
+    """

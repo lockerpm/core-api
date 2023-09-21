@@ -54,6 +54,13 @@ class TeamORMRepository(TeamRepository):
             return None
         return ModelParser.team_parser().parse_collection(collection_orm=collection_orm)
 
+    def get_team_collection_by_id(self, team_id: str, collection_id: str) -> Optional[Collection]:
+        try:
+            collection_orm = CollectionORM.objects.get(team_id=team_id, id=collection_id)
+        except CollectionORM.DoesNotExist:
+            return None
+        return ModelParser.team_parser().parse_collection(collection_orm=collection_orm)
+
     # ------------------------ Create PMPlan resource --------------------- #
 
     # ------------------------ Update PMPlan resource --------------------- #

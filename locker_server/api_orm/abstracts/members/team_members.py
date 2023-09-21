@@ -4,6 +4,7 @@ from django.db import models
 
 from locker_server.settings import locker_server_settings
 from locker_server.shared.constants.members import PM_MEMBER_STATUS_CONFIRMED
+from locker_server.shared.utils.app import now
 
 
 class AbstractTeamMemberORM(models.Model):
@@ -36,36 +37,24 @@ class AbstractTeamMemberORM(models.Model):
         abstract = True
         unique_together = ('user', 'team', 'role')
 
-    # @classmethod
-    # def create_multiple(cls, team: Team, *members: [Dict]):
-    #     """
-    #     Create multiple members of the team
-    #     :param team: (Team) Team object
-    #     :param members: (list) Members data
-    #     :return:
-    #     """
-    #     for member in members:
-    #         try:
-    #             cls.create(
-    #                 team=team,
-    #                 user=member["user"],
-    #                 role_id=member["role"].name,
-    #                 is_primary=member.get("is_primary", False),
-    #                 is_default=member.get("is_default", False),
-    #             )
-    #         except:
-    #             continue
-    #
-    # @classmethod
-    # def create(cls, team: Team, role_id: str, is_primary=False, is_default=False,
-    #            status=PM_MEMBER_STATUS_CONFIRMED, user: User = None, email: str = None):
-    #     new_member = TeamMember.objects.create(
-    #         user=user, email=email, role_id=role_id, team=team, access_time=now(),
-    #         is_primary=is_primary,
-    #         is_default=is_default,
-    #         status=status
-    #     )
-    #     return new_member
+    @classmethod
+    def create_multiple(cls, team_id: str, *members):
+        for member in members:
+            try:
+                cls.create(
+                    team_id=team_id,
+                    user_id=member.get("user_id"),
+                    role_id=member["role"].name,
+                    is_primary=member.get("is_primary", False),
+                    is_default=member.get("is_default", False),
+                )
+            except:
+                continue
+
+    @classmethod
+    def create(cls, team_id: str, role_id: str, is_primary=False, is_default=False,
+               status=PM_MEMBER_STATUS_CONFIRMED, user_id: int = None, email: str = None):
+        raise NotImplementedError
     #
     # @classmethod
     # def create_with_data(cls, team: Team, role_id: str, **data):
@@ -105,36 +94,36 @@ class AbstractTeamMemberORM(models.Model):
     #         new_member.groups_members.model.retrieve_or_create(group.id, new_member.id)
     #     return new_member
     #
-    # @classmethod
-    # def retrieve_or_create_with_group(cls, team: Team, **data):
-    #     group = data.get("group")
-    #     role_id = group.role_id if group else (data.get("role_id") or data.get("role"))
-    #
-    #     member_data = {
-    #         "team": team,
-    #         "role_id": role_id,
-    #         "access_time": now(),
-    #         "user": data.get("user"),
-    #         "email": data.get("email"),
-    #         "is_primary": data.get("is_primary", False),
-    #         "is_default": data.get("is_default", False),
-    #         "is_added_by_group": data.get("is_added_by_group", False),
-    #         "status": data.get("status", PM_MEMBER_STATUS_CONFIRMED),
-    #         "key": data.get("key"),
-    #         "token_invitation": data.get("token_invitation")
-    #     }
-    #     if data.get("user"):
-    #         member, is_created = cls.objects.get_or_create(
-    #             team=team, user=data.get("user"), defaults=member_data
-    #         )
-    #     else:
-    #         member, is_created = cls.objects.get_or_create(
-    #             team=team, email=data.get("email"), defaults=member_data
-    #         )
-    #     if group:
-    #         member.groups_members.model.retrieve_or_create(group.id, member.id)
-    #     return member, is_created
-    #
+    @classmethod
+    def retrieve_or_create_with_group(cls, team_id: str, **data):
+        group = data.get("group")
+        role_id = group.role_id if group else (data.get("role_id") or data.get("role"))
+
+        member_data = {
+            "team_id": team_id,
+            "role_id": role_id,
+            "access_time": now(),
+            "user_id": data.get("user_id"),
+            "email": data.get("email"),
+            "is_primary": data.get("is_primary", False),
+            "is_default": data.get("is_default", False),
+            "is_added_by_group": data.get("is_added_by_group", False),
+            "status": data.get("status", PM_MEMBER_STATUS_CONFIRMED),
+            "key": data.get("key"),
+            "token_invitation": data.get("token_invitation")
+        }
+        if data.get("user"):
+            member, is_created = cls.objects.get_or_create(
+                team_id=team_id, user_id=data.get("user_id"), defaults=member_data
+            )
+        else:
+            member, is_created = cls.objects.get_or_create(
+                team_id=team_id, email=data.get("email"), defaults=member_data
+            )
+        if group:
+            member.groups_members.model.retrieve_or_create(group.id, member.id)
+        return member, is_created
+
     # @classmethod
     # def create_with_collections(cls, team: Team, role_id: str, is_primary=False, is_default=False,
     #                             status=PM_MEMBER_STATUS_CONFIRMED, user: User = None, email: str = None,

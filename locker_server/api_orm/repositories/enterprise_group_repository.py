@@ -7,6 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_enterprise_group_model
+from locker_server.core.entities.enterprise.group.group import EnterpriseGroup
 from locker_server.core.repositories.enterprise_group_repository import EnterpriseGroupRepository
 from locker_server.shared.external_services.requester.retry_requester import requester
 
@@ -16,8 +17,22 @@ ModelParser = get_model_parser()
 
 class EnterpriseGroupORMRepository(EnterpriseGroupRepository):
     # ------------------------ List EnterpriseGroup resource ------------------- #
+    def list_active_user_enterprise_group_ids(self, user_id: int) -> List[str]:
+        return list(
+            EnterpriseGroupORM.objects.filter(
+                enterprise__locked=False,
+                enterprise__enterprise_members__user_id=user_id,
+                enterprise__enterprise_members__is_activated=True
+            ).values_list('id', flat=True)
+        )
 
     # ------------------------ Get EnterpriseGroup resource --------------------- #
+    def get_by_id(self, enterprise_group_id: str) -> Optional[EnterpriseGroup]:
+        try:
+            enterprise_group_orm = EnterpriseGroupORM.objects.get(id=enterprise_group_id)
+        except EnterpriseGroupORM.DoesNotExist:
+            return None
+        return ModelParser.enterprise_parser().parse_enterprise_group(enterprise_group_orm=enterprise_group_orm)
 
     # ------------------------ Create EnterpriseGroup resource --------------------- #
 

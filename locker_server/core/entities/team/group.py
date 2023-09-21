@@ -1,3 +1,4 @@
+from locker_server.core.entities.enterprise.group.group import EnterpriseGroup
 from locker_server.core.entities.member.member_role import MemberRole
 from locker_server.core.entities.team.team import Team
 
@@ -40,3 +41,7 @@ class Group(object):
     @property
     def role(self):
         return self._role
+
+    @property
+    def name(self):
+        return self.enterprise_group.name if self.enterprise_group else None

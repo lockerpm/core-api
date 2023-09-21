@@ -55,6 +55,18 @@ class EnterpriseORMRepository(EnterpriseRepository):
         return [ModelParser.enterprise_parser().parse_enterprise(enterprise_orm=enterprise_orm)
                 for enterprise_orm in enterprises_orm]
 
+    def list_user_enterprise_ids(self, user_id: int, **filter_params) -> List[str]:
+        enterprises_orm = EnterpriseORM.objects.filter(
+            enterprise_members__user_id=user_id
+        ).order_by('-creation_date')
+        status_param = filter_params.get("status")
+        is_activated_param = filter_params.get("is_activated")
+        if status_param:
+            enterprises_orm = enterprises_orm.filter(enterprise_members__status=status_param)
+        if is_activated_param:
+            enterprises_orm = enterprises_orm.filter(enterprise_members__is_activated=is_activated_param)
+        return list(enterprises_orm.values_list('id', flat=True))
+
     # ------------------------ Get Enterprise resource --------------------- #
 
     # ------------------------ Create Enterprise resource --------------------- #

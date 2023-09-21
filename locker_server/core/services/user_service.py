@@ -528,9 +528,8 @@ class UserService:
         sso_token_ids = self.device_repository.destroy_device(device=device)
         return sso_token_ids
 
-    @staticmethod
-    def delete_sync_cache_data(user_id: int):
-        delete_sync_cache_data(user_id=user_id)
+    def delete_sync_cache_data(self, user_id: int):
+        self.user_repository.delete_sync_cache_data(user_id=user_id)
 
     @staticmethod
     def get_sync_cache_key(user_id, page=1, size=100):

@@ -41,11 +41,11 @@ class AbstractCollectionMemberORM(models.Model):
         cls.objects.bulk_create(collection_members, ignore_conflicts=True)
 
     @classmethod
-    def retrieve_or_create(cls, collection, member, read_only=False, hide_passwords=False):
+    def retrieve_or_create(cls, collection_id, member_id, read_only=False, hide_passwords=False):
         collection_member, is_created = cls.objects.get_or_create(
-            collection=collection, member=member, defaults={
-                "collection": collection,
-                "member": member,
+            collection_id=collection_id, member_id=member_id, defaults={
+                "collection_id": collection_id,
+                "member_id": member_id,
                 "read_only": read_only,
                 "hide_passwords": hide_passwords
             }

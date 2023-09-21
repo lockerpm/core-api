@@ -24,6 +24,14 @@ class CipherRepository(ABC):
     def get_multiple_by_ids(self, cipher_ids: List[str]) -> List[Cipher]:
         pass
 
+    @abstractmethod
+    def list_cipher_ids_by_folder_id(self, user_id: int, folder_id: str) -> List[str]:
+        pass
+
+    @abstractmethod
+    def list_cipher_ids_by_collection_id(self, collection_id: str) -> List[str]:
+        pass
+
     # ------------------------ Get Cipher resource --------------------- #
     @abstractmethod
     def get_by_id(self, cipher_id: str) -> Optional[Cipher]:

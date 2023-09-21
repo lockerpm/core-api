@@ -24,12 +24,15 @@ class RepositoryFactory(containers.DeclarativeContainer):
 
     team_repository = providers.Factory(TeamORMRepository)
     team_member_repository = providers.Factory(TeamMemberORMRepository)
+    team_group_repository = providers.Factory(TeamGroupORMRepository)
     collection_repository = providers.Factory(CollectionORMRepository)
     sharing_repository = providers.Factory(SharingORMRepository)
 
     enterprise_repository = providers.Factory(EnterpriseORMRepository)
     enterprise_member_repository = providers.Factory(EnterpriseMemberORMRepository)
+    enterprise_group_repository = providers.Factory(EnterpriseGroupORMRepository)
     enterprise_policy_repository = providers.Factory(EnterprisePolicyORMRepository)
+    enterprise_group_member_repository = providers.Factory(EnterpriseGroupMemberORMRepository)
 
     event_repository = providers.Factory(EventORMRepository)
 

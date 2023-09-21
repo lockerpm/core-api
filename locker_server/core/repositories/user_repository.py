@@ -78,3 +78,7 @@ class UserRepository(ABC):
     @abstractmethod
     def revoke_all_sessions(self, user: User, exclude_sso_token_ids=None) -> User:
         pass
+
+    @abstractmethod
+    def delete_sync_cache_data(self, user_id: int):
+        pass

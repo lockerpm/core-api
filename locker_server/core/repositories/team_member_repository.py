@@ -17,6 +17,11 @@ class TeamMemberRepository(ABC):
         pass
 
     @abstractmethod
+    def list_member_by_teams(self, teams: List[Team], exclude_owner: bool = True,
+                             is_added_by_group: bool = None) -> List[TeamMember]:
+        pass
+
+    @abstractmethod
     def list_member_user_ids_by_teams(self, teams: List[Team], status: str = None,
                                       personal_share: bool = None) -> List[int]:
         pass

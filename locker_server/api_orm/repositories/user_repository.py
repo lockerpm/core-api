@@ -10,6 +10,7 @@ from locker_server.api_orm.models.wrapper import get_user_model, get_enterprise_
 from locker_server.api_orm.utils.revision_date import bump_account_revision_date
 from locker_server.core.entities.user.user import User
 from locker_server.core.repositories.user_repository import UserRepository
+from locker_server.shared.caching.sync_cache import delete_sync_cache_data
 from locker_server.shared.constants.account import ACCOUNT_TYPE_ENTERPRISE, ACCOUNT_TYPE_PERSONAL
 from locker_server.shared.constants.ciphers import CIPHER_TYPE_MASTER_PASSWORD
 from locker_server.shared.constants.enterprise_members import E_MEMBER_STATUS_CONFIRMED, E_MEMBER_ROLE_PRIMARY_ADMIN, \
@@ -261,3 +262,6 @@ class UserORMRepository(UserRepository):
             device_access_tokens = device_access_tokens.exclude(sso_token_id__in=exclude_sso_token_ids)
         device_access_tokens.delete()
         return user
+
+    def delete_sync_cache_data(self, user_id: int):
+        delete_sync_cache_data(user_id=user_id)

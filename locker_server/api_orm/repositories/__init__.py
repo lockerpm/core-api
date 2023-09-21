@@ -16,12 +16,16 @@ from .folder_repository import FolderORMRepository
 
 from .team_repository import TeamORMRepository
 from .team_member_repository import TeamMemberORMRepository
+from .team_group_repository import TeamGroupORMRepository
 from .collection_repository import CollectionORMRepository
 from .sharing_repository import SharingORMRepository
 
 from .enterprise_repository import EnterpriseORMRepository
 from .enterprise_member_repository import EnterpriseMemberORMRepository
 from .enterprise_policy_repository import EnterprisePolicyORMRepository
+from .enterprise_group_repository import EnterpriseGroupORMRepository
+from .enterprise_group_member_repository import EnterpriseGroupMemberORMRepository
+
 
 from .event_repository import EventORMRepository
 

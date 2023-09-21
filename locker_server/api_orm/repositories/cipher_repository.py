@@ -182,6 +182,15 @@ class CipherORMRepository(CipherRepository):
         ciphers_orm = CipherORM.objects.filter(id__in=cipher_ids).select_related('team')
         return [ModelParser.cipher_parser().parse_cipher(cipher_orm=c) for c in ciphers_orm]
 
+    def list_cipher_ids_by_folder_id(self, user_id: int, folder_id: str) -> List[str]:
+        return list(CipherORM.objects.filter(user_id=user_id).filter(
+            Q(folders__icontains="{}: '{}'".format(user_id, folder_id)) |
+            Q(folders__icontains='{}: "{}"'.format(user_id, folder_id))
+        ).values_list('id', flat=True))
+
+    def list_cipher_ids_by_collection_id(self, collection_id: str) -> List[str]:
+        return list(CollectionCipherORM.objects.filter(collection_id=collection_id).values_list('cipher_id', flat=True))
+
     # ------------------------ Get Cipher resource --------------------- #
     def get_by_id(self, cipher_id: str) -> Optional[Cipher]:
         cipher_orm = self._get_cipher_orm(cipher_id=cipher_id)

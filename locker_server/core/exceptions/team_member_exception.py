@@ -13,6 +13,12 @@ class TeamMemberDoesNotExistException(TeamMemberException):
     """
 
 
+class TeamMemberEmailDoesNotExistException(TeamMemberException):
+    """
+    Member email does not exist
+    """
+
+
 class OnlyAllowOwnerUpdateException(TeamMemberException):
     """
 

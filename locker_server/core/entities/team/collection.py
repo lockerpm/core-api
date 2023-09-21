@@ -21,6 +21,10 @@ class Collection(object):
     def name(self):
         return self._name
 
+    @name.setter
+    def name(self, name_value):
+        self._name = name_value
+
     @property
     def creation_date(self):
         return self._creation_date
@@ -28,6 +32,10 @@ class Collection(object):
     @property
     def revision_date(self):
         return self._revision_date
+
+    @revision_date.setter
+    def revision_date(self, revision_date_value):
+        self._revision_date = revision_date_value
 
     @property
     def external_id(self):
