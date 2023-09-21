@@ -9,6 +9,7 @@ from .event_parsers import EventParser
 from .relay_parsers import RelayParser
 from .form_submission_parsers import FormSubmissionParser
 from .release_parsers import ReleaseParser
+from .user_reward_parsers import UserRewardParser
 
 
 class ModelParser:
@@ -26,7 +27,7 @@ class ModelParser:
 
     @classmethod
     def user_plan_parser(cls):
-        return UserPlanParser
+        return UserRewardParser
 
     @classmethod
     def payment_parser(cls):
@@ -59,3 +60,7 @@ class ModelParser:
     @classmethod
     def release_parser(cls):
         return ReleaseParser
+
+    @classmethod
+    def user_reward_parser(cls):
+        return UserRewardParser

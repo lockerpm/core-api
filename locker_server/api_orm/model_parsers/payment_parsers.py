@@ -4,6 +4,7 @@ from locker_server.core.entities.payment.country import Country
 from locker_server.core.entities.payment.customer import Customer
 from locker_server.core.entities.payment.promo_code import PromoCode
 from locker_server.core.entities.payment.promo_code_type import PromoCodeType
+from locker_server.core.entities.payment.saas_market import SaasMarket
 from locker_server.core.entities.user_plan.plan_type import PlanType
 from locker_server.core.entities.user_plan.pm_plan import PMPlan
 from locker_server.core.entities.user_plan.pm_user_plan import PMUserPlan
@@ -60,8 +61,16 @@ class PaymentParser:
             description_vi=promo_code_orm.description_vi,
             promo_code_type=cls.parse_promo_code_type(promo_code_type_orm=promo_code_orm.type),
             is_saas_code=promo_code_orm.is_saas_code,
-            saas_market=promo_code_orm.saas_market,
+            saas_market=cls.parse_saas_market(saas_market_orm=promo_code_orm.saas_market),
             saas_plan=promo_code_orm.saas_plan,
             only_user=user_parser.parse_user(user_orm=promo_code_orm.only_user) if promo_code_orm.only_user else None,
             only_period=promo_code_orm.only_period,
+        )
+
+    @classmethod
+    def parse_saas_market(cls, saas_market_orm: SaasMarketORM) -> SaasMarket:
+        return SaasMarket(
+            saas_market_id=saas_market_orm.id,
+            name=saas_market_orm.name,
+            lifetime_duration=saas_market_orm.lifetime_duration
         )

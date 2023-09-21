@@ -128,3 +128,10 @@ class ServiceFactory(containers.DeclarativeContainer):
         notification_setting_repository=RepositoryFactory.notification_setting_repository,
         user_repository=RepositoryFactory.user_repository
     )
+    user_reward_mission_service = providers.Factory(
+        UserRewardMissionService,
+        user_reward_mission_repository=RepositoryFactory.user_reward_mission_repository,
+        user_repository=RepositoryFactory.user_repository,
+        mission_repository=RepositoryFactory.mission_repository,
+        promo_code_repository=RepositoryFactory.promo_code_repository
+    )

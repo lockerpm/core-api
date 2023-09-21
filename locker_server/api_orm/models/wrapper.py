@@ -201,3 +201,8 @@ def get_affiliate_submission_model():
 def get_release_model():
     """ Return the Release model that is active in this LockerServer """
     return apps.get_model(locker_server_settings.LS_RELEASE_MODEL)
+
+
+def get_user_reward_mission_model():
+    """ Return the UserRewardMission model that is active in this LockerServer """
+    return apps.get_model(locker_server_settings.LS_USER_REWARD_MISSION_MODEL)
