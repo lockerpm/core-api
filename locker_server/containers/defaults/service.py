@@ -45,6 +45,16 @@ class ServiceFactory(containers.DeclarativeContainer):
         user_plan_repository=RepositoryFactory.user_plan_repository,
     )
 
+    emergency_access_service = providers.Factory(
+        EmergencyAccessService,
+        emergency_access_repository=RepositoryFactory.emergency_access_repository,
+        device_repository=RepositoryFactory.device_repository,
+        notification_setting_repository=RepositoryFactory.notification_setting_repository,
+        user_repository=RepositoryFactory.user_repository,
+        cipher_repository=RepositoryFactory.cipher_repository,
+        team_member_repository=RepositoryFactory.team_member_repository,
+    )
+
     exclude_domain_service = providers.Factory(
         ExcludeDomainService,
         exclude_domain_repository=RepositoryFactory.exclude_domain_repository

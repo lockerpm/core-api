@@ -14,6 +14,8 @@ class RepositoryFactory(containers.DeclarativeContainer):
     payment_repository = providers.Factory(PaymentORMRepository)
     country_repository = providers.Factory(CountryORMRepository)
 
+    emergency_access_repository = providers.Factory(EmergencyAccessORMRepository)
+
     exclude_domain_repository = providers.Factory(ExcludeDomainORMRepository)
 
     device_repository = providers.Factory(DeviceORMRepository)

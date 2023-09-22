@@ -14,6 +14,8 @@ auth_service = ServiceFactory.auth_service()
 user_service = ServiceFactory.user_service()
 family_service = ServiceFactory.family_service()
 
+emergency_access_service = ServiceFactory.emergency_access_service()
+
 exclude_domain_service = ServiceFactory.exclude_domain_service()
 
 cipher_service = ServiceFactory.cipher_service()

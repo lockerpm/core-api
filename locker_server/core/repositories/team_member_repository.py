@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from locker_server.core.entities.member.team_member import TeamMember
 from locker_server.core.entities.team.team import Team
 from locker_server.core.entities.user.user import User
+from locker_server.shared.constants.members import PM_MEMBER_STATUS_CONFIRMED
 
 
 class TeamMemberRepository(ABC):
@@ -75,4 +76,7 @@ class TeamMemberRepository(ABC):
         pass
 
     # ------------------------ Delete TeamMember resource --------------------- #
-
+    @abstractmethod
+    def leave_all_teams(self, user_id: int, status: str = PM_MEMBER_STATUS_CONFIRMED, personal_share: bool = False,
+                        exclude_roles: List = None):
+        pass

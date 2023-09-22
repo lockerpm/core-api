@@ -5,6 +5,8 @@ from .user_service import UserService
 
 from .family_service import FamilyService
 
+from .emergency_access_service import EmergencyAccessService
+
 from .exclude_domain_service import ExcludeDomainService
 
 from .cipher_service import CipherService

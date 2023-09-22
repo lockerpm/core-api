@@ -11,6 +11,7 @@ from .form_submission_parsers import FormSubmissionParser
 from .release_parsers import ReleaseParser
 from .quick_share_parser import QuickShareParser
 from .user_reward_parsers import UserRewardParser
+from .emergency_access_parsers import EmergencyAccessParser
 
 
 class ModelParser:
@@ -28,7 +29,7 @@ class ModelParser:
 
     @classmethod
     def user_plan_parser(cls):
-        return UserRewardParser
+        return UserPlanParser
 
     @classmethod
     def payment_parser(cls):
@@ -70,3 +71,6 @@ class ModelParser:
     def user_reward_parser(cls):
         return UserRewardParser
 
+    @classmethod
+    def emergency_access_parser(cls):
+        return EmergencyAccessParser

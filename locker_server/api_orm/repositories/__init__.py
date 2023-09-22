@@ -6,6 +6,8 @@ from .user_plan_repository import UserPlanORMRepository
 from .payment_repository import PaymentORMRepository
 from .country_repository import CountryORMRepository
 
+from .emergency_access_repository import EmergencyAccessORMRepository
+
 from .exclude_domain_repository import ExcludeDomainORMRepository
 
 from .device_repository import DeviceORMRepository

@@ -4,7 +4,7 @@ from django.db.models import When, Q, Value, Case, IntegerField
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_user_model, get_team_member_model, get_group_member_model, \
-    get_collection_member_model
+    get_collection_member_model, get_team_model
 from locker_server.api_orm.utils.revision_date import bump_account_revision_date
 from locker_server.core.entities.member.team_member import TeamMember
 from locker_server.core.entities.team.team import Team
@@ -15,6 +15,7 @@ from locker_server.shared.constants.transactions import PLAN_TYPE_PM_FAMILY
 
 
 UserORM = get_user_model()
+TeamORM = get_team_model()
 TeamMemberORM = get_team_member_model()
 GroupMemberORM = get_group_member_model()
 CollectionMemberORM = get_collection_member_model()
@@ -189,4 +190,16 @@ class TeamMemberORMRepository(TeamMemberRepository):
         return ModelParser.team_parser().parse_team_member(team_member_orm=team_member_orm)
 
     # ------------------------ Delete TeamMember resource --------------------- #
-
+    def leave_all_teams(self, user_id: int, status: str = PM_MEMBER_STATUS_CONFIRMED, personal_share: bool = False,
+                        exclude_roles: List = None):
+        teams_orm = TeamORM.objects.filter(
+            team_members__user_id=user_id, key__isnull=False,
+            team_members__status=status
+        ).order_by('-creation_date')
+        if personal_share is not None:
+            teams_orm = teams_orm.filter(personal_share=personal_share)
+        for team_orm in teams_orm:
+            member_orm = team_orm.team_members.get(user_id=user_id)
+            if exclude_roles and member_orm.role_id in exclude_roles:
+                continue
+            member_orm.delete()
