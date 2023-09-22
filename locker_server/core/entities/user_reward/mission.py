@@ -1,3 +1,6 @@
+import json
+from json import JSONDecodeError
+
 from locker_server.shared.constants.missions import REWARD_TYPE_PROMO_CODE
 
 
@@ -60,3 +63,11 @@ class Mission(object):
     @property
     def reward_value(self):
         return self._reward_value
+
+    def get_extra_requirements(self):
+        if not self.extra_requirements:
+            return {}
+        try:
+            return json.loads(str(self.extra_requirements))
+        except JSONDecodeError:
+            return self.extra_requirements

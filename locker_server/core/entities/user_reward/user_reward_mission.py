@@ -1,3 +1,5 @@
+import json
+
 from locker_server.core.entities.user.user import User
 from locker_server.core.entities.user_reward.mission import Mission
 from locker_server.shared.constants.missions import USER_MISSION_STATUS_NOT_STARTED
@@ -42,3 +44,13 @@ class UserRewardMission(object):
     @property
     def answer(self):
         return self._answer
+
+    def get_answer(self):
+        if not self.answer:
+            if self.mission.mission_id == "extension_installation_and_review":
+                return []
+            return {}
+        try:
+            return json.loads(str(self.answer))
+        except json.JSONDecodeError:
+            return self.answer

@@ -21,7 +21,6 @@ from locker_server.shared.external_services.payment_method.payment_method_factor
 from locker_server.shared.log.cylog import CyLog
 from locker_server.shared.utils.app import now
 
-
 UserORM = get_user_model()
 PMPlanORM = get_plan_model()
 PMUserPlanORM = get_user_plan_model()
@@ -407,6 +406,16 @@ class UserPlanORMRepository(UserPlanRepository):
             )
             family_invitations_orm.update(user=user_orm, email=None)
         return user
+
+    def update_user_plan_by_id(self, user_plan_id: str, user_plan_update_data) -> Optional[PMUserPlan]:
+        try:
+            user_plan_orm = PMUserPlanORM.objects.get(id=user_plan_id)
+        except PMUserPlanORM.DoesNotExist:
+            return None
+        user_plan_orm.extra_time += user_plan_update_data.get("extra_time")
+        user_plan_orm.extra_plan += user_plan_update_data.get("extra_plan")
+        user_plan_orm.save()
+        return ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=user_plan_orm)
 
     # ------------------------ Delete PMUserPlan resource --------------------- #
     def cancel_plan(self, user: User, immediately=False, **kwargs):

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, NoReturn
 
 from locker_server.core.entities.enterprise.enterprise import Enterprise
 from locker_server.core.entities.user.device import Device
@@ -537,3 +537,15 @@ class UserService:
 
     def is_active_enterprise_member(self, user_id: int) -> bool:
         return self.enterprise_member_repository.is_active_enterprise_member(user_id=user_id)
+
+    def update_plan_by_plan_type(self, user: User, plan_type_alias, **plan_metadata) -> NoReturn:
+        return self.user_plan_repository.update_plan(
+            user_id=user.user_id, plan_type_alias=plan_type_alias,
+            **plan_metadata
+        )
+
+    def update_user_plan_by_id(self, user_plan_id: str, user_plan_update_data):
+        return self.user_plan_repository.update_user_plan_by_id(
+            user_plan_id=user_plan_id,
+            user_plan_update_data=user_plan_update_data
+        )

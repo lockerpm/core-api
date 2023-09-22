@@ -49,3 +49,7 @@ class RepositoryFactory(containers.DeclarativeContainer):
     affiliate_submission_repository = providers.Factory(AffiliateSubmissionORMRepository)
 
     release_repository = providers.Factory(ReleaseORMRepository)
+
+    user_reward_mission_repository = providers.Factory(UserRewardMissionORMRepository)
+    mission_repository = providers.Factory(MissionORMRepository)
+    promo_code_repository = providers.Factory(PromoCodeORMRepository)

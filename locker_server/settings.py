@@ -16,9 +16,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_string
 from django.test.signals import setting_changed
 
-
 USER_SETTINGS = getattr(settings, "LOCKER_SERVER_SETTINGS", None)
-
 
 LS_RELEASE_MODEL = getattr(settings, "LS_RELEASE_MODEL", "api_orm.ReleaseORM")
 
@@ -47,7 +45,7 @@ LS_EVENT_MODEL = getattr(settings, "LS_EVENT_MODEL", "api_orm.EventORM")
 
 # -------- Reward Models ----------- #
 LS_MISSION_MODEL = getattr(settings, "LS_MISSION_MODEL", "api_orm.MissionORM")
-
+LS_USER_REWARD_MISSION_MODEL = getattr(settings, "LS_USER_REWARD_MISSION_MODEL", "api_orm.UserRewardMissionORM")
 
 # -------- Relay Models ------------ #
 LS_RELAY_REPLY_MODEL = getattr(settings, "LS_RELAY_REPLY_MODEL", "api_orm.ReplyORM")
@@ -55,7 +53,6 @@ LS_RELAY_DOMAIN_MODEL = getattr(settings, "LS_RELAY_DOMAIN_MODEL", "api_orm.Rela
 LS_RELAY_SUBDOMAIN_MODEL = getattr(settings, "LS_RELAY_SUBDOMAIN_MODEL", "api_orm.RelaySubdomainORM")
 LS_RELAY_DELETED_ADDRESS_MODEL = getattr(settings, "LS_RELAY_DELETED_ADDRESS_MODEL", "api_orm.DeletedRelayAddressORM")
 LS_RELAY_ADDRESS_MODEL = getattr(settings, "LS_RELAY_ADDRESS_MODEL", "api_orm.RelayAddressORM")
-
 
 # -------- Vault Models ------------- #
 LS_TEAM_MODEL = getattr(settings, "LS_TEAM_MODEL", "api_orm.TeamORM")
@@ -86,10 +83,8 @@ LS_ENTERPRISE_POLICY_MODEL = getattr(settings, "LS_ENTERPRISE_POLICY_MODEL", "ap
 LS_QUICK_SHARE_MODEL = getattr(settings, "LS_QUICK_SHARE_MODEL", "api_orm.QuickShareORM")
 LS_QUICK_SHARE_EMAIL_MODEL = getattr(settings, "LS_QUICK_SHARE_EMAIL_MODEL", "api_orm.QuickShareEmailORM")
 
-
 # ------- Affiliate Models ---------- #
 LS_AFFILIATE_SUBMISSION_MODEL = getattr(settings, "LS_AFFILIATE_SUBMISSION_MODEL", "api_orm.AffiliateSubmissionORM")
-
 
 DEFAULTS = {
     "LS_RELEASE_MODEL": LS_RELEASE_MODEL,
@@ -113,6 +108,7 @@ DEFAULTS = {
     "LS_EVENT_MODEL": LS_EVENT_MODEL,
 
     "LS_MISSION_MODEL": LS_MISSION_MODEL,
+    "LS_USER_REWARD_MISSION_MODEL": LS_USER_REWARD_MISSION_MODEL,
 
     "LS_RELAY_REPLY_MODEL": LS_RELAY_REPLY_MODEL,
     "LS_RELAY_DOMAIN_MODEL": LS_RELAY_DOMAIN_MODEL,
