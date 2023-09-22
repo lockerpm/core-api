@@ -40,3 +40,7 @@ from .relay_repositories.deleted_relay_address_repository import DeletedRelayAdd
 from .relay_repositories.relay_subdomain_repository import RelaySubdomainORMRepository
 from .relay_repositories.relay_address_repository import RelayAddressORMRepository
 from .relay_repositories.reply_repository import ReplyORMRepository
+
+from .user_reward_mission_repository import UserRewardMissionORMRepository
+from .mission_repository import MissionORMRepository
+from .promo_code_repository import PromoCodeORMRepository

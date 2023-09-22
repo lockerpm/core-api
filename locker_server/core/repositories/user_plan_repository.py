@@ -65,6 +65,10 @@ class UserPlanRepository(ABC):
     def upgrade_member_family_plan(self, user: User) -> Optional[User]:
         pass
 
+    @abstractmethod
+    def update_user_plan_by_id(self, user_plan_id: str, user_plan_update_data) -> Optional[PMUserPlan]:
+        pass
+
     # ------------------------ Delete PMUserPlan resource --------------------- #
     @abstractmethod
     def cancel_plan(self, user: User, immediately=False, **kwargs):
@@ -73,4 +77,3 @@ class UserPlanRepository(ABC):
     @abstractmethod
     def delete_family_member(self, family_member_id: int):
         pass
-

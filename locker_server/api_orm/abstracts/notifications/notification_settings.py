@@ -19,12 +19,7 @@ class AbstractNotificationSettingORM(models.Model):
         abstract = True
         unique_together = ('user', 'category')
 
-    @classmethod
-    def create_default_multiple(cls, user, categories=LIST_NOTIFY_CATEGORIES):
-        profile_notifications = [
-            cls(category_id=category_id, user=user) for category_id in categories
-        ]
-        cls.objects.bulk_create(profile_notifications, ignore_conflicts=True)
+
 
     # @classmethod
     # def get_user_notification(cls, category_id: str, user_ids, is_notify=True):

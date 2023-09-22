@@ -33,3 +33,7 @@ reply_service = ServiceFactory.reply_service()
 affiliate_submission_service = ServiceFactory.affiliate_submission_service()
 
 release_service = ServiceFactory.release_service()
+
+notification_setting_service = ServiceFactory.notification_setting_service()
+
+user_reward_mission_service = ServiceFactory.user_reward_mission_service()

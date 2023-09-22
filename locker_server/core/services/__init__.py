@@ -23,8 +23,9 @@ from .relay_services.relay_address_service import RelayAddressService
 from .relay_services.relay_subdomain_service import RelaySubdomainService
 from .relay_services.reply_service import ReplyService
 
-
 from .affiliate_submission_service import AffiliateSubmissionService
 
 from .release_service import ReleaseService
 
+from .notification_setting_service import NotificationSettingService
+from .user_reward_mission_service import UserRewardMissionService
