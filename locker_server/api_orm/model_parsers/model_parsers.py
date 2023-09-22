@@ -9,6 +9,7 @@ from .event_parsers import EventParser
 from .relay_parsers import RelayParser
 from .form_submission_parsers import FormSubmissionParser
 from .release_parsers import ReleaseParser
+from .quick_share_parser import QuickShareParser
 
 
 class ModelParser:
@@ -59,3 +60,7 @@ class ModelParser:
     @classmethod
     def release_parser(cls):
         return ReleaseParser
+
+    @classmethod
+    def quick_share_parser(cls):
+        return QuickShareParser

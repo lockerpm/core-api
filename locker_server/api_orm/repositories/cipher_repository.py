@@ -178,6 +178,13 @@ class CipherORMRepository(CipherRepository):
         ).prefetch_related('collections_ciphers')
         return [ModelParser.cipher_parser().parse_cipher(cipher_orm=c, parse_collection_ids=True) for c in ciphers_orm]
 
+    def get_ciphers_created_by_user(self, user_id: int) -> List[Cipher]:
+        ciphers_orm = CipherORM.objects.filter(created_by_id=user_id)
+        return [ModelParser.cipher_parser().parse_cipher(cipher_orm=c) for c in ciphers_orm]
+
+    def get_cipher_ids_created_by_user(self, user_id: int) -> List[str]:
+        return list(CipherORM.objects.filter(created_by_id=user_id).values_list('id', flat=True))
+
     def get_multiple_by_ids(self, cipher_ids: List[str]) -> List[Cipher]:
         ciphers_orm = CipherORM.objects.filter(id__in=cipher_ids).select_related('team')
         return [ModelParser.cipher_parser().parse_cipher(cipher_orm=c) for c in ciphers_orm]

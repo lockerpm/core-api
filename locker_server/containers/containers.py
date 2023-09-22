@@ -23,6 +23,8 @@ team_member_service = ServiceFactory.team_member_service()
 collection_service = ServiceFactory.collection_service()
 sharing_service = ServiceFactory.sharing_service()
 
+quick_share_service = ServiceFactory.quick_share_service()
+
 enterprise_service = ServiceFactory.enterprise_service()
 
 event_service = ServiceFactory.event_service()

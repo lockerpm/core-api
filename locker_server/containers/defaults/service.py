@@ -89,6 +89,14 @@ class ServiceFactory(containers.DeclarativeContainer):
         enterprise_repository=RepositoryFactory.enterprise_repository,
     )
 
+    quick_share_service = providers.Factory(
+        QuickShareService,
+        quick_share_repository=RepositoryFactory.quick_share_repository,
+        cipher_repository=RepositoryFactory.cipher_repository,
+        user_repository=RepositoryFactory.user_repository,
+        enterprise_repository=RepositoryFactory.enterprise_repository,
+    )
+
     enterprise_service = providers.Factory(
         EnterpriseService,
         enterprise_repository=RepositoryFactory.enterprise_repository,

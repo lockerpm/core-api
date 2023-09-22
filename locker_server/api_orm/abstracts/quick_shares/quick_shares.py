@@ -1,3 +1,5 @@
+import ast
+import secrets
 import uuid
 
 from django.db import models
@@ -57,15 +59,15 @@ class AbstractQuickShareORM(models.Model):
         # quick_share.quick_share_emails.model.create_multiple(quick_share, emails_data)
         # return quick_share
 
-    # @classmethod
-    # def gen_access_id(cls):
-    #     return str(secrets.token_hex(16)).upper()
-    #
-    # def get_data(self):
-    #     if not self.data:
-    #         return {}
-    #     return ast.literal_eval(str(self.data))
-    #
+    @classmethod
+    def gen_access_id(cls):
+        return str(secrets.token_hex(16)).upper()
+
+    def get_data(self):
+        if not self.data:
+            return {}
+        return ast.literal_eval(str(self.data))
+
     # def check_valid_access(self, email: str, code: str = None, token: str = None):
     #     if self.disabled is True:
     #         return False

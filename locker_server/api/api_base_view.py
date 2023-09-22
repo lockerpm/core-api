@@ -26,6 +26,8 @@ class APIBaseViewSet(AppGeneralViewSet):
     collection_service = collection_service
     sharing_service = sharing_service
 
+    quick_share_service = quick_share_service
+
     enterprise_service = enterprise_service
 
     relay_address_service = relay_address_service

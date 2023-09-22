@@ -21,6 +21,14 @@ class CipherRepository(ABC):
         pass
 
     @abstractmethod
+    def get_ciphers_created_by_user(self, user_id: int) -> List[Cipher]:
+        pass
+
+    @abstractmethod
+    def get_cipher_ids_created_by_user(self, user_id: int) -> List[str]:
+        pass
+
+    @abstractmethod
     def get_multiple_by_ids(self, cipher_ids: List[str]) -> List[Cipher]:
         pass
 

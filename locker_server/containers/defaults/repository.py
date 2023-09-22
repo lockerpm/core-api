@@ -28,6 +28,8 @@ class RepositoryFactory(containers.DeclarativeContainer):
     collection_repository = providers.Factory(CollectionORMRepository)
     sharing_repository = providers.Factory(SharingORMRepository)
 
+    quick_share_repository = providers.Factory(QuickShareORMRepository)
+
     enterprise_repository = providers.Factory(EnterpriseORMRepository)
     enterprise_member_repository = providers.Factory(EnterpriseMemberORMRepository)
     enterprise_group_repository = providers.Factory(EnterpriseGroupORMRepository)

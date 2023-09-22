@@ -14,6 +14,8 @@ from .team_member_service import TeamMemberService
 from .collection_service import CollectionService
 from .sharing_service import SharingService
 
+from .quick_share_service import QuickShareService
+
 from .enterprise_service import EnterpriseService
 from .enterprise_group_service import EnterpriseGroupService
 

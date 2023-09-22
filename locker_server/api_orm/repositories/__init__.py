@@ -20,6 +20,8 @@ from .team_group_repository import TeamGroupORMRepository
 from .collection_repository import CollectionORMRepository
 from .sharing_repository import SharingORMRepository
 
+from .quick_share_repository import QuickShareORMRepository
+
 from .enterprise_repository import EnterpriseORMRepository
 from .enterprise_member_repository import EnterpriseMemberORMRepository
 from .enterprise_policy_repository import EnterprisePolicyORMRepository
