@@ -2,6 +2,7 @@ from .resource_service import ResourceService
 
 from .auth_service import AuthService
 from .user_service import UserService
+from .device_service import DeviceService
 
 from .family_service import FamilyService
 

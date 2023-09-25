@@ -17,6 +17,7 @@ class APIBaseViewSet(AppGeneralViewSet):
     resource_service = resource_service
     auth_service = auth_service
     user_service = user_service
+    device_service = device_service
     family_service = family_service
     emergency_access_service = emergency_access_service
     exclude_domain_service = exclude_domain_service

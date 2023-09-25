@@ -12,6 +12,7 @@ resource_service = ServiceFactory.resource_service()
 
 auth_service = ServiceFactory.auth_service()
 user_service = ServiceFactory.user_service()
+device_service = ServiceFactory.device_service()
 family_service = ServiceFactory.family_service()
 
 emergency_access_service = ServiceFactory.emergency_access_service()
