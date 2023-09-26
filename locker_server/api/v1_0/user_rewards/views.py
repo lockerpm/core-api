@@ -112,7 +112,8 @@ class UserRewardMissionPwdViewSet(APIBaseViewSet):
 
         mission_type = user_reward_mission.mission.mission_type
         extra_requirements = user_reward_mission.mission.get_extra_requirements()
-        module_name = f'cystack_models.factory.user_reward_mission.missions.{user_reward_mission.mission_id}_mission'
+        module_name = f'locker_server.external_services.user_reward_mission.missions.' \
+                      f'{user_reward_mission.mission_id}_mission'
         mission_factory = factory(module_name, mission_type, extra_requirements)
         if not mission_factory:
             return Response(status=status.HTTP_200_OK, data={"claim": False})
