@@ -64,6 +64,18 @@ class ServiceFactory(containers.DeclarativeContainer):
         exclude_domain_repository=RepositoryFactory.exclude_domain_repository
     )
 
+    payment_service = providers.Factory(
+        PaymentService,
+        payment_repository=RepositoryFactory.payment_repository,
+        user_plan_repository=RepositoryFactory.user_plan_repository,
+        plan_repository=RepositoryFactory.plan_repository,
+        user_repository=RepositoryFactory.user_repository,
+        enterprise_member_repository=RepositoryFactory.enterprise_member_repository,
+        education_email_repository=RepositoryFactory.education_email_repository,
+        cipher_repository=RepositoryFactory.cipher_repository,
+        relay_address_repository=RepositoryFactory.relay_address_repository
+    )
+
     cipher_service = providers.Factory(
         CipherService,
         cipher_repository=RepositoryFactory.cipher_repository,

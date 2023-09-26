@@ -1,9 +1,6 @@
-from typing import List, Optional
+from typing import List
 
-from locker_server.core.entities.team.collection import Collection
 from locker_server.core.entities.user.device import Device
-from locker_server.core.exceptions.collection_exception import CollectionDoesNotExistException
-from locker_server.core.repositories.collection_repository import CollectionRepository
 from locker_server.core.repositories.device_repository import DeviceRepository
 
 

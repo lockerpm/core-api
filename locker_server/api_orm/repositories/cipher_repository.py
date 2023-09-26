@@ -257,6 +257,19 @@ class CipherORMRepository(CipherRepository):
             ]
         }
 
+    def statistic_created_ciphers(self, user_id: int) -> Dict:
+        ciphers_statistic = CipherORM.objects.filter(created_by_id=user_id)
+        ciphers_statistic_data = {
+            "total": ciphers_statistic.count(),
+            CIPHER_TYPE_LOGIN: ciphers_statistic.filter(type=CIPHER_TYPE_LOGIN).count(),
+            CIPHER_TYPE_NOTE: ciphers_statistic.filter(type=CIPHER_TYPE_NOTE).count(),
+            CIPHER_TYPE_IDENTITY: ciphers_statistic.filter(type=CIPHER_TYPE_IDENTITY).count(),
+            CIPHER_TYPE_CARD: ciphers_statistic.filter(type=CIPHER_TYPE_CARD).count(),
+            CIPHER_TYPE_TOTP: ciphers_statistic.filter(type=CIPHER_TYPE_TOTP).count(),
+            CIPHER_TYPE_CRYPTO_WALLET: ciphers_statistic.filter(type=CIPHER_TYPE_CRYPTO_WALLET).count(),
+        }
+        return ciphers_statistic_data
+
     # ------------------------ Create Cipher resource --------------------- #
     def create_cipher(self, cipher_data: Dict) -> Cipher:
         favorite = cipher_data.get("favorite", False)

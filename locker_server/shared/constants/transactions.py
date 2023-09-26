@@ -38,7 +38,7 @@ PAYMENT_METHOD_BANKING = "banking"
 PAYMENT_METHOD_WALLET = "wallet"
 PAYMENT_METHOD_MOBILE = "mobile"
 
-LIST_PAYMENT_METHOD = [PAYMENT_METHOD_CARD, PAYMENT_METHOD_WALLET, PAYMENT_METHOD_BANKING]
+LIST_PAYMENT_METHOD = [PAYMENT_METHOD_CARD]
 
 
 # ------------------- Payment status -------------------------------- #
@@ -64,6 +64,7 @@ PROMO_PERCENTAGE = "percentage_off"
 
 # ------------------- Promo code prefix ---------------------- #
 MISSION_REWARD_PROMO_PREFIX = "LKMR-"
+EDUCATION_PROMO_PREFIX = "EDU-"
 
 
 # ------------------- Plan type constants --------------------------- #

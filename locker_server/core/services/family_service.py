@@ -1,5 +1,6 @@
 from typing import Optional, List, Dict
 
+from locker_server.core.entities.user_plan.pm_user_plan import PMUserPlan
 from locker_server.core.exceptions.user_plan_exception import *
 from locker_server.core.repositories.user_plan_repository import UserPlanRepository
 from locker_server.core.repositories.user_repository import UserRepository
@@ -15,8 +16,8 @@ class FamilyService:
         self.user_repository = user_repository
         self.user_plan_repository = user_plan_repository
 
-    def is_in_family_plan(self, user_id: int) -> bool:
-        return self.user_plan_repository.is_in_family_plan(user_id=user_id)
+    def is_in_family_plan(self, user_plan: PMUserPlan) -> bool:
+        return self.user_plan_repository.is_in_family_plan(user_plan=user_plan)
 
     def list_family_members(self, user_id: int) -> Dict:
         return self.user_plan_repository.get_family_members(user_id=user_id)

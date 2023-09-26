@@ -33,7 +33,6 @@ class Payment(object):
         self._plan = plan
         self._duration = duration
         self._metadata = metadata
-        self._plan = plan
         self._enterprise_id = enterprise_id
         self._user = user
         self._promo_code = promo_code

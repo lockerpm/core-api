@@ -10,6 +10,8 @@ from .emergency_access_service import EmergencyAccessService
 
 from .exclude_domain_service import ExcludeDomainService
 
+from .payment_service import PaymentService
+
 from .cipher_service import CipherService
 from .folder_service import FolderService
 

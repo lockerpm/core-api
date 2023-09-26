@@ -147,6 +147,7 @@ class UserORMRepository(UserRepository):
         user_orm.revision_date = user_update_data.get("revision_date", user_orm.revision_date)
         user_orm.delete_account_date = user_update_data.get("delete_account_date", user_orm.delete_account_date)
         user_orm.first_login = user_update_data.get("first_login", user_orm.first_login)
+        user_orm.saas_source = user_update_data.get("saas_source", user_orm.saas_source)
 
         if user_update_data.get("master_password_hash"):
             user_orm.set_master_password(raw_password=user_update_data.get("master_password_hash"))

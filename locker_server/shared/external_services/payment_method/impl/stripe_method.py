@@ -74,7 +74,7 @@ class StripePaymentMethod(PaymentMethod):
         if duration not in [DURATION_MONTHLY, DURATION_HALF_YEARLY, DURATION_YEARLY]:
             return {"success": False}
         # Re-formatting Stripe coupon
-        coupon = None if coupon is None else "{}_{}".format(coupon.id, duration)
+        coupon = None if coupon is None else "{}_{}".format(coupon.promo_code_id, duration)
         # Re-formatting Stripe plans
         plans = self.__reformatting_stripe_plans(plan_type=plan_type, duration=duration, **kwargs)
         # Create immediate subscription
@@ -157,7 +157,7 @@ class StripePaymentMethod(PaymentMethod):
             stripe.Subscription.delete_discount(stripe_subscription.id)
 
         # Re-formatting Stripe coupon and Stripe plans
-        coupon = None if coupon is None else "{}_{}".format(coupon.id, duration)
+        coupon = None if coupon is None else "{}_{}".format(coupon.promo_code_id, duration)
         stripe_plan_id = self.__reformatting_stripe_plan_id(plan_type, duration)
         try:
             """

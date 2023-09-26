@@ -28,8 +28,7 @@ class FamilyPwdViewSet(APIBaseViewSet):
         current_plan_alias = pm_current_plan.pm_plan.alias
         # Check permission here
         if self.action == "member_list":
-            if current_plan_alias != PLAN_TYPE_PM_FAMILY and \
-                    self.family_service.is_in_family_plan(user_id=user.user_id) is False:
+            if self.family_service.is_in_family_plan(user_plan=pm_current_plan) is False:
                 raise PermissionDenied
         else:
             if current_plan_alias != PLAN_TYPE_PM_FAMILY:

@@ -25,6 +25,10 @@ class EnterpriseMemberRepository(ABC):
     def is_active_enterprise_member(self, user_id: int) -> bool:
         pass
 
+    @abstractmethod
+    def is_in_enterprise(self, user_id: int, enterprise_locked: bool = None) -> bool:
+        pass
+
     # ------------------------ Create EnterpriseMember resource --------------------- #
 
     # ------------------------ Update EnterpriseMember resource --------------------- #

@@ -67,6 +67,10 @@ class CipherRepository(ABC):
                                    exclude_team_ids=None, filter_ids=None, exclude_types=None) -> Dict:
         pass
 
+    @abstractmethod
+    def statistic_created_ciphers(self, user_id: int) -> Dict:
+        pass
+
     # ------------------------ Create Cipher resource --------------------- #
     @abstractmethod
     def create_cipher(self, cipher_data: Dict) -> Cipher:

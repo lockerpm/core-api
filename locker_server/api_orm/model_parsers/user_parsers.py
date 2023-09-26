@@ -1,6 +1,8 @@
 from locker_server.api_orm.models import *
+from locker_server.api_orm.models.users.education_emails import EducationEmailORM
 from locker_server.core.entities.user.device import Device
 from locker_server.core.entities.user.device_access_token import DeviceAccessToken
+from locker_server.core.entities.user.education_email import EducationEmail
 from locker_server.core.entities.user.exclude_domain import ExcludeDomain
 from locker_server.core.entities.user.user import User
 from locker_server.core.entities.user.user_score import UserScore
@@ -99,4 +101,18 @@ class UserParser:
             created_time=exclude_domain_orm.created_time,
             domain=exclude_domain_orm.domain,
             user=cls.parse_user(user_orm=exclude_domain_orm.user)
+        )
+
+    @classmethod
+    def parse_education_email(cls, education_email_orm: EducationEmailORM) -> EducationEmail:
+        return EducationEmail(
+            education_email_id=education_email_orm.id,
+            created_time=education_email_orm.created_time,
+            email=education_email_orm.email,
+            education_type=education_email_orm.education_type,
+            university=education_email_orm.university,
+            verified=education_email_orm.verified,
+            verification_token=education_email_orm.verification_token,
+            promo_code=education_email_orm.promo_code,
+            user=cls.parse_user(user_orm=education_email_orm.user)
         )

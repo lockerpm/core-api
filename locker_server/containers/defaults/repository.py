@@ -11,6 +11,8 @@ class RepositoryFactory(containers.DeclarativeContainer):
     user_repository = providers.Factory(UserORMRepository)
     plan_repository = providers.Factory(PlanORMRepository)
     user_plan_repository = providers.Factory(UserPlanORMRepository)
+    education_email_repository = providers.Factory(EducationEmailORMRepository)
+
     payment_repository = providers.Factory(PaymentORMRepository)
     country_repository = providers.Factory(CountryORMRepository)
 

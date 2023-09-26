@@ -19,6 +19,7 @@ try:
     # Web url
     SERVER_ORIGIN = os.getenv("SERVER_ORIGIN")
     LOCKER_WEB_URL = os.getenv("LOCKER_WEB_URL", "localhost")
+    LOCKER_ID_WEB_URL = os.getenv("LOCKER_ID_WEB_URL", "localhost")
     WEB_ORIGIN = os.getenv("WEB_ORIGIN") or LOCKER_WEB_URL.replace("https://", "").replace("http://", "")
     DEV_WEB_ORIGIN = os.getenv("DEV_WEB_ORIGIN")
 

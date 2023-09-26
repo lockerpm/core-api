@@ -32,3 +32,15 @@ class UserPlanFamilyDoesNotExistException(UserPlanException):
     """
     The user plan family does not exist
     """
+
+
+class EnterpriseTrialCodeInvalidException(UserPlanException):
+    """
+    The trial code is invalid for the trial enterprise plan
+    """
+
+
+class EnterpriseTrialAppliedException(UserPlanException):
+    """
+    The trial of the enterprise is applied
+    """

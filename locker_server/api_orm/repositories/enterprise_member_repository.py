@@ -64,6 +64,11 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
             user_id=user_id, status=E_MEMBER_STATUS_CONFIRMED, is_activated=True, enterprise__locked=False
         )
 
+    def is_in_enterprise(self, user_id: int, enterprise_locked: bool = None) -> bool:
+        if enterprise_locked is not None:
+            return EnterpriseMemberORM.objects.filter(user_id=user_id, enterprise__locked=enterprise_locked).exists()
+        return EnterpriseMemberORM.objects.filter(user_id=user_id).exists()
+
     # ------------------------ Create EnterpriseMember resource --------------------- #
 
     # ------------------------ Update EnterpriseMember resource --------------------- #

@@ -21,6 +21,9 @@ class APIBaseViewSet(AppGeneralViewSet):
     family_service = family_service
     emergency_access_service = emergency_access_service
     exclude_domain_service = exclude_domain_service
+
+    payment_service = payment_service
+
     cipher_service = cipher_service
     folder_service = folder_service
 

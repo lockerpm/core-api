@@ -177,3 +177,27 @@ class PMPlan(object):
         if currency == CURRENCY_VND:
             return self.get_price_vnd(duration)
         return self.get_price_usd(duration)
+
+    def to_json(self):
+        data = {
+            "id": self.plan_id,
+            "name": self.name,
+            "alias": self.alias,
+            "max_number": self.max_number,
+            "price": {
+                "usd": self.get_price_usd(duration=DURATION_MONTHLY),
+                "vnd": self.get_price_vnd(duration=DURATION_MONTHLY),
+                "duration": DURATION_MONTHLY,
+            },
+            "half_yearly_price": {
+                "usd": self.get_price_usd(duration=DURATION_HALF_YEARLY),
+                "vnd": self.get_price_vnd(duration=DURATION_HALF_YEARLY),
+                "duration": DURATION_HALF_YEARLY,
+            },
+            "yearly_price": {
+                "usd": self.get_price_usd(duration=DURATION_YEARLY),
+                "vnd": self.get_price_vnd(duration=DURATION_YEARLY),
+                "duration": DURATION_YEARLY,
+            }
+        }
+        return data
