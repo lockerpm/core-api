@@ -3,16 +3,14 @@ import json
 from django.conf import settings
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from locker_server.api.api_base_view import APIBaseViewSet
 from locker_server.api.permissions.micro_service_permissions.mobile_permission import MobilePaymentPermission
-from locker_server.api.permissions.micro_service_permissions.user_permission import UserPermission
+from locker_server.core.exceptions.payment_exception import CurrentPlanIsEnterpriseException
 from locker_server.core.exceptions.user_exception import UserDoesNotExistException
-from locker_server.shared.constants.device_type import CLIENT_ID_MOBILE
 from locker_server.shared.constants.transactions import *
-from locker_server.shared.utils.app import now
 from .serializers import UpgradePlanSerializer, MobileRenewalSerializer, MobileCancelSubscriptionSerializer, \
     MobileDestroySubscriptionSerializer
 
@@ -85,18 +83,9 @@ class MobilePaymentViewSet(APIBaseViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
-
-        try:
-            pass
-        except UserDoesNotExistException:
-            raise ValidationError(detail={
-                "mobile_original_id": ["The mobile subscription id does not exist"]
-            })
-
-        user = validated_data.get("user")
         description = validated_data.get("description", "")
         promo_code = validated_data.get("promo_code")
-        status = validated_data.get("status", True)
+        payment_status = validated_data.get("status", True)
         duration = validated_data.get("duration", DURATION_MONTHLY)
         plan = validated_data.get("plan")
         platform = validated_data.get("platform")
@@ -106,97 +95,68 @@ class MobilePaymentViewSet(APIBaseViewSet):
         failure_reason = validated_data.get("failure_reason")
         end_period = validated_data.get("end_period")
 
-        # Check the invoice with mobile_invoice_id exists or not?
-        mobile_invoice_exist = False
-        if mobile_invoice_id:
-            mobile_invoice_exist = Payment.objects.filter(mobile_invoice_id=mobile_invoice_id).exists()
-
-        # If we don't have any payment with mobile_invoice_id => Create new one
-        if mobile_invoice_exist is False:
-            new_payment_data = {
-                "user": user,
-                "description": description,
-                "plan": plan,
-                "duration": duration,
-                "promo_code": promo_code,
-                "currency": currency,
-                "payment_method": PAYMENT_METHOD_MOBILE,
-                "mobile_invoice_id": mobile_invoice_id,
-                "metadata": {
-                    "platform": platform,
+        try:
+            new_payment = self.mobile_payment_service.mobile_renewal(
+                status=payment_status, plan_alias=plan, duration=duration, promo_code=promo_code,
+                failure_reason=failure_reason, payment_platform=platform,
+                scope=settings.SCOPE_PWD_MANAGER, **{
+                    "currency": currency,
+                    "end_period": end_period,
                     "mobile_invoice_id": mobile_invoice_id,
                     "mobile_original_id": mobile_original_id,
-                    "user_id": user.user_id,
-                    "scope": settings.SCOPE_PWD_MANAGER,
-                    "key": validated_data.get("key"),
-                    "collection_name": validated_data.get("collection_name")
+                    "description": description
                 }
-            }
-            # Create new payment
-            new_payment = Payment.create(**new_payment_data)
-        # Else, retrieving the payment with mobile_invoice_id
-        else:
-            new_payment = Payment.objects.filter(mobile_invoice_id=mobile_invoice_id).first()
-
-        # Set paid or not
-        if status == PAYMENT_STATUS_PAID:
-            # If this plan is canceled because the Personal Plan upgrade to Enterprise Plan => Not downgrade
-            current_plan = self.user_repository.get_current_plan(user=user, scope=settings.SCOPE_PWD_MANAGER)
-            if current_plan.is_update_personal_to_enterprise(new_plan_alias=new_payment.plan) is True:
-                return Response(status=200, data={"is_update_personal_to_enterprise": True})
-
-            # Upgrade new plan
-            subscription_metadata = {
-                "end_period": end_period,
-                "promo_code": new_payment.promo_code,
-                "key": validated_data.get("key"),
-                "collection_name": validated_data.get("collection_name")
-            }
-            self.user_repository.update_plan(
-                new_payment.user, plan_type_alias=new_payment.plan, duration=new_payment.duration,
-                scope=settings.SCOPE_PWD_MANAGER,
-                **subscription_metadata
             )
-            # Set default payment method
-            try:
-                current_plan = self.user_repository.get_current_plan(user=user, scope=settings.SCOPE_PWD_MANAGER)
-                current_plan.set_default_payment_method(PAYMENT_METHOD_MOBILE)
-            except ObjectDoesNotExist:
-                pass
-
-            if new_payment.status != PAYMENT_STATUS_PAID:
-                self.payment_repository.set_paid(payment=new_payment)
-                # Send mail
-                LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY, background=False).run(
-                    func_name="pay_successfully", **{"payment": new_payment, "payment_platform": platform.title()}
-                )
-        elif status == PAYMENT_STATUS_PAST_DUE:
-            self.payment_repository.set_past_due(payment=new_payment, failure_reason=failure_reason)
-        else:
-            self.payment_repository.set_failed(payment=new_payment, failure_reason=failure_reason)
-            # Only Downgrade - Not set mobile_original_id is Null
-            current_plan = self.user_repository.get_current_plan(user=user, scope=settings.SCOPE_PWD_MANAGER)
-            if current_plan.is_update_personal_to_enterprise(new_plan_alias=new_payment.plan) is True:
-                return Response(status=200, data={"is_update_personal_to_enterprise": True})
-
-            old_plan = current_plan.get_plan_type_name()
-            if not current_plan.user.pm_plan_family.exists():
-                self.user_repository.update_plan(
-                    user=user, plan_type_alias=PLAN_TYPE_PM_FREE, scope=settings.SCOPE_PWD_MANAGER
-                )
-                # Notify downgrade here
-                LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY, background=True).run(
-                    func_name="downgrade_plan", **{
-                        "user_id": user.user_id, "old_plan": old_plan, "downgrade_time": now(),
-                        "scope": settings.SCOPE_PWD_MANAGER, **{"payment_data": {}}
-                    }
-                )
-
-        return Response(status=200, data={
+        except UserDoesNotExistException:
+            raise ValidationError(detail={
+                "mobile_original_id": ["The mobile subscription id does not exist"]
+            })
+        except CurrentPlanIsEnterpriseException:
+            return Response(status=status.HTTP_200_OK, data={"is_update_personal_to_enterprise": True})
+        return Response(status=status.HTTP_200_OK, data={
             "success": True,
-            "user_id": user.user_id,
+            "user_id": new_payment.user.user_id,
             "scope": new_payment.scope,
             "status": new_payment.status,
             "failure_reason": failure_reason,
             "payment_id": new_payment.payment_id
         })
+
+    @action(methods=["put"], detail=False)
+    def mobile_cancel_subscription(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        cancel_at_period_end = validated_data.get("cancel_at_period_end")
+        mobile_original_id = validated_data.get("mobile_original_id")
+        end_period = validated_data.get("end_period")
+
+        try:
+            self.mobile_payment_service.mobile_cancel_subscription(
+                mobile_original_id=mobile_original_id, cancel_at_period_end=cancel_at_period_end,
+                end_period=end_period,
+                plan_alias=request.data.get("plan"),
+                scope=settings.SCOPE_PWD_MANAGER
+            )
+        except UserDoesNotExistException:
+            raise ValidationError(detail={"mobile_original_id": ["The mobile subscription id does not exist"]})
+        except CurrentPlanIsEnterpriseException:
+            return Response(status=status.HTTP_200_OK, data={"is_update_personal_to_enterprise": True})
+        return Response(status=status.HTTP_200_OK, data={"success": True})
+
+    @action(methods=["put"], detail=False)
+    def mobile_destroy_subscription(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        mobile_original_id = validated_data.get("mobile_original_id")
+
+        try:
+            old_plan_name = self.mobile_payment_service.mobile_destroy_subscription(
+                plan_alias="", mobile_original_id=mobile_original_id,
+                scope=settings.SCOPE_PWD_MANAGER
+            )
+        except UserDoesNotExistException:
+            raise ValidationError(detail={"mobile_original_id": ["The mobile subscription id does not exist"]})
+
+        return Response(status=status.HTTP_200_OK, data={"old_plan": old_plan_name})

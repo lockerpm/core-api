@@ -514,6 +514,9 @@ class UserPlanORMRepository(UserPlanRepository):
         user_plan_orm.pm_mobile_subscription = user_plan_update_data.get(
             "pm_mobile_subscription", user_plan_orm.pm_mobile_subscription
         )
+        user_plan_orm.cancel_at_period_end = user_plan_update_data.get(
+            "cancel_at_period_end", user_plan_orm.cancel_at_period_end
+        )
         user_plan_orm.save()
         return ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=user_plan_orm)
 
