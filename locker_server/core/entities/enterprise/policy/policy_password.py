@@ -32,3 +32,12 @@ class PolicyPassword(EnterprisePolicy):
     @property
     def require_digit(self):
         return self._require_digit
+
+    def get_config_json(self):
+        return {
+            "min_length": self.min_length,
+            "require_lower_case": self.require_lower_case,
+            "require_upper_case": self.require_upper_case,
+            "require_special_character": self.require_special_character,
+            "require_digit": self.require_digit,
+        }

@@ -1,3 +1,8 @@
+import ast
+
+from locker_server.shared.constants.event import LOG_TYPES
+
+
 class Event(object):
     def __init__(self, event_id: str, event_type: str = None, acting_user_id: int = None, user_id: int = None,
                  cipher_id: str = None, collection_id: str = None, creation_date: float = None, device_type: int = None,
@@ -89,3 +94,35 @@ class Event(object):
     @property
     def metadata(self):
         return self._metadata
+
+    def get_metadata(self):
+        if not self.metadata:
+            return {}
+        return ast.literal_eval(str(self.metadata))
+
+    def get_description(self, use_html=True):
+        metadata = self.metadata if self.metadata else {}
+        log_type = int(self.event_type)
+        if use_html:
+            description = {
+                "vi": LOG_TYPES.get(log_type, {}).get("vi", ""),
+                "en": LOG_TYPES.get(log_type, {}).get("en", ""),
+            }
+        else:
+            description = {
+                "vi": LOG_TYPES.get(log_type, {}).get("vi_non_html", "") or LOG_TYPES.get(log_type, {}).get("vi", ""),
+                "en": LOG_TYPES.get(log_type, {}).get("en_non_html", "") or LOG_TYPES.get(log_type, {}).get("en", ""),
+            }
+        final_description = description.copy()
+        normalizer_metadata = self.get_normalizer_metadata(metadata)
+        final_description["vi"] = description["vi"].format(**normalizer_metadata)
+        final_description["en"] = description["en"].format(**normalizer_metadata)
+
+        return final_description
+
+    @staticmethod
+    def get_normalizer_metadata(metadata):
+        normalizer_metadata = {}
+        for k, v in metadata.items():
+            normalizer_metadata[k] = v.replace("_", " ") if isinstance(v, str) else v
+        return normalizer_metadata

@@ -39,6 +39,8 @@ class RepositoryFactory(containers.DeclarativeContainer):
     enterprise_group_repository = providers.Factory(EnterpriseGroupORMRepository)
     enterprise_policy_repository = providers.Factory(EnterprisePolicyORMRepository)
     enterprise_group_member_repository = providers.Factory(EnterpriseGroupMemberORMRepository)
+    enterprise_billing_contact_repository = providers.Factory(EnterpriseBillingContactORMRepository)
+    enterprise_domain_repository = providers.Factory(EnterpriseDomainORMRepository)
 
     event_repository = providers.Factory(EventORMRepository)
 

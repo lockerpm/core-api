@@ -2,7 +2,7 @@ from locker_server.core.entities.enterprise.enterprise import Enterprise
 
 
 class EnterprisePolicy(object):
-    def __init__(self, policy_id: int, enterprise: Enterprise, policy_type: str,  enabled: bool = False):
+    def __init__(self, policy_id: int, enterprise: Enterprise, policy_type: str, enabled: bool = False):
         self._policy_id = policy_id
         self._enterprise = enterprise
         self._policy_type = policy_type
@@ -32,3 +32,8 @@ class EnterprisePolicy(object):
     @config.setter
     def config(self, config_value):
         self._config = config_value
+
+    def get_config_json(self):
+        if not self.config:
+            return {}
+        return self.config.get_config_json()

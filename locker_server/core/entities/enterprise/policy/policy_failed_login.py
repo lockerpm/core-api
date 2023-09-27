@@ -28,3 +28,10 @@ class PolicyFailedLogin(EnterprisePolicy):
     def failed_login_owner_email(self):
         return self._failed_login_owner_email
 
+    def get_config_json(self):
+        return {
+            "failed_login_attempts": self.failed_login_attempts,
+            "failed_login_duration": self.failed_login_duration,
+            "failed_login_block_time": self.failed_login_block_time,
+            "failed_login_owner_email": self.failed_login_owner_email,
+        }

@@ -30,7 +30,8 @@ from .enterprise_member_repository import EnterpriseMemberORMRepository
 from .enterprise_policy_repository import EnterprisePolicyORMRepository
 from .enterprise_group_repository import EnterpriseGroupORMRepository
 from .enterprise_group_member_repository import EnterpriseGroupMemberORMRepository
-
+from .enterprise_billing_contact_repository import EnterpriseBillingContactORMRepository
+from .enterprise_domain_repository import EnterpriseDomainORMRepository
 
 from .event_repository import EventORMRepository
 

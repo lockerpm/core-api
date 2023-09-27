@@ -35,6 +35,7 @@ class APIBaseViewSet(AppGeneralViewSet):
     quick_share_service = quick_share_service
 
     enterprise_service = enterprise_service
+    enterprise_member_service = enterprise_member_service
 
     relay_address_service = relay_address_service
     relay_subdomain_service = relay_subdomain_service
@@ -44,6 +45,8 @@ class APIBaseViewSet(AppGeneralViewSet):
     release_service = release_service
     notification_setting_service = notification_setting_service
     user_reward_mission_service = user_reward_mission_service
+
+    event_service = event_service
 
     def get_throttles(self):
         if self.request.user and not isinstance(self.request.user, AnonymousUser):

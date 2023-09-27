@@ -15,6 +15,9 @@ class EnterpriseGroupMemberRepository(ABC):
     def list_group_member_user_email(self, enterprise_group_id: str) -> List:
         pass
 
+    @abstractmethod
+    def list_enterprise_group_member_user_id_by_id(self, enterprise_id: str, enterprise_group_id: str) -> List[str]:
+        pass
     # ------------------------ Get EnterpriseGroupMember resource --------------------- #
 
     # ------------------------ Create EnterpriseGroupMember resource --------------------- #
@@ -22,4 +25,3 @@ class EnterpriseGroupMemberRepository(ABC):
     # ------------------------ Update EnterpriseGroupMember resource --------------------- #
 
     # ------------------------ Delete EnterpriseGroupMember resource --------------------- #
-

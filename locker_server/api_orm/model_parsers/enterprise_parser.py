@@ -8,6 +8,7 @@ from locker_server.core.entities.enterprise.group.group import EnterpriseGroup
 from locker_server.core.entities.enterprise.group.group_member import EnterpriseGroupMember
 from locker_server.core.entities.enterprise.member.enterprise_member import EnterpriseMember
 from locker_server.core.entities.enterprise.member.enterprise_member_role import EnterpriseMemberRole
+from locker_server.core.entities.enterprise.payment.billing_contact import EnterpriseBillingContact
 from locker_server.core.entities.enterprise.policy.policy import EnterprisePolicy
 from locker_server.core.entities.enterprise.policy.policy_2fa import Policy2FA
 from locker_server.core.entities.enterprise.policy.policy_failed_login import PolicyFailedLogin
@@ -103,7 +104,8 @@ class EnterpriseParser:
         )
 
     @classmethod
-    def parse_enterprise_group_member(cls, enterprise_group_member_orm: EnterpriseGroupMemberORM) -> EnterpriseGroupMember:
+    def parse_enterprise_group_member(cls,
+                                      enterprise_group_member_orm: EnterpriseGroupMemberORM) -> EnterpriseGroupMember:
         return EnterpriseGroupMember(
             enterprise_group_member_id=enterprise_group_member_orm.id,
             group=cls.parse_enterprise_group(enterprise_group_orm=enterprise_group_member_orm.group),
@@ -180,4 +182,15 @@ class EnterpriseParser:
             policy_type=policy_passwordless_orm.policy.policy_type,
             enabled=policy_passwordless_orm.policy.enabled,
             only_allow_passwordless=policy_passwordless_orm.only_allow_passwordless
+        )
+
+    @classmethod
+    def parse_enterprise_billing_contact(cls, enterprise_billing_contact_orm: EnterpriseBillingContactORM) \
+            -> EnterpriseBillingContact:
+        enterprise = cls.parse_enterprise(enterprise_orm=enterprise_billing_contact_orm.enterprise)
+        return EnterpriseBillingContact(
+            enterprise_billing_contact_id=enterprise_billing_contact_orm.id,
+            enterprise=enterprise,
+            created_time=enterprise_billing_contact_orm.created_time,
+            email=enterprise_billing_contact_orm.email
         )

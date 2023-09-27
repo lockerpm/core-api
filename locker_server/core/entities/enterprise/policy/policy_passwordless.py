@@ -11,3 +11,8 @@ class PolicyPasswordless(EnterprisePolicy):
     @property
     def only_allow_passwordless(self):
         return self._only_allow_passwordless
+
+    def get_config_json(self):
+        return {
+            "only_allow_passwordless": self.only_allow_passwordless,
+        }

@@ -26,7 +26,7 @@ class PMPlan(object):
         self._limit_password = limit_password
         self._limit_secure_note = limit_secure_note
         self._limit_identity = limit_identity
-        self._limit_payment_card= limit_payment_card
+        self._limit_payment_card = limit_payment_card
         self._limit_crypto_asset = limit_crypto_asset
         self._tools_password_reuse = tools_password_reuse
         self._tools_master_password_check = tools_master_password_check
@@ -177,6 +177,9 @@ class PMPlan(object):
         if currency == CURRENCY_VND:
             return self.get_price_vnd(duration)
         return self.get_price_usd(duration)
+
+    def allow_team_activity_log(self):
+        return self.team_activity_log
 
     def to_json(self):
         data = {

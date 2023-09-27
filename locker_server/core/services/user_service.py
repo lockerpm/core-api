@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Optional, List, Dict, NoReturn
 
+from django.conf import settings
+
 from locker_server.core.entities.enterprise.enterprise import Enterprise
 from locker_server.core.entities.user.device import Device
 from locker_server.core.entities.user.user import User
@@ -548,4 +550,35 @@ class UserService:
         return self.user_plan_repository.update_user_plan_by_id(
             user_plan_id=user_plan_id,
             user_plan_update_data=user_plan_update_data
+        )
+
+    def cancel_plan(self, user: User, immediately=False, **kwargs):
+        current_plan = self.get_current_plan(user=user)
+        pm_plan_alias = current_plan.get_plan_type_alias()
+        if pm_plan_alias == PLAN_TYPE_PM_FREE:
+            return
+        stripe_subscription = current_plan.get_stripe_subscription()
+        if stripe_subscription:
+            payment_method = PAYMENT_METHOD_CARD
+        else:
+            payment_method = PAYMENT_METHOD_WALLET
+
+        if immediately is False:
+            from locker_server.shared.external_services.payment_method.payment_method_factory import \
+                PaymentMethodFactory
+            end_time = PaymentMethodFactory.get_method(
+                user_plan=current_plan, scope=settings.SCOPE_PWD_MANAGER, payment_method=payment_method
+            ).cancel_recurring_subscription(**kwargs)
+        else:
+            from locker_server.shared.external_services.payment_method.payment_method_factory import \
+                PaymentMethodFactory
+            PaymentMethodFactory.get_method(
+                user_plan=current_plan, scope=settings.SCOPE_PWD_MANAGER, payment_method=payment_method
+            ).cancel_immediately_recurring_subscription()
+            end_time = now()
+        return end_time
+
+    def count_weak_cipher_password(self, user_ids: List[int]) -> int:
+        return self.user_repository.count_weak_cipher_password(
+            user_ids=user_ids
         )
