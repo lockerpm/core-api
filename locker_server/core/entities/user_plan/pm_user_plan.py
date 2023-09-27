@@ -1,9 +1,13 @@
+from typing import Union
+
 import stripe
 
 from locker_server.core.entities.payment.promo_code import PromoCode
 from locker_server.core.entities.user.user import User
 from locker_server.core.entities.user_plan.pm_plan import PMPlan
-from locker_server.shared.constants.transactions import DURATION_MONTHLY, PAYMENT_METHOD_CARD
+from locker_server.shared.constants.transactions import DURATION_MONTHLY, PAYMENT_METHOD_CARD, DURATION_YEARLY, \
+    DURATION_HALF_YEARLY, PLAN_TYPE_PM_FREE
+from locker_server.shared.utils.app import now
 
 
 class PMUserPlan(object):
@@ -16,7 +20,6 @@ class PMUserPlan(object):
                  pm_mobile_subscription: str = None, extra_time: int = 0, extra_plan: str = None,
                  member_billing_updated_time: float = None, attempts: int = 0, pm_plan: PMPlan = None,
                  promo_code: PromoCode = None):
-
         self._pm_user_plan_id = pm_user_plan_id
         self._user = user
         self._duration = duration
@@ -129,6 +132,14 @@ class PMUserPlan(object):
     def promo_code(self):
         return self._promo_code
 
+    @classmethod
+    def get_duration_month_number(cls, duration):
+        if duration == DURATION_YEARLY:
+            return 12
+        elif duration == DURATION_HALF_YEARLY:
+            return 6
+        return 1
+
     def is_personal_trial_applied(self) -> bool:
         return self.personal_trial_applied
 
@@ -136,3 +147,42 @@ class PMUserPlan(object):
         if not self.pm_stripe_subscription:
             return None
         return stripe.Subscription.retrieve(self.pm_stripe_subscription)
+
+    def get_plan_type_alias(self) -> str:
+        return self.pm_plan.alias
+
+    def get_next_billing_time(self, duration: str = None) -> Union[float, int]:
+        if self.pm_plan.alias in [PLAN_TYPE_PM_FREE]:
+            return None
+        stripe_subscription = self.get_stripe_subscription()
+        if stripe_subscription:
+            if stripe_subscription.status == "trialing":
+                return stripe_subscription.trial_end
+            return stripe_subscription.current_period_end
+        # If user subscribed a plan
+        if self.end_period:
+            return self.end_period
+        # User is not still subscribe any subscription
+        return now() + PMUserPlan.get_duration_month_number(duration=duration) * 30 * 86400
+
+    def is_subscription(self) -> bool:
+        stripe_subscription = self.get_stripe_subscription()
+        if stripe_subscription:
+            return True if stripe_subscription.cancel_at_period_end is False else False
+        if self.start_period and self.end_period and self.end_period >= now():
+            return True
+        return False
+
+    def is_trialing(self):
+        stripe_subscription = self.get_stripe_subscription()
+        if stripe_subscription:
+            return stripe_subscription.status == "trialing"
+        mobile_subscription = self.pm_mobile_subscription
+        return self.start_period and self.end_period and self.personal_trial_applied and mobile_subscription is None
+
+    def is_cancel_at_period_end(self) -> bool:
+        stripe_subscription = self.get_stripe_subscription()
+        if stripe_subscription:
+            return stripe_subscription.cancel_at_period_end
+        return self.cancel_at_period_end
+

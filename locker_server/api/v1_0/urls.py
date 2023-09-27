@@ -23,3 +23,4 @@ urlpatterns += [
 #     url(r'^resources/plans$', views.ResourcePwdViewSet.as_view({'get': 'plans'})),
 #     url(r'^resources/enterprise/plans$', views.ResourcePwdViewSet.as_view({'get': 'enterprise_plans'})),
 # ]
+

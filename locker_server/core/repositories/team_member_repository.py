@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from locker_server.core.entities.member.team_member import TeamMember
 from locker_server.core.entities.team.team import Team
 from locker_server.core.entities.user.user import User
+from locker_server.shared.constants.members import PM_MEMBER_STATUS_CONFIRMED
 
 
 class TeamMemberRepository(ABC):
@@ -14,6 +15,11 @@ class TeamMemberRepository(ABC):
 
     @abstractmethod
     def list_member_user_ids(self, team_ids: List[str], status: str = None, personal_share: bool = None) -> List[int]:
+        pass
+
+    @abstractmethod
+    def list_member_by_teams(self, teams: List[Team], exclude_owner: bool = True,
+                             is_added_by_group: bool = None) -> List[TeamMember]:
         pass
 
     @abstractmethod
@@ -70,4 +76,7 @@ class TeamMemberRepository(ABC):
         pass
 
     # ------------------------ Delete TeamMember resource --------------------- #
-
+    @abstractmethod
+    def leave_all_teams(self, user_id: int, status: str = PM_MEMBER_STATUS_CONFIRMED, personal_share: bool = False,
+                        exclude_roles: List = None):
+        pass

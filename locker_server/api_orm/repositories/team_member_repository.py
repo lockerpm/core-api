@@ -1,19 +1,21 @@
 from typing import Union, Dict, Optional, List
-from abc import ABC, abstractmethod
+
+from django.db.models import When, Q, Value, Case, IntegerField
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_user_model, get_team_member_model, get_group_member_model, \
-    get_collection_member_model
+    get_collection_member_model, get_team_model
 from locker_server.api_orm.utils.revision_date import bump_account_revision_date
 from locker_server.core.entities.member.team_member import TeamMember
 from locker_server.core.entities.team.team import Team
 from locker_server.core.entities.user.user import User
 from locker_server.core.repositories.team_member_repository import TeamMemberRepository
-from locker_server.shared.constants.members import PM_MEMBER_STATUS_INVITED, PM_MEMBER_STATUS_CONFIRMED, \
-    PM_MEMBER_STATUS_ACCEPTED, MEMBER_ROLE_OWNER
+from locker_server.shared.constants.members import *
 from locker_server.shared.constants.transactions import PLAN_TYPE_PM_FAMILY
 
+
 UserORM = get_user_model()
+TeamORM = get_team_model()
 TeamMemberORM = get_team_member_model()
 GroupMemberORM = get_group_member_model()
 CollectionMemberORM = get_collection_member_model()
@@ -66,6 +68,25 @@ class TeamMemberORMRepository(TeamMemberRepository):
         if personal_share is not None:
             members_orm = members_orm.filter(team__personal_share=personal_share)
         return list(members_orm.values_list('user_id', flat=True))
+
+    def list_member_by_teams(self, teams: List[Team], exclude_owner: bool = True,
+                             is_added_by_group: bool = None) -> List[TeamMember]:
+        order_whens = [
+            When(Q(role__name=MEMBER_ROLE_OWNER, user__isnull=False), then=Value(2)),
+            When(Q(role__name=MEMBER_ROLE_ADMIN, user__isnull=False), then=Value(3)),
+            When(Q(role__name=MEMBER_ROLE_MEMBER, user__isnull=False), then=Value(4))
+        ]
+        team_ids = [team.team_id for team in teams]
+        members_orm = TeamMemberORM.objects.filter(team_id__in=team_ids).annotate(
+            order_field=Case(*order_whens, output_field=IntegerField(), default=Value(4))
+        ).order_by("order_field").select_related('team').select_related('user').select_related('role')
+        if exclude_owner:
+            members_orm = members_orm.exclude(role_id=MEMBER_ROLE_OWNER)
+        if is_added_by_group is not None:
+            members_orm = members_orm.filter(is_added_by_group=is_added_by_group)
+        return [
+            ModelParser.team_parser().parse_team_member(team_member_orm=member_orm) for member_orm in members_orm
+        ]
 
     def list_member_user_ids_by_teams(self, teams: List[Team], status: str = None,
                                       personal_share: bool = None) -> List[int]:
@@ -169,4 +190,16 @@ class TeamMemberORMRepository(TeamMemberRepository):
         return ModelParser.team_parser().parse_team_member(team_member_orm=team_member_orm)
 
     # ------------------------ Delete TeamMember resource --------------------- #
-
+    def leave_all_teams(self, user_id: int, status: str = PM_MEMBER_STATUS_CONFIRMED, personal_share: bool = False,
+                        exclude_roles: List = None):
+        teams_orm = TeamORM.objects.filter(
+            team_members__user_id=user_id, key__isnull=False,
+            team_members__status=status
+        ).order_by('-creation_date')
+        if personal_share is not None:
+            teams_orm = teams_orm.filter(personal_share=personal_share)
+        for team_orm in teams_orm:
+            member_orm = team_orm.team_members.get(user_id=user_id)
+            if exclude_roles and member_orm.role_id in exclude_roles:
+                continue
+            member_orm.delete()

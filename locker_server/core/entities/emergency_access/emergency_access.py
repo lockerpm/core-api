@@ -45,6 +45,10 @@ class EmergencyAccess(object):
     def status(self):
         return self._status
 
+    @status.setter
+    def status(self, status_value):
+        self._status = status_value
+
     @property
     def emergency_access_type(self):
         return self._emergency_access_type
@@ -53,13 +57,25 @@ class EmergencyAccess(object):
     def wait_time_days(self):
         return self._wait_time_days
 
+    @wait_time_days.setter
+    def wait_time_days(self, wait_time_days_value):
+        self._wait_time_days = wait_time_days_value
+
     @property
     def key_encrypted(self):
         return self._key_encrypted
 
+    @key_encrypted.setter
+    def key_encrypted(self, key_encrypted_value):
+        self._key_encrypted = key_encrypted_value
+
     @property
     def email(self):
         return self._email
+
+    @email.setter
+    def email(self, email_value):
+        self._email = email_value
 
     @property
     def grantee(self):

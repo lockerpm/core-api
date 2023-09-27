@@ -124,7 +124,7 @@ class NotifyBackground(LockerBackground):
 
         try:
             scope = payment.scope
-            metadata = payment.get_metadata()
+            metadata = payment.metadata
             number_members = metadata.get("number_members") or 1
             user = payment.user
 

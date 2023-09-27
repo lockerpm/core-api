@@ -3,13 +3,15 @@ from typing import Dict, Optional, List
 
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned
+from django.db.models import F
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models import PMUserPlanFamilyORM
 from locker_server.api_orm.models.wrapper import get_user_model, get_user_plan_model, get_plan_model, \
-    get_enterprise_member_model, get_enterprise_model, get_enterprise_member_role_model
+    get_enterprise_member_model, get_enterprise_model, get_enterprise_member_role_model, get_promo_code_model
 from locker_server.core.entities.enterprise.enterprise import Enterprise
 from locker_server.core.entities.user.user import User
+from locker_server.core.entities.user_plan.pm_plan import PMPlan
 from locker_server.core.entities.user_plan.pm_user_plan import PMUserPlan
 from locker_server.core.entities.user_plan.pm_user_plan_family import PMUserPlanFamily
 from locker_server.core.exceptions.payment_exception import PaymentMethodNotSupportException
@@ -21,10 +23,10 @@ from locker_server.shared.external_services.payment_method.payment_method_factor
 from locker_server.shared.log.cylog import CyLog
 from locker_server.shared.utils.app import now
 
-
 UserORM = get_user_model()
 PMPlanORM = get_plan_model()
 PMUserPlanORM = get_user_plan_model()
+PromoCodeORM = get_promo_code_model()
 EnterpriseMemberRoleORM = get_enterprise_member_role_model()
 EnterpriseMemberORM = get_enterprise_member_model()
 EnterpriseORM = get_enterprise_model()
@@ -123,6 +125,13 @@ class UserPlanORMRepository(UserPlanRepository):
         user_plan_orm = self._get_current_plan_orm(user_id=user_id)
         return ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=user_plan_orm)
 
+    def get_mobile_user_plan(self, pm_mobile_subscription: str) -> Optional[PMUserPlan]:
+        try:
+            user_plan_orm = PMUserPlanORM.objects.get(pm_mobile_subscription=pm_mobile_subscription)
+            return ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=user_plan_orm)
+        except PMUserPlanORM.DoesNotExist:
+            return None
+
     def get_default_enterprise(self, user_id: int, enterprise_name: str = None,
                                create_if_not_exist=False) -> Optional[Enterprise]:
         try:
@@ -174,7 +183,11 @@ class UserPlanORMRepository(UserPlanRepository):
             CIPHER_TYPE_TOTP: None
         }
 
-    def is_in_family_plan(self, user_id: int) -> bool:
+    def is_in_family_plan(self, user_plan: PMUserPlan) -> bool:
+        user_id = user_plan.user.user_id
+        return user_plan.pm_plan.is_family_plan or self.is_family_member(user_id=user_id)
+
+    def is_family_member(self, user_id: int) -> bool:
         return PMUserPlanFamilyORM.objects.filter(user_id=user_id).exists()
 
     def get_family_members(self, user_id: int) -> Dict:
@@ -214,6 +227,83 @@ class UserPlanORMRepository(UserPlanRepository):
 
     def count_family_members(self, user_id: int) -> int:
         return PMUserPlanFamilyORM.objects.filter(root_user_plan_id=user_id).count()
+
+    def calc_update_price(self, current_plan: PMUserPlan, new_plan: PMPlan, new_duration: str, new_quantity: int = 1,
+                          currency: str = CURRENCY_USD, promo_code: str = None, allow_trial: bool = True,
+                          utm_source: str = None) -> Dict:
+        current_time = now()
+        current_plan_orm = self._get_current_plan_orm(user_id=current_plan.user.user_id)
+        # Get new plan price
+        new_plan_price = new_plan.get_price(duration=new_duration, currency=currency)
+        # Number of month duration billing by new duration
+        duration_next_billing_month = PMUserPlan.get_duration_month_number(new_duration)
+        # Calc discount
+        error_promo = None
+        promo_code_orm = None
+        promo_description_en = None
+        promo_description_vi = None
+        if promo_code is not None and promo_code != "":
+            promo_code_orm = PromoCodeORM.check_valid(value=promo_code, current_user=current_plan_orm.user)
+            if not promo_code_orm:
+                error_promo = {"promo_code": ["This coupon is expired or incorrect"]}
+            else:
+                promo_description_en = promo_code_orm.description_en
+                promo_description_vi = promo_code_orm.description_vi
+
+        total_amount = new_plan_price * new_quantity
+        next_billing_time = current_time + duration_next_billing_month * 30 * 86400
+
+        # Discount and immediate payment
+        total_amount = max(total_amount, 0)
+        discount = promo_code_orm.get_discount(total_amount, duration=new_duration) if promo_code_orm else 0.0
+        immediate_amount = max(round(total_amount - discount, 2), 0)
+
+        result = {
+            "alias": new_plan.alias,
+            "price": round(new_plan_price, 2),
+            "total_price": total_amount,
+            "discount": discount,
+            "duration": new_duration,
+            "currency": currency,
+            "immediate_payment": immediate_amount,
+            "next_billing_time": next_billing_time,
+            "personal_trial_applied": current_plan.is_personal_trial_applied(),
+            "promo_description": {
+                "en": promo_description_en,
+                "vi": promo_description_vi
+            },
+            "error_promo": error_promo
+        }
+        if new_plan.is_team_plan is False:
+            if current_plan.is_personal_trial_applied() is False and allow_trial is True:
+                if utm_source in LIST_UTM_SOURCE_PROMOTIONS:
+                    result["next_billing_time"] = next_billing_time + TRIAL_PERSONAL_PLAN
+                else:
+                    result["next_billing_time"] = now() + TRIAL_PERSONAL_PLAN
+                    result["next_billing_payment"] = immediate_amount
+                    result["immediate_payment"] = 0
+        else:
+            if current_plan.end_period and current_plan.end_period > now():
+                result["next_billing_time"] = current_plan.end_period
+                result["next_billing_payment"] = immediate_amount
+                result["immediate_payment"] = 0
+        return result
+
+    def is_update_personal_to_enterprise(self, current_plan: PMUserPlan, new_plan_alias: str) -> bool:
+        """
+        Handle event hooks: The plan update event is a personal plan while the current plan is Enterprise plan
+        So, we don't need to update the plan of this user
+        :param current_plan: (obj) The current plan
+        :param new_plan_alias: (str) Event hook plan
+        :return: True - Event hook is personal plan. Current plan is Enterprise
+        """
+        try:
+            new_plan_obj = PMPlanORM.objects.get(alias=new_plan_alias)
+            if current_plan.pm_plan.is_team_plan is True and new_plan_obj.is_team_plan is False:
+                return True
+        except PMPlanORM.DoesNotExist:
+            pass
+        return False
 
     # ------------------------ Create PMUserPlan resource --------------------- #
     def add_to_family_sharing(self, family_user_plan_id: int, user_id: int = None,
@@ -386,6 +476,11 @@ class UserPlanORMRepository(UserPlanRepository):
         user_plan_orm.enterprise_trial_applied = applied
         user_plan_orm.save()
 
+    def set_default_payment_method(self, user_id: int, payment_method: str):
+        user_plan_orm = self._get_current_plan_orm(user_id=user_id)
+        user_plan_orm.default_payment_method = payment_method
+        user_plan_orm.save()
+
     def upgrade_member_family_plan(self, user: User) -> Optional[User]:
         user_orm = self._get_user_orm(user_id=user.user_id)
         if not user_orm:
@@ -407,6 +502,23 @@ class UserPlanORMRepository(UserPlanRepository):
             )
             family_invitations_orm.update(user=user_orm, email=None)
         return user
+
+    def update_user_plan_by_id(self, user_plan_id: str, user_plan_update_data) -> Optional[PMUserPlan]:
+        try:
+            user_plan_orm = PMUserPlanORM.objects.get(id=user_plan_id)
+        except PMUserPlanORM.DoesNotExist:
+            return None
+        if user_plan_update_data.get("extra_time"):
+            user_plan_orm.extra_time = F('extra_time') + user_plan_update_data.get("extra_time", 0)
+        user_plan_orm.extra_plan = user_plan_update_data.get("extra_plan", user_plan_orm.extra_plan)
+        user_plan_orm.pm_mobile_subscription = user_plan_update_data.get(
+            "pm_mobile_subscription", user_plan_orm.pm_mobile_subscription
+        )
+        user_plan_orm.cancel_at_period_end = user_plan_update_data.get(
+            "cancel_at_period_end", user_plan_orm.cancel_at_period_end
+        )
+        user_plan_orm.save()
+        return ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=user_plan_orm)
 
     # ------------------------ Delete PMUserPlan resource --------------------- #
     def cancel_plan(self, user: User, immediately=False, **kwargs):

@@ -31,11 +31,4 @@ class AbstractEmergencyAccessORM(models.Model):
     @classmethod
     def create(cls, grantor, access_type: str, wait_time_days: int = 7,
                grantee=None, email: str = None, key_encrypted: str = None):
-        new_emergency_access = cls(
-            grantor=grantor, type=access_type, wait_time_days=wait_time_days,
-            key_encrypted=key_encrypted,
-            grantee=grantee, email=email,
-            creation_date=now(), revision_date=now()
-        )
-        new_emergency_access.save()
-        return new_emergency_access
+        raise NotImplementedError

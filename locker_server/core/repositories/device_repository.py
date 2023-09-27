@@ -11,6 +11,10 @@ class DeviceRepository(ABC):
     def list_user_devices(self, user_id: int, **filter_params) -> List[Device]:
         pass
 
+    @abstractmethod
+    def list_devices(self, **filter_params) -> List[Device]:
+        pass
+
     # ------------------------ Get Device resource --------------------- #
     @abstractmethod
     def get_device_by_identifier(self, user_id: int, device_identifier: str) -> Optional[Device]:

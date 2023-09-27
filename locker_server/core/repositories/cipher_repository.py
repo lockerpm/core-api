@@ -21,7 +21,23 @@ class CipherRepository(ABC):
         pass
 
     @abstractmethod
+    def get_ciphers_created_by_user(self, user_id: int) -> List[Cipher]:
+        pass
+
+    @abstractmethod
+    def get_cipher_ids_created_by_user(self, user_id: int) -> List[str]:
+        pass
+
+    @abstractmethod
     def get_multiple_by_ids(self, cipher_ids: List[str]) -> List[Cipher]:
+        pass
+
+    @abstractmethod
+    def list_cipher_ids_by_folder_id(self, user_id: int, folder_id: str) -> List[str]:
+        pass
+
+    @abstractmethod
+    def list_cipher_ids_by_collection_id(self, collection_id: str) -> List[str]:
         pass
 
     # ------------------------ Get Cipher resource --------------------- #
@@ -49,6 +65,10 @@ class CipherRepository(ABC):
     def sync_and_statistic_ciphers(self, user_id: int, only_personal=False, only_managed_team=False,
                                    only_edited=False, only_deleted=False,
                                    exclude_team_ids=None, filter_ids=None, exclude_types=None) -> Dict:
+        pass
+
+    @abstractmethod
+    def statistic_created_ciphers(self, user_id: int) -> Dict:
         pass
 
     # ------------------------ Create Cipher resource --------------------- #

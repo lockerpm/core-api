@@ -1,7 +1,7 @@
 from locker_server.api.permissions.app import APIPermission
 
 
-class AffiliateSubmissionPermission(APIPermission):
+class AffiliateSubmissionPwdPermission(APIPermission):
     def has_permission(self, request, view):
         if view.action in ["create"]:
             return True

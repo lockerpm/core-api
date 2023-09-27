@@ -178,9 +178,25 @@ class CipherORMRepository(CipherRepository):
         ).prefetch_related('collections_ciphers')
         return [ModelParser.cipher_parser().parse_cipher(cipher_orm=c, parse_collection_ids=True) for c in ciphers_orm]
 
+    def get_ciphers_created_by_user(self, user_id: int) -> List[Cipher]:
+        ciphers_orm = CipherORM.objects.filter(created_by_id=user_id)
+        return [ModelParser.cipher_parser().parse_cipher(cipher_orm=c) for c in ciphers_orm]
+
+    def get_cipher_ids_created_by_user(self, user_id: int) -> List[str]:
+        return list(CipherORM.objects.filter(created_by_id=user_id).values_list('id', flat=True))
+
     def get_multiple_by_ids(self, cipher_ids: List[str]) -> List[Cipher]:
         ciphers_orm = CipherORM.objects.filter(id__in=cipher_ids).select_related('team')
         return [ModelParser.cipher_parser().parse_cipher(cipher_orm=c) for c in ciphers_orm]
+
+    def list_cipher_ids_by_folder_id(self, user_id: int, folder_id: str) -> List[str]:
+        return list(CipherORM.objects.filter(user_id=user_id).filter(
+            Q(folders__icontains="{}: '{}'".format(user_id, folder_id)) |
+            Q(folders__icontains='{}: "{}"'.format(user_id, folder_id))
+        ).values_list('id', flat=True))
+
+    def list_cipher_ids_by_collection_id(self, collection_id: str) -> List[str]:
+        return list(CollectionCipherORM.objects.filter(collection_id=collection_id).values_list('cipher_id', flat=True))
 
     # ------------------------ Get Cipher resource --------------------- #
     def get_by_id(self, cipher_id: str) -> Optional[Cipher]:
@@ -240,6 +256,19 @@ class CipherORMRepository(CipherRepository):
                 ModelParser.cipher_parser().parse_cipher(cipher_orm=c, parse_collection_ids=True) for c in ciphers_orm
             ]
         }
+
+    def statistic_created_ciphers(self, user_id: int) -> Dict:
+        ciphers_statistic = CipherORM.objects.filter(created_by_id=user_id)
+        ciphers_statistic_data = {
+            "total": ciphers_statistic.count(),
+            CIPHER_TYPE_LOGIN: ciphers_statistic.filter(type=CIPHER_TYPE_LOGIN).count(),
+            CIPHER_TYPE_NOTE: ciphers_statistic.filter(type=CIPHER_TYPE_NOTE).count(),
+            CIPHER_TYPE_IDENTITY: ciphers_statistic.filter(type=CIPHER_TYPE_IDENTITY).count(),
+            CIPHER_TYPE_CARD: ciphers_statistic.filter(type=CIPHER_TYPE_CARD).count(),
+            CIPHER_TYPE_TOTP: ciphers_statistic.filter(type=CIPHER_TYPE_TOTP).count(),
+            CIPHER_TYPE_CRYPTO_WALLET: ciphers_statistic.filter(type=CIPHER_TYPE_CRYPTO_WALLET).count(),
+        }
+        return ciphers_statistic_data
 
     # ------------------------ Create Cipher resource --------------------- #
     def create_cipher(self, cipher_data: Dict) -> Cipher:

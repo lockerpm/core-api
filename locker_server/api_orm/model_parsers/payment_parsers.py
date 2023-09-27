@@ -2,8 +2,10 @@ from locker_server.api_orm.model_parsers.wrapper_specific_model_parser import ge
 from locker_server.api_orm.models import *
 from locker_server.core.entities.payment.country import Country
 from locker_server.core.entities.payment.customer import Customer
+from locker_server.core.entities.payment.payment import Payment
 from locker_server.core.entities.payment.promo_code import PromoCode
 from locker_server.core.entities.payment.promo_code_type import PromoCodeType
+from locker_server.core.entities.payment.saas_market import SaasMarket
 from locker_server.core.entities.user_plan.plan_type import PlanType
 from locker_server.core.entities.user_plan.pm_plan import PMPlan
 from locker_server.core.entities.user_plan.pm_user_plan import PMUserPlan
@@ -60,8 +62,45 @@ class PaymentParser:
             description_vi=promo_code_orm.description_vi,
             promo_code_type=cls.parse_promo_code_type(promo_code_type_orm=promo_code_orm.type),
             is_saas_code=promo_code_orm.is_saas_code,
-            saas_market=promo_code_orm.saas_market,
+            saas_market=cls.parse_saas_market(saas_market_orm=promo_code_orm.saas_market),
             saas_plan=promo_code_orm.saas_plan,
             only_user=user_parser.parse_user(user_orm=promo_code_orm.only_user) if promo_code_orm.only_user else None,
             only_period=promo_code_orm.only_period,
+        )
+
+    @classmethod
+    def parse_saas_market(cls, saas_market_orm: SaasMarketORM) -> SaasMarket:
+        return SaasMarket(
+            saas_market_id=saas_market_orm.id,
+            name=saas_market_orm.name,
+            lifetime_duration=saas_market_orm.lifetime_duration
+        )
+
+    @classmethod
+    def parse_payment(cls, payment_orm: PaymentORM) -> Payment:
+        user_parser = get_specific_model_parser("UserParser")
+        return Payment(
+            id=payment_orm.id,
+            payment_id=payment_orm.payment_id,
+            created_time=payment_orm.created_time,
+            total_price=payment_orm.total_price,
+            discount=payment_orm.discount,
+            currency=payment_orm.currency,
+            status=payment_orm.status,
+            description=payment_orm.description,
+            transaction_type=payment_orm.transaction_type,
+            payment_method=payment_orm.payment_method,
+            failure_reason=payment_orm.failure_reason,
+            stripe_invoice_id=payment_orm.stripe_invoice_id,
+            mobile_invoice_id=payment_orm.mobile_invoice_id,
+            code=payment_orm.code,
+            bank_id=payment_orm.bank_id,
+            scope=payment_orm.scope,
+            plan=payment_orm.plan,
+            duration=payment_orm.duration,
+            metadata=payment_orm.get_metadata(),
+            enterprise_id=payment_orm.enterprise_id,
+            user=user_parser.parse_user(user_orm=payment_orm.user),
+            promo_code=cls.parse_promo_code(promo_code_orm=payment_orm.promo_code) if payment_orm.promo_code else None,
+            customer=cls.parse_customer(customer_orm=payment_orm.customer) if payment_orm.customer else None,
         )

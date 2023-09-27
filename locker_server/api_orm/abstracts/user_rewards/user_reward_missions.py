@@ -23,17 +23,8 @@ class AbstractUserRewardMissionORM(models.Model):
         unique_together = ('user', 'mission')
 
     @classmethod
-    def create_multiple_user_reward_missions(cls, user, mission_ids, **data):
-        user_reward_mission_objs = []
-        for mission_id in mission_ids:
-            user_reward_mission_objs.append(cls(
-                user=user,
-                mission_id=mission_id,
-                status=data.get("status", USER_MISSION_STATUS_NOT_STARTED),
-                is_claimed=data.get("is_claimed", False),
-                completed_time=data.get("completed")
-            ))
-        cls.objects.bulk_create(user_reward_mission_objs, ignore_conflicts=True, batch_size=50)
+    def create_multiple_user_reward_missions(cls, user_id: int, mission_ids, **data):
+        raise NotImplementedError
 
     def get_answer(self):
         if not self.answer:

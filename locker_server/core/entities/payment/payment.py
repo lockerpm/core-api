@@ -33,7 +33,6 @@ class Payment(object):
         self._plan = plan
         self._duration = duration
         self._metadata = metadata
-        self._plan = plan
         self._enterprise_id = enterprise_id
         self._user = user
         self._promo_code = promo_code
@@ -67,6 +66,10 @@ class Payment(object):
     def status(self):
         return self._status
 
+    @status.setter
+    def status(self, status_value):
+        self._status = status_value
+
     @property
     def description(self):
         return self._description
@@ -82,6 +85,10 @@ class Payment(object):
     @property
     def failure_reason(self):
         return self._failure_reason
+
+    @failure_reason.setter
+    def failure_reason(self, failure_reason_value):
+        self._failure_reason = failure_reason_value
 
     @property
     def stripe_invoice_id(self):

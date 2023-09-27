@@ -4,9 +4,7 @@ import stripe
 import logging.config
 from pathlib import Path
 
-
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 try:
     MICRO_SERVICE_SCOPE = "pwdmanager"
@@ -21,6 +19,7 @@ try:
     # Web url
     SERVER_ORIGIN = os.getenv("SERVER_ORIGIN")
     LOCKER_WEB_URL = os.getenv("LOCKER_WEB_URL", "localhost")
+    LOCKER_ID_WEB_URL = os.getenv("LOCKER_ID_WEB_URL", "localhost")
     WEB_ORIGIN = os.getenv("WEB_ORIGIN") or LOCKER_WEB_URL.replace("https://", "").replace("http://", "")
     DEV_WEB_ORIGIN = os.getenv("DEV_WEB_ORIGIN")
 
@@ -169,6 +168,7 @@ try:
     LS_PLAN_MODEL = "api_orm.PMPlanORM"
     LS_PROMO_CODE_TYPE_MODEL = "api_orm.PromoCodeTypeORM"
     LS_PROMO_CODE_MODEL = "api_orm.PromoCodeORM"
+    LS_USER_REWARD_MISSION_MODEL = "api_orm.UserRewardMissionORM"
     LS_PAYMENT_MODEL = "api_orm.PaymentORM"
     LS_USER_PLAN_MODEL = "api_orm.PMUserPlanORM"
     LS_NOTIFICATION_CATEGORY_MODEL = "api_orm.NotificationCategoryORM"
@@ -325,6 +325,7 @@ try:
 
 except Exception as e:
     from locker_server.shared.log.config import logging_config
+
     logging.config.dictConfig(logging_config)
     logger = logging.getLogger('slack_service')
     tb = traceback.format_exc()

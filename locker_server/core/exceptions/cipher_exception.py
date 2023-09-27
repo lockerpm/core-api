@@ -23,3 +23,21 @@ class CipherMaximumReachedException(CipherException):
     """
     The maximum number of items is reached. Please check your trash if any"
     """
+
+
+class CipherBelongCollectionException(CipherException):
+    """
+    The cipher belongs to a Collection
+    """
+
+
+class CipherBelongTeamException(CipherException):
+    """
+    This item already belongs to an organization
+    """
+
+
+class StopCipherEmptyException(CipherException):
+    """
+    Not allow the stop cipher empty
+    """

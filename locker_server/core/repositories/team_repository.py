@@ -24,6 +24,10 @@ class TeamRepository(ABC):
     def get_default_collection(self, team_id: str) -> Optional[Collection]:
         pass
 
+    @abstractmethod
+    def get_team_collection_by_id(self, team_id: str, collection_id: str) -> Optional[Collection]:
+        pass
+
     # ------------------------ Create Team resource --------------------- #
 
     # ------------------------ Update Team resource --------------------- #

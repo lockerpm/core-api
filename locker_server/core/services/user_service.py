@@ -1,5 +1,7 @@
 from datetime import datetime
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, NoReturn
+
+from django.conf import settings
 
 from locker_server.core.entities.enterprise.enterprise import Enterprise
 from locker_server.core.entities.user.device import Device
@@ -528,9 +530,8 @@ class UserService:
         sso_token_ids = self.device_repository.destroy_device(device=device)
         return sso_token_ids
 
-    @staticmethod
-    def delete_sync_cache_data(user_id: int):
-        delete_sync_cache_data(user_id=user_id)
+    def delete_sync_cache_data(self, user_id: int):
+        self.user_repository.delete_sync_cache_data(user_id=user_id)
 
     @staticmethod
     def get_sync_cache_key(user_id, page=1, size=100):
@@ -538,3 +539,46 @@ class UserService:
 
     def is_active_enterprise_member(self, user_id: int) -> bool:
         return self.enterprise_member_repository.is_active_enterprise_member(user_id=user_id)
+
+    def update_plan_by_plan_type(self, user: User, plan_type_alias, **plan_metadata) -> NoReturn:
+        return self.user_plan_repository.update_plan(
+            user_id=user.user_id, plan_type_alias=plan_type_alias,
+            **plan_metadata
+        )
+
+    def update_user_plan_by_id(self, user_plan_id: str, user_plan_update_data):
+        return self.user_plan_repository.update_user_plan_by_id(
+            user_plan_id=user_plan_id,
+            user_plan_update_data=user_plan_update_data
+        )
+
+    def cancel_plan(self, user: User, immediately=False, **kwargs):
+        current_plan = self.get_current_plan(user=user)
+        pm_plan_alias = current_plan.get_plan_type_alias()
+        if pm_plan_alias == PLAN_TYPE_PM_FREE:
+            return
+        stripe_subscription = current_plan.get_stripe_subscription()
+        if stripe_subscription:
+            payment_method = PAYMENT_METHOD_CARD
+        else:
+            payment_method = PAYMENT_METHOD_WALLET
+
+        if immediately is False:
+            from locker_server.shared.external_services.payment_method.payment_method_factory import \
+                PaymentMethodFactory
+            end_time = PaymentMethodFactory.get_method(
+                user_plan=current_plan, scope=settings.SCOPE_PWD_MANAGER, payment_method=payment_method
+            ).cancel_recurring_subscription(**kwargs)
+        else:
+            from locker_server.shared.external_services.payment_method.payment_method_factory import \
+                PaymentMethodFactory
+            PaymentMethodFactory.get_method(
+                user_plan=current_plan, scope=settings.SCOPE_PWD_MANAGER, payment_method=payment_method
+            ).cancel_immediately_recurring_subscription()
+            end_time = now()
+        return end_time
+
+    def count_weak_cipher_password(self, user_ids: List[int]) -> int:
+        return self.user_repository.count_weak_cipher_password(
+            user_ids=user_ids
+        )

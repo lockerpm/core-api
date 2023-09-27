@@ -8,6 +8,13 @@ from locker_server.core.entities.user.user import User
 
 class EventRepository(ABC):
     # ------------------------ List Event resource ------------------- #
+    @abstractmethod
+    def list_events(self, **filters) -> List[Event]:
+        pass
+
+    @abstractmethod
+    def statistic_login_by_time(self, team_id: str, user_ids: List[int], from_param: float, to_param: float) -> Dict:
+        pass
 
     # ------------------------ Get Event resource --------------------- #
 

@@ -39,7 +39,8 @@ class AffiliateSubmissionService:
         )
         return affiliate_submission
 
-    def update_affiliate_submission(self, affiliate_submission_id: str, affiliate_submission_update_data):
+    def update_affiliate_submission(self, affiliate_submission_id: str,
+                                    affiliate_submission_update_data) -> Optional[AffiliateSubmission]:
         updated_affiliate_submission = self.affiliate_submission_repository.update_affiliate_submission(
             affiliate_submission_id=affiliate_submission_id,
             affiliate_submission_update_data=affiliate_submission_update_data

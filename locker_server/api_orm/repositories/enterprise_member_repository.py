@@ -1,4 +1,4 @@
-from typing import Union, Dict, Optional
+from typing import Union, Dict, Optional, List
 from abc import ABC, abstractmethod
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
@@ -34,6 +34,34 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
             return None
 
     # ------------------------ List EnterpriseMember resource ------------------- #
+    def list_enterprise_members(self, **filters) -> List[EnterpriseMember]:
+        enterprise_id_param = filters.get("enterprise_id")
+        if enterprise_id_param:
+            enterprise_members_orm = EnterpriseMemberORM.objects.filter(
+                enterprise_id=enterprise_id_param
+            ).order_by("-access_time")
+        else:
+            enterprise_members_orm = EnterpriseMemberORM.objects.all()
+        return [
+            ModelParser.enterprise_parser().parse_enterprise_member(
+                enterprise_members_orm=enterprise_member_orm
+            )
+            for enterprise_member_orm in enterprise_members_orm
+        ]
+
+    def list_enterprise_member_user_id_by_roles(self, enterprise_id: str, role_ids: List[str]) -> List[str]:
+        user_ids = EnterpriseMemberORM.objects.filter(
+            enterprise_id=enterprise_id,
+            role_id__in=role_ids
+        ).values_list('user_id', flat=True)
+        return list(user_ids)
+
+    def list_enterprise_member_user_id_by_members(self, enterprise_id: str, member_ids: List[str]) -> List[str]:
+        user_ids = EnterpriseMemberORM.objects.filter(
+            enterprise_id=enterprise_id,
+            id__in=member_ids
+        ).values_list('user_id', flat=True)
+        return list(user_ids)
 
     # ------------------------ Get EnterpriseMember resource --------------------- #
     def get_primary_member(self, enterprise_id: str) -> Optional[EnterpriseMember]:
@@ -63,6 +91,11 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
         return EnterpriseMemberORM.objects.filter(
             user_id=user_id, status=E_MEMBER_STATUS_CONFIRMED, is_activated=True, enterprise__locked=False
         )
+
+    def is_in_enterprise(self, user_id: int, enterprise_locked: bool = None) -> bool:
+        if enterprise_locked is not None:
+            return EnterpriseMemberORM.objects.filter(user_id=user_id, enterprise__locked=enterprise_locked).exists()
+        return EnterpriseMemberORM.objects.filter(user_id=user_id).exists()
 
     # ------------------------ Create EnterpriseMember resource --------------------- #
 
@@ -122,4 +155,3 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
         return user
 
     # ------------------------ Delete EnterpriseMember resource --------------------- #
-

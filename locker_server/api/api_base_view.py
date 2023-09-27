@@ -17,8 +17,14 @@ class APIBaseViewSet(AppGeneralViewSet):
     resource_service = resource_service
     auth_service = auth_service
     user_service = user_service
+    device_service = device_service
     family_service = family_service
+    emergency_access_service = emergency_access_service
     exclude_domain_service = exclude_domain_service
+
+    payment_service = payment_service
+    mobile_payment_service = mobile_payment_service
+
     cipher_service = cipher_service
     folder_service = folder_service
 
@@ -26,7 +32,10 @@ class APIBaseViewSet(AppGeneralViewSet):
     collection_service = collection_service
     sharing_service = sharing_service
 
+    quick_share_service = quick_share_service
+
     enterprise_service = enterprise_service
+    enterprise_member_service = enterprise_member_service
 
     relay_address_service = relay_address_service
     relay_subdomain_service = relay_subdomain_service
@@ -34,6 +43,10 @@ class APIBaseViewSet(AppGeneralViewSet):
 
     affiliate_submission_service = affiliate_submission_service
     release_service = release_service
+    notification_setting_service = notification_setting_service
+    user_reward_mission_service = user_reward_mission_service
+
+    event_service = event_service
 
     def get_throttles(self):
         if self.request.user and not isinstance(self.request.user, AnonymousUser):

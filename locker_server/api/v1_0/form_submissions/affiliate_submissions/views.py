@@ -3,8 +3,8 @@ from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
 
 from locker_server.api.api_base_view import APIBaseViewSet
-from locker_server.api.permissions.locker_permissions.affiliate_submision_permission import \
-    AffiliateSubmissionPermission
+from locker_server.api.permissions.locker_permissions.affiliate_submission_pwd_permission import \
+    AffiliateSubmissionPwdPermission
 from locker_server.core.exceptions.affiliate_submission_exception import AffiliateSubmissionDoesNotExistException
 from locker_server.core.exceptions.country_exception import CountryDoesNotExistException
 from .serializers import ListAffiliateSubmissionSerializer, DetailAffiliateSubmissionSerializer, \
@@ -12,7 +12,7 @@ from .serializers import ListAffiliateSubmissionSerializer, DetailAffiliateSubmi
 
 
 class AffiliateSubmissionViewSet(APIBaseViewSet):
-    permission_classes = (AffiliateSubmissionPermission,)
+    permission_classes = (AffiliateSubmissionPwdPermission,)
     http_method_names = ["head", "options", "get", "post", "put", "delete"]
 
     def get_serializer_class(self):
@@ -28,11 +28,9 @@ class AffiliateSubmissionViewSet(APIBaseViewSet):
 
     def get_queryset(self):
         q_param = self.request.query_params.get("q")
-        affiliate_submissions = self.affiliate_submission_service.list_affiliate_submissions(
-            **{
-                "q": q_param.lower()
-            }
-        )
+        affiliate_submissions = self.affiliate_submission_service.list_affiliate_submissions(**{
+            "q": q_param.lower()
+        })
         return affiliate_submissions
 
     def get_object(self):
@@ -47,12 +45,12 @@ class AffiliateSubmissionViewSet(APIBaseViewSet):
 
     def list(self, request, *args, **kwargs):
         paging_param = self.request.query_params.get("paging", "1")
-        size_param = self.request.query_params.get("size", 10)
+        size_param = self.request.query_params.get("size", 20)
         page_size_param = self.check_int_param(size_param)
         if paging_param == "0":
             self.pagination_class = None
         else:
-            self.pagination_class.page_size = page_size_param or 10
+            self.pagination_class.page_size = page_size_param or 20
         return super().list(request, *args, **kwargs)
 
     def retrieve(self, request, *args, **kwargs):
@@ -77,7 +75,7 @@ class AffiliateSubmissionViewSet(APIBaseViewSet):
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
         try:
-            updated_affiliate_submission = self.affiliate_submission_service.update_affiliate_submission(
+            self.affiliate_submission_service.update_affiliate_submission(
                 affiliate_submission_id=affiliate_submission.affiliate_submission_id,
                 affiliate_submission_update_data=validated_data
             )
@@ -88,7 +86,7 @@ class AffiliateSubmissionViewSet(APIBaseViewSet):
     def destroy(self, request, *args, **kwargs):
         affiliate_submission = self.get_object()
         try:
-            deleted_affiliate_submission = self.affiliate_submission_service.delete_affiliate_submission(
+            self.affiliate_submission_service.delete_affiliate_submission(
                 affiliate_submission_id=affiliate_submission.affiliate_submission_id
             )
         except AffiliateSubmissionDoesNotExistException:

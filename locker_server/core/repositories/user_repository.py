@@ -1,13 +1,19 @@
-from typing import Union, Dict, Optional, Tuple
+from typing import Union, Dict, Optional, Tuple, List
 from abc import ABC, abstractmethod
 
 from locker_server.core.entities.user.user import User
-from locker_server.core.entities.user.user_score import UserScore
 from locker_server.shared.constants.enterprise_members import E_MEMBER_STATUS_CONFIRMED
 
 
 class UserRepository(ABC):
     # ------------------------ List User resource ------------------- #
+    @abstractmethod
+    def list_users(self, **filters) -> List[User]:
+        pass
+
+    @abstractmethod
+    def count_weak_cipher_password(self, user_ids: List[int] = None) -> int:
+        pass
 
     # ------------------------ Get User resource --------------------- #
     @abstractmethod
@@ -77,4 +83,8 @@ class UserRepository(ABC):
 
     @abstractmethod
     def revoke_all_sessions(self, user: User, exclude_sso_token_ids=None) -> User:
+        pass
+
+    @abstractmethod
+    def delete_sync_cache_data(self, user_id: int):
         pass

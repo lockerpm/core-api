@@ -3,9 +3,10 @@ from abc import ABC, abstractmethod
 
 from locker_server.core.entities.enterprise.enterprise import Enterprise
 from locker_server.core.entities.user.user import User
+from locker_server.core.entities.user_plan.pm_plan import PMPlan
 from locker_server.core.entities.user_plan.pm_user_plan import PMUserPlan
 from locker_server.core.entities.user_plan.pm_user_plan_family import PMUserPlanFamily
-from locker_server.shared.constants.transactions import DURATION_MONTHLY
+from locker_server.shared.constants.transactions import DURATION_MONTHLY, CURRENCY_USD
 
 
 class UserPlanRepository(ABC):
@@ -14,6 +15,10 @@ class UserPlanRepository(ABC):
     # ------------------------ Get PMUserPlan resource --------------------- #
     @abstractmethod
     def get_user_plan(self, user_id: int) -> Optional[PMUserPlan]:
+        pass
+
+    @abstractmethod
+    def get_mobile_user_plan(self, pm_mobile_subscription: str) -> Optional[PMUserPlan]:
         pass
 
     @abstractmethod
@@ -26,7 +31,11 @@ class UserPlanRepository(ABC):
         pass
 
     @abstractmethod
-    def is_in_family_plan(self, user_id: int) -> bool:
+    def is_in_family_plan(self, user_plan: PMUserPlan) -> bool:
+        pass
+
+    @abstractmethod
+    def is_family_member(self, user_id: int) -> bool:
         pass
 
     @abstractmethod
@@ -39,6 +48,16 @@ class UserPlanRepository(ABC):
 
     @abstractmethod
     def count_family_members(self, user_id: int) -> int:
+        pass
+
+    @abstractmethod
+    def calc_update_price(self, current_plan: PMUserPlan, new_plan: PMPlan, new_duration: str, new_quantity: int = 1,
+                          currency: str = CURRENCY_USD, promo_code: str = None, allow_trial: bool = True,
+                          utm_source: str = None) -> Dict:
+        pass
+
+    @abstractmethod
+    def is_update_personal_to_enterprise(self, current_plan: PMUserPlan, new_plan_alias: str) -> bool:
         pass
 
     # ------------------------ Create PMUserPlan resource --------------------- #
@@ -62,7 +81,15 @@ class UserPlanRepository(ABC):
         pass
 
     @abstractmethod
+    def set_default_payment_method(self, user_id: int, payment_method: str):
+        pass
+
+    @abstractmethod
     def upgrade_member_family_plan(self, user: User) -> Optional[User]:
+        pass
+
+    @abstractmethod
+    def update_user_plan_by_id(self, user_plan_id: str, user_plan_update_data) -> Optional[PMUserPlan]:
         pass
 
     # ------------------------ Delete PMUserPlan resource --------------------- #
@@ -73,4 +100,3 @@ class UserPlanRepository(ABC):
     @abstractmethod
     def delete_family_member(self, family_member_id: int):
         pass
-

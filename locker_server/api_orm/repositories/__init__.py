@@ -1,10 +1,13 @@
 from .auth_repository import AuthORMRepository
 from .user_repository import UserORMRepository
+from .education_email_repository import EducationEmailORMRepository
 
 from .plan_repository import PlanORMRepository
 from .user_plan_repository import UserPlanORMRepository
 from .payment_repository import PaymentORMRepository
 from .country_repository import CountryORMRepository
+
+from .emergency_access_repository import EmergencyAccessORMRepository
 
 from .exclude_domain_repository import ExcludeDomainORMRepository
 
@@ -16,12 +19,19 @@ from .folder_repository import FolderORMRepository
 
 from .team_repository import TeamORMRepository
 from .team_member_repository import TeamMemberORMRepository
+from .team_group_repository import TeamGroupORMRepository
 from .collection_repository import CollectionORMRepository
 from .sharing_repository import SharingORMRepository
+
+from .quick_share_repository import QuickShareORMRepository
 
 from .enterprise_repository import EnterpriseORMRepository
 from .enterprise_member_repository import EnterpriseMemberORMRepository
 from .enterprise_policy_repository import EnterprisePolicyORMRepository
+from .enterprise_group_repository import EnterpriseGroupORMRepository
+from .enterprise_group_member_repository import EnterpriseGroupMemberORMRepository
+from .enterprise_billing_contact_repository import EnterpriseBillingContactORMRepository
+from .enterprise_domain_repository import EnterpriseDomainORMRepository
 
 from .event_repository import EventORMRepository
 
@@ -36,3 +46,7 @@ from .relay_repositories.deleted_relay_address_repository import DeletedRelayAdd
 from .relay_repositories.relay_subdomain_repository import RelaySubdomainORMRepository
 from .relay_repositories.relay_address_repository import RelayAddressORMRepository
 from .relay_repositories.reply_repository import ReplyORMRepository
+
+from .user_reward_mission_repository import UserRewardMissionORMRepository
+from .mission_repository import MissionORMRepository
+from .promo_code_repository import PromoCodeORMRepository

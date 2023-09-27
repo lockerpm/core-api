@@ -1,8 +1,8 @@
-from shared.constants.members import *
-from shared.permissions.locker_permissions.app import LockerPermission
+from locker_server.api.permissions.app import APIPermission
+from locker_server.shared.constants.members import *
 
 
-class SharingPwdPermission(LockerPermission):
+class SharingPwdPermission(APIPermission):
     # scope = 'cipher'
 
     def has_permission(self, request, view):

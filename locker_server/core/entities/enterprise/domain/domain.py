@@ -3,7 +3,7 @@ from locker_server.core.entities.enterprise.enterprise import Enterprise
 
 class Domain(object):
     def __init__(self, domain_id: int, created_time: float = None, updated_time: float = None, domain: str = None,
-                 root_domain: float = None, verification: bool = False, auto_approve: float = False,
+                 root_domain: str = None, verification: bool = False, auto_approve: float = False,
                  is_notify_failed: bool = False, enterprise: Enterprise = None):
         self._domain_id = domain_id
         self._created_time = created_time

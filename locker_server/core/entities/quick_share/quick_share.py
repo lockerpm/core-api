@@ -1,3 +1,5 @@
+from typing import List
+
 from locker_server.core.entities.cipher.cipher import Cipher
 
 
@@ -6,7 +8,7 @@ class QuickShare(object):
                  revision_date: float = None, deleted_date: float = None, quick_share_type: int = None, data: str = None,
                  key: str = None, password: str = None, each_email_access_count: int = None,
                  max_access_count: int = None, access_count: int = 0, expiration_date: float = None,
-                 disabled: bool = False, is_public: bool= True, require_otp: bool = True):
+                 disabled: bool = False, is_public: bool= True, require_otp: bool = True, emails: List = None):
         self._quick_share_id = quick_share_id
         self._cipher = cipher
         self._access_id = access_id
@@ -24,6 +26,7 @@ class QuickShare(object):
         self._disabled = disabled
         self._is_public = is_public
         self._require_otp = require_otp
+        self._emails = emails or []
 
     @property
     def quick_share_id(self):
@@ -92,3 +95,7 @@ class QuickShare(object):
     @property
     def require_otp(self):
         return self._require_otp
+
+    @property
+    def emails(self):
+        return self._emails

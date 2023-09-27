@@ -4,8 +4,11 @@ from locker_server.core.entities.enterprise.domain.domain import Domain
 from locker_server.core.entities.enterprise.domain.domain_ownership import DomainOwnership
 from locker_server.core.entities.enterprise.domain.ownership import Ownership
 from locker_server.core.entities.enterprise.enterprise import Enterprise
+from locker_server.core.entities.enterprise.group.group import EnterpriseGroup
+from locker_server.core.entities.enterprise.group.group_member import EnterpriseGroupMember
 from locker_server.core.entities.enterprise.member.enterprise_member import EnterpriseMember
 from locker_server.core.entities.enterprise.member.enterprise_member_role import EnterpriseMemberRole
+from locker_server.core.entities.enterprise.payment.billing_contact import EnterpriseBillingContact
 from locker_server.core.entities.enterprise.policy.policy import EnterprisePolicy
 from locker_server.core.entities.enterprise.policy.policy_2fa import Policy2FA
 from locker_server.core.entities.enterprise.policy.policy_failed_login import PolicyFailedLogin
@@ -87,6 +90,29 @@ class EnterpriseParser:
         )
 
     @classmethod
+    def parse_enterprise_group(cls, enterprise_group_orm: EnterpriseGroupORM) -> EnterpriseGroup:
+        created_by = get_specific_model_parser("UserParser").parse_user(user_orm=enterprise_group_orm.created_by) \
+            if enterprise_group_orm.created_by else None
+        return EnterpriseGroup(
+            enterprise_group_id=enterprise_group_orm.id,
+            name=enterprise_group_orm.name,
+            creation_date=enterprise_group_orm.creation_date,
+            revision_date=enterprise_group_orm.revision_date,
+            created_by=created_by,
+            enterprise=cls.parse_enterprise(enterprise_orm=enterprise_group_orm.enterprise)
+
+        )
+
+    @classmethod
+    def parse_enterprise_group_member(cls,
+                                      enterprise_group_member_orm: EnterpriseGroupMemberORM) -> EnterpriseGroupMember:
+        return EnterpriseGroupMember(
+            enterprise_group_member_id=enterprise_group_member_orm.id,
+            group=cls.parse_enterprise_group(enterprise_group_orm=enterprise_group_member_orm.group),
+            member=cls.parse_enterprise_member(enterprise_member_orm=enterprise_group_member_orm.member)
+        )
+
+    @classmethod
     def parse_enterprise_policy(cls, enterprise_policy_orm: EnterprisePolicyORM) -> EnterprisePolicy:
         enterprise_policy = EnterprisePolicy(
             policy_id=enterprise_policy_orm.id,
@@ -156,4 +182,15 @@ class EnterpriseParser:
             policy_type=policy_passwordless_orm.policy.policy_type,
             enabled=policy_passwordless_orm.policy.enabled,
             only_allow_passwordless=policy_passwordless_orm.only_allow_passwordless
+        )
+
+    @classmethod
+    def parse_enterprise_billing_contact(cls, enterprise_billing_contact_orm: EnterpriseBillingContactORM) \
+            -> EnterpriseBillingContact:
+        enterprise = cls.parse_enterprise(enterprise_orm=enterprise_billing_contact_orm.enterprise)
+        return EnterpriseBillingContact(
+            enterprise_billing_contact_id=enterprise_billing_contact_orm.id,
+            enterprise=enterprise,
+            created_time=enterprise_billing_contact_orm.created_time,
+            email=enterprise_billing_contact_orm.email
         )

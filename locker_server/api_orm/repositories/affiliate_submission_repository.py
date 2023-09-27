@@ -35,7 +35,7 @@ class AffiliateSubmissionORMRepository(AffiliateSubmissionRepository):
 
     # ------------------------ Create AffiliateSubmission resource --------------------- #
     def create_affiliate_submission(self, affiliate_submission_create_data) -> Optional[AffiliateSubmission]:
-        affiliate_submission_orm = AffiliateSubmissionORM.create(**affiliate_submission_create_data)
+        affiliate_submission_orm = AffiliateSubmissionORM.objects.create(**affiliate_submission_create_data)
         return ModelParser.form_submission_parser().parse_affiliate_submission(
             affiliate_submission_orm=affiliate_submission_orm
         )

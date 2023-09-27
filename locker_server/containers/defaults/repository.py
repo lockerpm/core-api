@@ -11,8 +11,12 @@ class RepositoryFactory(containers.DeclarativeContainer):
     user_repository = providers.Factory(UserORMRepository)
     plan_repository = providers.Factory(PlanORMRepository)
     user_plan_repository = providers.Factory(UserPlanORMRepository)
+    education_email_repository = providers.Factory(EducationEmailORMRepository)
+
     payment_repository = providers.Factory(PaymentORMRepository)
     country_repository = providers.Factory(CountryORMRepository)
+
+    emergency_access_repository = providers.Factory(EmergencyAccessORMRepository)
 
     exclude_domain_repository = providers.Factory(ExcludeDomainORMRepository)
 
@@ -24,12 +28,19 @@ class RepositoryFactory(containers.DeclarativeContainer):
 
     team_repository = providers.Factory(TeamORMRepository)
     team_member_repository = providers.Factory(TeamMemberORMRepository)
+    team_group_repository = providers.Factory(TeamGroupORMRepository)
     collection_repository = providers.Factory(CollectionORMRepository)
     sharing_repository = providers.Factory(SharingORMRepository)
 
+    quick_share_repository = providers.Factory(QuickShareORMRepository)
+
     enterprise_repository = providers.Factory(EnterpriseORMRepository)
     enterprise_member_repository = providers.Factory(EnterpriseMemberORMRepository)
+    enterprise_group_repository = providers.Factory(EnterpriseGroupORMRepository)
     enterprise_policy_repository = providers.Factory(EnterprisePolicyORMRepository)
+    enterprise_group_member_repository = providers.Factory(EnterpriseGroupMemberORMRepository)
+    enterprise_billing_contact_repository = providers.Factory(EnterpriseBillingContactORMRepository)
+    enterprise_domain_repository = providers.Factory(EnterpriseDomainORMRepository)
 
     event_repository = providers.Factory(EventORMRepository)
 
@@ -44,3 +55,7 @@ class RepositoryFactory(containers.DeclarativeContainer):
     affiliate_submission_repository = providers.Factory(AffiliateSubmissionORMRepository)
 
     release_repository = providers.Factory(ReleaseORMRepository)
+
+    user_reward_mission_repository = providers.Factory(UserRewardMissionORMRepository)
+    mission_repository = providers.Factory(MissionORMRepository)
+    promo_code_repository = providers.Factory(PromoCodeORMRepository)

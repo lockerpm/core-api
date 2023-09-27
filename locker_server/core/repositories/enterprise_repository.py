@@ -2,7 +2,6 @@ from typing import Union, Dict, Optional, List
 from abc import ABC, abstractmethod
 
 from locker_server.core.entities.enterprise.enterprise import Enterprise
-from locker_server.core.entities.user.user import User
 
 
 class EnterpriseRepository(ABC):
@@ -11,11 +10,21 @@ class EnterpriseRepository(ABC):
     def list_user_enterprises(self, user_id: int, **filter_params) -> List[Enterprise]:
         pass
 
+    @abstractmethod
+    def list_user_enterprise_ids(self, user_id: int, **filter_params) -> List[str]:
+        pass
+
     # ------------------------ Get Enterprise resource --------------------- #
+    @abstractmethod
+    def get_enterprise_by_id(self, enterprise_id: str) -> Optional[Enterprise]:
+        pass
 
     # ------------------------ Create Enterprise resource --------------------- #
 
     # ------------------------ Update Enterprise resource --------------------- #
+    @abstractmethod
+    def update_enterprise(self, enterprise_id: str, enterprise_update_data) -> Optional[Enterprise]:
+        pass
 
     # ------------------------ Delete EnterpriseMember resource --------------------- #
     @abstractmethod

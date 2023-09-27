@@ -54,9 +54,17 @@ class TeamMember(object):
     def hide_passwords(self):
         return self._hide_passwords
 
+    @hide_passwords.setter
+    def hide_passwords(self, hide_passwords_value):
+        self._hide_passwords = hide_passwords_value
+
     @property
     def key(self):
         return self._key
+
+    @key.setter
+    def key(self, key_value):
+        self._key = key_value
 
     @property
     def reset_password_key(self):
@@ -66,9 +74,17 @@ class TeamMember(object):
     def status(self):
         return self._status
 
+    @status.setter
+    def status(self, status_value):
+        self._status = status_value
+
     @property
     def email(self):
         return self._email
+
+    @email.setter
+    def email(self, email_value):
+        self._email = email_value
 
     @property
     def token_invitation(self):
@@ -85,3 +101,7 @@ class TeamMember(object):
     @property
     def role(self):
         return self._role
+
+    @role.setter
+    def role(self, role_value):
+        self._role = role_value

@@ -18,6 +18,21 @@ class DeviceORMRepository(DeviceRepository):
         devices_orm = DeviceORM.objects.filter(user_id=user_id).select_related('user').order_by('-created_time')
         return [ModelParser.user_parser().parse_device(device_orm=device_orm) for device_orm in devices_orm]
 
+    def list_devices(self, **filter_params) -> List[Device]:
+        devices_orm = DeviceORM.objects.all().order_by('-created_time')
+        user_id_param = filter_params.get("user_id")
+        client_id_param = filter_params.get("client_id")
+        device_identifier_param = filter_params.get("device_identifier")
+
+        if user_id_param:
+            devices_orm = devices_orm.filter(user_id=user_id_param)
+        if client_id_param:
+            devices_orm = devices_orm.filter(client_id=client_id_param)
+        if device_identifier_param:
+            devices_orm = devices_orm.filter(device_identifier=device_identifier_param)
+        devices_orm = devices_orm.select_related('user')
+        return [ModelParser.user_parser().parse_device(device_orm=device_orm) for device_orm in devices_orm]
+
     # ------------------------ Get Device resource --------------------- #
     def get_device_by_identifier(self, user_id: int, device_identifier: str) -> Optional[Device]:
         try:
