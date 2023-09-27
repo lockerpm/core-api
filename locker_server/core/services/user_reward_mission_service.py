@@ -94,7 +94,10 @@ class UserRewardMissionService:
         new_promo_code = self.promo_code_repository.create_promo_code(
             promo_code_create_data=promo_code_create_data
         )
-        self.promo_code_repository.delete_old_promo_code(exclude_promo_code_id=new_promo_code.promo_code_id)
+        self.promo_code_repository.delete_old_promo_code(
+            user_id=user_id,
+            exclude_promo_code_id=new_promo_code.promo_code_id
+        )
         return new_promo_code
 
     def delete_promo_code_by_id(self, promo_code_id: str) -> NoReturn:

@@ -1,5 +1,6 @@
 from typing import Dict
 
+from locker_server.containers.containers import device_service
 from locker_server.shared.constants.device_type import CLIENT_ID_DESKTOP
 from locker_server.shared.constants.missions import REWARD_TYPE_PROMO_CODE
 from locker_server.shared.external_services.user_reward_mission.mission import Mission
@@ -15,4 +16,8 @@ class DesktopAppInstallationMission(Mission):
         user = input_data.get("user")
         if not user:
             return False
-        return user.user_devices.filter(client_id=CLIENT_ID_DESKTOP).exists()
+        desktop_devices = device_service.list_devices(**{
+            "user_id": user.user_id,
+            "client_id": CLIENT_ID_DESKTOP
+        })
+        return True if desktop_devices else False

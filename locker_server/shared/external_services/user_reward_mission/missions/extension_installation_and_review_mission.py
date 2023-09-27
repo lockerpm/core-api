@@ -4,6 +4,7 @@ from typing import Dict
 from bs4 import BeautifulSoup
 import requests
 
+from locker_server.containers.containers import device_service
 from locker_server.shared.constants.device_type import *
 from locker_server.shared.constants.missions import REWARD_TYPE_PREMIUM
 from locker_server.shared.external_services.user_reward_mission.mission import Mission, MAX_REVIEW_DURATION_TIME
@@ -20,9 +21,13 @@ class ExtensionInstallationAndReviewMission(Mission):
     def check_mission_completion(self, input_data: Dict):
         user = input_data.get("user")
         user_identifier = input_data.get("user_identifier")
-        extension_devices = list(user.user_devices.filter(
-            client_id=CLIENT_ID_BROWSER
-        ).values_list('device_type', flat=True).distinct())
+        extension_devices_obj = device_service.list_devices(**{
+            "user_id": user.user_id,
+            "client_id": CLIENT_ID_BROWSER
+        })
+        extension_devices = [d.device_type for d in extension_devices_obj]
+        extension_devices = list(set(extension_devices))
+
         if len(extension_devices) < 2:
             return False
         map_extension_type_check = {

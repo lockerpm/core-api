@@ -3,6 +3,7 @@ from typing import Dict, Optional, List
 
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned
+from django.db.models import F
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models import PMUserPlanFamilyORM
@@ -484,7 +485,7 @@ class UserPlanORMRepository(UserPlanRepository):
             user_plan_orm = PMUserPlanORM.objects.get(id=user_plan_id)
         except PMUserPlanORM.DoesNotExist:
             return None
-        user_plan_orm.extra_time += user_plan_update_data.get("extra_time")
+        user_plan_orm.extra_time = F('extra_time') + user_plan_update_data.get("extra_time", 0)
         user_plan_orm.extra_plan += user_plan_update_data.get("extra_plan")
         user_plan_orm.save()
         return ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=user_plan_orm)

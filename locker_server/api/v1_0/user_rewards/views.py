@@ -118,8 +118,6 @@ class UserRewardMissionPwdViewSet(APIBaseViewSet):
         if not mission_factory:
             return Response(status=status.HTTP_200_OK, data={"claim": False})
         input_data = {"user": user, "user_identifier": user_identifier}
-
-        # TODO: refactor check_mission_completion
         mission_check = mission_factory.check_mission_completion(input_data)
         answer = json.dumps(answer)
         if not mission_check:
@@ -154,7 +152,7 @@ class UserRewardMissionPwdViewSet(APIBaseViewSet):
                 extra_time = user_reward_mission.mission.reward_value
                 extra_plan = user_plan.extra_plan
                 if not user_plan.extra_plan:
-                    extra_plan = user_plan.get_plan_type_alias()
+                    extra_plan = user_plan.pm_plan.alias
                 self.user_service.update_user_plan_by_id(
                     user_plan_id=user_plan.pm_user_plan_id,
                     user_plan_update_data={
@@ -174,7 +172,7 @@ class UserRewardMissionPwdViewSet(APIBaseViewSet):
         result.update({
             "generated_available_promo_codes": generated_promo_codes_srl.data
         })
-        return Response(status=200, data=result)
+        return Response(status=status.HTTP_200_OK, data=result)
 
     @action(methods=["get"], detail=False)
     def list_promo_codes(self, request, *args, **kwargs):
@@ -194,7 +192,7 @@ class UserRewardMissionPwdViewSet(APIBaseViewSet):
             raise NotFound
         except UserRewardPromoCodeInvalidException:
             raise ValidationError(detail={"promo_code": ["The available promo code value is not valid"]})
-            # Create on Stripe
+        # Create on Stripe
         if os.getenv("PROD_ENV") in ["prod", "staging"]:
             try:
                 stripe.Coupon.create(
