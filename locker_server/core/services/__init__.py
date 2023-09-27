@@ -24,6 +24,7 @@ from .quick_share_service import QuickShareService
 
 from .enterprise_service import EnterpriseService
 from .enterprise_group_service import EnterpriseGroupService
+from .enterprise_member_service import EnterpriseMemberService
 
 from .event_service import EventService
 

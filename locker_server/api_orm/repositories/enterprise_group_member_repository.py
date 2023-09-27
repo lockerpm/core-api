@@ -7,7 +7,6 @@ from locker_server.core.entities.enterprise.group.group import EnterpriseGroup
 from locker_server.core.entities.enterprise.group.group_member import EnterpriseGroupMember
 from locker_server.core.repositories.enterprise_group_member_repository import EnterpriseGroupMemberRepository
 
-
 EnterpriseGroupMemberORM = get_enterprise_group_member_model()
 ModelParser = get_model_parser()
 
@@ -28,6 +27,13 @@ class EnterpriseGroupMemberORMRepository(EnterpriseGroupMemberRepository):
         ).values('member__user_id', 'member__email')
         return [{"user_id": m.get("member__user_id"), "email": m.get("member__email")} for m in members]
 
+    def list_enterprise_group_member_user_id_by_id(self, enterprise_id: str, enterprise_group_id: str) -> List[str]:
+        user_ids = EnterpriseGroupMemberORM.objects.filter(
+            group_id=enterprise_group_id,
+            group__enterprise_id=enterprise_id
+        ).values_list("member__user_id", flat=True)
+        return list(user_ids)
+
     # ------------------------ Get EnterpriseGroupMember resource --------------------- #
 
     # ------------------------ Create EnterpriseGroupMember resource --------------------- #
@@ -35,4 +41,3 @@ class EnterpriseGroupMemberORMRepository(EnterpriseGroupMemberRepository):
     # ------------------------ Update EnterpriseGroupMember resource --------------------- #
 
     # ------------------------ Delete EnterpriseGroupMember resource --------------------- #
-

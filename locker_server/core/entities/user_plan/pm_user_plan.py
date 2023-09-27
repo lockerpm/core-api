@@ -20,7 +20,6 @@ class PMUserPlan(object):
                  pm_mobile_subscription: str = None, extra_time: int = 0, extra_plan: str = None,
                  member_billing_updated_time: float = None, attempts: int = 0, pm_plan: PMPlan = None,
                  promo_code: PromoCode = None):
-
         self._pm_user_plan_id = pm_user_plan_id
         self._user = user
         self._duration = duration
@@ -149,6 +148,9 @@ class PMUserPlan(object):
             return None
         return stripe.Subscription.retrieve(self.pm_stripe_subscription)
 
+    def get_plan_type_alias(self) -> str:
+        return self.pm_plan.alias
+
     def get_next_billing_time(self, duration: str = None) -> Union[float, int]:
         if self.pm_plan.alias in [PLAN_TYPE_PM_FREE]:
             return None
@@ -183,3 +185,4 @@ class PMUserPlan(object):
         if stripe_subscription:
             return stripe_subscription.cancel_at_period_end
         return self.cancel_at_period_end
+

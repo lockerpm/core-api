@@ -138,16 +138,26 @@ class ServiceFactory(containers.DeclarativeContainer):
         EnterpriseService,
         enterprise_repository=RepositoryFactory.enterprise_repository,
         enterprise_member_repository=RepositoryFactory.enterprise_member_repository,
-        enterprise_policy_repository=RepositoryFactory.enterprise_policy_repository
+        enterprise_policy_repository=RepositoryFactory.enterprise_policy_repository,
+        enterprise_billing_contact_repository=RepositoryFactory.enterprise_billing_contact_repository,
+        enterprise_domain_repository=RepositoryFactory.enterprise_domain_repository,
+        country_repository=RepositoryFactory.country_repository
     )
     enterprise_group_service = providers.Factory(
         EnterpriseGroupService,
 
     )
+    enterprise_member_service = providers.Factory(
+        EnterpriseMemberService,
+        enterprise_repository=RepositoryFactory.enterprise_repository,
+        enterprise_member_repository=RepositoryFactory.enterprise_member_repository,
+        enterprise_group_member_repository=RepositoryFactory.enterprise_group_member_repository,
+    )
 
     event_service = providers.Factory(
         EventService,
         event_repository=RepositoryFactory.event_repository,
+        user_repository=RepositoryFactory.user_repository
     )
 
     relay_address_service = providers.Factory(

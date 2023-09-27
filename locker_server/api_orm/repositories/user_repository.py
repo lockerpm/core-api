@@ -1,7 +1,7 @@
-from typing import Union, Dict, Optional, Tuple
+from typing import Union, Dict, Optional, Tuple, List
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Subquery, OuterRef
+from django.db.models import Subquery, OuterRef, Count, Case, When, IntegerField, Value, Q
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models import UserScoreORM
@@ -12,7 +12,7 @@ from locker_server.core.entities.user.user import User
 from locker_server.core.repositories.user_repository import UserRepository
 from locker_server.shared.caching.sync_cache import delete_sync_cache_data
 from locker_server.shared.constants.account import ACCOUNT_TYPE_ENTERPRISE, ACCOUNT_TYPE_PERSONAL
-from locker_server.shared.constants.ciphers import CIPHER_TYPE_MASTER_PASSWORD
+from locker_server.shared.constants.ciphers import CIPHER_TYPE_MASTER_PASSWORD, CIPHER_TYPE_LOGIN
 from locker_server.shared.constants.enterprise_members import E_MEMBER_STATUS_CONFIRMED, E_MEMBER_ROLE_PRIMARY_ADMIN, \
     E_MEMBER_ROLE_ADMIN
 from locker_server.shared.constants.event import EVENT_USER_BLOCK_LOGIN
@@ -33,6 +33,32 @@ ModelParser = get_model_parser()
 
 class UserORMRepository(UserRepository):
     # ------------------------ List User resource ------------------- #
+    def list_users(self, **filters) -> List[User]:
+        users_orm = UserORM.objects.all()
+        user_ids_param = filters.get("user_ids")
+        if user_ids_param:
+            users_orm = users_orm.filter(id__in=user_ids_param)
+        return [
+            ModelParser.user_parser().parse_user(users_orm=user_orm)
+            for user_orm in users_orm
+        ]
+
+    def count_weak_cipher_password(self, user_ids: List[int] = None) -> int:
+        if user_ids:
+            users_orm = UserORM.objects.filter(
+                user_id__in=user_ids
+            )
+        else:
+            users_orm = UserORM.objects.all()
+        weak_cipher_password_count = users_orm.annotate(
+            weak_ciphers=Count(
+                Case(
+                    When(Q(ciphers__score__lte=1, ciphers__type=CIPHER_TYPE_LOGIN), then=Value(1)),
+                    output_field=IntegerField()
+                )
+            )
+        ).values('user_id', 'weak_ciphers').filter(weak_ciphers__gte=10).count()
+        return weak_cipher_password_count
 
     # ------------------------ Get User resource --------------------- #
     def get_user_by_id(self, user_id: int) -> Optional[User]:

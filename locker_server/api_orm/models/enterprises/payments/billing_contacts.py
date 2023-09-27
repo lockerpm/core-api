@@ -22,3 +22,18 @@ class EnterpriseBillingContactORM(models.Model):
             defaults={"enterprise": enterprise, "email": email, "created_time": now()}
         )
         return contact
+
+    @classmethod
+    def create(cls, **data):
+        created_time = now()
+        email = data.get("email")
+        enterprise_id = data.get("enterprise_id")
+        contact, is_created = cls.objects.get_or_create(
+            enterprise_id=enterprise_id, email=email,
+            defaults={
+                "enterprise_id": enterprise_id,
+                "email": email,
+                "created_time": created_time
+            }
+        )
+        return contact

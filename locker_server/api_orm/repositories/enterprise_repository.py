@@ -11,6 +11,7 @@ from locker_server.core.repositories.enterprise_repository import EnterpriseRepo
 from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_MEMBER, E_MEMBER_STATUS_CONFIRMED
 from locker_server.shared.constants.members import PM_MEMBER_STATUS_INVITED
 from locker_server.shared.log.cylog import CyLog
+from locker_server.shared.utils.app import now
 from locker_server.shared.utils.network import extract_root_domain
 
 UserORM = get_user_model()
@@ -68,10 +69,52 @@ class EnterpriseORMRepository(EnterpriseRepository):
         return list(enterprises_orm.values_list('id', flat=True))
 
     # ------------------------ Get Enterprise resource --------------------- #
+    def get_enterprise_by_id(self, enterprise_id: str) -> Optional[Enterprise]:
+        try:
+            enterprise_orm = EnterpriseORM.objects.get(id=enterprise_id)
+        except EnterpriseORM.DoesNotExist:
+            return None
+        return ModelParser.enterprise_parser().parse_enterprise(enterprise_orm=enterprise_orm)
 
     # ------------------------ Create Enterprise resource --------------------- #
 
     # ------------------------ Update Enterprise resource --------------------- #
+    def update_enterprise(self, enterprise_id: str, enterprise_update_data) -> Optional[Enterprise]:
+        try:
+            enterprise_orm = EnterpriseORM.objects.get(id=enterprise_id)
+        except EnterpriseORM.DoesNotExist:
+            return None
+        enterprise_orm.name = enterprise_update_data.get("name", enterprise_orm.name)
+        enterprise_orm.description = enterprise_update_data.get(
+            "description", enterprise_orm.description
+        )
+        enterprise_orm.enterprise_name = enterprise_update_data.get(
+            "enterprise_name", enterprise_orm.enterprise_name
+        )
+        enterprise_orm.enterprise_address1 = enterprise_update_data.get(
+            "enterprise_address1",
+            enterprise_orm.enterprise_address1
+        )
+        enterprise_orm.enterprise_address2 = enterprise_update_data.get(
+            "enterprise_address2",
+            enterprise_orm.enterprise_address2
+        )
+        enterprise_orm.enterprise_phone = enterprise_update_data.get(
+            "enterprise_phone",
+            enterprise_orm.enterprise_phone
+        )
+        enterprise_orm.enterprise_country = enterprise_update_data.get(
+            "enterprise_country",
+            enterprise_orm.enterprise_country
+        )
+        enterprise_orm.enterprise_postal_code = enterprise_update_data.get(
+            "enterprise_postal_code",
+            enterprise_orm.enterprise_postal_code
+        )
+        enterprise_orm.revision_date = now()
+
+        enterprise_orm.save()
+        return ModelParser.enterprise_parser().parse_enterprise(enterprise_orm=enterprise_orm)
 
     # ------------------------ Delete Enterprise resource --------------------- #
     def delete_completely(self, enterprise: Enterprise):
