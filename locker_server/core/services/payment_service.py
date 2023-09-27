@@ -3,8 +3,6 @@ from typing import List, Optional, Dict
 import jwt
 
 from locker_server.core.entities.payment.payment import Payment
-from locker_server.core.entities.user.device import Device
-from locker_server.core.entities.user.user import User
 from locker_server.core.exceptions.enterprise_member_repository import EnterpriseMemberExistedException
 from locker_server.core.exceptions.payment_exception import PaymentInvoiceDoesNotExistException, \
     PaymentPromoCodeInvalidException, PaymentFailedByUserInFamilyException, CurrentPlanDoesNotSupportOperatorException, \

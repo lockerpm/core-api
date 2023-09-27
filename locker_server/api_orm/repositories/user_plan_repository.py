@@ -125,6 +125,13 @@ class UserPlanORMRepository(UserPlanRepository):
         user_plan_orm = self._get_current_plan_orm(user_id=user_id)
         return ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=user_plan_orm)
 
+    def get_mobile_user_plan(self, pm_mobile_subscription: str) -> Optional[PMUserPlan]:
+        try:
+            user_plan_orm = PMUserPlanORM.objects.get(pm_mobile_subscription=pm_mobile_subscription)
+            return ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=user_plan_orm)
+        except PMUserPlanORM.DoesNotExist:
+            return None
+
     def get_default_enterprise(self, user_id: int, enterprise_name: str = None,
                                create_if_not_exist=False) -> Optional[Enterprise]:
         try:
@@ -281,6 +288,22 @@ class UserPlanORMRepository(UserPlanRepository):
                 result["next_billing_payment"] = immediate_amount
                 result["immediate_payment"] = 0
         return result
+
+    def is_update_personal_to_enterprise(self, current_plan: PMUserPlan, new_plan_alias: str) -> bool:
+        """
+        Handle event hooks: The plan update event is a personal plan while the current plan is Enterprise plan
+        So, we don't need to update the plan of this user
+        :param current_plan: (obj) The current plan
+        :param new_plan_alias: (str) Event hook plan
+        :return: True - Event hook is personal plan. Current plan is Enterprise
+        """
+        try:
+            new_plan_obj = PMPlanORM.objects.get(alias=new_plan_alias)
+            if current_plan.pm_plan.is_team_plan is True and new_plan_obj.is_team_plan is False:
+                return True
+        except PMPlanORM.DoesNotExist:
+            pass
+        return False
 
     # ------------------------ Create PMUserPlan resource --------------------- #
     def add_to_family_sharing(self, family_user_plan_id: int, user_id: int = None,
@@ -485,8 +508,12 @@ class UserPlanORMRepository(UserPlanRepository):
             user_plan_orm = PMUserPlanORM.objects.get(id=user_plan_id)
         except PMUserPlanORM.DoesNotExist:
             return None
-        user_plan_orm.extra_time = F('extra_time') + user_plan_update_data.get("extra_time", 0)
-        user_plan_orm.extra_plan += user_plan_update_data.get("extra_plan")
+        if user_plan_update_data.get("extra_time"):
+            user_plan_orm.extra_time = F('extra_time') + user_plan_update_data.get("extra_time", 0)
+        user_plan_orm.extra_plan = user_plan_update_data.get("extra_plan", user_plan_orm.extra_plan)
+        user_plan_orm.pm_mobile_subscription = user_plan_update_data.get(
+            "pm_mobile_subscription", user_plan_orm.pm_mobile_subscription
+        )
         user_plan_orm.save()
         return ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=user_plan_orm)
 

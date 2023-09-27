@@ -23,6 +23,7 @@ class APIBaseViewSet(AppGeneralViewSet):
     exclude_domain_service = exclude_domain_service
 
     payment_service = payment_service
+    mobile_payment_service = mobile_payment_service
 
     cipher_service = cipher_service
     folder_service = folder_service

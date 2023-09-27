@@ -18,6 +18,10 @@ class UserPlanRepository(ABC):
         pass
 
     @abstractmethod
+    def get_mobile_user_plan(self, pm_mobile_subscription: str) -> Optional[PMUserPlan]:
+        pass
+
+    @abstractmethod
     def get_default_enterprise(self, user_id: int, enterprise_name: str = None,
                                create_if_not_exist=False) -> Optional[Enterprise]:
         pass
@@ -50,6 +54,10 @@ class UserPlanRepository(ABC):
     def calc_update_price(self, current_plan: PMUserPlan, new_plan: PMPlan, new_duration: str, new_quantity: int = 1,
                           currency: str = CURRENCY_USD, promo_code: str = None, allow_trial: bool = True,
                           utm_source: str = None) -> Dict:
+        pass
+
+    @abstractmethod
+    def is_update_personal_to_enterprise(self, current_plan: PMUserPlan, new_plan_alias: str) -> bool:
         pass
 
     # ------------------------ Create PMUserPlan resource --------------------- #

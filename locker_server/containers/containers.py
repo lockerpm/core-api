@@ -20,6 +20,7 @@ emergency_access_service = ServiceFactory.emergency_access_service()
 exclude_domain_service = ServiceFactory.exclude_domain_service()
 
 payment_service = ServiceFactory.payment_service()
+mobile_payment_service = ServiceFactory.mobile_payment_service()
 
 cipher_service = ServiceFactory.cipher_service()
 folder_service = ServiceFactory.folder_service()

@@ -98,3 +98,9 @@ class CannotCancelDefaultPlanException(PaymentException):
     """
 
     """
+
+
+class CurrentPlanIsEnterpriseException(PaymentException):
+    """
+    The current plan is Enterprise
+    """
