@@ -27,6 +27,7 @@ from locker_server.api_orm.models.user_plans.pm_user_plan_family import PMUserPl
 
 
 # ------------------------- Notification Settings ---------------- #
+from locker_server.api_orm.models.notifications.notifications import NotificationORM
 from locker_server.api_orm.models.notifications.notification_category import NotificationCategoryORM
 from locker_server.api_orm.models.notifications.notification_settings import NotificationSettingORM
 
