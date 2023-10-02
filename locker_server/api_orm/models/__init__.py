@@ -3,6 +3,7 @@ from locker_server.api_orm.models.users.users import UserORM
 from locker_server.api_orm.models.users.user_score import UserScoreORM
 from locker_server.api_orm.models.users.devices import DeviceORM
 from locker_server.api_orm.models.users.device_access_tokens import DeviceAccessTokenORM
+from locker_server.api_orm.models.users.education_emails import EducationEmailORM
 
 
 # ------------------------- Factor 2 ---------------------------- #
