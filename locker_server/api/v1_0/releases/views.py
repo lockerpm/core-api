@@ -9,7 +9,7 @@ from locker_server.shared.constants.release import RELEASE_ENVIRONMENT_PROD
 from .serializers import NewReleaseSerializer, NextReleaseSerializer
 
 
-class ReleaseViewSet(APIBaseViewSet):
+class ReleasePwdViewSet(APIBaseViewSet):
     permission_classes = (ReleasePwdPermission,)
     http_method_names = ["head", "options", "get", "post"]
 
