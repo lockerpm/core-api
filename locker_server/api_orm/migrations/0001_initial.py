@@ -59,6 +59,12 @@ def load_fixtures(apps, schema_editor):
                     "id": settings.RELAY_DOMAIN
                 }
             }]
+        if fixture_filename == "plan.json":
+            for d in data:
+                fields = d.get("fields")
+                fields["plan_type_id"] = fields.get("plan_type")
+                fields.pop("plan_type", None)
+                d["fields"] = fields
         for d in data:
             objs.append(model_orm(**d.get("fields")))
 

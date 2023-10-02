@@ -201,7 +201,7 @@ try:
     LS_QUICK_SHARE_MODEL = "api_orm.QuickShareORM"
     LS_QUICK_SHARE_EMAIL_MODEL = "api_orm.QuickShareEmailORM"
 
-    LSCORE_SETTINGS = {
+    LOCKER_SERVER_SETTINGS = {
         "API_REPOSITORY_CLASS": "locker_server.containers.defaults.repository.RepositoryFactory",
         "API_SERVICE_CLASS": "locker_server.containers.defaults.service.ServiceFactory",
         "MODEL_PARSER_CLASS": "locker_server.api_orm.model_parsers.model_parsers.ModelParser",
