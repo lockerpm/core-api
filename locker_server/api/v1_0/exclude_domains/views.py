@@ -10,7 +10,7 @@ from .serializers import ExcludeDomainSerializer
 
 class ExcludeDomainPwdViewSet(APIBaseViewSet):
     permission_classes = (ExcludeDomainPwdPermission,)
-    http_method_names = ["options", "head", "get", "post", "put", "delete"]
+    http_method_names = ["options", "head", "get", "post", "delete"]
     lookup_value_regex = r'[0-9a-z-]+'
     serializer_class = ExcludeDomainSerializer
 
