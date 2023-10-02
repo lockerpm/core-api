@@ -52,13 +52,19 @@ def load_fixtures(apps, schema_editor):
         if not model_orm:
             continue
         objs = []
-        if fixture_filename == "relay_domain.json" and settings.RELAY_DOMAIN:
-            objs = [{
-                "model": "api_orm.RelayDomainORM",
-                "fields": {
-                    "id": settings.RELAY_DOMAIN
-                }
-            }]
+        if fixture_filename == "relay_domain.json":
+            try:
+                if settings.RELAY_DOMAIN:
+                    objs = [{
+                        "model": "api_orm.RelayDomainORM",
+                        "fields": {
+                            "id": settings.RELAY_DOMAIN
+                        }
+                    }]
+                else:
+                    continue
+            except AttributeError:
+                continue
         if fixture_filename == "plan.json":
             for d in data:
                 fields = d.get("fields")
