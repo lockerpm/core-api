@@ -22,6 +22,4 @@ class AbstractUserScoreORM(models.Model):
 
     @classmethod
     def create(cls, user):
-        new_bw_user_score = cls(user=user)
-        new_bw_user_score.save()
-        return new_bw_user_score
+        raise NotImplementedError
