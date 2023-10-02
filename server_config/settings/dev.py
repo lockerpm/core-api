@@ -139,10 +139,10 @@ try:
 
     REST_FRAMEWORK = {
         'DEFAULT_AUTHENTICATION_CLASSES': [
-            'locker_server.shared.authentications.app.AppGeneralAuthentication'
+            'locker_server.api.authentications.token_authentication.TokenAuthentication'
         ],
         'DEFAULT_PERMISSION_CLASSES': (
-            'locker_server.shared.permissions.app.AppBasePermission',
+            'locker_server.api.permissions.app.APIPermission',
         ),
         'DEFAULT_RENDERER_CLASSES': ('rest_framework.renderers.JSONRenderer',),
         'EXCEPTION_HANDLER': 'locker_server.shared.exception_handler.custom_exception_handler',

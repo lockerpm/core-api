@@ -1,17 +1,14 @@
 from django.contrib.auth.models import AnonymousUser
 
-from locker_server.shared.throttling.app import AppBaseThrottle
 from locker_server.shared.general_view import AppGeneralViewSet
-from locker_server.api.authentications.token_authentication import TokenAuthentication
-from locker_server.api.permissions.app import APIPermission
 from locker_server.containers.containers import *
 from locker_server.shared.utils.network import get_ip_by_request
 
 
 class APIBaseViewSet(AppGeneralViewSet):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (APIPermission,)
-    throttle_classes = (AppBaseThrottle,)
+    # authentication_classes = (TokenAuthentication,)
+    # permission_classes = (APIPermission,)
+    # throttle_classes = (AppBaseThrottle,)
     throttle_scope = 'anonymous'
 
     resource_service = resource_service
