@@ -582,3 +582,8 @@ class UserService:
         return self.user_repository.count_weak_cipher_password(
             user_ids=user_ids
         )
+
+    def get_user_cipher_overview(self, user_id: int) -> Dict:
+        return self.user_repository.get_user_cipher_overview(
+            user_id=user_id
+        )

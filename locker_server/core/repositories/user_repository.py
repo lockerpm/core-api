@@ -49,6 +49,10 @@ class UserRepository(ABC):
     def get_from_cystack_id(self, user_id: int) -> Dict:
         pass
 
+    @abstractmethod
+    def get_user_cipher_overview(self, user_id: int) -> Dict:
+        pass
+
     # ------------------------ Create User resource --------------------- #
     @abstractmethod
     def retrieve_or_create_by_id(self, user_id, creation_date=None) -> Tuple[User, bool]:

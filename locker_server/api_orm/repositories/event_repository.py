@@ -33,7 +33,10 @@ class EventORMRepository(EventRepository):
         to_param = filters.get("to") or now()
         member_user_ids_param = filters.get("member_user_ids")
         action_param = filters.get("action")
-
+        team_id_param = filters.get("team_id")
+        types_param = filters.get("types")
+        user_id_param = filters.get("user_id")
+        creation_date_range_param = filters.get("creation_date_range")
         if enterprise_id_param:
             events_orm = EventORM.objects.filter(
                 team_id=enterprise_id_param
@@ -75,6 +78,16 @@ class EventORMRepository(EventRepository):
                 )
             elif action_param == "share":
                 events_orm = events_orm.filter(type__in=[EVENT_ITEM_SHARE_CREATED, EVENT_ITEM_QUICK_SHARE_CREATED])
+            if team_id_param:
+                events_orm = events_orm.filter(team_id=team_id_param)
+            if types_param:
+                events_orm = events_orm.filter(type__in=types_param)
+            if user_id_param:
+                events_orm = events_orm.filter(user_id=user_id_param)
+            if creation_date_range_param:
+                events_orm = events_orm.filter(
+                    creation_date__range=creation_date_range_param
+                )
             return [
                 ModelParser.event_parser().parse_event(event_orm=event_orm)
                 for event_orm in events_orm

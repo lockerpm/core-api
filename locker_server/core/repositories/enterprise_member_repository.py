@@ -1,4 +1,4 @@
-from typing import Union, Dict, Optional, List
+from typing import Union, Dict, Optional, List, NoReturn
 from abc import ABC, abstractmethod
 
 from locker_server.core.entities.enterprise.member.enterprise_member import EnterpriseMember
@@ -19,9 +19,21 @@ class EnterpriseMemberRepository(ABC):
     def list_enterprise_member_user_id_by_members(self, enterprise_id: str, member_ids: List[str]) -> List[str]:
         pass
 
+    @abstractmethod
+    def list_enterprise_members_by_emails(self, emails_param: [str]) -> List[EnterpriseMember]:
+        pass
+
+    @abstractmethod
+    def count_enterprise_members(self, enterprise_id: str) -> int:
+        pass
+
     # ------------------------ Get EnterpriseMember resource --------------------- #
     @abstractmethod
     def get_primary_member(self, enterprise_id: str) -> Optional[EnterpriseMember]:
+        pass
+
+    @abstractmethod
+    def get_enterprise_member_by_id(self, member_id: str) -> Optional[EnterpriseMember]:
         pass
 
     @abstractmethod
@@ -41,6 +53,13 @@ class EnterpriseMemberRepository(ABC):
         pass
 
     # ------------------------ Create EnterpriseMember resource --------------------- #
+    @abstractmethod
+    def create_member(self, member_create_data: Dict) -> EnterpriseMember:
+        pass
+
+    @abstractmethod
+    def create_multiple_member(self, members_create_data: [Dict]) -> NoReturn:
+        pass
 
     # ------------------------ Update EnterpriseMember resource --------------------- #
     @abstractmethod
@@ -51,4 +70,12 @@ class EnterpriseMemberRepository(ABC):
     def enterprise_share_groups_confirm(self, user: User) -> Optional[User]:
         pass
 
+    @abstractmethod
+    def update_enterprise_member(self, enterprise_member_id: str, enterprise_member_update_data: Dict) \
+            -> Optional[EnterpriseMember]:
+        pass
+
     # ------------------------ Delete EnterpriseMember resource --------------------- #
+    @abstractmethod
+    def delete_enterprise_member(self, enterprise_member_id: str) -> bool:
+        pass

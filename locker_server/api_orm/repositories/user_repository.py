@@ -1,7 +1,7 @@
 from typing import Union, Dict, Optional, Tuple, List
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Subquery, OuterRef, Count, Case, When, IntegerField, Value, Q
+from django.db.models import Subquery, OuterRef, Count, Case, When, IntegerField, Value, Q, Sum
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models import UserScoreORM
@@ -131,6 +131,32 @@ class UserORMRepository(UserRepository):
             return user_orm.get_from_cystack_id()
         except UserORM.DoesNotExist:
             return {}
+
+    def get_user_cipher_overview(self, user_id: int) -> Dict:
+        try:
+            user_orm = UserORM.objects.get(user_id=user_id)
+        except UserORM.DoesNotExist:
+            return {}
+        cipher_overview = user_orm.created_ciphers.filter(
+            type=CIPHER_TYPE_LOGIN, deleted_date__isnull=True
+        ).aggregate(
+            cipher0=Sum(
+                Case(When(score=0, then=Value(1)), default=0), output_field=IntegerField()
+            ),
+            cipher1=Sum(
+                Case(When(score=1, then=Value(1)), default=0), output_field=IntegerField()
+            ),
+            cipher2=Sum(
+                Case(When(score=2, then=Value(1)), default=0), output_field=IntegerField()
+            ),
+            cipher3=Sum(
+                Case(When(score=3, then=Value(1)), default=0), output_field=IntegerField()
+            ),
+            cipher4=Sum(
+                Case(When(score=4, then=Value(1)), default=0), output_field=IntegerField()
+            )
+        )
+        return cipher_overview
 
     @staticmethod
     def _retrieve_or_create_user_score_orm(user_orm):

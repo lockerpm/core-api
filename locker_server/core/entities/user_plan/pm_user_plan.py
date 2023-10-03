@@ -186,3 +186,7 @@ class PMUserPlan(object):
             return stripe_subscription.cancel_at_period_end
         return self.cancel_at_period_end
 
+    def get_max_allow_members(self):
+        if self.pm_plan.is_team_plan:
+            return self.number_members
+        return self.pm_plan.max_number
