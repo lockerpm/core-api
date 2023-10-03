@@ -11,7 +11,7 @@ from .serializers import ListAffiliateSubmissionSerializer, DetailAffiliateSubmi
     UpdateAffiliateSubmissionSerializer, CreateAffiliateSubmissionSerializer
 
 
-class AffiliateSubmissionViewSet(APIBaseViewSet):
+class AffiliateSubmissionPwdViewSet(APIBaseViewSet):
     permission_classes = (AffiliateSubmissionPwdPermission,)
     http_method_names = ["head", "options", "get", "post", "put", "delete"]
 

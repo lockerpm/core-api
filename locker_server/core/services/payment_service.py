@@ -63,6 +63,12 @@ class PaymentService:
             raise PaymentInvoiceDoesNotExistException
         return payment
 
+    def get_by_payment_id(self, payment_id: str) -> Optional[Payment]:
+        payment = self.payment_repository.get_by_payment_id(payment_id=payment_id)
+        if not payment:
+            raise PaymentInvoiceDoesNotExistException
+        return payment
+
     def allow_upgrade_enterprise_trial(self, user_id: int):
         if self.enterprise_member_repository.is_in_enterprise(user_id=user_id):
             raise EnterpriseMemberExistedException

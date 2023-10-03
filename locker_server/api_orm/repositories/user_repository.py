@@ -1,5 +1,6 @@
 from typing import Union, Dict, Optional, Tuple, List
 
+import stripe
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Subquery, OuterRef, Count, Case, When, IntegerField, Value, Q
 
@@ -18,6 +19,7 @@ from locker_server.shared.constants.enterprise_members import E_MEMBER_STATUS_CO
 from locker_server.shared.constants.event import EVENT_USER_BLOCK_LOGIN
 from locker_server.shared.constants.members import MEMBER_ROLE_OWNER
 from locker_server.shared.constants.policy import POLICY_TYPE_PASSWORDLESS, POLICY_TYPE_2FA
+from locker_server.shared.log.cylog import CyLog
 from locker_server.shared.utils.app import now, start_end_month_current
 
 UserORM = get_user_model()
@@ -131,6 +133,89 @@ class UserORMRepository(UserRepository):
             return user_orm.get_from_cystack_id()
         except UserORM.DoesNotExist:
             return {}
+
+    def get_customer_data(self, user: User, token_card=None, id_card=None) -> Dict:
+        # Get customer data from stripe customer
+        if not token_card:
+            cystack_user_data = self.get_from_cystack_id(user_id=user.user_id)
+            stripe_customer_id = cystack_user_data.get("stripe_customer_id")
+            if stripe_customer_id:
+                customer_stripe = stripe.Customer.retrieve(stripe_customer_id)
+                try:
+                    sources = customer_stripe.sources.data
+                    data_customer_stripe = {}
+                    if id_card:
+                        for source in sources:
+                            if source.get("id") == id_card:
+                                data_customer_stripe = source
+                                break
+                        # Retrieve from Payment Methods:
+                        if not data_customer_stripe:
+                            payment_methods = stripe.PaymentMethod.list(
+                                customer=stripe_customer_id, type="card"
+                            ).get("data", [])
+                            for payment_method in payment_methods:
+                                if payment_method.get("id") == id_card:
+                                    data_customer_stripe = self._get_data_customer_stripe_from_pm(payment_method)
+                    else:
+                        data_customer_stripe = customer_stripe.sources.data[0]
+                except:
+                    CyLog.info(**{"message": "Can not get stripe customer: {}".format(stripe_customer_id)})
+                    data_customer_stripe = {}
+                customer_data = {
+                    "full_name": data_customer_stripe.get("name"),
+                    "address": data_customer_stripe.get("address_line1", ""),
+                    "country": data_customer_stripe.get("country", None),
+                    "last4": data_customer_stripe.get("last4"),
+                    "organization": customer_stripe.get("metadata").get("company", ""),
+                    "city": data_customer_stripe.get("address_city", ""),
+                    "state": data_customer_stripe.get("address_state", ""),
+                    "postal_code": data_customer_stripe.get("address_zip", ""),
+                    "brand": data_customer_stripe.get("brand", "")
+                }
+            else:
+                customer_data = {
+                    "full_name": cystack_user_data.get("full_name"),
+                    "address": cystack_user_data.get("address", ""),
+                    "country": cystack_user_data.get("country", None),
+                    "last4": cystack_user_data.get("last4"),
+                    "organization": cystack_user_data.get("organization"),
+                    "city": cystack_user_data.get("city", ""),
+                    "state": cystack_user_data.get("state", ""),
+                    "postal_code": cystack_user_data.get("postal_code", ""),
+                    "brand": cystack_user_data.get("brand", "")
+                }
+        # Else, get from specific card
+        else:
+            card = stripe.Token.retrieve(token_card).get("card")
+            customer_data = {
+                "full_name": card.get("name"),
+                "address": card.get("address_line1", ""),
+                "country": card.get("address_country", None),
+                "last4": card.get("last4"),
+                "organization": card.get("organization"),
+                "city": card.get("address_city", ""),
+                "state": card.get("address_state", ""),
+                "postal_code": card.get("address_zip", ""),
+                "brand": card.get("brand", "")
+            }
+        return customer_data
+
+    @staticmethod
+    def _get_data_customer_stripe_from_pm(payment_method):
+        data_customer_stripe = {
+            "name": payment_method.get("billing_details", {}).get("name"),
+            "address_line1": payment_method.get("billing_details", {}).get("address", {}).get("line1") or "",
+            "country": payment_method.get("billing_details", {}).get("address", {}).get("country") or "",
+            "address_city": payment_method.get("billing_details", {}).get("address", {}).get("city") or "",
+            "address_state": payment_method.get("billing_details", {}).get("address", {}).get("state") or "",
+            "address_zip": payment_method.get("billing_details", {}).get("address", {}).get("postal_code") or "",
+            "brand": payment_method.get("card", {}).get("brand"),
+            "last4": payment_method.get("card", {}).get("last4"),
+            "organization": payment_method.get("metadata").get("company", ""),
+        }
+
+        return data_customer_stripe
 
     @staticmethod
     def _retrieve_or_create_user_score_orm(user_orm):
