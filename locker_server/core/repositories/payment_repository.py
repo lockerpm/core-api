@@ -33,11 +33,23 @@ class PaymentRepository(ABC):
         pass
 
     @abstractmethod
+    def get_by_stripe_invoice_id(self, stripe_invoice_id: str) -> Optional[Payment]:
+        pass
+
+    @abstractmethod
+    def get_by_banking_code(self, code: str) -> Optional[Payment]:
+        pass
+
+    @abstractmethod
     def check_saas_promo_code(self, user_id: int, code: str) -> Optional[PromoCode]:
         pass
 
     @abstractmethod
     def check_promo_code(self, user_id: int, code: str, new_duration: str = None, new_plan: str = None) -> Optional[PromoCode]:
+        pass
+
+    @abstractmethod
+    def count_referral_payments(self, referral_user_ids: List[int]) -> int:
         pass
 
     # ------------------------ Create Payment resource --------------------- #

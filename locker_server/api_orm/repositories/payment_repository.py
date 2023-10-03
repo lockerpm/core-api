@@ -117,6 +117,17 @@ class PaymentORMRepository(PaymentRepository):
         payment_orm = PaymentORM.objects.filter(mobile_invoice_id=mobile_invoice_id).first()
         return ModelParser.payment_parser().parse_payment(payment_orm=payment_orm) if payment_orm else None
 
+    def get_by_stripe_invoice_id(self, stripe_invoice_id: str) -> Optional[Payment]:
+        payment_orm = PaymentORM.objects.filter(stripe_invoice_id=stripe_invoice_id).first()
+        return ModelParser.payment_parser().parse_payment(payment_orm=payment_orm) if payment_orm else None
+
+    def get_by_banking_code(self, code: str) -> Optional[Payment]:
+        try:
+            payment_orm = PaymentORM.objects.get(code=code)
+            return ModelParser.payment_parser().parse_payment(payment_orm=payment_orm)
+        except PaymentORM.DoesNotExist:
+            return None
+
     def check_saas_promo_code(self, user_id: int, code: str) -> Optional[PromoCode]:
         user_orm = self._get_user_orm(user_id=user_id)
         if not user_orm:
@@ -136,6 +147,11 @@ class PaymentORMRepository(PaymentRepository):
         if not promo_code_orm:
             return None
         return ModelParser.payment_parser().parse_promo_code(promo_code_orm=promo_code_orm)
+
+    def count_referral_payments(self, referral_user_ids: List[int]) -> int:
+        return PaymentORM.objects.filter(
+            status__in=[PAYMENT_STATUS_PAID], user_id__in=referral_user_ids
+        ).count()
 
     # ------------------------ Create Payment resource --------------------- #
     def create_payment(self, **payment_data) -> Optional[Payment]:
@@ -266,6 +282,7 @@ class PaymentORMRepository(PaymentRepository):
         payment_orm = self._get_payment_orm(payment_id=payment.payment_id)
         payment_orm.total_price = update_data.get("total_price", payment_orm.total_price)
         payment_orm.discount = update_data.get("discount", payment_orm.discount)
+        payment_orm.transaction_type = update_data.get("transaction_type", payment_orm.transaction_type)
         payment_orm.save()
         return ModelParser.payment_parser().parse_payment(payment_orm=payment_orm)
 

@@ -81,6 +81,12 @@ class ServiceFactory(containers.DeclarativeContainer):
         user_plan_repository=RepositoryFactory.user_plan_repository,
         user_repository=RepositoryFactory.user_repository
     )
+    payment_hook_service = providers.Factory(
+        PaymentHookService,
+        payment_repository=RepositoryFactory.payment_repository,
+        user_plan_repository=RepositoryFactory.user_plan_repository,
+        user_repository=RepositoryFactory.user_repository
+    )
 
     cipher_service = providers.Factory(
         CipherService,
