@@ -1,8 +1,12 @@
 from typing import List, Optional, Dict
 
 import jwt
+import stripe
 
 from locker_server.core.entities.payment.payment import Payment
+from locker_server.core.entities.user.user import User
+from locker_server.core.entities.user_plan.pm_plan import PMPlan
+from locker_server.core.entities.user_plan.pm_user_plan import PMUserPlan
 from locker_server.core.exceptions.enterprise_member_repository import EnterpriseMemberExistedException
 from locker_server.core.exceptions.payment_exception import PaymentInvoiceDoesNotExistException, \
     PaymentPromoCodeInvalidException, PaymentFailedByUserInFamilyException, CurrentPlanDoesNotSupportOperatorException, \
@@ -38,6 +42,7 @@ class PaymentService:
     """
     This class represents Use Cases related Payment
     """
+
     def __init__(self, payment_repository: PaymentRepository,
                  user_plan_repository: UserPlanRepository,
                  plan_repository: PlanRepository,
@@ -115,7 +120,7 @@ class PaymentService:
             utm_source=utm_source,
         )
         result["plan"] = new_plan.to_json()
-        return new_plan
+        return result
 
     def admin_upgrade_plan(self, user_id: int, plan_alias: str, end_period: float = None, scope: str = None):
         new_plan = self.plan_repository.get_plan_by_alias(alias=plan_alias)
@@ -159,7 +164,6 @@ class PaymentService:
         PaymentMethodFactory.get_method(
             user_plan=current_plan, scope=scope, payment_method=PAYMENT_METHOD_CARD
         ).cancel_immediately_recurring_subscription()
-
 
         plan_metadata = {
             "start_period": now(),
@@ -247,7 +251,8 @@ class PaymentService:
         self.user_plan_repository.update_plan(
             user_id=user_id, plan_type_alias=plan.alias, duration=upgrade_duration, scope=scope, **plan_metadata
         )
-        user = self.user_repository.update_user(user_id=user_id, user_update_data={"saas_source": saas_code.saas_market.name})
+        user = self.user_repository.update_user(user_id=user_id,
+                                                user_update_data={"saas_source": saas_code.saas_market.name})
 
         if user.activated:
             if plan.alias in [PLAN_TYPE_PM_LIFETIME, PLAN_TYPE_PM_LIFETIME_FAMILY]:
@@ -631,3 +636,46 @@ class PaymentService:
             "relay_addresses": relay_addresses_statistic_data,
             "plan_limit": plan_limit
         }
+
+    def get_by_payment_id(self, payment_id: str) -> Optional[Payment]:
+        payment = self.payment_repository.get_by_payment_id(payment_id=payment_id)
+        if not payment:
+            raise PaymentInvoiceDoesNotExistException
+        return payment
+
+    def get_pm_plan_by_alias(self, alias: str) -> PMPlan:
+        plan = self.plan_repository.get_plan_by_alias(alias=alias)
+        return plan
+
+    def calc_payment_public(self, plan_alias: str, quantity: int, duration: str = DURATION_MONTHLY,
+                            currency: str = CURRENCY_USD, promo_code: str = None,
+                            allow_trial: bool = True) -> Dict:
+        """
+        Calc total payment
+        :param plan_alias: (str) Plan alias
+        :param duration: (str) Duration of the plan
+        :param currency: (str) Currency: VND/USD
+        :param number_members: (str)
+        :param promo_code: (str) promo value
+        :param allow_trial: (bool)
+        :return:
+        """
+        new_plan = self.plan_repository.get_plan_by_alias(alias=plan_alias)
+        if not new_plan:
+            raise PlanDoesNotExistException
+        result = self.user_plan_repository.calc_payment_public(
+            new_plan=new_plan,
+            new_duration=duration,
+            new_quantity=quantity,
+            currency=currency,
+            promo_code=promo_code,
+            allow_trial=allow_trial,
+        )
+        result["plan"] = new_plan.to_json()
+        return result
+
+    def check_valid_promo_code(self, promo_code: str, current_user: User) -> Optional[str]:
+        return self.payment_repository.check_promo_code(
+            user_id=current_user.user_id,
+            code=promo_code
+        )

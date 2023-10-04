@@ -16,7 +16,8 @@ class AbstractEnterpriseGroupMemberORM(models.Model):
         unique_together = ('group', 'member')
 
     @classmethod
-    def create_multiple(cls, group, *member_ids):
+    def create_multiple(cls, datas):
+        raise NotImplementedError
         group_members = []
         for member_id in member_ids:
             group_members.append(cls(group=group, member_id=member_id))

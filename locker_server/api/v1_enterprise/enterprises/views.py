@@ -109,7 +109,6 @@ class EnterprisePwdViewSet(APIBaseViewSet):
             raise NotFound
         # Log update activity here
         # TODO: import LockerBackgroundFactory
-
         LockerBackgroundFactory.get_background(bg_name=BG_EVENT).run(func_name="create_by_enterprise_ids", **{
             "enterprise_ids": [enterprise.id], "acting_user_id": user.user_id, "user_id": user.user_id,
             "type": EVENT_ENTERPRISE_UPDATED, "ip_address": ip

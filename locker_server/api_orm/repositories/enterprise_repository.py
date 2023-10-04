@@ -111,6 +111,11 @@ class EnterpriseORMRepository(EnterpriseRepository):
             "enterprise_postal_code",
             enterprise_orm.enterprise_postal_code
         )
+        enterprise_orm.init_seats = enterprise_update_data.get("init_seats", enterprise_orm.init_seats)
+        enterprise_orm.init_seats_expired_time = enterprise_update_data.get(
+            "init_seats_expired_time",
+            enterprise_orm.init_seats_expired_time
+        )
         enterprise_orm.revision_date = now()
 
         enterprise_orm.save()

@@ -6,7 +6,7 @@ from locker_server.core.entities.payment.promo_code import PromoCode
 from locker_server.core.entities.user.user import User
 from locker_server.core.entities.user_plan.pm_plan import PMPlan
 from locker_server.shared.constants.transactions import DURATION_MONTHLY, PAYMENT_METHOD_CARD, DURATION_YEARLY, \
-    DURATION_HALF_YEARLY, PLAN_TYPE_PM_FREE
+    DURATION_HALF_YEARLY, PLAN_TYPE_PM_FREE, PAYMENT_STATUS_PAST_DUE
 from locker_server.shared.utils.app import now
 
 
@@ -186,3 +186,35 @@ class PMUserPlan(object):
             return stripe_subscription.cancel_at_period_end
         return self.cancel_at_period_end
 
+    def get_default_payment_method(self):
+        return self.default_payment_method
+
+    def get_max_allow_members(self):
+        if self.pm_plan.is_team_plan:
+            return self.number_members
+        return self.pm_plan.max_number
+
+    @staticmethod
+    def get_next_attempts_duration(current_number_attempts):
+        if current_number_attempts < 2:
+            return 86400
+        return 86400 * 3
+
+    def get_next_retry_payment_date(self, stripe_subscription=None):
+        if self.get_plan_type_alias() in [PLAN_TYPE_PM_FREE]:
+            return None
+        # Retrieve Stripe subscription object
+        if not stripe_subscription:
+            stripe_subscription = self.get_stripe_subscription()
+        if stripe_subscription:
+            if stripe_subscription.status not in [PAYMENT_STATUS_PAST_DUE]:
+                return None
+            latest_invoice = stripe_subscription.latest_invoice
+            if not latest_invoice:
+                return None
+            latest_invoice_obj = stripe.Invoice.retrieve(latest_invoice)
+            return latest_invoice_obj.next_payment_attempt
+        if self.attempts > 0:
+            return PMUserPlan.get_next_attempts_duration(
+                current_number_attempts=self.attempts
+            ) + self.end_period
