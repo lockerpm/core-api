@@ -80,6 +80,10 @@ class CipherRepository(ABC):
     def sync_personal_cipher_offline(self, user_id: int, ciphers: List, folders: List, folder_relationships: List):
         pass
 
+    @abstractmethod
+    def import_multiple_ciphers(self, user: User, ciphers: List, allow_cipher_type: Dict = None):
+        pass
+
     # ------------------------ Update Cipher resource --------------------- #
     @abstractmethod
     def update_cipher(self, cipher_id: str, cipher_data: Dict) -> Cipher:

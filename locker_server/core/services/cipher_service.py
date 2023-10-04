@@ -257,3 +257,7 @@ class CipherService:
         return self.cipher_repository.sync_personal_cipher_offline(
             user_id=user.user_id, ciphers=ciphers, folders=folders, folder_relationships=folder_relationships
         )
+
+    def import_multiple_ciphers(self, user: User, ciphers: List):
+        allow_cipher_type = self.user_plan_repository.get_max_allow_cipher_type(user=user)
+        self.cipher_repository.import_multiple_ciphers(user=user, ciphers=ciphers, allow_cipher_type=allow_cipher_type)
