@@ -18,9 +18,19 @@ urlpatterns += [
 ]
 
 
-# # ------------------------------- Resources ----------------------------- #
-# urlpatterns += [
-#     url(r'^resources/plans$', views.ResourcePwdViewSet.as_view({'get': 'plans'})),
-#     url(r'^resources/enterprise/plans$', views.ResourcePwdViewSet.as_view({'get': 'enterprise_plans'})),
-# ]
+# ----------------------------------- Tools ----------------------------- #
+urlpatterns += [
+    url(r'^tools/breach$', views.ToolPwdViewSet.as_view({'post': 'breach'})),
+    url(r'^tools/public/breach$', views.ToolPwdViewSet.as_view({'post': 'public_breach'})),
+]
+
+
+# ----------------------------------- Exclude domains ----------------------------- #
+urlpatterns += [
+    url(r'^exclude_domains$', views.ExcludeDomainPwdViewSet.as_view({'get': 'list', 'post': 'create'})),
+    url(r'^exclude_domains/(?P<pk>[a-z0-9\-]+)$',
+        views.ExcludeDomainPwdViewSet.as_view({'get': 'retrieve', 'delete': 'destroy'})),
+]
+
+
 

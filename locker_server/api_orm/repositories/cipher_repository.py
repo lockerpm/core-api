@@ -427,6 +427,58 @@ class CipherORMRepository(CipherRepository):
         )
         bump_account_revision_date(user=user_orm)
 
+    def import_multiple_ciphers(self, user: User, ciphers: List, allow_cipher_type: Dict = None):
+        user_id = user.user_id
+        user_orm = self._get_user_orm(user_id=user_id)
+        existed_folder_ids = list(user_orm.folders.values_list('id', flat=True))
+
+        # Check limit ciphers
+        existed_ciphers_orm = CipherORM.objects.filter(created_by_id=user_id).values('type').annotate(count=Count('type'))
+        existed_ciphers_count = {item["type"]: item["count"] for item in list(existed_ciphers_orm)}
+
+        # Create multiple ciphers
+        import_ciphers = []
+        import_ciphers_count = {vault_type: 0 for vault_type in LIST_CIPHER_TYPE}
+
+        for cipher_data in ciphers:
+            # Only accepts ciphers which have name
+            if not cipher_data.get("name"):
+                continue
+            cipher_type = cipher_data.get("type")
+
+            # Check limit ciphers
+            if allow_cipher_type and allow_cipher_type.get(cipher_type) and import_ciphers_count.get(cipher_type, 0) + \
+                    existed_ciphers_count.get(cipher_type, 0) >= allow_cipher_type.get(cipher_type):
+                continue
+            import_ciphers_count[cipher_type] = import_ciphers_count.get(cipher_type) + 1
+
+            # Get folder id
+            folder_id = None
+            if cipher_data.get("folderId") and cipher_data.get("folderId") in existed_folder_ids:
+                folder_id = cipher_data.get("folderId")
+            folders = "{%d: '%s'}" % (user.user_id, folder_id) if folder_id else ""
+
+            # Get cipher data
+            cipher_data["data"] = get_cipher_detail_data(cipher=cipher_data)
+            cipher_data = json.loads(json.dumps(cipher_data))
+            import_ciphers.append(
+                CipherORM(
+                    creation_date=cipher_data.get("creation_date", now()),
+                    revision_date=cipher_data.get("revision_date", now()),
+                    deleted_date=cipher_data.get("deleted_date"),
+                    reprompt=cipher_data.get("reprompt", 0) or 0,
+                    score=cipher_data.get("score", 0),
+                    type=cipher_data.get("type"),
+                    data=cipher_data.get("data"),
+                    user_id=user_id,
+                    created_by_id=user_id,
+                    folders=folders,
+                    team_id=cipher_data.get("organizationId")
+                )
+            )
+        CipherORM.objects.bulk_create(import_ciphers, batch_size=100, ignore_conflicts=True)
+        bump_account_revision_date(user=user_orm)
+
     # ------------------------ Update Cipher resource --------------------- #
     def update_cipher(self, cipher_id: str, cipher_data: Dict) -> Cipher:
         cipher_orm = self._get_cipher_orm(cipher_id=cipher_id)

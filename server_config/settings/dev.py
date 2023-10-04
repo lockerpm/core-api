@@ -139,10 +139,10 @@ try:
 
     REST_FRAMEWORK = {
         'DEFAULT_AUTHENTICATION_CLASSES': [
-            'locker_server.shared.authentications.app.AppGeneralAuthentication'
+            'locker_server.api.authentications.token_authentication.TokenAuthentication'
         ],
         'DEFAULT_PERMISSION_CLASSES': (
-            'locker_server.shared.permissions.app.AppBasePermission',
+            'locker_server.api.permissions.app.APIPermission',
         ),
         'DEFAULT_RENDERER_CLASSES': ('rest_framework.renderers.JSONRenderer',),
         'EXCEPTION_HANDLER': 'locker_server.shared.exception_handler.custom_exception_handler',
@@ -201,7 +201,7 @@ try:
     LS_QUICK_SHARE_MODEL = "api_orm.QuickShareORM"
     LS_QUICK_SHARE_EMAIL_MODEL = "api_orm.QuickShareEmailORM"
 
-    LSCORE_SETTINGS = {
+    LOCKER_SERVER_SETTINGS = {
         "API_REPOSITORY_CLASS": "locker_server.containers.defaults.repository.RepositoryFactory",
         "API_SERVICE_CLASS": "locker_server.containers.defaults.service.ServiceFactory",
         "MODEL_PARSER_CLASS": "locker_server.api_orm.model_parsers.model_parsers.ModelParser",
@@ -321,7 +321,7 @@ try:
 
     # Default primary key field type
     # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
-    DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+    DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 except Exception as e:
     from locker_server.shared.log.config import logging_config

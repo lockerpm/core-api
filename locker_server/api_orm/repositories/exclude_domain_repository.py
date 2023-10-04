@@ -12,7 +12,9 @@ ModelParser = get_model_parser()
 class ExcludeDomainORMRepository(ExcludeDomainRepository):
     # ------------------------ List ExcludeDomain resource ------------------- #
     def list_user_exclude_domains(self, user_id: int, **filter_params) -> List[ExcludeDomain]:
-        exclude_domains_orm = ExcludeDomainORM.objects.filter(user_id=user_id).order_by('-created_time')
+        exclude_domains_orm = ExcludeDomainORM.objects.filter(
+            user_id=user_id
+        ).order_by('-created_time').select_related('user')
         q_param = filter_params.get("q")
         if q_param:
             exclude_domains_orm = exclude_domains_orm.filter(domain__icontains=q_param.lower())

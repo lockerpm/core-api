@@ -36,5 +36,5 @@ class EnterpriseGroupRepository(ABC):
 
     # ------------------------ Delete EnterpriseGroup resource --------------------- #
     @abstractmethod
-    def delete_enterprise_group_by_id(self, enterprise_group_id: str) -> NoReturn:
+    def delete_enterprise_group_by_id(self, enterprise_group_id: str):
         pass

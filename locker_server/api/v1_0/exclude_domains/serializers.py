@@ -29,7 +29,7 @@ class ExcludeDomainSerializer(serializers.Serializer):
 
     def to_representation(self, instance):
         data = {
-            "id": instance.domain_id,
+            "id": instance.exclude_domain_id,
             "domain": instance.domain,
             "created_time": instance.created_time
         }

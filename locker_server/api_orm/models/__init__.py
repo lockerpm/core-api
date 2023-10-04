@@ -3,6 +3,7 @@ from locker_server.api_orm.models.users.users import UserORM
 from locker_server.api_orm.models.users.user_score import UserScoreORM
 from locker_server.api_orm.models.users.devices import DeviceORM
 from locker_server.api_orm.models.users.device_access_tokens import DeviceAccessTokenORM
+from locker_server.api_orm.models.users.education_emails import EducationEmailORM
 
 
 # ------------------------- Factor 2 ---------------------------- #
@@ -27,6 +28,7 @@ from locker_server.api_orm.models.user_plans.pm_user_plan_family import PMUserPl
 
 
 # ------------------------- Notification Settings ---------------- #
+from locker_server.api_orm.models.notifications.notifications import NotificationORM
 from locker_server.api_orm.models.notifications.notification_category import NotificationCategoryORM
 from locker_server.api_orm.models.notifications.notification_settings import NotificationSettingORM
 

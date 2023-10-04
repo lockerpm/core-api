@@ -11,7 +11,7 @@ from locker_server.shared.utils.app import camel_snake_data
 from .serializers import BreachSerializer
 
 
-class ToolViewSet(APIBaseViewSet):
+class ToolPwdViewSet(APIBaseViewSet):
     permission_classes = (ToolPwdPermission,)
 
     def get_serializer_class(self):

@@ -566,6 +566,22 @@ class UserPlanORMRepository(UserPlanRepository):
             "default_payment_method",
             user_plan_orm.default_payment_method
         )
+        user_plan_orm.cancel_at_period_end = user_plan_update_data.get(
+            "cancel_at_period_end", user_plan_orm.cancel_at_period_end
+        )
+        user_plan_orm.pm_stripe_subscription = user_plan_update_data.get(
+            "pm_stripe_subscription", user_plan_orm.pm_stripe_subscription
+        )
+        user_plan_orm.pm_stripe_subscription_created_time = user_plan_update_data.get(
+            "pm_stripe_subscription_created_time", user_plan_orm.pm_stripe_subscription_created_time
+        )
+        user_plan_orm.promo_code = user_plan_update_data.get("promo_code", user_plan_orm.promo_code)
+        user_plan_orm.personal_trial_applied = user_plan_update_data.get(
+            "personal_trial_applied", user_plan_orm.personal_trial_applied
+        )
+        user_plan_orm.personal_trial_web_applied = user_plan_update_data.get(
+            "personal_trial_web_applied", user_plan_orm.personal_trial_web_applied
+        )
         user_plan_orm.save()
         return ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=user_plan_orm)
 
