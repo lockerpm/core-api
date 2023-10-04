@@ -21,7 +21,7 @@ class FolderRepository(ABC):
         pass
 
     @abstractmethod
-    def import_multiple_folders(self, user_id: int, folders: List):
+    def import_multiple_folders(self, user_id: int, folders: List) -> List[str]:
         pass
 
     # ------------------------ Update Folder resource --------------------- #
