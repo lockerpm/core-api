@@ -50,6 +50,10 @@ class UserRepository(ABC):
         pass
 
     @abstractmethod
+    def get_user_cipher_overview(self, user_id: int) -> Dict:
+        pass
+
+    @abstractmethod
     def get_customer_data(self, user: User, token_card=None, id_card=None) -> Dict:
         pass
 

@@ -17,3 +17,15 @@ class EnterpriseMemberPrimaryDoesNotExistException(EnterpriseMemberException):
     """
     The enterprise member primary doest not exist
     """
+
+
+class EnterpriseMemberUpdatedFailedException(EnterpriseMemberException):
+    """
+    The enterprise member can not be updated: updated primary member or update yourself
+    """
+
+
+class EnterpriseMemberInvitationUpdatedFailedException(EnterpriseMemberException):
+    """
+    Then invitation enterprise member can not reject
+    """

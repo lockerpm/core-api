@@ -1,5 +1,7 @@
-from typing import Union, Dict, Optional, List
+from typing import Union, Dict, Optional, List, NoReturn
 from abc import ABC, abstractmethod
+
+from django.db.models import When, Value, Q, Case, IntegerField
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_user_model, get_enterprise_domain_model, \
@@ -8,9 +10,10 @@ from locker_server.core.entities.enterprise.member.enterprise_member import Ente
 from locker_server.core.entities.user.user import User
 from locker_server.core.repositories.enterprise_member_repository import EnterpriseMemberRepository
 from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_MEMBER, E_MEMBER_STATUS_REQUESTED, \
-    E_MEMBER_STATUS_INVITED, E_MEMBER_STATUS_CONFIRMED
+    E_MEMBER_STATUS_INVITED, E_MEMBER_STATUS_CONFIRMED, E_MEMBER_ROLE_PRIMARY_ADMIN, E_MEMBER_ROLE_ADMIN
 from locker_server.shared.constants.members import PM_MEMBER_STATUS_INVITED
 from locker_server.shared.log.cylog import CyLog
+from locker_server.shared.utils.app import now
 from locker_server.shared.utils.network import extract_root_domain
 
 UserORM = get_user_model()
@@ -36,12 +39,92 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
     # ------------------------ List EnterpriseMember resource ------------------- #
     def list_enterprise_members(self, **filters) -> List[EnterpriseMember]:
         enterprise_id_param = filters.get("enterprise_id")
+        ids_param = filter.get("ids")
+        user_id_param = filters.get("user_id")
+        user_ids_param = filters.get("user_ids")
+        email_param = filters.get("email")
+        roles_param = filters.get("roles")
+        status_param = filters.get("status")
+        statuses_param = filters.get("statuses")
+        is_activated_param = filters.get("is_activated")
+        block_login_param = filters.get("block_login")
+        sort_param = filters.get("sort")
+
         if enterprise_id_param:
             enterprise_members_orm = EnterpriseMemberORM.objects.filter(
                 enterprise_id=enterprise_id_param
-            ).order_by("-access_time")
+            ).select_related('user').select_related('role')
         else:
-            enterprise_members_orm = EnterpriseMemberORM.objects.all()
+            enterprise_members_orm = EnterpriseMemberORM.objects.all().select_related('user').select_related('role')
+        # Filter by ids
+        if ids_param:
+            enterprise_members_orm = enterprise_members_orm.filter(id__in=ids_param)
+
+        # Filter by roles
+        if roles_param:
+            enterprise_members_orm = enterprise_members_orm.filter(role__name__in=roles_param)
+
+        # Filter by q_param: search members
+        if user_ids_param or email_param or user_id_param:
+            search_by_user = enterprise_members_orm.none()
+            search_by_users = enterprise_members_orm.none()
+            search_by_email = enterprise_members_orm.none()
+            if user_id_param:
+                try:
+                    user_id_int_param = int(user_id_param)
+                    search_by_user = enterprise_members_orm.filter(user_id=user_id_int_param)
+                except AttributeError:
+                    pass
+            if user_ids_param:
+                try:
+                    user_ids_int_param = [int(user_id) for user_id in user_ids_param]
+                    search_by_users = enterprise_members_orm.filter(user_id__in=user_ids_int_param)
+                except AttributeError:
+                    pass
+            if email_param:
+                search_by_email = enterprise_members_orm.filter(email__icontains=email_param)
+            enterprise_members_orm = (search_by_users | search_by_email | search_by_user).distinct()
+
+        # Filter by status
+        if status_param:
+            enterprise_members_orm = enterprise_members_orm.filter(status=status_param)
+
+        # Filter by statuses
+        if statuses_param:
+            enterprise_members_orm = enterprise_members_orm.filter(status_in=statuses_param)
+
+        # Filter by activated or not
+        if is_activated_param:
+            if is_activated_param == "0":
+                enterprise_members_orm = enterprise_members_orm.filter(is_activated=False)
+            elif is_activated_param == "1":
+                enterprise_members_orm = enterprise_members_orm.filter(is_activated=True)
+
+        # Filter by blocking login or not
+        if block_login_param == "1":
+            enterprise_members_orm = enterprise_members_orm.filter(user__login_block_until__isnull=False).filter(
+                user__login_block_until__gt=now()
+            )
+
+        # Sorting the results
+        order_whens = [
+            When(Q(role__name=E_MEMBER_ROLE_PRIMARY_ADMIN, user__isnull=False), then=Value(2)),
+            When(Q(role__name=E_MEMBER_ROLE_ADMIN, user__isnull=False), then=Value(3)),
+            When(Q(role__name=E_MEMBER_ROLE_MEMBER, user__isnull=False), then=Value(4))
+        ]
+        if sort_param:
+            if sort_param == "access_time_desc":
+                enterprise_members_orm = enterprise_members_orm.order_by('-access_time')
+            elif sort_param == "access_time_asc":
+                enterprise_members_orm = enterprise_members_orm.order_by('access_time')
+            elif sort_param == "role_desc":
+                enterprise_members_orm = enterprise_members_orm.annotate(
+                    order_field=Case(*order_whens, output_field=IntegerField(), default=Value(4))
+                ).order_by("-order_field")
+            elif sort_param == "role_asc":
+                enterprise_members_orm = enterprise_members_orm.annotate(
+                    order_field=Case(*order_whens, output_field=IntegerField(), default=Value(4))
+                ).order_by("order_field")
         return [
             ModelParser.enterprise_parser().parse_enterprise_member(
                 enterprise_members_orm=enterprise_member_orm
@@ -63,11 +146,51 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
         ).values_list('user_id', flat=True)
         return list(user_ids)
 
+    def list_enterprise_members_by_emails(self, emails_param: [str]) -> List[EnterpriseMember]:
+        enterprise_members_orm = EnterpriseMemberORM.objects.filter(
+            email__in=emails_param
+        )
+        return [
+            ModelParser.enterprise_parser().parse_enterprise_member(
+                enterprise_members_orm=enterprise_member_orm
+            )
+            for enterprise_member_orm in enterprise_members_orm
+        ]
+
+    def count_enterprise_members(self, **filters) -> int:
+        enterprise_id_param = filters.get("enterprise_id")
+        status_param = filters.get("status")
+        is_activated_param = filters.get("is_activated")
+
+        if enterprise_id_param:
+            enterprises_orm = EnterpriseMemberORM.objects.filter(
+                enterprise_id=enterprise_id_param
+            )
+        else:
+            enterprises_orm = EnterpriseMemberORM.objects.all()
+        if status_param:
+            enterprises_orm = enterprises_orm.filter(status=status_param)
+        if is_activated_param == "1" or is_activated_param == True:
+            enterprises_orm = enterprises_orm.filter(is_activated=True)
+        elif is_activated_param == "0" or is_activated_param == False:
+            enterprises_orm = enterprises_orm.filter(is_activated=False)
+
+        return enterprises_orm.count()
+
     # ------------------------ Get EnterpriseMember resource --------------------- #
     def get_primary_member(self, enterprise_id: str) -> Optional[EnterpriseMember]:
         try:
             enterprise_member_orm = EnterpriseMemberORM.objects.get(
                 enterprise_id=enterprise_id, is_primary=True
+            )
+        except EnterpriseMemberORM.DoesNotExist:
+            return None
+        return ModelParser.enterprise_parser().parse_enterprise_member(enterprise_member_orm=enterprise_member_orm)
+
+    def get_enterprise_member_by_id(self, member_id: str) -> Optional[EnterpriseMember]:
+        try:
+            enterprise_member_orm = EnterpriseMemberORM.objects.get(
+                id=member_id
             )
         except EnterpriseMemberORM.DoesNotExist:
             return None
@@ -98,6 +221,14 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
         return EnterpriseMemberORM.objects.filter(user_id=user_id).exists()
 
     # ------------------------ Create EnterpriseMember resource --------------------- #
+    def create_member(self, member_create_data: Dict) -> EnterpriseMember:
+        enterprise_member_orm = EnterpriseMemberORM.create_member(**member_create_data)
+        return ModelParser.enterprise_parser().parse_enterprise_member(
+            enterprise_member_orm=enterprise_member_orm
+        )
+
+    def create_multiple_member(self, members_create_data: [Dict]) -> NoReturn:
+        EnterpriseMemberORM.create_multiple_member(members_create_data)
 
     # ------------------------ Update EnterpriseMember resource --------------------- #
     def enterprise_invitations_confirm(self, user: User, email: str = None) -> Optional[User]:
@@ -154,4 +285,37 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
         #     )
         return user
 
+    def update_enterprise_member(self, enterprise_member_id: str, enterprise_member_update_data: Dict) \
+            -> Optional[EnterpriseMember]:
+        try:
+            enterprise_member_orm = EnterpriseMemberORM.objects.get(id=enterprise_member_id)
+        except EnterpriseMemberORM.DoesNotExist:
+            return None
+        enterprise_member_orm.role_id = enterprise_member_update_data.get("role", enterprise_member_orm.role_id)
+        enterprise_member_orm.status = enterprise_member_update_data.get("status", enterprise_member_orm.status)
+        enterprise_member_orm.is_activated = enterprise_member_update_data.get(
+            "is_activated",
+            enterprise_member_orm.is_activated
+        )
+        enterprise_member_orm.access_time = enterprise_member_update_data.get(
+            "access_time",
+            enterprise_member_orm.access_time
+        )
+        enterprise_member_orm.email = enterprise_member_update_data.get("email", enterprise_member_orm.email)
+        enterprise_member_orm.user_id = enterprise_member_update_data.get("user_id", enterprise_member_orm.user_id)
+        enterprise_member_orm.token_invitation = enterprise_member_update_data.get(
+            "token_invitation",
+            enterprise_member_orm.token_invitation
+        )
+
+        enterprise_member_orm.save()
+        return ModelParser.enterprise_parser().parse_enterprise_member(enterprise_member_orm=enterprise_member_orm)
+
     # ------------------------ Delete EnterpriseMember resource --------------------- #
+    def delete_enterprise_member(self, enterprise_member_id: str) -> bool:
+        try:
+            enterprise_member_orm = EnterpriseMemberORM.objects.get(id=enterprise_member_id)
+        except EnterpriseMemberORM.DoesNotExist:
+            return False
+        enterprise_member_orm.delete()
+        return True
