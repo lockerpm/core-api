@@ -43,6 +43,10 @@ class EnterpriseMemberService:
         enterprise_members = self.enterprise_member_repository.list_enterprise_members(**filters)
         return enterprise_members
 
+    def count_enterprise_members(self, **filters) -> int:
+        enterprise_member_num = self.enterprise_member_repository.count_enterprise_members(**filters)
+        return enterprise_member_num
+
     def list_group_member_by_enterprise_member_id(self, enterprise_member_id: str) -> List[EnterpriseGroupMember]:
         group_members = self.enterprise_group_member_repository.list_enterprise_group_member_by_member_id(
             enterprise_member_id=enterprise_member_id
@@ -303,9 +307,9 @@ class EnterpriseMemberService:
         enterprise_ids = [invitation.enterprise.enterprise_id for invitation in invitations]
         for invitation in invitations:
             enterprise = invitation.enterprise
-            current_total_members = self.enterprise_member_repository.count_enterprise_members(
-                enterprise_id=enterprise.enterprise_id
-            )
+            current_total_members = self.enterprise_member_repository.count_enterprise_members(**{
+                "enterprise_id": enterprise.enterprise_id
+            })
             primary_user = self.enterprise_member_repository.get_primary_member(
                 enterprise_id=enterprise.enterprise_id
             )

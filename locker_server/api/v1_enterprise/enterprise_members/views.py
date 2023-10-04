@@ -238,7 +238,7 @@ class MemberPwdViewSet(APIBaseViewSet):
             )
             if is_billing_added:
                 try:
-                    primary_user = self.enterprise_service.get_primary_member(enterprise_id=enterprise.enterprise_id)
+                    primary_user = self.enterprise_service.get_primary_member(enterprise_id=enterprise.enterprise_id).user
                     user_plan = self.user_service.get_current_plan(user=primary_user)
                     PaymentMethodFactory.get_method(
                         user_plan=user_plan,
@@ -277,7 +277,7 @@ class MemberPwdViewSet(APIBaseViewSet):
         except EnterpriseMemberDoesNotExistException:
             raise NotFound
         try:
-            primary_user = self.enterprise_service.get_primary_member(enterprise_id=enterprise.enterprise_id)
+            primary_user = self.enterprise_service.get_primary_member(enterprise_id=enterprise.enterprise_id).user
             current_plan = self.user_service.get_current_plan(user=primary_user)
             PaymentMethodFactory.get_method(
                 user_plan=current_plan, scope=settings.SCOPE_PWD_MANAGER,
@@ -343,7 +343,7 @@ class MemberPwdViewSet(APIBaseViewSet):
                 raise NotFound
             except EnterpriseMemberUpdatedFailedException:
                 raise PermissionDenied
-            primary_user = self.enterprise_service.get_primary_member(enterprise_id=enterprise.enterprise_id)
+            primary_user = self.enterprise_service.get_primary_member(enterprise_id=enterprise.enterprise_id).user
             current_plan = self.user_service.get_current_plan(user=primary_user)
             # Remove this member from all groups
             if activated is False:
@@ -440,7 +440,7 @@ class MemberPwdViewSet(APIBaseViewSet):
             raise ValidationError(detail={"status": ["You cannot reject this enterprise"]})
         enterprise = updated_member_invitation.enterprise
 
-        primary_admin_user = self.enterprise_service.get_primary_member(enterprise_id=enterprise.enterprise_id)
+        primary_admin_user = self.enterprise_service.get_primary_member(enterprise_id=enterprise.enterprise_id).user
         admin_plan = self.user_service.get_current_plan(primary_admin_user)
         if not primary_admin_user:
             primary_admin_user_id = None
@@ -523,9 +523,9 @@ class MemberPwdViewSet(APIBaseViewSet):
             }
         )
 
-    def is_billing_members_added(self, enterprise_member: EnterpriseMember) -> bool:
+    def is_billing_members_added(self, enterprise_member) -> bool:
         enterprise = enterprise_member.enterprise
-        primary_user = self.enterprise_service.get_primary_member(enterprise_id=enterprise.enterprise_id)
+        primary_user = self.enterprise_service.get_primary_member(enterprise_id=enterprise.enterprise_id).user
         current_plan = self.user_service.get_current_plan(user=primary_user)
         from_param = current_plan.start_period if current_plan.start_period else current_plan.creation_date
         to_param = current_plan.end_period if current_plan.end_period else now()
@@ -540,9 +540,9 @@ class MemberPwdViewSet(APIBaseViewSet):
             return True
         return False
 
-    def is_billing_members_removed(self, enterprise_member: EnterpriseMember) -> bool:
+    def is_billing_members_removed(self, enterprise_member) -> bool:
         enterprise = enterprise_member.enterprise
-        primary_user = self.enterprise_service.get_primary_member(enterprise_id=enterprise.enterprise_id)
+        primary_user = self.enterprise_service.get_primary_member(enterprise_id=enterprise.enterprise_id).user
         current_plan = self.user_service.get_current_plan(user=primary_user)
         from_param = current_plan.start_period if current_plan.start_period else current_plan.creation_date
         to_param = current_plan.end_period if current_plan.end_period else now()

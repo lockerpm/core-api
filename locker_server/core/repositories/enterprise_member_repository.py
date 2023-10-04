@@ -24,7 +24,7 @@ class EnterpriseMemberRepository(ABC):
         pass
 
     @abstractmethod
-    def count_enterprise_members(self, enterprise_id: str) -> int:
+    def count_enterprise_members(self, **filters) -> int:
         pass
 
     # ------------------------ Get EnterpriseMember resource --------------------- #

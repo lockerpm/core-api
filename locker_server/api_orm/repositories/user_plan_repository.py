@@ -289,6 +289,54 @@ class UserPlanORMRepository(UserPlanRepository):
                 result["immediate_payment"] = 0
         return result
 
+    def calc_payment_public(self, new_plan: PMPlan, new_duration: str, new_quantity: int, currency: str = CURRENCY_USD,
+                            promo_code: str = None, allow_trial: bool = True, utm_source: str = None,
+                            ) -> Dict:
+        current_time = now()
+        # Get new plan price
+        new_plan_price = new_plan.get_price(duration=new_duration, currency=currency)
+        # Number of month duration billing by new duration
+        duration_next_billing_month = PMUserPlan.get_duration_month_number(new_duration)
+        # Calc discount
+        error_promo = None
+        promo_code_orm = None
+        promo_description_en = None
+        promo_description_vi = None
+        if promo_code is not None and promo_code != "":
+            promo_code_orm = PromoCodeORM.check_valid(value=promo_code, current_user=None, new_duration=new_duration,
+                                                      new_plan=new_plan.alias)
+            if not promo_code_orm:
+                error_promo = {"promo_code": ["This coupon is expired or incorrect"]}
+            else:
+                promo_description_en = promo_code_orm.description_en
+                promo_description_vi = promo_code_orm.description_vi
+
+        total_amount = new_plan_price * new_quantity
+        next_billing_time = current_time + duration_next_billing_month * 30 * 86400
+
+        # Discount and immediate payment
+        total_amount = max(total_amount, 0)
+        discount = promo_code_orm.get_discount(total_amount, duration=new_duration) if promo_code_orm else 0.0
+        immediate_amount = max(round(total_amount - discount, 2), 0)
+
+        result = {
+            "alias": new_plan.alias,
+            "price": round(new_plan_price, 2),
+            "total_price": total_amount,
+            "discount": discount,
+            "duration": new_duration,
+            "currency": currency,
+            "immediate_payment": immediate_amount,
+            "next_billing_time": next_billing_time,
+            "promo_description": {
+                "en": promo_description_en,
+                "vi": promo_description_vi
+            },
+            "error_promo": error_promo,
+            "quantity": new_quantity
+        }
+        return result
+
     def is_update_personal_to_enterprise(self, current_plan: PMUserPlan, new_plan_alias: str) -> bool:
         """
         Handle event hooks: The plan update event is a personal plan while the current plan is Enterprise plan
@@ -513,6 +561,10 @@ class UserPlanORMRepository(UserPlanRepository):
         user_plan_orm.extra_plan = user_plan_update_data.get("extra_plan", user_plan_orm.extra_plan)
         user_plan_orm.pm_mobile_subscription = user_plan_update_data.get(
             "pm_mobile_subscription", user_plan_orm.pm_mobile_subscription
+        )
+        user_plan_orm.default_payment_method = user_plan_update_data.get(
+            "default_payment_method",
+            user_plan_orm.default_payment_method
         )
         user_plan_orm.save()
         return ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=user_plan_orm)

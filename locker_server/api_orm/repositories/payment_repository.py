@@ -15,7 +15,6 @@ from locker_server.core.repositories.payment_repository import PaymentRepository
 from locker_server.shared.constants.transactions import *
 from locker_server.shared.utils.app import now, random_n_digit
 
-
 PaymentORM = get_payment_model()
 UserORM = get_user_model()
 PromoCodeORM = get_promo_code_model()
@@ -63,6 +62,7 @@ class PaymentORMRepository(PaymentRepository):
         status_param = filter_params.get("status")
         payment_method_param = filter_params.get("payment_method")
         user_id_param = filter_params.get("user_id")
+        enterprise_id_param = filter_params.get("enterprise_id")
         if from_param:
             payments_orm = payments_orm.filter(created_time__lte=from_param)
         if to_param:
@@ -73,6 +73,9 @@ class PaymentORMRepository(PaymentRepository):
             payments_orm = payments_orm.filter(payment_method=payment_method_param)
         if user_id_param:
             payments_orm = payments_orm.filter(user_id=user_id_param)
+        if enterprise_id_param:
+            payments_orm = payments_orm.filter(enterprise_id=enterprise_id_param)
+
         payments_orm = payments_orm.select_related('user')
         payments = []
         for payment_orm in payments_orm:
@@ -96,7 +99,7 @@ class PaymentORMRepository(PaymentRepository):
     # ------------------------ Get Payment resource --------------------- #
     def is_blocked_by_source(self, user_id: int, utm_source: str) -> bool:
         if utm_source in LIST_UTM_SOURCE_PROMOTIONS and PaymentORM.objects.filter(
-            user_id=user_id, status=PAYMENT_STATUS_PAID
+                user_id=user_id, status=PAYMENT_STATUS_PAID
         ).exists() is False:
             return True
         return False
@@ -126,7 +129,8 @@ class PaymentORMRepository(PaymentRepository):
             return None
         return ModelParser.payment_parser().parse_promo_code(promo_code_orm=promo_code_orm)
 
-    def check_promo_code(self, user_id: int, code: str, new_duration: str = None, new_plan: str = None) -> Optional[PromoCode]:
+    def check_promo_code(self, user_id: int, code: str, new_duration: str = None, new_plan: str = None) -> Optional[
+        PromoCode]:
         user_orm = self._get_user_orm(user_id=user_id)
         if not user_orm:
             return None
@@ -161,7 +165,7 @@ class PaymentORMRepository(PaymentRepository):
         return ModelParser.payment_parser().parse_payment(payment_orm=payment_orm)
 
     @staticmethod
-    def __set_promo_code(payment_orm: PaymentORM,  promo_code: str = None):
+    def __set_promo_code(payment_orm: PaymentORM, promo_code: str = None):
         if promo_code is None:
             payment_orm.promo_code = None
         else:
@@ -298,4 +302,3 @@ class PaymentORMRepository(PaymentRepository):
         return payment
 
     # ------------------------ Delete Payment resource --------------------- #
-

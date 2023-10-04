@@ -157,10 +157,25 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
             for enterprise_member_orm in enterprise_members_orm
         ]
 
-    def count_enterprise_members(self, enterprise_id: str) -> int:
-        return EnterpriseMemberORM.objects.filter(
-            enterprise_id=enterprise_id
-        ).count()
+    def count_enterprise_members(self, **filters) -> int:
+        enterprise_id_param = filters.get("enterprise_id")
+        status_param = filters.get("status")
+        is_activated_param = filters.get("is_activated")
+
+        if enterprise_id_param:
+            enterprises_orm = EnterpriseMemberORM.objects.filter(
+                enterprise_id=enterprise_id_param
+            )
+        else:
+            enterprises_orm = EnterpriseMemberORM.objects.all()
+        if status_param:
+            enterprises_orm = enterprises_orm.filter(status=status_param)
+        if is_activated_param == "1" or is_activated_param == True:
+            enterprises_orm = enterprises_orm.filter(is_activated=True)
+        elif is_activated_param == "0" or is_activated_param == False:
+            enterprises_orm = enterprises_orm.filter(is_activated=False)
+
+        return enterprises_orm.count()
 
     # ------------------------ Get EnterpriseMember resource --------------------- #
     def get_primary_member(self, enterprise_id: str) -> Optional[EnterpriseMember]:
