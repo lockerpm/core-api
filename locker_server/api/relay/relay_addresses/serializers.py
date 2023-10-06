@@ -8,7 +8,7 @@ class ListRelayAddressSerializer(serializers.Serializer):
             "address": instance.address,
             "subdomain": instance.subdomain.subdomain if instance.subdomain else None,
             "domain": instance.domain.relay_domain_id,
-            "enabled": instance.domain.enabled,
+            "enabled": instance.enabled,
             "block_spam": instance.block_spam,
             "description": instance.description,
             "created_time": instance.created_time,
