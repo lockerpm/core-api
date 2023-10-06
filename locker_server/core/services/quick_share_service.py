@@ -62,7 +62,7 @@ class QuickShareService:
         if user_enterprise_ids:
             cipher_id = quick_share_data.get("cipher_id")
             emails = [m.get("email") for m in quick_share_data.get("emails")]
-            item_type = MAP_CIPHER_TYPE_STR.get(quick_share.cipher.type)
+            item_type = MAP_CIPHER_TYPE_STR.get(quick_share.cipher.cipher_type)
             BackgroundFactory.get_background(bg_name=BG_EVENT).run(func_name="create_by_enterprise_ids", **{
                 "enterprise_ids": user_enterprise_ids, "user_id": user_id, "acting_user_id": user_id,
                 "type": EVENT_ITEM_QUICK_SHARE_CREATED, "ip_address": ip, "cipher_id": cipher_id,

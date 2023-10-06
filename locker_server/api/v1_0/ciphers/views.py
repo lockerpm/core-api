@@ -201,7 +201,7 @@ class CipherPwdViewSet(APIBaseViewSet):
     def update(self, request, *args, **kwargs):
         self.check_pwd_session_auth(request=request)
         cipher = self.get_object()
-        if cipher.type in IMMUTABLE_CIPHER_TYPES:
+        if cipher.cipher_type in IMMUTABLE_CIPHER_TYPES:
             raise PermissionDenied
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -250,7 +250,7 @@ class CipherPwdViewSet(APIBaseViewSet):
     def cipher_use(self, request, *args, **kwargs):
         self.check_pwd_session_auth(request=request)
         cipher = self.get_object()
-        if cipher.type in IMMUTABLE_CIPHER_TYPES:
+        if cipher.cipher_type in IMMUTABLE_CIPHER_TYPES:
             raise PermissionDenied
         user = self.request.user
         serializer = self.get_serializer(data=request.data)
