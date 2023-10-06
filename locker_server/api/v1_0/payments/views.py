@@ -419,7 +419,7 @@ class PaymentPwdViewSet(APIBaseViewSet):
             "next_billing_time": next_billing_time,
             "duration": current_plan.duration,
             "subscribing": current_plan.is_subscription(),
-            "is_trailing": current_plan.is_trailing(),
+            "is_trailing": current_plan.is_trialing(),
             "cancel_at_period_end": current_plan.is_cancel_at_period_end(),
             "payment_method": current_plan.default_payment_method,
             "number_members": current_plan.number_members,

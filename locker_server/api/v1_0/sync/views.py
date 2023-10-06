@@ -76,7 +76,7 @@ class SyncPwdViewSet(APIBaseViewSet):
         if response_cache_data:
             return Response(status=status.HTTP_200_OK, data=response_cache_data)
 
-        policies = self.enterprise_service.list_policies_by_user(user_id=user)
+        policies = self.enterprise_service.list_policies_by_user(user_id=user.user_id)
 
         # Check team policies
         block_team_ids = []
