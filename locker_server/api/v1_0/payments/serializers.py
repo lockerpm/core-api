@@ -119,8 +119,21 @@ class UpgradeThreePromoSerializer(serializers.Serializer):
     promo_code = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
 
+class CalcLifetimePublicSerializer(serializers.Serializer):
+    promo_code = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    currency = serializers.ChoiceField(choices=LIST_CURRENCY, default=CURRENCY_USD, required=False)
+    plan_alias = serializers.ChoiceField(
+        choices=[PLAN_TYPE_PM_LIFETIME, PLAN_TYPE_PM_LIFETIME_FAMILY], default=PLAN_TYPE_PM_LIFETIME,
+        required=False
+    )
+
+
 class UpgradeLifetimePublicSerializer(serializers.Serializer):
     promo_code = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    plan_alias = serializers.ChoiceField(
+        choices=[PLAN_TYPE_PM_LIFETIME, PLAN_TYPE_PM_LIFETIME_FAMILY], default=PLAN_TYPE_PM_LIFETIME,
+        required=False
+    )
 
 
 class UpgradeEducationPublicSerializer(serializers.Serializer):

@@ -63,6 +63,10 @@ class UserPlanRepository(ABC):
         pass
 
     @abstractmethod
+    def calc_lifetime_payment_public(self, new_plan: PMPlan, currency: str = CURRENCY_USD, promo_code: str = None):
+        pass
+
+    @abstractmethod
     def is_update_personal_to_enterprise(self, current_plan: PMUserPlan, new_plan_alias: str) -> bool:
         pass
 

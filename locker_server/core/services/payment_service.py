@@ -122,6 +122,18 @@ class PaymentService:
         result["plan"] = new_plan.to_json()
         return result
 
+    def calc_lifetime_payment_public(self, plan_alias: str, currency: str = CURRENCY_USD, promo_code: str = None):
+        new_plan = self.plan_repository.get_plan_by_alias(alias=plan_alias)
+        if not new_plan:
+            raise PlanDoesNotExistException
+        result = self.user_plan_repository.calc_lifetime_payment_public(
+            new_plan=new_plan,
+            currency=currency,
+            promo_code=promo_code,
+        )
+        result["plan"] = new_plan.to_json()
+        return result
+
     def admin_upgrade_plan(self, user_id: int, plan_alias: str, end_period: float = None, scope: str = None):
         new_plan = self.plan_repository.get_plan_by_alias(alias=plan_alias)
         if not new_plan:
@@ -318,7 +330,8 @@ class PaymentService:
             self.user_plan_repository.set_default_payment_method(user_id=user_id, payment_method=PAYMENT_METHOD_CARD)
         return payment_result
 
-    def upgrade_lifetime_public(self, user_id: int, card, promo_code: str = None, scope: str = None):
+    def upgrade_lifetime_public(self, user_id: int, card, plan_alias: str = PLAN_TYPE_PM_LIFETIME,
+                                promo_code: str = None, scope: str = None):
         if self.enterprise_member_repository.is_in_enterprise(user_id=user_id):
             raise EnterpriseMemberExistedException
 
@@ -328,13 +341,16 @@ class PaymentService:
             if not promo_code_obj:
                 raise PaymentPromoCodeInvalidException
         current_plan = self.user_plan_repository.get_user_plan(user_id=user_id)
-        if self.user_plan_repository.is_in_family_plan(user_plan=current_plan):
-            raise PaymentFailedByUserInFamilyException
         if current_plan.pm_plan.alias in [PLAN_TYPE_PM_LIFETIME, PLAN_TYPE_PM_LIFETIME_FAMILY]:
             raise PaymentFailedByUserInLifetimeException
+        if plan_alias == PLAN_TYPE_PM_LIFETIME_FAMILY:
+            if self.user_plan_repository.is_family_member(user_id=user_id):
+                raise PaymentFailedByUserInFamilyException
+        else:
+            if self.user_plan_repository.is_in_family_plan(user_plan=current_plan):
+                raise PaymentFailedByUserInFamilyException
 
-        # Cancel the current Free/Premium/Family
-        self.user_plan_repository.cancel_plan(user=current_plan.user, immediately=True)
+
 
         plan_obj = self.plan_repository.get_plan_by_alias(alias=PLAN_TYPE_PM_LIFETIME)
         plan_metadata = {
@@ -361,11 +377,19 @@ class PaymentService:
             **plan_metadata
         )
         if payment_result.get("success") is True:
+            self.user_plan_repository.update_user_plan_by_id(user_plan_id=user_id, user_plan_update_data={
+                "extra_plan": None,
+                "extra_time_value": 0
+            })
+
             self.user_plan_repository.update_plan(
                 user_id=user_id, plan_type_alias=plan_obj.alias,
                 duration=DURATION_MONTHLY, scope=scope, **plan_metadata
             )
 
+            # Cancel the current Stripe subscription: Free/Premium/Family
+            self.user_plan_repository.cancel_plan(user=current_plan.user, immediately=True)
+            # Set default payment method
             self.user_plan_repository.set_default_payment_method(user_id=user_id, payment_method=PAYMENT_METHOD_CARD)
 
             # Sending invoice mail if the payment successfully
@@ -655,7 +679,7 @@ class PaymentService:
         :param plan_alias: (str) Plan alias
         :param duration: (str) Duration of the plan
         :param currency: (str) Currency: VND/USD
-        :param number_members: (str)
+        :param quantity: (int)
         :param promo_code: (str) promo value
         :param allow_trial: (bool)
         :return:
