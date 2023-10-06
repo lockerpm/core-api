@@ -91,7 +91,7 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
 
         # Filter by statuses
         if statuses_param:
-            enterprise_members_orm = enterprise_members_orm.filter(status_in=statuses_param)
+            enterprise_members_orm = enterprise_members_orm.filter(status__in=statuses_param)
 
         # Filter by activated or not
         if is_activated_param:
