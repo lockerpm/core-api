@@ -22,7 +22,8 @@ from locker_server.shared.external_services.locker_background.constants import B
 from locker_server.shared.utils.app import now
 from .serializers import CalcSerializer, ListInvoiceSerializer, AdminUpgradePlanSerializer, UpgradeTrialSerializer, \
     UpgradeThreePromoSerializer, UpgradeLifetimeSerializer, UpgradeLifetimePublicSerializer, \
-    UpgradeEducationPublicSerializer, CancelPlanSerializer, UpgradePlanSerializer, DetailInvoiceSerializer
+    UpgradeEducationPublicSerializer, CancelPlanSerializer, UpgradePlanSerializer, DetailInvoiceSerializer, \
+    CalcLifetimePublicSerializer
 
 
 class PaymentPwdViewSet(APIBaseViewSet):
@@ -51,6 +52,8 @@ class PaymentPwdViewSet(APIBaseViewSet):
             self.serializer_class = UpgradeThreePromoSerializer
         elif self.action == "upgrade_lifetime_public":
             self.serializer_class = UpgradeLifetimePublicSerializer
+        elif self.action == "calc_lifetime_public":
+            self.serializer_class = CalcLifetimePublicSerializer
         elif self.action == "upgrade_education_public":
             self.serializer_class = UpgradeEducationPublicSerializer
         elif self.action == "cancel_plan":
@@ -299,6 +302,22 @@ class PaymentPwdViewSet(APIBaseViewSet):
         return Response(status=status.HTTP_200_OK, data={"success": True})
 
     @action(methods=["post"], detail=False)
+    def calc_lifetime_public(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        promo_code = validated_data.get("promo_code")
+        plan_alias = validated_data.get("plan_alias")
+        currency = validated_data.get("currency", CURRENCY_USD)
+        # Calc payment
+        result = self.payment_service.calc_lifetime_payment_public(
+            plan_alias=plan_alias,
+            currency=currency,
+            promo_code=promo_code
+        )
+        return Response(status=status.HTTP_200_OK, data=result)
+
+    @action(methods=["post"], detail=False)
     def upgrade_lifetime_public(self, request, *args, **kwargs):
         user = self.request.user
         card = request.data.get("card")
@@ -314,6 +333,7 @@ class PaymentPwdViewSet(APIBaseViewSet):
             payment_result = self.payment_service.upgrade_lifetime_public(
                 user_id=user.user_id, card=card,
                 promo_code=validated_data.get("promo_code"),
+                plan_alias=validated_data.get("plan_alias") or PLAN_TYPE_PM_LIFETIME,
                 scope=settings.SCOPE_PWD_MANAGER
             )
         except EnterpriseMemberExistedException:
