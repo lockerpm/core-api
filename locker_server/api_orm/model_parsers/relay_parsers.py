@@ -13,7 +13,7 @@ class RelayParser:
     def parse_relay_address(cls, relay_address_orm: RelayAddressORM) -> RelayAddress:
         user_parser = get_specific_model_parser("UserParser")
         user = user_parser.parse_user(user_orm=relay_address_orm.user)
-        subdomain = cls.parse_relay_subdomain(relay_subdomain_orm=relay_address_orm.subdomain)
+        subdomain = cls.parse_relay_subdomain(relay_subdomain_orm=relay_address_orm.subdomain) if relay_address_orm.subdomain else None
         domain = cls.parse_relay_domain(relay_domain_orm=relay_address_orm.domain)
         return RelayAddress(
             relay_address_id=relay_address_orm.id,

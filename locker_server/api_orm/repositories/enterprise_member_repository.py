@@ -39,7 +39,7 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
     # ------------------------ List EnterpriseMember resource ------------------- #
     def list_enterprise_members(self, **filters) -> List[EnterpriseMember]:
         enterprise_id_param = filters.get("enterprise_id")
-        ids_param = filter.get("ids")
+        ids_param = filters.get("ids")
         user_id_param = filters.get("user_id")
         user_ids_param = filters.get("user_ids")
         email_param = filters.get("email")
