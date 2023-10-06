@@ -25,6 +25,7 @@ class CipherParser:
             cipher_type=cipher_orm.type,
             data=cipher_orm.get_data(),
             folders=cipher_orm.get_folders(),
+            favorites=cipher_orm.get_favorites(),
             view_password=view_password,
             user=user_parser.parse_user(user_orm=cipher_orm.user) if cipher_orm.user else None,
             created_by=user_parser.parse_user(user_orm=cipher_orm.created_by) if cipher_orm.created_by else None,

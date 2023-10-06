@@ -5,7 +5,7 @@ from locker_server.core.entities.user.user import User
 class Cipher(object):
     def __init__(self, cipher_id: str, creation_date: float = None, revision_date: float = None,
                  deleted_date: float = None, last_use_date: float = None, num_use: int = 0, reprompt: int = 0,
-                 score: float = 0,  cipher_type: int = None, data: str = None, favorites: str = 0, folders: str = "",
+                 score: float = 0,  cipher_type: int = None, data: str = None, favorites: str = "", folders: str = "",
                  view_password: bool = True, user: User = None, created_by: User = None, team: Team = None):
         self._cipher_id = cipher_id
         self._creation_date = creation_date
