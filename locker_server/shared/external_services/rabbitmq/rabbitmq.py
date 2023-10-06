@@ -3,7 +3,7 @@ import json
 
 from django.conf import settings
 
-from shared.services.rabbitmq.exceptions import *
+from locker_server.shared.external_services.rabbitmq.exceptions import *
 
 
 class MessageBroker(object):
