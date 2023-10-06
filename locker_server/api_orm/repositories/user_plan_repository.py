@@ -46,7 +46,7 @@ class UserPlanORMRepository(UserPlanRepository):
     @staticmethod
     def _get_user_orm(user_id: int) -> Optional[UserORM]:
         try:
-            return UserORM.objects.get(id=user_id)
+            return UserORM.objects.get(user_id=user_id)
         except UserORM.DoesNotExist:
             return None
 
