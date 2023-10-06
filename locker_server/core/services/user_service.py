@@ -139,7 +139,7 @@ class UserService:
         enterprise_name = kwargs.get("enterprise_name")
 
         # Upgrade trial plan
-        if trial_plan and trial_plan != PLAN_TYPE_PM_FREE:
+        if trial_plan and trial_plan != PLAN_TYPE_PM_FREE and current_plan.pm_plan.alias == PLAN_TYPE_PM_FREE:
             trial_plan_obj = self.plan_repository.get_plan_by_alias(alias=trial_plan)
             if trial_plan_obj.is_team_plan is False:
                 if current_plan.is_personal_trial_applied() is False:
