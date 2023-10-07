@@ -13,6 +13,12 @@ class UserDoesNotExistException(UserException):
     """
 
 
+class UserPasswordInvalidException(UserException):
+    """
+    The password is not invalid
+    """
+
+
 class UserAuthFailedException(UserException):
     """
     The User device access token is not valid

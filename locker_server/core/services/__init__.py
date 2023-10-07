@@ -39,3 +39,7 @@ from .release_service import ReleaseService
 
 from .notification_setting_service import NotificationSettingService
 from .user_reward_mission_service import UserRewardMissionService
+
+from .factor2_service import Factor2Service
+
+from .notification_service import NotificationService

@@ -36,7 +36,7 @@ LS_USER_PLAN_MODEL = getattr(settings, "LS_USER_PLAN_MODEL", "api_orm.PMUserPlan
 # -------- Notification Models ------- #
 LS_NOTIFICATION_CATEGORY_MODEL = getattr(settings, "LS_NOTIFICATION_CATEGORY_MODEL", "api_orm.NotificationCategoryORM")
 LS_NOTIFICATION_SETTING_MODEL = getattr(settings, "LS_NOTIFICATION_SETTING_MODEL", "api_orm.NotificationSettingORM")
-
+LS_NOTIFICATION_MODEL = getattr(settings, "LS_NOTIFICATION_MODEL", "api_orm.NotificationORM")
 # -------- Emergency Access Models ------ #
 LS_EMERGENCY_ACCESS_MODEL = getattr(settings, "LS_EMERGENCY_ACCESS_MODEL", "api_orm.EmergencyAccessORM")
 
@@ -86,6 +86,9 @@ LS_QUICK_SHARE_EMAIL_MODEL = getattr(settings, "LS_QUICK_SHARE_EMAIL_MODEL", "ap
 # ------- Affiliate Models ---------- #
 LS_AFFILIATE_SUBMISSION_MODEL = getattr(settings, "LS_AFFILIATE_SUBMISSION_MODEL", "api_orm.AffiliateSubmissionORM")
 
+# -------- Factor2 Models ----------- #
+LS_FACTOR2_METHOD_MODEL = getattr(settings, "LS_FACTOR2_METHOD_MODEL", "api_orm.Factor2MethodORM")
+
 DEFAULTS = {
     "LS_RELEASE_MODEL": LS_RELEASE_MODEL,
 
@@ -102,6 +105,7 @@ DEFAULTS = {
 
     "LS_NOTIFICATION_CATEGORY_MODEL": LS_NOTIFICATION_CATEGORY_MODEL,
     'LS_NOTIFICATION_SETTING_MODEL': LS_NOTIFICATION_SETTING_MODEL,
+    'LS_NOTIFICATION_MODEL': LS_NOTIFICATION_MODEL,
 
     "LS_EMERGENCY_ACCESS_MODEL": LS_EMERGENCY_ACCESS_MODEL,
 
@@ -139,6 +143,8 @@ DEFAULTS = {
     "LS_QUICK_SHARE_EMAIL_MODEL": LS_QUICK_SHARE_EMAIL_MODEL,
 
     "LS_AFFILIATE_SUBMISSION_MODEL": LS_AFFILIATE_SUBMISSION_MODEL,
+
+    "LS_FACTOR2_METHOD_MODEL": LS_FACTOR2_METHOD_MODEL,
 
     "API_REPOSITORY_CLASS": "locker_server.containers.defaults.repository.RepositoryFactory",
     "API_SERVICE_CLASS": "locker_server.containers.defaults.service.ServiceFactory",
