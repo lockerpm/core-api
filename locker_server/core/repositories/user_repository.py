@@ -66,6 +66,10 @@ class UserRepository(ABC):
     def retrieve_or_create_by_id(self, user_id, creation_date=None) -> Tuple[User, bool]:
         pass
 
+    @abstractmethod
+    def retrieve_or_create_by_email(self, email: str, creation_date=None) -> Tuple[User, bool]:
+        pass
+
     # ------------------------ Update User resource --------------------- #
     @abstractmethod
     def update_user(self, user_id: int, user_update_data) -> Optional[User]:

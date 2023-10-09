@@ -8,8 +8,10 @@ https://docs.djangoproject.com/en/3.2/howto/deployment/asgi/
 """
 
 import os
+
 import django
 from channels.routing import get_default_application
+
 
 valid_env = ['prod', 'env', 'staging']
 env = os.getenv("ENVIRONMENT")

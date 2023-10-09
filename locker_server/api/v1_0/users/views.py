@@ -67,7 +67,7 @@ class UserPwdViewSet(APIBaseViewSet):
 
     @action(methods=["post"], detail=False)
     def register(self, request, *args, **kwargs):
-        user = self.request.user
+        # user = self.request.user
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
@@ -75,7 +75,7 @@ class UserPwdViewSet(APIBaseViewSet):
         keys = validated_data.get("keys", {})
         master_password_hash = validated_data.get("master_password_hash")
         self.user_service.register_user(
-            user_id=user.user_id,
+            user_id=validated_data.get("email"),
             master_password_hash=master_password_hash,
             key=key,
             keys=keys,
@@ -89,7 +89,7 @@ class UserPwdViewSet(APIBaseViewSet):
                 "enterprise_name": validated_data.get("enterprise_name")
             }
         )
-        return Response(status=200, data={"success": True})
+        return Response(status=status.HTTP_200_OK, data={"success": True})
 
     @action(methods=["get"], detail=False)
     def invitation_confirmation(self, request, *args, **kwargs):
@@ -151,11 +151,7 @@ class UserPwdViewSet(APIBaseViewSet):
     @action(methods=["get"], detail=False)
     def block_by_2fa_policy(self, request, *args, **kwargs):
         user = self.request.user
-        is_factor2_param = self.request.query_params.get("is_factor2")
-        if is_factor2_param and (is_factor2_param == "1" or is_factor2_param in [True, "true", "True"]):
-            is_factor2 = True
-        else:
-            is_factor2 = False
+        is_factor2 = user.is_factor2
         is_block = self.user_service.is_block_by_2fa_policy(user_id=user.user_id, is_factor2=is_factor2)
         return Response(status=status.HTTP_200_OK, data={"block": is_block})
 
@@ -184,11 +180,11 @@ class UserPwdViewSet(APIBaseViewSet):
         device_type = validated_data.get("device_type")
         email = validated_data.get("email")
         password = validated_data.get("password")
-        is_factor2 = request.data.get("is_factor2", False)
         try:
             user = self.user_service.retrieve_by_email(email=email)
         except UserDoesNotExistException:
             raise ValidationError(detail={"email": ["The email is not valid"]})
+        is_factor2 = user.is_factor2
         try:
             result = self.user_service.user_session(
                 user=user, password=password, client_id=client_id, device_identifier=device_identifier,
@@ -348,7 +344,54 @@ class UserPwdViewSet(APIBaseViewSet):
                     data={"id": str(master_password_cipher_obj.cipher_id)}
                 )
 
-        return Response(status=status.HTTP_200_OK, data=result)
+        # Re-create token
+        if settings.SELF_HOSTED:
+            device_access_token = request.auth
+            new_device_access_token = self.device_service.fetch_device_access_token(
+                device=device_access_token.device, renewal=True, sso_token_id=True
+            )
+            access_token = new_device_access_token.access_token
+
+            mail_user_ids = result.get("mail_user_ids")
+            # TODO: Sending mail when user changes master password
+            # if user.user_id in mail_user_ids:
+            #     device = detect_device(ua_string=self.get_client_agent())
+            #     ip_location = Factor2Method.get_ip_location(ip=get_ip_by_request(request))
+            #     browser = device.get("browser", None)
+            #     browser = "" if browser is None else browser.get("family") + " " + browser.get("version", "")
+            #     os = device.get("os", None)
+            #     os = "" if os is None else os.get("family", "") + " " + os.get("version", "")
+            #     location = ip_location.get("location", None)
+            #     # Get location
+            #     if location:
+            #         city = location.get("city", "")
+            #         country = location.get("country_name", "")
+            #         city_country = []
+            #         if city is not None and city != "":
+            #             city_country.append(city)
+            #         if country is not None and country != "":
+            #             city_country.append(country)
+            #         user_location = ", ".join(city_country)
+            #     else:
+            #         user_location = ""
+            #     LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+            #         func_name="notify_sending", **{
+            #             "user": user,
+            #             "job": PWD_MASTER_PASSWORD_CHANGED,
+            #             "changed_time": datetime.utcfromtimestamp(now()).strftime('%H:%M:%S %d-%m-%Y') + " (UTC+00)",
+            #             "account": user.email,
+            #             "location": user_location,
+            #             "ip": ip_location.get("ip", ""),
+            #             "os": os,
+            #             "browser": browser,
+            #         }
+            #     )
+            return Response(status=status.HTTP_200_OK, data={"success": True, "token": access_token})
+
+        return Response(status=status.HTTP_200_OK, data={
+            "notification": result.get("notification"),
+            "client": result.get("client")
+        })
 
     @action(methods=["post"], detail=False)
     def new_password(self, request, *args, **kwargs):
@@ -356,12 +399,16 @@ class UserPwdViewSet(APIBaseViewSet):
 
     @action(methods=["post"], detail=False)
     def check_password(self, request, *args, **kwargs):
-        user = self.request.user
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data.get("email")
         master_password_hash = serializer.validated_data.get("master_password_hash")
-        valid = self.user_service.check_master_password(user=user, master_password_hash=master_password_hash)
-        return Response(status=200, data={"valid": valid})
+        try:
+            user = self.user_service.retrieve_by_email(email=email)
+            valid = self.user_service.check_master_password(user=user, master_password_hash=master_password_hash)
+        except UserDoesNotExistException:
+            valid = False
+        return Response(status=status.HTTP_200_OK, data={"valid": valid})
 
     @action(methods=["post"], detail=False)
     def password_hint(self, request, *args, **kwargs):
@@ -373,7 +420,17 @@ class UserPwdViewSet(APIBaseViewSet):
         except UserDoesNotExistException:
             raise ValidationError(detail={"email": ["There’s no account associated with this email"]})
         master_password_hint = user.master_password_hint
-        return Response(status=200, data={"master_password_hint": master_password_hint})
+        if settings.SELF_HOSTED:
+            # TODO: Sending master password hint mail
+            pass
+            # job = PWD_HINT_FOR_MASTER_PASSWORD if master_password_hint else PWD_NO_MASTER_PASSWORD_HINT
+            # LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+            #     func_name="notify_sending", **{
+            #         "user": user, "job": job, "hint": master_password_hint
+            #     }
+            # )
+            return Response(status=status.HTTP_200_OK, data={"success": True})
+        return Response(status=status.HTTP_200_OK, data={"master_password_hint": master_password_hint})
 
     @action(methods=["post"], detail=False)
     def revoke_all_sessions(self, request, *args, **kwargs):
@@ -385,7 +442,7 @@ class UserPwdViewSet(APIBaseViewSet):
         if not self.user_service.check_master_password(user=user, master_password_hash=master_password_hash):
             raise ValidationError(detail={"master_password_hash": ["The master password is not correct"]})
         self.user_service.revoke_all_sessions(user)
-        return Response(status=200, data={"success": True})
+        return Response(status=status.HTTP_200_OK, data={"success": True})
 
     @action(methods=["post"], detail=False)
     def delete_me(self, request, *args, **kwargs):
@@ -397,7 +454,16 @@ class UserPwdViewSet(APIBaseViewSet):
         if not self.user_service.check_master_password(user=user, master_password_hash=master_password_hash):
             raise ValidationError(detail={"master_password_hash": ["The master password is not correct"]})
         self.user_service.delete_locker_user(user=user)
-        return Response(status=200, data={"success": True})
+        # TODO: Sending mail when user deletes account
+        # if settings.SELF_HOSTED:
+        #     BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+        #         func_name="notify_sending", **{
+        #             "destinations": [{"email": user.email, "name": user.full_name, "language": user.language}],
+        #             "job": PWD_ACCOUNT_DELETED,
+        #             "email": user.email
+        #         }
+        #     )
+        return Response(status=status.HTTP_200_OK, data={"success": True})
 
     @action(methods=["post"], detail=False)
     def purge_me(self, request, *args, **kwargs):
@@ -409,7 +475,20 @@ class UserPwdViewSet(APIBaseViewSet):
         if not self.user_service.check_master_password(user=user, master_password_hash=master_password_hash):
             raise ValidationError(detail={"master_password_hash": ["The master password is not correct"]})
         notification = self.user_service.purge_user(user=user)
-        return Response(status=200, data=notification)
+
+        if settings.SELF_HOSTED:
+            # TODO: Send web notification
+            # for cipher_member in notification:
+            #     LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+            #         func_name="notify_sending", **{
+            #             "user": notification_users_dict.get(cipher_member["shared_member"]),
+            #             "job": PWD_DELETE_SHARE_ITEM,
+            #             "owner": user.full_name,
+            #             "cipher_id": cipher_member["id"]
+            #         }
+            #     )
+            return Response(status=status.HTTP_200_OK, data={"success": True})
+        return Response(status=status.HTTP_200_OK, data=notification)
 
     @action(methods=["get", "put"], detail=False)
     def onboarding_process(self, request, *args, **kwargs):
@@ -471,6 +550,23 @@ class UserPwdViewSet(APIBaseViewSet):
             )
         except TeamMemberDoesNotExistException:
             return NotFound
+        if settings.SELF_HOSTED and result.get("status") == "accept":
+            owner_user_id = result.get("owner")
+            # TODO: Sending mail
+            # try:
+            #     owner = self.user_service.retrieve_by_id(user_id=owner_user_id)
+            #     LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+            #         func_name="notify_sending", **{
+            #             "user": owner,
+            #             "job": PWD_CONFIRM_INVITATION,
+            #             "team_name": response.data.get("team_name"),
+            #             "member_email": user.email,
+            #             "member_name": user.full_name
+            #         }
+            #     )
+            # except UserDoesNotExistException:
+            #     pass
+            return Response(status=status.HTTP_200_OK, data={"success": True})
         return Response(status=status.HTTP_200_OK, data=result)
 
     @action(methods=["get"], detail=False)

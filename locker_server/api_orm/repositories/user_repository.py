@@ -270,6 +270,14 @@ class UserORMRepository(UserRepository):
         })
         return ModelParser.user_parser().parse_user(user_orm=user_orm), is_created
 
+    def retrieve_or_create_by_email(self, email: str, creation_date=None) -> Tuple[User, bool]:
+        creation_date = now() if not creation_date else float(creation_date)
+        user_orm, is_created = UserORM.objects.get_or_create(email=email, defaults={
+            "email": email,
+            "creation_date": creation_date
+        })
+        return ModelParser.user_parser().parse_user(user_orm=user_orm), is_created
+
     # ------------------------ Update User resource --------------------- #
     def update_user(self, user_id: int, user_update_data) -> Optional[User]:
         try:

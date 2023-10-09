@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 
 from locker_server.shared.general_view import AppGeneralViewSet
@@ -61,7 +62,11 @@ class APIBaseViewSet(AppGeneralViewSet):
         return True
 
     def get_client_agent(self):
+        if settings.SELF_HOSTED:
+            return self.request.META.get("HTTP_USER_AGENT") or ''
         return self.request.META.get("HTTP_LOCKER_CLIENT_AGENT") or self.request.META.get("HTTP_USER_AGENT") or ''
 
     def get_ip(self):
+        if settings.SELF_HOSTED:
+            return get_ip_by_request(request=self.request)
         return self.request.data.get("ip") or get_ip_by_request(request=self.request)

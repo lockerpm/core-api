@@ -13,6 +13,7 @@ from locker_server.shared.utils.app import now
 
 
 class UserORM(AbstractUserORM):
+    user_id = models.AutoField(primary_key=True)
     email = models.EmailField(unique=True, max_length=255, null=True)
     full_name = models.CharField(max_length=255, null=True)
     language = models.CharField(max_length=4, blank=False, default=LANG_ENGLISH)

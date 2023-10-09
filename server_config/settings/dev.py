@@ -11,8 +11,10 @@ try:
 
     SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
     DEBUG = True
+    SELF_HOSTED = True
     ALLOWED_HOSTS = ["*"]
     WSGI_APPLICATION = 'server_config.wsgi.application'
+    ASGI_APPLICATION = 'server_config.routing.application'
 
     # Scope apps
     SCOPE_PWD_MANAGER = "pwdmanager"
@@ -29,6 +31,20 @@ try:
 
     # Test enterprise domain
     TEST_DOMAINS = ["dev.cystack.org"]
+
+    # Channel layers
+    CHANNEL_REDIS_LOCATION = os.getenv("CHANNEL_REDIS_LOCATION")
+    default_channel_host = {
+        'address': CHANNEL_REDIS_LOCATION,
+    }
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                "hosts": (default_channel_host,),
+            },
+        }
+    }
 
     # Cache DB
     CACHE_ENGINE = os.getenv("CACHE_ENGINE", "redis")
@@ -110,6 +126,7 @@ try:
         'django.contrib.staticfiles',
         'corsheaders',
         'rest_framework',
+        'channels',
         # 'django_rq',
         # 'cystack_models',
         # 'v1_0',
