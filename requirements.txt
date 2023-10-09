@@ -46,3 +46,7 @@ beautifulsoup4==4.12.2
 google-api-python-client==2.86.0
 google-auth-oauthlib==1.0.0
 oauth2client<4.0.0
+
+# Channels
+channels==3.0.4
+channels_redis==3.3.1

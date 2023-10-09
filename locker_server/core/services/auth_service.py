@@ -1,6 +1,7 @@
 from typing import Tuple, Dict, List, Optional
 
 from locker_server.core.entities.user.device_access_token import DeviceAccessToken
+from locker_server.core.exceptions.device_access_token_exception import DeviceAccessTokenDoesNotExistException
 from locker_server.core.exceptions.user_exception import UserAuthFailedException
 from locker_server.core.repositories.auth_repository import AuthRepository
 from locker_server.core.repositories.device_access_token_repository import DeviceAccessTokenRepository
@@ -11,6 +12,7 @@ class AuthService:
     """
     This class represents Use Cases related authentication
     """
+
     def __init__(self, auth_repository: AuthRepository, device_access_token_repository: DeviceAccessTokenRepository):
         self.auth_repository = auth_repository
         self.device_access_token_repository = device_access_token_repository
@@ -51,4 +53,12 @@ class AuthService:
         if device.device_identifier != device_identifier or device.client_id != client_id or \
                 device.user.internal_id != user_internal_id:
             raise UserAuthFailedException
+        return device_access_token
+
+    def get_device_access_token_by_id(self, device_access_token_id: str) -> Optional[DeviceAccessToken]:
+        device_access_token = self.device_access_token_repository.get_device_access_token_by_id(
+            device_access_token_id=device_access_token_id
+        )
+        if not device_access_token:
+            raise DeviceAccessTokenDoesNotExistException
         return device_access_token
