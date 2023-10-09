@@ -96,7 +96,7 @@ class EnterpriseService:
         )
 
     def get_domain_by_id(self, domain_id: str) -> Optional[Domain]:
-        domain = self.get_domain_by_id(domain_id=domain_id)
+        domain = self.enterprise_domain_repository.get_domain_by_id(domain_id=domain_id)
         if not domain:
             raise DomainDoesNotExistException
         return domain
@@ -165,7 +165,7 @@ class EnterpriseService:
         if is_verified_by_other:
             raise DomainVerifiedByOtherException
         is_verify = self.enterprise_domain_repository.check_verification(
-            domain_id=domain.domain
+            domain_id=domain.domain_id
         )
         if not is_verify:
             raise DomainVerifiedErrorException()

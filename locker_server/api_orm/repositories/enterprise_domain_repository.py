@@ -42,7 +42,7 @@ class EnterpriseDomainORMRepository(EnterpriseDomainRepository):
         return domains_orm.exists()
 
     def count_unverified_domain(self, enterprise_id: str) -> int:
-        unverified_domain_count = DomainORM.filter(
+        unverified_domain_count = DomainORM.objects.filter(
             verification=False,
             enterprise_id=enterprise_id
         ).count()

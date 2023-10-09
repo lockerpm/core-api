@@ -31,7 +31,7 @@ class ActivityLogPwdViewSet(APIBaseViewSet):
 
     def get_enterprise(self):
         try:
-            enterprise = self.enterprise_service.get_enterpirse_by_id(
+            enterprise = self.enterprise_service.get_enterprise_by_id(
                 enterprise_id=self.kwargs.get("pk")
             )
             self.check_object_permissions(request=self.request, obj=enterprise)
@@ -94,7 +94,8 @@ class ActivityLogPwdViewSet(APIBaseViewSet):
             "from": self.check_int_param(self.request.query_params.get("from")),
             "to": self.check_int_param(self.request.query_params.get("to")),
             "action": self.request.query_params.get("action"),
-            "member_user_ids": member_user_ids
+            "member_user_ids": member_user_ids,
+            "enterprise_id": enterprise.enterprise_id
         }
         events = self.event_service.list_events(**filters)
         return events
@@ -110,8 +111,7 @@ class ActivityLogPwdViewSet(APIBaseViewSet):
         page = self.paginate_queryset(queryset)
         if page is not None:
             # TODO: check list logs
-            logs = page.object_list
-            normalize_page = self.event_service.normalize_enterprise_activity(activity_logs=logs)
+            normalize_page = self.event_service.normalize_enterprise_activity(activity_logs=page)
             serializer = self.get_serializer(normalize_page, many=True)
             return self.get_paginated_response(serializer.data)
         logs = self.event_service.normalize_enterprise_activity(activity_logs=queryset)
