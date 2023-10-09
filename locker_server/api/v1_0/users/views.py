@@ -481,7 +481,7 @@ class UserPwdViewSet(APIBaseViewSet):
     def devices(self, request, *args, **kwargs):
         user = request.user
         self.check_pwd_session_auth(request)
-        devices = self.device_destroy.list_user_devices(user_id=user.user_id)
+        devices = self.user_service.list_user_devices(user_id=user.user_id)
         serializer = self.get_serializer(devices, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 

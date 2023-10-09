@@ -29,10 +29,10 @@ class EventService:
         return self.event_repository.create_new_event(**data)
 
     def create_new_event_by_multiple_teams(self, team_ids: list, **data):
-        return self.create_new_event_by_multiple_teams(team_ids, **data)
+        return self.event_repository.create_new_event_by_multiple_teams(team_ids, **data)
 
     def create_new_event_by_ciphers(self, ciphers, **data):
-        return self.create_new_event_by_ciphers(ciphers, **data)
+        return self.event_repository.create_new_event_by_ciphers(ciphers, **data)
 
     def normalize_enterprise_activity(self, activity_logs: List[Event]) -> List[Event]:
         user_ids = [activity_log.user_id for activity_log in activity_logs if activity_log.user_id]
