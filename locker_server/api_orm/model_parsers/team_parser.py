@@ -47,7 +47,7 @@ class TeamParser:
             email=team_member_orm.email,
             token_invitation=team_member_orm.token_invitation,
             user=user_parser.parse_user(user_orm=team_member_orm.user) if team_member_orm.user else None,
-            team=cls.parse_team(team_orm=team_member_orm),
+            team=cls.parse_team(team_orm=team_member_orm.team),
             role=cls.parse_member_role(member_role_orm=team_member_orm.role)
         )
 
