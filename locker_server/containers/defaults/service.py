@@ -42,6 +42,7 @@ class ServiceFactory(containers.DeclarativeContainer):
     device_service = providers.Factory(
         DeviceService,
         device_repository=RepositoryFactory.device_repository,
+        device_access_token_repository=RepositoryFactory.device_access_token_repository,
     )
     family_service = providers.Factory(
         FamilyService,

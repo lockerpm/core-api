@@ -4,16 +4,19 @@ from rest_framework.routers import DefaultRouter
 from locker_server.api.v1_0 import views
 from locker_server.shared.caching.api_cache_page import LONG_TIME_CACHE
 
+
 router = DefaultRouter(trailing_slash=False)
 
 urlpatterns = [
     url(r'^', include(router.urls))
 ]
 
+
 # ------------------------------- Management Command ----------------------------- #
 urlpatterns += [
 
 ]
+
 
 # ----------------------------------- Resources ----------------------------- #
 urlpatterns += [
@@ -21,11 +24,13 @@ urlpatterns += [
     url(r'^resources/enterprise/plans$', views.ResourcePwdViewSet.as_view({'get': 'enterprise_plans'})),
 ]
 
+
 # ----------------------------------- Tools ----------------------------- #
 urlpatterns += [
     url(r'^tools/breach$', views.ToolPwdViewSet.as_view({'post': 'breach'})),
     url(r'^tools/public/breach$', views.ToolPwdViewSet.as_view({'post': 'public_breach'})),
 ]
+
 
 # ----------------------------------- Exclude domains ----------------------------- #
 urlpatterns += [
@@ -34,13 +39,6 @@ urlpatterns += [
         views.ExcludeDomainPwdViewSet.as_view({'get': 'retrieve', 'delete': 'destroy'})),
 ]
 
-# # ----------------------------------- Factor2 --------------------------- #
-# urlpatterns += [
-#     url(r'^auth/otp/mail$', views.Factor2ViewSet.as_view({'post': 'auth_otp_mail'})),
-#     url(r'^me/factor2$', views.Factor2ViewSet.as_view({'get': 'factor2', 'post': 'factor2'})),
-#     url(r'^me/factor2/activate_code$', views.Factor2ViewSet.as_view({'post': 'factor2_activate_code'})),
-#     url(r'^me/factor2/activate$', views.Factor2ViewSet.as_view({'post': 'factor2_is_activate'})),
-# ]
 
 # ----------------------------------- Users ----------------------------- #
 urlpatterns += [
@@ -68,8 +66,6 @@ urlpatterns += [
     url(r'^users/invitations/confirmation$', views.UserPwdViewSet.as_view({'get': 'invitation_confirmation'})),
     url(r'^users/invitations$', views.UserPwdViewSet.as_view({'get': 'invitations'})),
     url(r'^users/invitations/(?P<pk>[a-z0-9\-]+)$', views.UserPwdViewSet.as_view({'put': 'invitation_update'})),
-    # url(r'^users/delete_multiple$', views.UserPwdViewSet.as_view({'post': 'delete_multiple'})),
-
 ]
 
 # ----------------------------------- Passwordless ----------------------------- #

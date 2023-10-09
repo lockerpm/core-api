@@ -9,6 +9,8 @@ from locker_server.shared.constants.transactions import *
 class UserMeSerializer(serializers.Serializer):
     def to_representation(self, instance):
         data = {
+            "email": instance.email,
+            "name": instance.full_name,
             "timeout": instance.timeout,
             "timeout_action": instance.timeout_action,
             "is_pwd_manager": instance.activated,
@@ -47,6 +49,7 @@ class EncryptedPairKey(serializers.Serializer):
 
 
 class UserRegisterSerializer(serializers.Serializer):
+    email = serializers.EmailField(max_length=255)
     kdf = serializers.IntegerField(default=0)
     kdf_iterations = serializers.IntegerField(default=100000)
     key = serializers.CharField()
@@ -113,6 +116,7 @@ class UserNewPasswordSerializer(serializers.Serializer):
 
 class UserCheckPasswordSerializer(serializers.Serializer):
     master_password_hash = serializers.CharField()
+    email = serializers.EmailField()
 
 
 class UserMasterPasswordHashSerializer(serializers.Serializer):

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List, Dict, NoReturn
+from typing import Optional, List, Dict, NoReturn, Union
 
 from django.conf import settings
 
@@ -116,11 +116,20 @@ class UserService:
             self.get_current_plan(user=user)
         return user
 
+    def retrieve_or_create_by_email(self, email: str) -> User:
+        user, is_created = self.user_repository.retrieve_or_create_by_email(email=email)
+        if is_created is True:
+            self.get_current_plan(user=user)
+        return user
+
     def get_from_cystack_id(self, user_id: int) -> Dict:
         return self.user_repository.get_from_cystack_id(user_id=user_id)
 
-    def register_user(self, user_id: int, master_password_hash: str, key: str, keys, **kwargs):
-        user = self.retrieve_or_create_by_id(user_id=user_id)
+    def register_user(self, user_id: Union[str, int], master_password_hash: str, key: str, keys, **kwargs):
+        if isinstance(user_id, int):
+            user = self.retrieve_or_create_by_id(user_id=user_id)
+        else:
+            user = self.retrieve_or_create_by_email(email=user_id)
 
         user_new_creation_data = {
             "kdf": kwargs.get("kdf", 0),
@@ -453,6 +462,7 @@ class UserService:
         )
         return {
             "notification": True if user.user_id in mail_user_ids else False,
+            "mail_user_ids": mail_user_ids,
             "client": client
         }
 
@@ -462,7 +472,7 @@ class UserService:
         except TypeError:
             return False
 
-    def srevoke_all_sessions(self, user: User, exclude_sso_token_ids: List[str]):
+    def revoke_all_sessions(self, user: User, exclude_sso_token_ids: List[str]):
         self.user_repository.revoke_all_sessions(user=user, exclude_sso_token_ids=exclude_sso_token_ids)
 
     def delete_locker_user(self, user: User):
