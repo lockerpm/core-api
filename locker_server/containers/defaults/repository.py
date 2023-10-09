@@ -46,7 +46,7 @@ class RepositoryFactory(containers.DeclarativeContainer):
 
     notification_category_repository = providers.Factory(NotificationCategoryORMRepository)
     notification_setting_repository = providers.Factory(NotificationSettingORMRepository)
-
+    notification_repository = providers.Factory(NotificationORMRepository)
     relay_address_repository = providers.Factory(RelayAddressORMRepository)
     deleted_relay_address_repository = providers.Factory(DeletedRelayAddressORMRepository)
     relay_subdomain_repository = providers.Factory(RelaySubdomainORMRepository)
@@ -59,3 +59,6 @@ class RepositoryFactory(containers.DeclarativeContainer):
     user_reward_mission_repository = providers.Factory(UserRewardMissionORMRepository)
     mission_repository = providers.Factory(MissionORMRepository)
     promo_code_repository = providers.Factory(PromoCodeORMRepository)
+
+    factor2_method_repository = providers.Factory(Factor2MethodORMRepository)
+    device_factor2_repository = providers.Factory(DeviceFactor2ORMRepository)

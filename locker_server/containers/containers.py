@@ -48,3 +48,7 @@ release_service = ServiceFactory.release_service()
 notification_setting_service = ServiceFactory.notification_setting_service()
 
 user_reward_mission_service = ServiceFactory.user_reward_mission_service()
+
+factor2_service = ServiceFactory.factor2_service()
+
+notification_service = ServiceFactory.notification_service()

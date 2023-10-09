@@ -1,6 +1,7 @@
 from locker_server.shared.constants.account import DEFAULT_KDF_ITERATIONS, LOGIN_METHOD_PASSWORD, \
     DEFAULT_ONBOARDING_PROCESS
 from locker_server.shared.constants.lang import LANG_ENGLISH
+from locker_server.shared.utils.avatar import get_avatar
 
 
 class User(object):
@@ -197,3 +198,6 @@ class User(object):
     @property
     def base32_secret_factor2(self):
         return self._base32_secret_factor2
+
+    def get_avatar(self):
+        return get_avatar(self.email)

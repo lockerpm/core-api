@@ -41,6 +41,7 @@ from .release_repository import ReleaseORMRepository
 
 from .notification_category_repository import NotificationCategoryORMRepository
 from .notification_setting_repository import NotificationSettingORMRepository
+from .notification_repository import NotificationORMRepository
 
 from .relay_repositories.deleted_relay_address_repository import DeletedRelayAddressORMRepository
 from .relay_repositories.relay_subdomain_repository import RelaySubdomainORMRepository
@@ -50,3 +51,6 @@ from .relay_repositories.reply_repository import ReplyORMRepository
 from .user_reward_mission_repository import UserRewardMissionORMRepository
 from .mission_repository import MissionORMRepository
 from .promo_code_repository import PromoCodeORMRepository
+
+from .factor2_method_repository import Factor2MethodORMRepository
+from .device_factor2_repository import DeviceFactor2ORMRepository

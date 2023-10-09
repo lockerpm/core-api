@@ -28,7 +28,7 @@ class NotificationSettingORMRepository(NotificationSettingRepository):
                     category__mail=True
                 )
         return [
-            ModelParser.notification_setting_parser().parse_notification_settings(
+            ModelParser.notification_parser().parse_notification_settings(
                 notification_setting_orm=notification_setting_orm
             )
             for notification_setting_orm in notification_settings_orm
@@ -77,7 +77,7 @@ class NotificationSettingORMRepository(NotificationSettingRepository):
             notification_setting_orm = NotificationSettingORM.objects.get(user_id=user_id, category_id=category_id)
         except NotificationSettingORM.DoesNotExist:
             return None
-        return ModelParser.notification_setting_parser().parse_notification_settings(
+        return ModelParser.notification_parser().parse_notification_settings(
             notification_setting_orm=notification_setting_orm
         )
 
@@ -91,7 +91,7 @@ class NotificationSettingORMRepository(NotificationSettingRepository):
         notification_orm.notification = notification_update_data.get("notification", notification_orm)
         notification_orm.mail = notification_update_data.get("mail", notification_orm.mail)
         notification_orm.save()
-        return ModelParser.notification_setting_parser().parse_notification_settings(
+        return ModelParser.notification_parser().parse_notification_settings(
             notification_setting_orm=notification_orm
         )
 

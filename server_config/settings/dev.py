@@ -200,6 +200,8 @@ try:
     LS_ENTERPRISE_POLICY_MODEL = "api_orm.EnterprisePolicyORM"
     LS_QUICK_SHARE_MODEL = "api_orm.QuickShareORM"
     LS_QUICK_SHARE_EMAIL_MODEL = "api_orm.QuickShareEmailORM"
+    LS_NOTIFICATION_MODEL = "api_orm.NotificationORM"
+    LS_FACTOR2_METHOD_MODEL = "api_orm.Factor2MethodORM"
 
     LOCKER_SERVER_SETTINGS = {
         "API_REPOSITORY_CLASS": "locker_server.containers.defaults.repository.RepositoryFactory",

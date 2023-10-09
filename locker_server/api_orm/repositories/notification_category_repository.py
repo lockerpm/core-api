@@ -15,7 +15,7 @@ class NotificationCategoryORMRepository(NotificationCategoryRepository):
     def list_notification_categories(self) -> List[NotificationCategory]:
         notification_categories_orm = NotificationCategoryORM.objects.all().order_by('order_number')
         return [
-            ModelParser.notification_setting_parser().parse_notification_category(
+            ModelParser.notification_parser().parse_notification_category(
                 notification_category_orm=notification_category_orm
             ) for notification_category_orm in notification_categories_orm
         ]
@@ -24,7 +24,7 @@ class NotificationCategoryORMRepository(NotificationCategoryRepository):
     def get_by_id(self, notification_category_id: str) -> Optional[NotificationCategory]:
         try:
             notification_category_orm = NotificationCategoryORM.objects.get(id=notification_category_id)
-            return ModelParser.notification_setting_parser().parse_notification_category(
+            return ModelParser.notification_parser().parse_notification_category(
                 notification_category_orm=notification_category_orm
             )
         except NotificationCategoryORM.DoesNotExist:
