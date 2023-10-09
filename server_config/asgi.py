@@ -8,10 +8,15 @@ https://docs.djangoproject.com/en/3.2/howto/deployment/asgi/
 """
 
 import os
+import django
+from channels.routing import get_default_application
 
-from django.core.asgi import get_asgi_application
+valid_env = ['prod', 'env', 'staging']
+env = os.getenv("ENVIRONMENT")
+env = 'dev' if env not in valid_env else env
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'server_config.settings')
+setting = "server_config.settings.%s" % env
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", setting)
+django.setup()
 
-application = get_asgi_application()
-
+application = get_default_application()

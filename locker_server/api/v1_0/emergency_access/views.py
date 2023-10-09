@@ -25,7 +25,7 @@ from .serializers import EmergencyAccessGranteeSerializer, EmergencyAccessGranto
 
 class EmergencyAccessPwdViewSet(APIBaseViewSet):
     permission_classes = (EmergencyAccessPwdPermission,)
-    http_method_names = ["head", "options", "get", "post", "put"]
+    http_method_names = ["head", "options", "get", "post", "put", "delete"]
     lookup_value_regex = r'[0-9a-z-]+'
 
     def get_throttles(self):
@@ -112,7 +112,7 @@ class EmergencyAccessPwdViewSet(APIBaseViewSet):
         except EmergencyAccessEmailExistedException:
             raise ValidationError(detail={"email": ["The emergency already exists"]})
         return Response(status=status.HTTP_200_OK, data={
-            "id": new_emergency_access.id,
+            "id": new_emergency_access.emergency_access_id,
             "mail_user_ids": mail_user_ids,
             "notification_user_ids": notification_user_ids
         })

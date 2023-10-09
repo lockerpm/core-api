@@ -18,7 +18,7 @@ from .serializers import CreateQuickShareSerializer, ListQuickShareSerializer, D
 
 class QuickSharePwdViewSet(APIBaseViewSet):
     permission_classes = (QuickSharePwdPermission,)
-    http_method_names = ["head", "options", "get", "post", "put"]
+    http_method_names = ["head", "options", "get", "post", "put", "delete"]
     lookup_value_regex = r'[0-9a-z-]+'
 
     def get_throttles(self):
@@ -139,8 +139,7 @@ class QuickSharePwdViewSet(APIBaseViewSet):
 
         try:
             quick_share, token, expired_time = self.quick_share_service.public_quick_share(
-                user_id=request.user.user_id, quick_share=quick_share,
-                email=email, code=code, token=token
+                quick_share=quick_share, email=email, code=code, token=token
             )
         except QuickShareNotValidAccessException:
             raise ValidationError({"non_field_errors": [gen_error("9000")]})
