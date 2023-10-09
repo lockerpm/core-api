@@ -34,7 +34,7 @@ class APIBaseViewSet(AppGeneralViewSet):
 
     enterprise_service = enterprise_service
     enterprise_member_service = enterprise_member_service
-    enterprise_group_service = enterprise_member_service
+    enterprise_group_service = enterprise_group_service
 
     relay_address_service = relay_address_service
     relay_subdomain_service = relay_subdomain_service

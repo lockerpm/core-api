@@ -7,15 +7,15 @@ from locker_server.shared.constants.enterprise_members import ENTERPRISE_LIST_RO
 class DetailMemberSerializer(serializers.Serializer):
     def to_representation(self, instance):
         data = {
-            "id": instance.id,
-            "access_time": instance.id,
-            "'is_default'": instance.id,
-            "is_primary": instance.id,
-            "role": instance.id,
-            "user_id": instance.id,
-            "email": instance.id,
-            "status": instance.id,
-            "is_activated": instance.id,
+            "id": instance.enterprise_member_id,
+            "access_time": instance.access_time,
+            "'is_default'": instance.is_default,
+            "is_primary": instance.is_primary,
+            "role": instance.role.name,
+            "user_id": instance.user.user_id,
+            "email": instance.email,
+            "status": instance.status,
+            "is_activated": instance.is_activated,
 
         }
         data["role"] = instance.role.name

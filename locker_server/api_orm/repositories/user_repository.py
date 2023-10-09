@@ -40,12 +40,12 @@ class UserORMRepository(UserRepository):
         user_ids_param = filters.get("user_ids")
         base32_secret_factor2_param = filters.get("base32_secret_factor2")
         if user_ids_param:
-            users_orm = users_orm.filter(id__in=user_ids_param)
+            users_orm = users_orm.filter(user_id__in=user_ids_param)
         if base32_secret_factor2_param:
             users_orm = users_orm.filter(base32_secret_factor2=base32_secret_factor2_param)
 
         return [
-            ModelParser.user_parser().parse_user(users_orm=user_orm)
+            ModelParser.user_parser().parse_user(user_orm=user_orm)
             for user_orm in users_orm
         ]
 

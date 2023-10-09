@@ -29,7 +29,7 @@ class EventORMRepository(EventRepository):
     # ------------------------ List Enterprise resource ------------------- #
     def list_events(self, **filters) -> List[Event]:
         enterprise_id_param = filters.get("enterprise_id")
-        from_param = filters.get("from") or now() - - 30 * 86400
+        from_param = filters.get("from") or now() - 30 * 60*60*24
         to_param = filters.get("to") or now()
         member_user_ids_param = filters.get("member_user_ids")
         action_param = filters.get("action")
@@ -78,20 +78,20 @@ class EventORMRepository(EventRepository):
                 )
             elif action_param == "share":
                 events_orm = events_orm.filter(type__in=[EVENT_ITEM_SHARE_CREATED, EVENT_ITEM_QUICK_SHARE_CREATED])
-            if team_id_param:
-                events_orm = events_orm.filter(team_id=team_id_param)
-            if types_param:
-                events_orm = events_orm.filter(type__in=types_param)
-            if user_id_param:
-                events_orm = events_orm.filter(user_id=user_id_param)
-            if creation_date_range_param:
-                events_orm = events_orm.filter(
-                    creation_date__range=creation_date_range_param
-                )
-            return [
-                ModelParser.event_parser().parse_event(event_orm=event_orm)
-                for event_orm in events_orm
-            ]
+        if team_id_param:
+            events_orm = events_orm.filter(team_id=team_id_param)
+        if types_param:
+            events_orm = events_orm.filter(type__in=types_param)
+        if user_id_param:
+            events_orm = events_orm.filter(user_id=user_id_param)
+        if creation_date_range_param:
+            events_orm = events_orm.filter(
+                creation_date__range=creation_date_range_param
+            )
+        return [
+            ModelParser.event_parser().parse_event(event_orm=event_orm)
+            for event_orm in events_orm
+        ]
 
     def statistic_login_by_time(self, team_id: str, user_ids: List[int], from_param: float, to_param: float) -> Dict:
         duration_query = "CONCAT(YEAR(FROM_UNIXTIME(creation_date)), '-', " \

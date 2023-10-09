@@ -171,7 +171,7 @@ class EnterprisePwdViewSet(APIBaseViewSet):
                 leaked_account_count += 1
 
             # Failed login
-            if status == E_MEMBER_STATUS_CONFIRMED and member.user.login_block_until >= now():
+            if status == E_MEMBER_STATUS_CONFIRMED and member.user.login_block_until and member.user.login_block_until >= now():
                 being_blocked_login.append({
                     "id": member.enterprise_member_id,
                     "user_id": member.user.user_id,
@@ -193,7 +193,7 @@ class EnterprisePwdViewSet(APIBaseViewSet):
 
         return Response(status=200, data={
             "members": {
-                "total": members.count(),
+                "total": len(members),
                 "status": members_status_statistic,
                 "billing_members": members_activated_count,
             },
