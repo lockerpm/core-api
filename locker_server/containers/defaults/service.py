@@ -204,3 +204,15 @@ class ServiceFactory(containers.DeclarativeContainer):
         mission_repository=RepositoryFactory.mission_repository,
         promo_code_repository=RepositoryFactory.promo_code_repository
     )
+    factor2_service = providers.Factory(
+        Factor2Service,
+        user_repository=RepositoryFactory.user_repository,
+        auth_repository=RepositoryFactory.auth_repository,
+        factor2_method_repository=RepositoryFactory.factor2_method_repository
+    )
+
+    notification_service = providers.Factory(
+        NotificationService,
+        notification_repository=RepositoryFactory.notification_repository,
+        user_repository=RepositoryFactory.user_repository
+    )

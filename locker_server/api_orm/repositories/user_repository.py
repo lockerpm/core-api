@@ -38,8 +38,12 @@ class UserORMRepository(UserRepository):
     def list_users(self, **filters) -> List[User]:
         users_orm = UserORM.objects.all()
         user_ids_param = filters.get("user_ids")
+        base32_secret_factor2_param = filters.get("base32_secret_factor2")
         if user_ids_param:
             users_orm = users_orm.filter(id__in=user_ids_param)
+        if base32_secret_factor2_param:
+            users_orm = users_orm.filter(base32_secret_factor2=base32_secret_factor2_param)
+
         return [
             ModelParser.user_parser().parse_user(users_orm=user_orm)
             for user_orm in users_orm
@@ -133,6 +137,13 @@ class UserORMRepository(UserRepository):
             return user_orm.get_from_cystack_id()
         except UserORM.DoesNotExist:
             return {}
+
+    def get_user_by_email(self, email: str) -> Optional[User]:
+        try:
+            user_orm = UserORM.objects.get(email=email)
+            return ModelParser.user_parser().parse_user(user_orm=user_orm)
+        except UserORM.DoesNotExist:
+            return None
 
     def get_user_cipher_overview(self, user_id: int) -> Dict:
         try:
@@ -286,6 +297,11 @@ class UserORMRepository(UserRepository):
         user_orm.first_login = user_update_data.get("first_login", user_orm.first_login)
         user_orm.saas_source = user_update_data.get("saas_source", user_orm.saas_source)
 
+        user_orm.full_name = user_update_data.get("full_name", user_orm.full_name)
+        user_orm.language = user_update_data.get("language", user_orm.language)
+
+        user_orm.base32_secret_factor2 = user_update_data.get("base32_secret_factor2", user_orm.base32_secret_factor2)
+
         if user_update_data.get("master_password_hash"):
             user_orm.set_master_password(raw_password=user_update_data.get("master_password_hash"))
 
@@ -340,6 +356,15 @@ class UserORMRepository(UserRepository):
         if login_method:
             user_orm.login_method = login_method
         user_orm.save()
+
+    def update_user_factor2(self, user_id: int, is_factor2: bool) -> Optional[User]:
+        try:
+            user_orm = UserORM.objects.get(user_id=user_id)
+        except UserORM.DoesNotExist:
+            return None
+        user_orm.is_factor2 = is_factor2
+        user_orm.save()
+        return ModelParser.user_parser().parse_user(user_orm=user_orm)
 
     # ------------------------ Delete User resource --------------------- #
     def purge_account(self, user: User):

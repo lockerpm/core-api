@@ -1,5 +1,6 @@
+from .factor2_parsers import Factor2Parser
 from .user_parsers import UserParser
-from .notification_setting_parser import NotificationSettingParser
+from .notification_setting_parser import NotificationParser
 from .user_plan_parsers import UserPlanParser
 from .payment_parsers import PaymentParser
 from .cipher_parsers import CipherParser
@@ -24,8 +25,8 @@ class ModelParser:
         return UserParser
 
     @classmethod
-    def notification_setting_parser(cls):
-        return NotificationSettingParser
+    def notification_parser(cls):
+        return NotificationParser
 
     @classmethod
     def user_plan_parser(cls):
@@ -74,3 +75,7 @@ class ModelParser:
     @classmethod
     def emergency_access_parser(cls):
         return EmergencyAccessParser
+
+    @classmethod
+    def factor2_parser(cls):
+        return Factor2Parser
