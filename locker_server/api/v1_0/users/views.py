@@ -175,7 +175,6 @@ class UserPwdViewSet(APIBaseViewSet):
     def session(self, request, *args, **kwargs):
         ip = self.get_ip()
         ua_string = self.get_client_agent()
-        user = self.request.user
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
@@ -183,9 +182,13 @@ class UserPwdViewSet(APIBaseViewSet):
         device_identifier = validated_data.get("device_identifier")
         device_name = validated_data.get("device_name")
         device_type = validated_data.get("device_type")
+        email = validated_data.get("email")
         password = validated_data.get("password")
         is_factor2 = request.data.get("is_factor2", False)
-
+        try:
+            user = self.user_service.retrieve_by_email(email=email)
+        except UserDoesNotExistException:
+            raise ValidationError(detail={"email": ["The email is not valid"]})
         try:
             result = self.user_service.user_session(
                 user=user, password=password, client_id=client_id, device_identifier=device_identifier,

@@ -94,7 +94,7 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
             enterprise_members_orm = enterprise_members_orm.filter(status__in=statuses_param)
 
         # Filter by activated or not
-        if is_activated_param:
+        if is_activated_param is not None:
             if is_activated_param == "0":
                 enterprise_members_orm = enterprise_members_orm.filter(is_activated=False)
             elif is_activated_param == "1":

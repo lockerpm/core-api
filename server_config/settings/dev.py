@@ -149,7 +149,7 @@ try:
         'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
         'PAGE_SIZE': 10,
         'DEFAULT_THROTTLE_CLASSES': (
-            'locker_server.shared.throttling.app.AppBaseThrottle'
+            'locker_server.shared.throttling.app.AppBaseThrottle',
         ),
         'DEFAULT_THROTTLE_RATES': {
             'anonymous': '60/min',

@@ -68,7 +68,10 @@ class SyncProfileSerializer(serializers.Serializer):
         )
         organizations = []
         for team_member in team_members:
-            organizations.append(SyncOrgDetailSerializer(team_member, many=False).data)
+            organizations.append(SyncOrgDetailSerializer(
+                team_member, many=False,
+                context={"list_group_member_roles_func": self.context.get("list_group_member_roles_func")}
+            ).data)
         data = {
             "object": "profile",
             "culture": "en-US",

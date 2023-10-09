@@ -250,7 +250,7 @@ class EnterprisePwdViewSet(APIBaseViewSet):
                 )
                 normalize_enterprise.primary_admin = primary_admin
                 if primary_admin:
-                    current_admin_plan = self.user_service.get_current_plan(user=primary_admin)
+                    current_admin_plan = self.user_service.get_current_plan(user=primary_admin.user)
                     if current_admin_plan:
                         is_trialing = current_admin_plan.end_period and current_admin_plan.end_period - current_admin_plan.start_period < TRIAL_TEAM_PLAN
                         normalize_enterprise.primary_admin.is_trialing = is_trialing
