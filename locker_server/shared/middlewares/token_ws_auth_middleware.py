@@ -18,8 +18,7 @@ from locker_server.shared.utils.app import now
 @database_sync_to_async
 def get_access_token_sync_to_async(jti):
     try:
-
-        device_access_token = auth_service.get_device_access_token_by_id(id=jti)
+        device_access_token = auth_service.get_device_access_token_by_id(device_access_token_id=jti)
         return device_access_token
     except DeviceAccessTokenDoesNotExistException:
         return None
