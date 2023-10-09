@@ -19,7 +19,7 @@ class Device(object):
         self._last_login = last_login
         self._os = os
         self._browser = browser
-        self._user = user,
+        self._user = user
         self._is_active = is_active
 
     @property

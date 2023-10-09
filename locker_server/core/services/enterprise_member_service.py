@@ -73,9 +73,9 @@ class EnterpriseMemberService:
             raise EnterpriseMemberDoesNotExistException
         return member
 
-    def get_member_by_user(self, use_id: int, enterprise_id: str) -> Optional[EnterpriseMember]:
+    def get_member_by_user(self, user_id: int, enterprise_id: str) -> Optional[EnterpriseMember]:
         enterprise_member = self.enterprise_member_repository.get_enterprise_member_by_user_id(
-            user_id=use_id,
+            user_id=user_id,
             enterprise_id=enterprise_id
         )
         if not enterprise_member:

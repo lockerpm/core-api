@@ -75,11 +75,12 @@ class UserRegisterSerializer(serializers.Serializer):
 
 
 class UserSessionSerializer(serializers.Serializer):
+    email = serializers.EmailField(max_length=255)
+    password = serializers.CharField()
     client_id = serializers.ChoiceField(choices=LIST_CLIENT_ID)
     device_identifier = serializers.CharField()
     device_name = serializers.CharField(required=False, allow_blank=True)
     device_type = serializers.IntegerField(required=False)
-    password = serializers.CharField()
 
     def validate(self, data):
         device_type = data.get("device_type")

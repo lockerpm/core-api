@@ -104,6 +104,12 @@ class UserService:
             raise UserDoesNotExistException
         return user
 
+    def retrieve_by_email(self, email: str) -> Optional[User]:
+        user = self.user_repository.get_user_by_email(email=email)
+        if not user:
+            raise UserDoesNotExistException
+        return user
+
     def retrieve_or_create_by_id(self, user_id: int) -> User:
         user, is_created = self.user_repository.retrieve_or_create_by_id(user_id=user_id)
         if is_created is True:
@@ -345,7 +351,10 @@ class UserService:
         })
 
         # Get sso token id from authentication token
-        decoded_token = self.auth_repository.decode_token(token_auth_value, secret=secret)
+        try:
+            decoded_token = self.auth_repository.decode_token(token_auth_value, secret=secret)
+        except AttributeError:
+            decoded_token = None
         sso_token_id = decoded_token.get("sso_token_id") if decoded_token else None
 
         # Get current user plan, the sync device limit

@@ -3,12 +3,15 @@ from rest_framework.routers import DefaultRouter
 
 from locker_server.api.v1_enterprise import views
 
+
 router = DefaultRouter(trailing_slash=False)
 router.register(r'', views.EnterprisePwdViewSet, 'enterprises')
+
 
 urlpatterns = [
     url(r'^', include(router.urls))
 ]
+
 
 # ----------------------------------- Domain ------------------------- #
 urlpatterns += [
