@@ -48,3 +48,7 @@ google-auth-oauthlib==1.0.0
 oauth2client<4.0.0
 
 pyotp==2.2.7
+
+# Channels
+channels==3.0.4
+channels_redis==3.3.1
