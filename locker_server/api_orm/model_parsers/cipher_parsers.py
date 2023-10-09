@@ -32,10 +32,12 @@ class CipherParser:
             team=team_parser.parse_team(team_orm=cipher_orm.team) if cipher_orm.team else None,
         )
         if parse_collection_ids is True:
+            collection_ids = []
             try:
-                collection_ids = list(cipher_orm.collections_ciphers.values_list('collection_id', flat=True))
+                if cipher_orm.collections_ciphers.exists():
+                    collection_ids = list(cipher_orm.collections_ciphers.values_list('collection_id', flat=True))
             except AttributeError:
-                collection_ids = []
+                pass
             cipher.collection_ids = collection_ids
         return cipher
 

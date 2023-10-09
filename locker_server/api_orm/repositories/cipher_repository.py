@@ -237,7 +237,9 @@ class CipherORMRepository(CipherRepository):
             user_id=user_id, only_personal=only_personal, only_managed_team=only_managed_team,
             only_edited=only_edited, only_deleted=only_deleted,
             exclude_team_ids=exclude_team_ids, filter_ids=filter_ids, exclude_types=exclude_types
-        ).prefetch_related('collections_ciphers')
+        ).select_related('user').select_related('created_by').select_related('team').prefetch_related(
+            'collections_ciphers'
+        )
         total_cipher = ciphers_orm.count()
         not_deleted_ciphers_orm = ciphers_orm.filter(deleted_date__isnull=True)
         not_deleted_ciphers_statistic = not_deleted_ciphers_orm.values('type').annotate(
