@@ -20,6 +20,8 @@ USER cystack
 
 ENV PROD_ENV prod
 
-CMD gunicorn -w 3 -t 120 -b 0.0.0.0:8000 server_config.wsgi:application || true & python cron_task.py || true 
+CMD gunicorn -w 3 -t 120 -b 0.0.0.0:8000 server_config.wsgi:application
+
+#  || true & python cron_task.py || true
 
 # & python manage.py rqworker default || true
