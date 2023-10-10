@@ -13,9 +13,10 @@ from locker_server.core.repositories.auth_repository import AuthRepository
 from locker_server.core.repositories.factor2_method_repository import Factor2MethodRepository
 from locker_server.core.repositories.user_repository import UserRepository
 from locker_server.shared.constants.factor2 import FA2_METHOD_MAIL_OTP, LIST_FA2_METHOD, FA2_METHOD_SMART_OTP
-from locker_server.shared.constants.user_notification import ID_FACTOR2_MAIL_LOGIN, ID_FACTOR2_ENABLED_SUCCESSFULLY, \
-    ID_FACTOR2_DISABLED, ID_FACTOR2_ENABLED, ID_FACTOR2_DISABLED_SUCCESSFULLY
+from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
 from locker_server.shared.external_services.locker_background.constants import BG_NOTIFY
+from locker_server.shared.external_services.user_notification.list_jobs import ID_FACTOR2_MAIL_LOGIN, \
+    ID_FACTOR2_ENABLED_SUCCESSFULLY, ID_FACTOR2_DISABLED, ID_FACTOR2_ENABLED, ID_FACTOR2_DISABLED_SUCCESSFULLY
 from locker_server.shared.utils.app import get_ip_location, now
 
 
@@ -57,6 +58,7 @@ class Factor2Service:
         login_os = "" if os is None else os.get("family", "") + " " + os.get("version", "")
         mail_data = {
             "user": user,
+            "user_ids": [user.user_id],
             "job": ID_FACTOR2_MAIL_LOGIN,
             "scope": "id",
             "code": mail_otp.activate_code,
@@ -66,10 +68,10 @@ class Factor2Service:
             "login_ip": ip_location.get("ip", ""),
             "login_os": login_os,
             "login_browser": login_browser,
+            # TODO: Replace gateway host
             "gateway_host": "api.locker.io"
         }
-        # TODO: import LockerBackgroundFactory
-        LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+        BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
             func_name="notify_sending", **mail_data
         )
 
@@ -165,13 +167,14 @@ class Factor2Service:
                 if smart_otp.is_activate:
                     mail_data = {
                         "user": user,
+                        "user_ids": [user.user_id],
                         "scope": "id",
                         "job": ID_FACTOR2_ENABLED_SUCCESSFULLY,
                         "type": "app" if method == FA2_METHOD_SMART_OTP else "email",
                         "backup_code": user.base32_secret_factor2,
                         "gateway_host": "api.locker.io"
                     }
-                    LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+                    BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
                         func_name="notify_sending", **mail_data
                     )
             else:
@@ -190,13 +193,15 @@ class Factor2Service:
                 if mail_otp.is_activate:
                     mail_data = {
                         "user": user,
+                        "user_ids": [user.user_id],
                         "scope": "id",
                         "job": ID_FACTOR2_ENABLED_SUCCESSFULLY,
                         "type": "app" if method == FA2_METHOD_SMART_OTP else "email",
                         "backup_code": "",
+                        # TODO: Replace gateway host
                         "gateway_host": "api.locker.io"
                     }
-                    LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+                    BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
                         func_name="notify_sending", **mail_data
                     )
             else:
@@ -224,21 +229,21 @@ class Factor2Service:
         # Sending code via mail
         mail_data = {
             "user": user,
+            "user_ids": [user.user_id],
             "scope": "id",
             "code": mail_otp.activate_code,
+            # TODO: Replace gateway host
             "gateway_host": "api.locker.io"
         }
 
         if mail_otp.is_activate is True:
             mail_data.update({"job": ID_FACTOR2_DISABLED})
-            # TODO: import LockerBackgroundFactory
-            LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+            BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
                 func_name="notify_sending", **mail_data
             )
         else:
             mail_data.update({"job": ID_FACTOR2_ENABLED})
-            # TODO: import LockerBackgroundFactory
-            LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+            BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
                 func_name="notify_sending", **mail_data
             )
 
@@ -259,10 +264,11 @@ class Factor2Service:
         # Sending notification mail
         mail_data = {
             "user": user,
+            "user_ids": [user.user_id],
             "scope": "id",
             "job": ID_FACTOR2_DISABLED_SUCCESSFULLY,
+            # TODO: Replace host
             "gateway_host": "api.locker.io"
         }
-        #TODO:import LockerBackgroundFactory
-        LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY).run(func_name="notify_sending", **mail_data)
+        BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(func_name="notify_sending", **mail_data)
         return updated_user

@@ -54,3 +54,6 @@ from .promo_code_repository import PromoCodeORMRepository
 
 from .factor2_method_repository import Factor2MethodORMRepository
 from .device_factor2_repository import DeviceFactor2ORMRepository
+
+from .mail_provider_repository import MailProviderORMRepository
+from .mail_configuration_repository import MailConfigurationORMRepository

@@ -9,7 +9,7 @@ from locker_server.shared.utils.app import get_cipher_detail_data
 
 
 class UserPublicKeySerializer(serializers.Serializer):
-    user_id = serializers.IntegerField()
+    email = serializers.EmailField()
 
 
 class SharingInvitationSerializer(serializers.Serializer):
@@ -150,6 +150,29 @@ class SharingSerializer(serializers.Serializer):
             folder["ciphers"] = shared_ciphers
 
         return validated_data
+
+
+class SharingMemberSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    role = serializers.ChoiceField(choices=[MEMBER_ROLE_ADMIN, MEMBER_ROLE_MEMBER], required=True)
+    hide_passwords = serializers.BooleanField(default=False)
+    key = serializers.CharField(allow_null=True)
+
+
+class SharingGroupMemberSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    key = serializers.CharField(allow_null=True)
+
+
+class SharingGroupSerializer(serializers.Serializer):
+    id = serializers.CharField(max_length=128)
+    role = serializers.ChoiceField(choices=[MEMBER_ROLE_ADMIN, MEMBER_ROLE_MEMBER], required=True)
+    members = SharingGroupMemberSerializer(many=True)
+
+
+class MultipleMemberSerializer(serializers.Serializer):
+    members = SharingMemberSerializer(many=True, required=True)
+    groups = SharingGroupSerializer(many=True, required=False)
 
 
 class CipherMemberSharingSerializer(serializers.Serializer):
@@ -350,3 +373,7 @@ class AddItemShareFolderSerializer(serializers.Serializer):
         validated_data = self.validated_data
         validated_data["cipher"] = self.__get_share_cipher_data(cipher=validated_data.get("cipher"))
         return validated_data
+
+
+class InvitationGroupConfirmSerializer(serializers.Serializer):
+    members = SharingGroupMemberSerializer(many=True)

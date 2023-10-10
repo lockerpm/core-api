@@ -17,13 +17,19 @@ class EmergencyAccessGranteeSerializer(serializers.ModelSerializer):
             "wait_time_days": instance.wait_time_days,
             "key_encrypted": instance.key_encrypted,
             "email": instance.email,
-            "grantee_user_id": instance.grantee.user_id if instance.grantee else None,
-            "grantee_pwd_user_id": instance.grantee.internal_id if instance.grantee else None,
+            "grantee_pwd_user_id": None,
         }
+        if instance.grantee:
+            data.update({
+                "email": instance.grantee.email,
+                "full_name": instance.grantee.full_name,
+                "avatar": instance.grantee.get_avatar(),
+                "grantee_pwd_user_id": instance.grantee.internal_id
+            })
         return data
 
 
-class EmergencyAccessGrantorSerializer(serializers.ModelSerializer):
+class EmergencyAccessGrantorSerializer(serializers.Serializer):
     def to_representation(self, instance):
         data = {
             "object": "emergencyAccessGrantorDetails",
@@ -36,14 +42,19 @@ class EmergencyAccessGrantorSerializer(serializers.ModelSerializer):
             "type": instance.emergency_access_type,
             "wait_time_days": instance.wait_time_days,
             "key_encrypted": instance.key_encrypted,
-            "grantor_user_id": instance.grantor.user_id,
             "grantor_pwd_user_id": instance.grantor.internal_id if instance.grantor else None
         }
+        if instance.grantor:
+            data.update({
+                "email": instance.grantor.email,
+                "full_name": instance.grantor.full_name,
+                "avatar": instance.grantor.get_avatar()
+            })
         return data
 
 
 class InviteEmergencyAccessSerializer(serializers.Serializer):
-    grantee_id = serializers.IntegerField(allow_null=True, required=False, default=None)
+    # grantee_id = serializers.IntegerField(allow_null=True, required=False, default=None)
     email = serializers.EmailField(allow_null=True, required=False, default=None)
     type = serializers.ChoiceField(choices=[EMERGENCY_ACCESS_TYPE_VIEW, EMERGENCY_ACCESS_TYPE_TAKEOVER])
     wait_time_days = serializers.IntegerField(min_value=1, max_value=90)

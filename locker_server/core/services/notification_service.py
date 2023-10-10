@@ -1,25 +1,9 @@
-from typing import List, Optional, NoReturn, Dict
-from datetime import datetime
+from typing import List, Optional
 
-import pyotp
-
-from locker_server.core.entities.factor2.factor2_method import Factor2Method
 from locker_server.core.entities.notification.notification import Notification
-from locker_server.core.entities.user.user import User
-from locker_server.core.exceptions.factor2_method_exception import Factor2CodeInvalidException, \
-    Factor2MethodInvalidException
 from locker_server.core.exceptions.notification_exception import NotificationDoesNotExistException
-from locker_server.core.exceptions.user_exception import UserDoesNotExistException, UserPasswordInvalidException
-from locker_server.core.repositories.auth_repository import AuthRepository
-
-from locker_server.core.repositories.factor2_method_repository import Factor2MethodRepository
 from locker_server.core.repositories.notification_repository import NotificationRepository
 from locker_server.core.repositories.user_repository import UserRepository
-from locker_server.shared.constants.factor2 import FA2_METHOD_MAIL_OTP, LIST_FA2_METHOD, FA2_METHOD_SMART_OTP
-from locker_server.shared.constants.user_notification import ID_FACTOR2_MAIL_LOGIN, ID_FACTOR2_ENABLED_SUCCESSFULLY, \
-    ID_FACTOR2_DISABLED, ID_FACTOR2_ENABLED, ID_FACTOR2_DISABLED_SUCCESSFULLY
-from locker_server.shared.external_services.locker_background.constants import BG_NOTIFY
-from locker_server.shared.utils.app import get_ip_location, now
 
 
 class NotificationService:

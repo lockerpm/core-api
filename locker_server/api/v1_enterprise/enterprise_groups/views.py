@@ -56,7 +56,7 @@ class GroupPwdViewSet(APIBaseViewSet):
             group = self.enterprise_group_service.get_group_by_id(
                 enterprise_group_id=self.kwargs.get("group_id")
             )
-            if group.enterprise.enterprise_id != enterprise:
+            if group.enterprise.enterprise_id != enterprise.enterprise_id:
                 raise NotFound
 
             return group

@@ -13,6 +13,7 @@ from .release_parsers import ReleaseParser
 from .quick_share_parser import QuickShareParser
 from .user_reward_parsers import UserRewardParser
 from .emergency_access_parsers import EmergencyAccessParser
+from .configuration_parsers import ConfigurationParser
 
 
 class ModelParser:
@@ -79,3 +80,7 @@ class ModelParser:
     @classmethod
     def factor2_parser(cls):
         return Factor2Parser
+
+    @classmethod
+    def configuration_parser(cls):
+        return ConfigurationParser

@@ -438,7 +438,6 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='UserORM',
             fields=[
-                ('user_id', models.IntegerField(primary_key=True, serialize=False)),
                 ('internal_id', models.CharField(default=uuid.uuid4, max_length=64, null=True)),
                 ('creation_date', models.FloatField()),
                 ('revision_date', models.FloatField(null=True)),
@@ -469,6 +468,7 @@ class Migration(migrations.Migration):
                 ('fd_random', models.CharField(max_length=128, null=True)),
                 ('onboarding_process', models.TextField(blank=True, default={'enterprise_onboarding': [], 'enterprise_onboarding_skip': False, 'tutorial': False, 'tutorial_process': [], 'vault_to_dashboard': False, 'welcome': False}, max_length=512)),
                 ('saas_source', models.CharField(default=None, max_length=32, null=True)),
+                ('user_id', models.AutoField(primary_key=True, serialize=False)),
                 ('email', models.EmailField(max_length=255, null=True, unique=True)),
                 ('full_name', models.CharField(max_length=255, null=True)),
                 ('language', models.CharField(default='en', max_length=4)),

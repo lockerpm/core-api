@@ -1,0 +1,2 @@
+from locker_server.api.v1_admin.mail_configurations.views import AdminMailConfigurationViewSet
+

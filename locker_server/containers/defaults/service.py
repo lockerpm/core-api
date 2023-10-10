@@ -19,7 +19,8 @@ class ServiceFactory(containers.DeclarativeContainer):
     resource_service = providers.Factory(
         ResourceService,
         plan_repository=RepositoryFactory.plan_repository,
-        country_repository=RepositoryFactory.country_repository
+        country_repository=RepositoryFactory.country_repository,
+        mail_provider_repository=RepositoryFactory.mail_provider_repository
     )
 
     user_service = providers.Factory(
@@ -216,4 +217,9 @@ class ServiceFactory(containers.DeclarativeContainer):
         NotificationService,
         notification_repository=RepositoryFactory.notification_repository,
         user_repository=RepositoryFactory.user_repository
+    )
+
+    mail_configuration_service = providers.Factory(
+        MailConfigurationService,
+        mail_configuration_repository=RepositoryFactory.mail_configuration_repository,
     )

@@ -44,3 +44,13 @@ class RewardMissionSerializer(serializers.Serializer):
 
         }
         return data
+
+
+class ListMailProviderSerializer(serializers.Serializer):
+    def to_representation(self, instance):
+        data = {
+            "id": instance.mail_provider_id,
+            "name": instance.name,
+            "available": instance.available,
+        }
+        return data

@@ -1,4 +1,5 @@
 from datetime import timedelta, datetime
+
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -69,27 +70,23 @@ class EnterprisePwdViewSet(APIBaseViewSet):
             self.pagination_class.page_size = page_size_param if page_size_param else 10
         page = self.paginate_queryset(queryset)
         if page is not None:
-            normalize_page = self.normalize_enterprise(
-                enterprises=page,
-                user=user
-            )
-            serializer = self.get_serializer(normalize_page, many=True)
-            return self.get_paginated_response(serializer.data)
-        normalize_enterprises = self.normalize_enterprise(
-            enterprises=queryset,
-            user=user
-        )
-        serializer = self.get_serializer(normalize_enterprises, many=True)
-        return Response(status=status.HTTP_200_OK, data=serializer.data)
+            serializer = self.get_serializer(page, many=True)
+            normalize_data = self.normalize_enterprise(serializer.data, user=user)
+            return self.get_paginated_response(normalize_data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        normalize_data = self.normalize_enterprise(serializer.data, user=user)
+        return Response(status=status.HTTP_200_OK, data=normalize_data)
 
     def retrieve(self, request, *args, **kwargs):
         enterprise = self.get_object()
-        normalize_enterprise = self.normalize_enterprise(
-            enterprises=[enterprise],
+
+        serializer = self.get_serializer(enterprise, many=False)
+        normalize_data = self.normalize_enterprise(
+            enterprises_data=[serializer.data],
             user=request.user
         )[0]
-        serializer = self.get_serializer(normalize_enterprise, many=False)
-        return Response(status=status.HTTP_200_OK, data=serializer.data)
+        return Response(status=status.HTTP_200_OK, data=normalize_data)
 
     def update(self, request, *args, **kwargs):
         user = self.request.user
@@ -171,7 +168,7 @@ class EnterprisePwdViewSet(APIBaseViewSet):
                 leaked_account_count += 1
 
             # Failed login
-            if status == E_MEMBER_STATUS_CONFIRMED and member.user.login_block_until >= now():
+            if status == E_MEMBER_STATUS_CONFIRMED and member.user.login_block_until and member.user.login_block_until >= now():
                 being_blocked_login.append({
                     "id": member.enterprise_member_id,
                     "user_id": member.user.user_id,
@@ -193,7 +190,7 @@ class EnterprisePwdViewSet(APIBaseViewSet):
 
         return Response(status=200, data={
             "members": {
-                "total": members.count(),
+                "total": len(members),
                 "status": members_status_statistic,
                 "billing_members": members_activated_count,
             },
@@ -233,34 +230,50 @@ class EnterprisePwdViewSet(APIBaseViewSet):
         data.update(login_events)
         return data
 
-    def normalize_enterprise(self, enterprises, user=None):
-        normalize_enterprises = []
-        for enterprise in enterprises:
-            normalize_enterprise = enterprise
+    def normalize_enterprise(self, enterprises_data, user=None):
+        for enterprise_data in enterprises_data:
+            enterprise_id = enterprise_data.get("id")
             try:
                 if user:
-                    normalize_enterprise.member = self.enterprise_member_service.get_member_by_user(
+                    member = self.enterprise_member_service.get_member_by_user(
                         user_id=user.user_id,
-                        enterprise_id=enterprise.enterprise_id
+                        enterprise_id=enterprise_id
                     )
+                    enterprise_data.update({
+                        "role": member.role.name,
+                        "is_default": member.is_default
+                    })
                 else:
-                    normalize_enterprise.member = None
+                    enterprise_data.update({
+                        "role": None,
+                        "is_default": None
+                    })
                 primary_admin = self.enterprise_service.get_primary_member(
-                    enterprise_id=enterprise.enterprise_id
+                    enterprise_id=enterprise_id
                 )
-                normalize_enterprise.primary_admin = primary_admin
                 if primary_admin:
+                    enterprise_data.update({
+                        "primary_admin": primary_admin.user.user_id
+                    })
                     current_admin_plan = self.user_service.get_current_plan(user=primary_admin.user)
                     if current_admin_plan:
                         is_trialing = current_admin_plan.end_period and current_admin_plan.end_period - current_admin_plan.start_period < TRIAL_TEAM_PLAN
-                        normalize_enterprise.primary_admin.is_trialing = is_trialing
-                        normalize_enterprise.primary_admin.end_period = current_admin_plan.end_period
+                        enterprise_data.update({
+                            "is_trialing": is_trialing,
+                            "end_period": current_admin_plan.end_period,
+                        })
                     else:
-                        normalize_enterprise.primary_admin.is_trialing = None
-                        normalize_enterprise.primary_admin.end_period = None
+                        enterprise_data.update({
+                            "is_trialing": None,
+                            "end_period": None,
+                        })
+                else:
+                    enterprise_data.update({
+                        "primary_admin": None
+                    })
             except EnterpriseMemberDoesNotExistException:
-                normalize_enterprise.member = None
+                pass
             except EnterpriseMemberPrimaryDoesNotExistException:
-                normalize_enterprise.primary_admin = None
-            normalize_enterprises.append(normalize_enterprise)
-        return normalize_enterprises
+                pass
+
+        return enterprises_data

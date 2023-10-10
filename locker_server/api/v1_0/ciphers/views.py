@@ -20,6 +20,7 @@ from locker_server.shared.external_services.locker_background.constants import B
 from locker_server.shared.external_services.pm_sync import SYNC_EVENT_FOLDER_UPDATE, PwdSync, SYNC_EVENT_FOLDER_DELETE, \
     SYNC_EVENT_CIPHER_UPDATE, SYNC_EVENT_CIPHER_DELETE_PERMANENT, SYNC_EVENT_VAULT
 from locker_server.shared.utils.app import camel_snake_data
+from locker_server.shared.utils.avatar import get_avatar
 from .serializers import VaultItemSerializer, MultipleItemIdsSerializer, DetailCipherSerializer, \
     UpdateVaultItemSerializer, UpdateCipherUseSerializer, MultipleMoveSerializer, SyncOfflineCipherSerializer
 
@@ -181,18 +182,26 @@ class CipherPwdViewSet(APIBaseViewSet):
             shared_members = self.sharing_service.get_shared_members(
                 personal_shared_team=cipher.team, exclude_owner=False
             )
-            data["sharing"] = [{
-                "id": member.team_member_id,
-                "access_time": member.access_time,
-                "user_id": member.user.user_id if member.user else None,
-                "email": member.email,
-                "role": member.role.name,
-                "status": member.status,
-                "hide_passwords": member.hide_passwords,
-                "share_type": self.sharing_service.get_personal_share_type(member=member),
-                "pwd_user_id": member.user.internal_id if member.user else None
-            } for member in shared_members]
-
+            sharing_members_data = []
+            for member in shared_members:
+                member_data = {
+                    "id": member.team_member_id,
+                    "access_time": member.access_time,
+                    "role": member.role.name,
+                    "status": member.status,
+                    "hide_passwords": member.hide_passwords,
+                    "share_type": self.sharing_service.get_personal_share_type(member=member),
+                    "pwd_user_id": member.user.internal_id if member.user else None,
+                }
+                if member.user is not None:
+                    member_data["email"] = member.user.email
+                    member_data["full_name"] = member.user.full_name
+                    member_data["username"] = member.user.username
+                    member_data["avatar"] = member.user.get_avatar()
+                else:
+                    member_data["email"] = member.email
+                    member_data["avatar"] = get_avatar(member.email)
+            data["sharing"] = sharing_members_data
         else:
             data["sharing"] = []
         result = camel_snake_data(data, snake_to_camel=True)

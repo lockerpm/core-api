@@ -127,7 +127,7 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
                 ).order_by("order_field")
         return [
             ModelParser.enterprise_parser().parse_enterprise_member(
-                enterprise_members_orm=enterprise_member_orm
+                enterprise_member_orm=enterprise_member_orm
             )
             for enterprise_member_orm in enterprise_members_orm
         ]

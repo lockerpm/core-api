@@ -9,6 +9,8 @@ from locker_server.core.exceptions.user_exception import UserDoesNotExistExcepti
 from locker_server.shared.constants.transactions import PAYMENT_STATUS_PAID
 from locker_server.shared.external_services.locker_background.background import LockerBackground
 from locker_server.shared.external_services.requester.retry_requester import requester
+from locker_server.shared.external_services.user_notification.notification_sender import NotificationSender, \
+    SENDING_SERVICE_MAIL
 from locker_server.shared.utils.app import now
 
 
@@ -247,6 +249,19 @@ class NotifyBackground(LockerBackground):
             requester(method="POST", url=url, headers=HEADERS, data_send=data, retry=True, max_retries=3, timeout=5)
         except Exception:
             self.log_error(func_name="notify_locker_mail")
+        finally:
+            if self.background:
+                connection.close()
+
+    def notify_sending(self, **kwargs):
+        services = kwargs.get("services", [SENDING_SERVICE_MAIL])
+        if not services:
+            return
+        try:
+            job = kwargs.get("job")
+            NotificationSender(job=job, background=False).send(**kwargs)
+        except Exception:
+            self.log_error(func_name="notify_sending")
         finally:
             if self.background:
                 connection.close()

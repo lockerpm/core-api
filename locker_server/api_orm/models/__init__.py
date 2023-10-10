@@ -108,3 +108,8 @@ from locker_server.api_orm.models.relay.relay_domains import RelayDomainORM
 from locker_server.api_orm.models.relay.relay_subdomains import RelaySubdomainORM
 from locker_server.api_orm.models.relay.relay_addresses import RelayAddressORM
 from locker_server.api_orm.models.relay.reply import ReplyORM
+
+
+# -------------------------- Configuration -------------------------- #
+from locker_server.api_orm.models.configurations.mail_providers import MailProviderORM
+from locker_server.api_orm.models.configurations.mail_configurations import MailConfigurationORM

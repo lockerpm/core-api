@@ -22,6 +22,7 @@ urlpatterns += [
 urlpatterns += [
     url(r'^resources/plans$', views.ResourcePwdViewSet.as_view({'get': 'plans'})),
     url(r'^resources/enterprise/plans$', views.ResourcePwdViewSet.as_view({'get': 'enterprise_plans'})),
+    url(r'^resources/mail_providers$', views.ResourcePwdViewSet.as_view({'get': 'mail_providers'})),
 ]
 
 

@@ -52,3 +52,5 @@ user_reward_mission_service = ServiceFactory.user_reward_mission_service()
 factor2_service = ServiceFactory.factor2_service()
 
 notification_service = ServiceFactory.notification_service()
+
+mail_configuration_service = ServiceFactory.mail_configuration_service()

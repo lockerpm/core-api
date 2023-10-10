@@ -43,3 +43,5 @@ from .user_reward_mission_service import UserRewardMissionService
 from .factor2_service import Factor2Service
 
 from .notification_service import NotificationService
+
+from .mail_configuration_service import MailConfigurationService

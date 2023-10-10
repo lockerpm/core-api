@@ -92,7 +92,10 @@ class EnterpriseMemberService:
         added_members = []
         non_added_members = []
         members_create_data = []
-        user_ids_param = [member.get("user_id") for member in members_data]
+        user_ids_param = []
+        for member in members_data:
+            if member.get('user_id'):
+                user_ids_param.append(member.get("user_id"))
         existed_enterprise_members = self.enterprise_member_repository.list_enterprise_members(**{
             "user_ids": user_ids_param
 

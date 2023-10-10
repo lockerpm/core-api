@@ -17,14 +17,15 @@ class ListActivityLogSerializer(serializers.Serializer):
             "metadata": instance.get_metadata(),
         }
         if instance.user:
-            user = instance.user_data
+            user = instance.user
             data.update({
                 "user": {
                     "id": instance.user_id,
                     "name": user.full_name,
                     "email": user.email,
-                    "username": user.username,
-                    "avatar": user.avatar,
+                    #TODO: add username, avatar
+                    # "username": user.username,
+                    # "avatar": user.avatar,
                 }
             })
         else:
@@ -38,8 +39,9 @@ class ListActivityLogSerializer(serializers.Serializer):
                     "id": instance.acting_user,
                     "name": acting_user.full_name,
                     "email": acting_user.email,
-                    "username": acting_user.username,
-                    "avatar": acting_user.avatar,
+                    #TODO: add username, avatar
+                    # "username": acting_user.username,
+                    # "avatar": acting_user.avatar,
                 }
             })
         else:

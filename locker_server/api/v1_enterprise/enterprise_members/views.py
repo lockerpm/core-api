@@ -94,11 +94,11 @@ class MemberPwdViewSet(APIBaseViewSet):
 
         members = self.enterprise_member_service.list_enterprise_members(**{
             "enterprise_id": enterprise.enterprise_id,
-            "user_ids": query_params.get("user_ids", "").split(","),
+            "user_ids": query_params.get("user_ids").split(",") if query_params.get("user_ids") else [],
             "email": query_params.get("email", None),
             "roles": list_filter_roles,
             "status": query_params.get("status"),
-            "statuses": query_params.get("statuses", "").split(","),
+            "statuses": query_params.get("statuses").split(",") if query_params.get('statuses') else [],
             "is_activated": query_params.get("is_activated"),
             "block_login": query_params.get("block_login"),
             "sort": query_params.get("sort"),
@@ -138,7 +138,7 @@ class MemberPwdViewSet(APIBaseViewSet):
         return Response(
             status=status.HTTP_200_OK,
             data={
-                "enterprise_id": enterprise.id,
+                "enterprise_id": enterprise.enterprise_id,
                 "enterprise_name": enterprise.name,
                 "members": added_members,
                 "non_added_members": non_added_members
@@ -238,7 +238,8 @@ class MemberPwdViewSet(APIBaseViewSet):
             )
             if is_billing_added:
                 try:
-                    primary_user = self.enterprise_service.get_primary_member(enterprise_id=enterprise.enterprise_id).user
+                    primary_user = self.enterprise_service.get_primary_member(
+                        enterprise_id=enterprise.enterprise_id).user
                     user_plan = self.user_service.get_current_plan(user=primary_user)
                     PaymentMethodFactory.get_method(
                         user_plan=user_plan,

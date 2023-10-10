@@ -41,6 +41,7 @@ from locker_server.shared.external_services.pm_sync import PwdSync, SYNC_EVENT_M
     SYNC_EVENT_CIPHER_UPDATE, SYNC_EVENT_COLLECTION_UPDATE, SYNC_EVENT_MEMBER_REJECT, SYNC_EVENT_MEMBER_INVITATION, \
     SYNC_EVENT_CIPHER, SYNC_EVENT_MEMBER_CONFIRMED, SYNC_EVENT_MEMBER_UPDATE, SYNC_EVENT_MEMBER_REMOVE
 from locker_server.shared.utils.app import now
+from locker_server.shared.utils.avatar import get_avatar
 
 
 class SharingService:
@@ -679,17 +680,36 @@ class SharingService:
             )
             shared_members_data = []
             for member in shared_members:
-                shared_members_data.append({
+                member_data = {
                     "id": member.team_member_id,
                     "access_time": member.access_time,
-                    "user_id": member.user.user_id,
                     "email": member.email,
+
+
                     "role": member.role.name,
                     "status": member.status,
                     "hide_passwords": member.hide_passwords,
                     "share_type": self.get_personal_share_type(member=member),
                     "pwd_user_id": member.user.internal_id if member.user else None
-                })
+                }
+                try:
+                    if member.user is not None:
+                        member_data.update({
+                            "email": member.user.email,
+                            "full_name": member.user.full_name,
+                            "username": member.user.username,
+                            "avatar": member.user.get_avatar()
+                        })
+                    else:
+                        member_data.update({
+                            "avatar": get_avatar(member.email)
+                        })
+                except AttributeError:
+                    member_data.update({
+                        "user_id": member.user.user_id if member.user else None,
+                    })
+
+                shared_members_data.append(member_data)
 
             shared_groups = self.team_group_repository.list_groups_by_sharing_id(sharing_id=personal_shared_team.team_id)
             shared_groups_data = []
