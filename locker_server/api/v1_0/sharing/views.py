@@ -15,6 +15,12 @@ from locker_server.core.exceptions.user_exception import UserDoesNotExistExcepti
 from locker_server.shared.constants.lang import LANG_ENGLISH
 from locker_server.shared.constants.members import PM_MEMBER_STATUS_INVITED, PM_MEMBER_STATUS_ACCEPTED
 from locker_server.shared.error_responses.error import gen_error
+from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
+from locker_server.shared.external_services.locker_background.constants import BG_NOTIFY
+from locker_server.shared.external_services.user_notification.list_jobs import PWD_CONFIRM_SHARE_ITEM, \
+    PWD_SHARE_ITEM_REJECTED, PWD_SHARE_ITEM_ACCEPTED, PWD_NEW_SHARE_ITEM
+from locker_server.shared.external_services.user_notification.notification_sender import SENDING_SERVICE_MAIL, \
+    SENDING_SERVICE_WEB_NOTIFICATION
 from locker_server.shared.utils.avatar import check_email
 from .serializers import UserPublicKeySerializer, SharingInvitationSerializer, SharingSerializer, \
     MultipleSharingSerializer, UpdateInvitationRoleSerializer, GroupMemberConfirmSerializer, \
@@ -140,48 +146,45 @@ class SharingPwdViewSet(APIBaseViewSet):
             raise NotFound
 
         result = self.sharing_service.update_sharing_invitation(sharing_invitation=sharing_invitation, status=status)
-        self._notify_invitation_update(data=result)
+        self._notify_invitation_update(user=user, data=result)
         return Response(status=status.HTTP_200_OK, data=result)
 
     @staticmethod
-    def _notify_invitation_update(data):
-        # TODO: Sending mail here
-        # status = res_data.get("status")
-        # member_status = res_data.get("member_status")
-        # notification_user_ids = res_data.get("notification_user_ids") or []
-        # mail_user_ids = res_data.get("mail_user_ids") or []
-        #
-        # # Sending notification and mail
-        # if status == "accept":
-        #     job = PWD_CONFIRM_SHARE_ITEM if member_status == "accepted" else PWD_SHARE_ITEM_ACCEPTED
-        # else:
-        #     job = PWD_SHARE_ITEM_REJECTED
-        #
-        # LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
-        #     func_name="notify_sending", **{
-        #         "user_ids": mail_user_ids,
-        #         "job": job,
-        #         "name": user.full_name,
-        #         "recipient_name": user.full_name,
-        #
-        #     }
-        # )
-        # LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
-        #     func_name="notify_sending", **{
-        #         "services": [SENDING_SERVICE_WEB_NOTIFICATION],
-        #         "user_ids": notification_user_ids,
-        #         "job": job,
-        #         "name": user.full_name,
-        #         "recipient_name": user.full_name,
-        #
-        #     }
-        # )
-        pass
+    def _notify_invitation_update(user, data):
+        invitation_status = data.get("status")
+        member_status = data.get("member_status")
+        notification_user_ids = data.get("notification_user_ids") or []
+        mail_user_ids = data.get("mail_user_ids") or []
+
+        # Sending notification and mail
+        if invitation_status == "accept":
+            job = PWD_CONFIRM_SHARE_ITEM if member_status == "accepted" else PWD_SHARE_ITEM_ACCEPTED
+        else:
+            job = PWD_SHARE_ITEM_REJECTED
+
+        BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+            func_name="notify_sending", **{
+                "user_ids": mail_user_ids,
+                "job": job,
+                "name": user.full_name,
+                "recipient_name": user.full_name,
+
+            }
+        )
+        BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+            func_name="notify_sending", **{
+                "services": [SENDING_SERVICE_WEB_NOTIFICATION],
+                "user_ids": notification_user_ids,
+                "job": job,
+                "name": user.full_name,
+                "recipient_name": user.full_name,
+            }
+        )
 
     @staticmethod
     def _notify_invited_user(owner_name, cipher_type, user_id, service=SENDING_SERVICE_MAIL):
         user_ids = [user_id] if not isinstance(user_id, list) else user_id
-        LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+        BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
             func_name="notify_sending", **{
                 "user_ids": user_ids,
                 "services": [service],
@@ -199,7 +202,7 @@ class SharingPwdViewSet(APIBaseViewSet):
             "name": "there",
             "language": language
         } for m in list_emails]
-        LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+        BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
             func_name="notify_sending", **{
                 "destinations": destinations,
                 "job": PWD_NEW_SHARE_ITEM,
@@ -311,18 +314,16 @@ class SharingPwdViewSet(APIBaseViewSet):
             raise ValidationError({"non_field_errors": [gen_error("5000")]})
 
         new_sharing = result.get("new_sharing")
-
-        # TODO: Sending email
         if settings.SELF_HOSTED:
             shared_type_name = result.get("shared_type_name")
             non_existed_member_users = result.get("non_existed_member_users", [])
             mail_user_ids = result.get("mail_user_ids", [])
             notification_user_ids = result.get("notification_user_ids", [])
-            # self._notify_invited_user(user.full_name, shared_type_name, mail_user_ids)
-            # self._notify_invited_user(
-            #     user.full_name, shared_type_name, notification_user_ids, service=SENDING_SERVICE_WEB_NOTIFICATION
-            # )
-            # self._notify_invited_non_user(user.full_name, shared_type_name, non_existed_member_users)
+            self._notify_invited_user(user.full_name, shared_type_name, mail_user_ids)
+            self._notify_invited_user(
+                user.full_name, shared_type_name, notification_user_ids, service=SENDING_SERVICE_WEB_NOTIFICATION
+            )
+            self._notify_invited_non_user(user.full_name, shared_type_name, non_existed_member_users)
             return Response(status=status.HTTP_200_OK, data={"id": str(new_sharing.id)})
 
         return Response(status=status.HTTP_200_OK, data={
@@ -390,17 +391,16 @@ class SharingPwdViewSet(APIBaseViewSet):
         except CipherBelongTeamException:
             raise ValidationError({"non_field_errors": [gen_error("5000")]})
 
-        # TODO: Sending email
         if settings.SELF_HOSTED:
             shared_type_name = result.get("shared_type_name")
             non_existed_member_users = result.get("non_existed_member_users", [])
             mail_user_ids = result.get("mail_user_ids", [])
             notification_user_ids = result.get("notification_user_ids", [])
-            # self._notify_invited_user(user.full_name, shared_type_name, mail_user_ids)
-            # self._notify_invited_user(
-            #     user.full_name, shared_type_name, notification_user_ids, service=SENDING_SERVICE_WEB_NOTIFICATION
-            # )
-            # self._notify_invited_non_user(user.full_name, shared_type_name, non_existed_member_users)
+            self._notify_invited_user(user.full_name, shared_type_name, mail_user_ids)
+            self._notify_invited_user(
+                user.full_name, shared_type_name, notification_user_ids, service=SENDING_SERVICE_WEB_NOTIFICATION
+            )
+            self._notify_invited_non_user(user.full_name, shared_type_name, non_existed_member_users)
             return Response(status=status.HTTP_200_OK, data={"success": True})
 
         return Response(status=status.HTTP_200_OK, data=result)
@@ -608,17 +608,16 @@ class SharingPwdViewSet(APIBaseViewSet):
         except TeamMemberEmailDoesNotExistException:
             raise ValidationError(detail={"groups": {"members": ["The member emails are not valid"]}})
 
-        # TODO: Sending email
         if settings.SELF_HOSTED:
             shared_type_name = result.get("shared_type_name")
             non_existed_member_users = result.get("non_existed_member_users", [])
             mail_user_ids = result.get("mail_user_ids", [])
             notification_user_ids = result.get("notification_user_ids", [])
-            # self._notify_invited_user(user.full_name, shared_type_name, mail_user_ids)
-            # self._notify_invited_user(
-            #     user.full_name, shared_type_name, notification_user_ids, service=SENDING_SERVICE_WEB_NOTIFICATION
-            # )
-            # self._notify_invited_non_user(user.full_name, shared_type_name, non_existed_member_users)
+            self._notify_invited_user(user.full_name, shared_type_name, mail_user_ids)
+            self._notify_invited_user(
+                user.full_name, shared_type_name, notification_user_ids, service=SENDING_SERVICE_WEB_NOTIFICATION
+            )
+            self._notify_invited_non_user(user.full_name, shared_type_name, non_existed_member_users)
             return Response(status=status.HTTP_200_OK, data={"id": result.get("id")})
         return Response(status=status.HTTP_200_OK, data=result)
 

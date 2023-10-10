@@ -50,6 +50,8 @@ class APIBaseViewSet(AppGeneralViewSet):
     factor2_service = factor2_service
     notification_service = notification_service
 
+    mail_configuration_service = mail_configuration_service
+
     def get_throttles(self):
         if self.request.user and not isinstance(self.request.user, AnonymousUser):
             self.throttle_scope = 'user_authenticated'

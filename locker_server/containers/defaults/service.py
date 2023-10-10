@@ -217,3 +217,8 @@ class ServiceFactory(containers.DeclarativeContainer):
         notification_repository=RepositoryFactory.notification_repository,
         user_repository=RepositoryFactory.user_repository
     )
+
+    mail_configuration_service = providers.Factory(
+        MailConfigurationService,
+        mail_configuration_repository=RepositoryFactory.mail_configuration_repository,
+    )

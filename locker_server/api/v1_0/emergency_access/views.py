@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 from django.conf import settings
 from rest_framework import status
@@ -21,7 +22,16 @@ from locker_server.core.exceptions.user_exception import UserDoesNotExistExcepti
 from locker_server.shared.constants.emergency_access import EMERGENCY_ACCESS_STATUS_ACCEPTED, \
     EMERGENCY_ACCESS_STATUS_CONFIRMED
 from locker_server.shared.error_responses.error import gen_error
+from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
+from locker_server.shared.external_services.locker_background.constants import BG_NOTIFY
 from locker_server.shared.external_services.pm_sync import PwdSync, SYNC_EVENT_CIPHER_UPDATE
+from locker_server.shared.external_services.user_notification.list_jobs import PWD_JOIN_EMERGENCY_ACCESS, \
+    PWD_DECLINED_INVITATION_EMERGENCY_ACCESS, PWD_CONFIRM_EMERGENCY_ACCESS, PWD_EMERGENCY_ACCESS_GRANTED, \
+    PWD_ACCEPT_INVITATION_EMERGENCY_ACCESS, PWD_NEW_EMERGENCY_ACCESS_REQUEST, PWD_EMERGENCY_REQUEST_DECLINED, \
+    PWD_EMERGENCY_REQUEST_ACCEPTED, PWD_MASTER_PASSWORD_CHANGED
+from locker_server.shared.external_services.user_notification.notification_sender import \
+    SENDING_SERVICE_WEB_NOTIFICATION
+from locker_server.shared.utils.app import now
 from .serializers import EmergencyAccessGranteeSerializer, EmergencyAccessGrantorSerializer, \
     InviteEmergencyAccessSerializer, PasswordEmergencyAccessSerializer, ViewOrgSerializer
 
@@ -75,42 +85,41 @@ class EmergencyAccessPwdViewSet(APIBaseViewSet):
                 "name": "bạn" if owner.language == "vi" else "there",
                 "language": owner.language
             }]
-        # LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
-        #     func_name="notify_sending", **{
-        #         "destinations": destinations,
-        #         "job": PWD_JOIN_EMERGENCY_ACCESS,
-        #         "grantor_email": owner.email,
-        #         "grantor_name": owner.full_name
-        #     }
-        # )
+        BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+            func_name="notify_sending", **{
+                "destinations": destinations,
+                "job": PWD_JOIN_EMERGENCY_ACCESS,
+                "grantor_email": owner.email,
+                "grantor_name": owner.full_name
+            }
+        )
 
     @staticmethod
     def send_invite_notification(owner, grantee_user):
-        pass
-        # LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
-        #     func_name="notify_sending", **{
-        #         "user": grantee_user,
-        #         "job": PWD_JOIN_EMERGENCY_ACCESS,
-        #         "services": [SENDING_SERVICE_WEB_NOTIFICATION],
-        #         "grantor_email": owner.email,
-        #         "grantor_name": owner.full_name,
-        #         "is_grantee": True
-        #     }
-        # )
+        BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+            func_name="notify_sending", **{
+                "user": grantee_user,
+                "job": PWD_JOIN_EMERGENCY_ACCESS,
+                "services": [SENDING_SERVICE_WEB_NOTIFICATION],
+                "grantor_email": owner.email,
+                "grantor_name": owner.full_name,
+                "is_grantee": True
+            }
+        )
 
     @staticmethod
     def send_status_mail(job, user_ids, **data):
         data.update({
             "user_ids": user_ids, "job": job,
         })
-        # LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY).run(func_name="notify_sending", **data)
+        BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(func_name="notify_sending", **data)
 
     @staticmethod
     def send_status_notification(job, user_ids, **data):
         data.update({
             "user_ids": user_ids, "job": job, "services": [SENDING_SERVICE_WEB_NOTIFICATION]
         })
-        # LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY).run(func_name="notify_sending", **data)
+        BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(func_name="notify_sending", **data)
 
     @action(methods=["get"], detail=False)
     def trusted(self, request, *args, **kwargs):
@@ -143,21 +152,19 @@ class EmergencyAccessPwdViewSet(APIBaseViewSet):
             grantee_user_id = result.get("grantee_user_id")
             mail_user_ids = result.get("mail_user_ids", [])
             notification_user_ids = result.get("notification_user_ids", [])
-
-            # TODO: Sending email
-            # if user.user_id == grantee_user_id and emergency_access_status == "invited":
-            #     if grantor_user_id in mail_user_ids:
-            #         self.send_status_mail(PWD_DECLINED_INVITATION_EMERGENCY_ACCESS, user_ids=[grantor_user_id], **{
-            #             "grantee_email": user.email,
-            #             "grantee_name": user.full_name
-            #         })
-            #     if grantor_user_id in notification_user_ids:
-            #         self.send_status_notification(
-            #             PWD_DECLINED_INVITATION_EMERGENCY_ACCESS, user_ids=[grantor_user_id], **{
-            #                 "grantee_email": user.email,
-            #                 "grantee_name": user.full_name
-            #             }
-            #         )
+            if user.user_id == grantee_user_id and emergency_access_status == "invited":
+                if grantor_user_id in mail_user_ids:
+                    self.send_status_mail(PWD_DECLINED_INVITATION_EMERGENCY_ACCESS, user_ids=[grantor_user_id], **{
+                        "grantee_email": user.email,
+                        "grantee_name": user.full_name
+                    })
+                if grantor_user_id in notification_user_ids:
+                    self.send_status_notification(
+                        PWD_DECLINED_INVITATION_EMERGENCY_ACCESS, user_ids=[grantor_user_id], **{
+                            "grantee_email": user.email,
+                            "grantee_name": user.full_name
+                        }
+                    )
             return Response(status=status.HTTP_200_OK, data={"success": True})
         return Response(status=status.HTTP_200_OK, data=result)
 
@@ -197,7 +204,7 @@ class EmergencyAccessPwdViewSet(APIBaseViewSet):
         except EmergencyAccessEmailExistedException:
             raise ValidationError(detail={"email": ["The emergency already exists"]})
 
-        # TODO: Send notification via ws for grantee
+        # Send notification via ws for grantee
         if settings.SELF_HOSTED and new_emergency_access.grantee:
             if mail_user_ids:
                 self.send_invite_mail(grantor, new_emergency_access.grantee, new_emergency_access.email)
@@ -259,14 +266,11 @@ class EmergencyAccessPwdViewSet(APIBaseViewSet):
             )
         except EmergencyAccessDoesNotExistException:
             raise NotFound
-
         grantee_user = request.user
         grantor_user_id = emergency_access.grantor.user_id
         grantee_user_id = emergency_access.grantee.user_id if emergency_access.grantee else None
         mail_user_ids = result.get("mail_user_ids", [])
         notification_user_ids = result.get("notification_user_ids", [])
-
-        # TODO: Sending mail
         if emergency_access.status == EMERGENCY_ACCESS_STATUS_ACCEPTED:
             if grantor_user_id in mail_user_ids:
                 self.send_status_mail(PWD_CONFIRM_EMERGENCY_ACCESS, user_ids=[grantor_user_id], **{
@@ -338,9 +342,9 @@ class EmergencyAccessPwdViewSet(APIBaseViewSet):
             mail_user_ids = result.get("mail_user_ids", [])
             notification_user_ids = result.get("notification_user_ids", [])
             notify_data = {"grantor_email": owner.email, "grantor_name": owner.full_name, "is_grantee": True}
-            # TODO: Sending mail
-            # self.send_status_mail(PWD_EMERGENCY_ACCESS_GRANTED, mail_user_ids, **notify_data)
-            # self.send_status_notification(PWD_EMERGENCY_ACCESS_GRANTED, notification_user_ids, **notify_data)
+            # Sending mail
+            self.send_status_mail(PWD_EMERGENCY_ACCESS_GRANTED, mail_user_ids, **notify_data)
+            self.send_status_notification(PWD_EMERGENCY_ACCESS_GRANTED, notification_user_ids, **notify_data)
             return Response(status=status.HTTP_200_OK, data={"success": True})
         return Response(status=status.HTTP_200_OK, data=result)
 
@@ -371,9 +375,9 @@ class EmergencyAccessPwdViewSet(APIBaseViewSet):
                 "grantee_name": grantee_user.full_name,
                 "is_grantor": True
             }
-            # TODO: Sending mail
-            # self.send_status_mail(PWD_NEW_EMERGENCY_ACCESS_REQUEST, mail_user_ids, **notify_data)
-            # self.send_status_notification(PWD_NEW_EMERGENCY_ACCESS_REQUEST, notification_user_ids, **notify_data)
+            # Sending mail
+            self.send_status_mail(PWD_NEW_EMERGENCY_ACCESS_REQUEST, mail_user_ids, **notify_data)
+            self.send_status_notification(PWD_NEW_EMERGENCY_ACCESS_REQUEST, notification_user_ids, **notify_data)
             return Response(status=status.HTTP_200_OK, data={"success": True})
         return Response(status=status.HTTP_200_OK, data=result)
 
@@ -399,9 +403,9 @@ class EmergencyAccessPwdViewSet(APIBaseViewSet):
                 "grantor_name": grantor.full_name,
                 "is_grantee": True
             }
-            # TODO: Sending email
-            # self.send_status_mail(PWD_EMERGENCY_REQUEST_DECLINED, mail_user_ids, **notify_data)
-            # self.send_status_notification(PWD_EMERGENCY_REQUEST_DECLINED, notification_user_ids, **notify_data)
+            # Sending email
+            self.send_status_mail(PWD_EMERGENCY_REQUEST_DECLINED, mail_user_ids, **notify_data)
+            self.send_status_notification(PWD_EMERGENCY_REQUEST_DECLINED, notification_user_ids, **notify_data)
             return Response(status=status.HTTP_200_OK, data={"success": True})
         return Response(status=status.HTTP_200_OK, data=result)
 
@@ -426,9 +430,9 @@ class EmergencyAccessPwdViewSet(APIBaseViewSet):
                 "grantor_name": grantor.full_name,
                 "is_grantee": True
             }
-            # TODO: Sending mail
-            # self.send_status_mail(PWD_EMERGENCY_REQUEST_ACCEPTED, mail_user_ids, **notify_data)
-            # self.send_status_notification(PWD_EMERGENCY_REQUEST_ACCEPTED, notification_user_ids, **notify_data)
+            # Sending mail
+            self.send_status_mail(PWD_EMERGENCY_REQUEST_ACCEPTED, mail_user_ids, **notify_data)
+            self.send_status_notification(PWD_EMERGENCY_REQUEST_ACCEPTED, notification_user_ids, **notify_data)
             return Response(status=status.HTTP_200_OK, data={"success": True})
         return Response(status=status.HTTP_200_OK, data=result)
 
@@ -528,15 +532,14 @@ class EmergencyAccessPwdViewSet(APIBaseViewSet):
             grantor_user_id = result.get("grantor_user_id")
             mail_user_ids = result.get("mail_user_ids", [])
             if grantor_user_id in mail_user_ids:
-                # TODO: Sending email
-                pass
-                # LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
-                #     func_name="notify_sending", **{
-                #         "user_ids": [grantor_user_id],
-                #         "job": PWD_MASTER_PASSWORD_CHANGED,
-                #         "changed_time": datetime.utcfromtimestamp(now()).strftime('%H:%M:%S %d-%m-%Y') + " (UTC+00)",
-                #     }
-                # )
+                # Sending email
+                BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+                    func_name="notify_sending", **{
+                        "user_ids": [grantor_user_id],
+                        "job": PWD_MASTER_PASSWORD_CHANGED,
+                        "changed_time": datetime.utcfromtimestamp(now()).strftime('%H:%M:%S %d-%m-%Y') + " (UTC+00)",
+                    }
+                )
             return Response(status=status.HTTP_200_OK, data={"success": True})
         return Response(status=status.HTTP_200_OK, data=result)
 

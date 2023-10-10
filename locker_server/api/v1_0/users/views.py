@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 from django.conf import settings
 from rest_framework import status
@@ -22,7 +23,14 @@ from locker_server.core.exceptions.user_exception import UserDoesNotExistExcepti
 from locker_server.shared.constants.account import *
 from locker_server.shared.error_responses.error import refer_error, gen_error
 from locker_server.api.v1_0.ciphers.serializers import VaultItemSerializer, UpdateVaultItemSerializer
+from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
+from locker_server.shared.external_services.locker_background.constants import BG_NOTIFY
 from locker_server.shared.external_services.pm_sync import PwdSync, SYNC_EVENT_CIPHER_UPDATE
+from locker_server.shared.external_services.user_notification.list_jobs import PWD_MASTER_PASSWORD_CHANGED, \
+    PWD_NO_MASTER_PASSWORD_HINT, PWD_HINT_FOR_MASTER_PASSWORD, PWD_ACCOUNT_DELETED, PWD_DELETE_SHARE_ITEM, \
+    PWD_CONFIRM_INVITATION
+from locker_server.shared.utils.app import now
+from locker_server.shared.utils.network import get_ip_by_request, detect_device
 from .serializers import UserMeSerializer, UserUpdateMeSerializer, UserRegisterSerializer, UserSessionSerializer, \
     DeviceFcmSerializer, UserChangePasswordSerializer, UserNewPasswordSerializer, UserCheckPasswordSerializer, \
     UserMasterPasswordHashSerializer, UpdateOnboardingProcessSerializer, UserPwdInvitationSerializer, \
@@ -353,39 +361,40 @@ class UserPwdViewSet(APIBaseViewSet):
             access_token = new_device_access_token.access_token
 
             mail_user_ids = result.get("mail_user_ids")
-            # TODO: Sending mail when user changes master password
-            # if user.user_id in mail_user_ids:
-            #     device = detect_device(ua_string=self.get_client_agent())
-            #     ip_location = Factor2Method.get_ip_location(ip=get_ip_by_request(request))
-            #     browser = device.get("browser", None)
-            #     browser = "" if browser is None else browser.get("family") + " " + browser.get("version", "")
-            #     os = device.get("os", None)
-            #     os = "" if os is None else os.get("family", "") + " " + os.get("version", "")
-            #     location = ip_location.get("location", None)
-            #     # Get location
-            #     if location:
-            #         city = location.get("city", "")
-            #         country = location.get("country_name", "")
-            #         city_country = []
-            #         if city is not None and city != "":
-            #             city_country.append(city)
-            #         if country is not None and country != "":
-            #             city_country.append(country)
-            #         user_location = ", ".join(city_country)
-            #     else:
-            #         user_location = ""
-            #     LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
-            #         func_name="notify_sending", **{
-            #             "user": user,
-            #             "job": PWD_MASTER_PASSWORD_CHANGED,
-            #             "changed_time": datetime.utcfromtimestamp(now()).strftime('%H:%M:%S %d-%m-%Y') + " (UTC+00)",
-            #             "account": user.email,
-            #             "location": user_location,
-            #             "ip": ip_location.get("ip", ""),
-            #             "os": os,
-            #             "browser": browser,
-            #         }
-            #     )
+            # Sending mail when user changes master password
+            if user.user_id in mail_user_ids:
+                device = detect_device(ua_string=self.get_client_agent())
+                # TODO: Retrieve ip location from factor2Method
+                ip_location = Factor2Method.get_ip_location(ip=get_ip_by_request(request))
+                browser = device.get("browser", None)
+                browser = "" if browser is None else browser.get("family") + " " + browser.get("version", "")
+                os = device.get("os", None)
+                os = "" if os is None else os.get("family", "") + " " + os.get("version", "")
+                location = ip_location.get("location", None)
+                # Get location
+                if location:
+                    city = location.get("city", "")
+                    country = location.get("country_name", "")
+                    city_country = []
+                    if city is not None and city != "":
+                        city_country.append(city)
+                    if country is not None and country != "":
+                        city_country.append(country)
+                    user_location = ", ".join(city_country)
+                else:
+                    user_location = ""
+                BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+                    func_name="notify_sending", **{
+                        "user": user,
+                        "job": PWD_MASTER_PASSWORD_CHANGED,
+                        "changed_time": datetime.utcfromtimestamp(now()).strftime('%H:%M:%S %d-%m-%Y') + " (UTC+00)",
+                        "account": user.email,
+                        "location": user_location,
+                        "ip": ip_location.get("ip", ""),
+                        "os": os,
+                        "browser": browser,
+                    }
+                )
             return Response(status=status.HTTP_200_OK, data={"success": True, "token": access_token})
 
         return Response(status=status.HTTP_200_OK, data={
@@ -421,14 +430,13 @@ class UserPwdViewSet(APIBaseViewSet):
             raise ValidationError(detail={"email": ["There’s no account associated with this email"]})
         master_password_hint = user.master_password_hint
         if settings.SELF_HOSTED:
-            # TODO: Sending master password hint mail
-            pass
-            # job = PWD_HINT_FOR_MASTER_PASSWORD if master_password_hint else PWD_NO_MASTER_PASSWORD_HINT
-            # LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
-            #     func_name="notify_sending", **{
-            #         "user": user, "job": job, "hint": master_password_hint
-            #     }
-            # )
+            # Sending master password hint mail
+            job = PWD_HINT_FOR_MASTER_PASSWORD if master_password_hint else PWD_NO_MASTER_PASSWORD_HINT
+            BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+                func_name="notify_sending", **{
+                    "user": user, "job": job, "hint": master_password_hint
+                }
+            )
             return Response(status=status.HTTP_200_OK, data={"success": True})
         return Response(status=status.HTTP_200_OK, data={"master_password_hint": master_password_hint})
 
@@ -454,15 +462,15 @@ class UserPwdViewSet(APIBaseViewSet):
         if not self.user_service.check_master_password(user=user, master_password_hash=master_password_hash):
             raise ValidationError(detail={"master_password_hash": ["The master password is not correct"]})
         self.user_service.delete_locker_user(user=user)
-        # TODO: Sending mail when user deletes account
-        # if settings.SELF_HOSTED:
-        #     BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
-        #         func_name="notify_sending", **{
-        #             "destinations": [{"email": user.email, "name": user.full_name, "language": user.language}],
-        #             "job": PWD_ACCOUNT_DELETED,
-        #             "email": user.email
-        #         }
-        #     )
+        # Sending mail when user deletes account
+        if settings.SELF_HOSTED:
+            BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+                func_name="notify_sending", **{
+                    "destinations": [{"email": user.email, "name": user.full_name, "language": user.language}],
+                    "job": PWD_ACCOUNT_DELETED,
+                    "email": user.email
+                }
+            )
         return Response(status=status.HTTP_200_OK, data={"success": True})
 
     @action(methods=["post"], detail=False)
@@ -477,16 +485,17 @@ class UserPwdViewSet(APIBaseViewSet):
         notification = self.user_service.purge_user(user=user)
 
         if settings.SELF_HOSTED:
-            # TODO: Send web notification
-            # for cipher_member in notification:
-            #     LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
-            #         func_name="notify_sending", **{
-            #             "user": notification_users_dict.get(cipher_member["shared_member"]),
-            #             "job": PWD_DELETE_SHARE_ITEM,
-            #             "owner": user.full_name,
-            #             "cipher_id": cipher_member["id"]
-            #         }
-            #     )
+            # Send web notification
+            for cipher_member in notification:
+                BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+                    func_name="notify_sending", **{
+                        "user_ids": [cipher_member["shared_member"]],
+                        # "user": notification_users_dict.get(cipher_member["shared_member"]),
+                        "job": PWD_DELETE_SHARE_ITEM,
+                        "owner": user.full_name,
+                        "cipher_id": cipher_member["id"]
+                    }
+                )
             return Response(status=status.HTTP_200_OK, data={"success": True})
         return Response(status=status.HTTP_200_OK, data=notification)
 
@@ -552,20 +561,19 @@ class UserPwdViewSet(APIBaseViewSet):
             return NotFound
         if settings.SELF_HOSTED and result.get("status") == "accept":
             owner_user_id = result.get("owner")
-            # TODO: Sending mail
-            # try:
-            #     owner = self.user_service.retrieve_by_id(user_id=owner_user_id)
-            #     LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
-            #         func_name="notify_sending", **{
-            #             "user": owner,
-            #             "job": PWD_CONFIRM_INVITATION,
-            #             "team_name": response.data.get("team_name"),
-            #             "member_email": user.email,
-            #             "member_name": user.full_name
-            #         }
-            #     )
-            # except UserDoesNotExistException:
-            #     pass
+            try:
+                owner = self.user_service.retrieve_by_id(user_id=owner_user_id)
+                BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+                    func_name="notify_sending", **{
+                        "user": owner,
+                        "job": PWD_CONFIRM_INVITATION,
+                        "team_name": result.get("team_name"),
+                        "member_email": user.email,
+                        "member_name": user.full_name
+                    }
+                )
+            except UserDoesNotExistException:
+                pass
             return Response(status=status.HTTP_200_OK, data={"success": True})
         return Response(status=status.HTTP_200_OK, data=result)
 
