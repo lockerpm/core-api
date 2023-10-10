@@ -1,14 +1,15 @@
 from server_config.settings.dev import *
 
 
-DEBUG = False
+DEBUG = True
 if not SERVER_ORIGIN:
     ALLOWED_HOSTS = [
         "localhost", "127.0.0.1"
     ]
 else:
     ALLOWED_HOSTS = [
-        SERVER_ORIGIN
+        SERVER_ORIGIN,
+        "localhost", "127.0.0.1"
     ]
 
 
