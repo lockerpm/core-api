@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
@@ -5,6 +6,7 @@ from rest_framework.response import Response
 
 from locker_server.api.api_base_view import APIBaseViewSet
 from locker_server.api.permissions.locker_permissions.family_pwd_permission import FamilyPwdPermission
+from locker_server.core.exceptions.user_exception import UserDoesNotExistException
 from locker_server.core.exceptions.user_plan_exception import *
 from locker_server.shared.constants.transactions import PLAN_TYPE_PM_FAMILY
 from locker_server.shared.error_responses.error import gen_error
@@ -42,7 +44,14 @@ class FamilyPwdViewSet(APIBaseViewSet):
         family_members = family_members_owner.get("family_members")
         owner = family_members_owner.get("owner")
         serializer = self.get_serializer(family_members, many=True)
-        owner = [{"id": None, "user_id": owner.user_id, "created_time": owner.creation_date}]
+        owner = [{
+            "id": None,
+            "created_time": owner.creation_date,
+            "email": owner.email,
+            "username": owner.username,
+            "avatar": owner.get_avatar(),
+            "full_name": owner.full_name,
+        }]
         results = owner + serializer.data
         return Response(status=status.HTTP_200_OK, data=results)
 
@@ -53,8 +62,27 @@ class FamilyPwdViewSet(APIBaseViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
-        family_members = validated_data.get("family_members")
+        emails = validated_data.get("family_members")
 
+        family_members = []
+        for member in emails:
+            try:
+                user_invited = self.user_service.retrieve_by_email(email=member)
+                if not user_invited.activated:
+                    continue
+                family_members.append({
+                    "user_id": user_invited.id,
+                    "email": user_invited.email,
+                    "name": user_invited.full_name,
+                    "language": user_invited.language,
+                })
+            except UserDoesNotExistException:
+                family_members.append({
+                    "user_id": None,
+                    "email": member,
+                    "name": "there",
+                    "language": "en"
+                })
         try:
             self.family_service.create_multiple_family_members(
                 user_id=pm_current_plan.user.user_id, family_members=family_members
@@ -65,6 +93,19 @@ class FamilyPwdViewSet(APIBaseViewSet):
             raise ValidationError(detail={
                 "family_members": ["The user {} is in other family plan".format(e.email)]
             })
+        # TODO: Sending email
+        # if settings.SELF_HOSTED:
+        #     for member in family_members:
+        #         LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+        #             func_name="notify_sending", **{
+        #                 "destinations": [{
+        #                     "email": member["email"], "language": member["language"], "name": member["name"]
+        #                 }],
+        #                 "job": PWD_FAMILY_INVITATION,
+        #                 "owner_email": request.user.email,
+        #                 "invited_email": member["email"],
+        #             }
+        #         )
         return Response(status=status.HTTP_200_OK, data={"success": True})
 
     @action(methods=["delete"], detail=False)
@@ -77,4 +118,25 @@ class FamilyPwdViewSet(APIBaseViewSet):
             )
         except UserPlanFamilyDoesNotExistException:
             raise NotFound
+
+        # TODO: Sending email
+        # if settings.SELF_HOSTED:
+        #     if family_user_id:
+        #         LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+        #             func_name="notify_sending", **{
+        #                 "user_ids": [res_data.get("user_id")],
+        #                 "job": PWD_FAMILY_REMOVED,
+        #             }
+        #         )
+        #
+        #     elif family_email:
+        #         LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+        #             func_name="notify_sending", **{
+        #                 "destinations": [{
+        #                     "email": res_data.get("email"), "name": "there", "language": "en"
+        #                 }],
+        #                 "job": PWD_FAMILY_REMOVED,
+        #             }
+        #         )
+
         return Response(status=200, data={"user_id": family_user_id, "email": family_email})

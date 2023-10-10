@@ -1,11 +1,14 @@
 import random
 
+from django.contrib.auth.models import AnonymousUser
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
 from locker_server.api.api_base_view import APIBaseViewSet
 from locker_server.api.permissions.locker_permissions.passwordless_pwd_permission import PasswordlessPwdPermission
+from locker_server.core.exceptions.user_exception import UserDoesNotExistException
 from .serializers import PasswordlessCredentialSerializer
 
 
@@ -22,6 +25,14 @@ class PasswordlessPwdViewSet(APIBaseViewSet):
     def credential(self, request, *args, **kwargs):
         user = self.request.user
         if request.method == "GET":
+            if not user or isinstance(user, AnonymousUser):
+                email = self.request.query_params.get("email")
+                if not email:
+                    raise NotFound
+                try:
+                    user = self.user_service.retrieve_by_email(email=email)
+                except UserDoesNotExistException:
+                    raise NotFound
             return Response(status=status.HTTP_200_OK, data={
                 "credential_id": user.fd_credential_id,
                 "random": user.fd_random

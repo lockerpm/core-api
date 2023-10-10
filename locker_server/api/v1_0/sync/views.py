@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.cache import cache
 from django.core.paginator import Paginator, EmptyPage
 from rest_framework import status
@@ -121,6 +122,9 @@ class SyncPwdViewSet(APIBaseViewSet):
             "policies": SyncEnterprisePolicySerializer(policies, many=True).data,
             "sends": []
         }
+        if settings.SELF_HOSTED:
+            sync_data["profile"]["email"] = user.email
+            sync_data["profile"]["name"] = user.full_name
         sync_data = camel_snake_data(sync_data, snake_to_camel=True)
         cache.set(cache_key, sync_data, SYNC_CACHE_TIMEOUT)
         return Response(status=200, data=sync_data)

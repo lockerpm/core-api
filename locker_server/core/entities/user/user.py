@@ -184,6 +184,10 @@ class User(object):
         return self._email
 
     @property
+    def username(self):
+        return self._email
+
+    @property
     def full_name(self):
         return self._full_name
 
