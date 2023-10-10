@@ -14,7 +14,7 @@ RUN pip install -r /tmp/requirements.txt
 
 EXPOSE 8000
 
-COPY ./src/ /app
+COPY . /app
 
 USER cystack
 
