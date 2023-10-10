@@ -63,4 +63,5 @@ class RepositoryFactory(containers.DeclarativeContainer):
     factor2_method_repository = providers.Factory(Factor2MethodORMRepository)
     device_factor2_repository = providers.Factory(DeviceFactor2ORMRepository)
 
+    mail_provider_repository = providers.Factory(MailProviderORMRepository)
     mail_configuration_repository = providers.Factory(MailConfigurationORMRepository)

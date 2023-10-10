@@ -15,6 +15,8 @@ urlpatterns += [
     url(r'^resources/cystack_platform/pm/plans$', views.ResourcePwdViewSet.as_view({'get': 'plans'})),
     url(r'^resources/cystack_platform/pm/enterprise/plans$',
         views.ResourcePwdViewSet.as_view({'get': 'enterprise_plans'})),
+    url(r'^resources/cystack_platform/pm/mail_providers$',
+        views.ResourcePwdViewSet.as_view({'get': 'mail_providers'})),
 ]
 
 
