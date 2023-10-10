@@ -35,9 +35,9 @@ class RelaySubdomainORMRepository(RelaySubdomainRepository):
         ).order_by('created_time')
         is_deleted_param = filters.get("is_deleted")
         if is_deleted_param is not None:
-            if is_deleted_param is False or is_deleted_param.lower() is "false":
+            if is_deleted_param is False or is_deleted_param.lower() == "false":
                 relay_subdomains_orm = relay_subdomains_orm.filter(is_deleted=False)
-            elif is_deleted_param is True or is_deleted_param.lower() is "true":
+            elif is_deleted_param is True or is_deleted_param.lower() == "true":
                 relay_subdomains_orm = relay_subdomains_orm.filter(is_deleted=True)
 
         return [
@@ -53,9 +53,9 @@ class RelaySubdomainORMRepository(RelaySubdomainRepository):
             relay_subdomains_orm = RelaySubdomainORM.objects.all()
         is_deleted_param = filters.get("is_deleted")
         if is_deleted_param is not None:
-            if is_deleted_param is False or is_deleted_param.lower() is "false":
+            if is_deleted_param is False or is_deleted_param.lower() == "false":
                 relay_subdomains_orm = relay_subdomains_orm.filter(is_deleted=False)
-            elif is_deleted_param is True or is_deleted_param.lower() is "true":
+            elif is_deleted_param is True or is_deleted_param.lower() == "true":
                 relay_subdomains_orm = relay_subdomains_orm.filter(is_deleted=True)
         return relay_subdomains_orm.exists()
 
