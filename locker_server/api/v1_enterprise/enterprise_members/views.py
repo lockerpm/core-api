@@ -16,6 +16,7 @@ from locker_server.shared.constants.event import EVENT_E_MEMBER_UPDATED_ROLE, EV
     EVENT_E_MEMBER_ENABLED, EVENT_E_MEMBER_REMOVED, EVENT_E_MEMBER_DISABLED
 from locker_server.shared.constants.transactions import PAYMENT_METHOD_CARD
 from locker_server.shared.error_responses.error import gen_error
+from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
 from locker_server.shared.external_services.locker_background.constants import BG_EVENT
 from locker_server.shared.external_services.payment_method.payment_method_factory import PaymentMethodFactory
 from locker_server.shared.utils.app import now
@@ -457,7 +458,7 @@ class MemberPwdViewSet(APIBaseViewSet):
         member_status = updated_member_invitation.status if status != "reject" else None
         if member_status == E_MEMBER_STATUS_CONFIRMED:
             # Log event
-            LockerBackgroundFactory.get_background(bg_name=BG_EVENT).run(func_name="create_by_enterprise_ids", **{
+            BackgroundFactory.get_background(bg_name=BG_EVENT).run(func_name="create_by_enterprise_ids", **{
                 "enterprise_ids": [enterprise.enterprise_id], "acting_user_id": user.user_id,
                 "user_id": user.user_id, "team_member_id": updated_member_invitation.enterprise_member_id,
                 "type": EVENT_E_MEMBER_CONFIRMED, "ip_address": ip
@@ -500,12 +501,12 @@ class MemberPwdViewSet(APIBaseViewSet):
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
         query = validated_data.get("query")
-        user_ids = validated_data.get("user_ids") or []
-        status = validated_data.get("status", E_MEMBER_STATUS_CONFIRMED)
+        user_ids = self.user_service.list_user_ids(**{"q": query, "activated": True})
+        status_param = validated_data.get("status", E_MEMBER_STATUS_CONFIRMED)
         members = self.enterprise_member_service.list_enterprise_members(**{
             "enterprise_id": enterprise.enterprise_id,
             "user_ids": user_ids,
-            "status": status
+            "status": status_param
         })[:5]
         groups = self.enterprise_group_service.list_enterprise_groups(
             enterprise_id=enterprise.enterprise_id,

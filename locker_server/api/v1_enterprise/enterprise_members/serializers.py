@@ -111,9 +111,6 @@ class UpdateUserInvitationSerializer(serializers.Serializer):
 
 class SearchMemberGroupSerializer(serializers.Serializer):
     query = serializers.CharField(max_length=255)
-    user_ids = serializers.ListSerializer(
-        child=serializers.IntegerField(), allow_null=True, allow_empty=True, required=False
-    )
 
 
 class EnterpriseGroupSerializer(serializers.Serializer):

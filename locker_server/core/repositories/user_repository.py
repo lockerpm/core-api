@@ -12,6 +12,10 @@ class UserRepository(ABC):
         pass
 
     @abstractmethod
+    def list_user_ids(self, **filter_params) -> List[int]:
+        pass
+
+    @abstractmethod
     def count_weak_cipher_password(self, user_ids: List[int] = None) -> int:
         pass
 
