@@ -353,7 +353,8 @@ class SharingORMRepository(SharingRepository):
         return member
 
     def add_members(self, team_id: str, shared_collection_id: str, members: List, groups: List = None):
-        primary_user = TeamMemberORM.objects.get(is_primary=True, team_id=team_id).user
+        primary_member = TeamMemberORM.objects.get(is_primary=True, team_id=team_id)
+        primary_user = primary_member.user
         non_existed_member_users = []
         existed_member_users = []
         existed_user_ids = list(TeamMemberORM.objects.filter(
@@ -380,7 +381,7 @@ class SharingORMRepository(SharingRepository):
             #     continue
             member_data = {"user_id": member_user_id, "email": email, "role": member.get("role"), "key": member.get("key")}
             shared_member_orm = self.__create_shared_member_orm(
-                team_orm=primary_user.team, member_data=member_data, shared_collection_id=shared_collection_id
+                team_orm=primary_member.team, member_data=member_data, shared_collection_id=shared_collection_id
             )
             # Make sure the shared member is added as single person and role is set by member_data
             shared_member_orm.is_added_by_group = False

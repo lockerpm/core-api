@@ -246,7 +246,7 @@ class SharingService:
         if not cipher:
             raise CipherDoesNotExistException
         # If the cipher isn't shared?
-        if cipher_obj.user and cipher_obj.user != user:
+        if cipher_obj.user and cipher_obj.user.user_id != user.user_id:
             raise CipherDoesNotExistException
         # If the cipher obj belongs to a team
         if cipher_obj.team:

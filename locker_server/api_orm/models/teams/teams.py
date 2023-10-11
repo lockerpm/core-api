@@ -27,6 +27,6 @@ class TeamORM(AbstractTeamORM):
 
         # Create team members here
         members = data.get("members", [])
-        new_team.team_members.model.create_multiple(new_team, *members)
+        new_team.team_members.model.create_multiple(new_team.id, *members)
 
         return new_team
