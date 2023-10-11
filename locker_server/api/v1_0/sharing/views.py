@@ -300,6 +300,8 @@ class SharingPwdViewSet(APIBaseViewSet):
                 cipher=cipher, shared_cipher_data=shared_cipher_data, folder=folder,
                 owner_name=owner_name, ip=ip
             )
+        except CipherDoesNotExistException:
+            raise ValidationError(detail={"cipher": ["The cipher does not exist"]})
         except EnterpriseGroupDoesNotExistException:
             raise ValidationError(detail={"groups": {"id": ["The group id does not exist"]}})
         except TeamMemberDoesNotExistException:
