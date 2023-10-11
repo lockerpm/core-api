@@ -2,6 +2,20 @@ from rest_framework import serializers
 
 from locker_server.shared.constants.enterprise_members import ENTERPRISE_LIST_ROLE, E_MEMBER_ROLE_MEMBER, \
     E_MEMBER_STATUS_CONFIRMED, E_MEMBER_STATUS_INVITED
+from locker_server.shared.utils.avatar import get_avatar
+
+
+def get_detail_user_info(instance):
+    if instance.user:
+        data = {
+            "full_name": instance.user.full_name,
+            "avatar": instance.user.get_avatar(),
+            "username": instance.user.username,
+            "email": instance.user.email
+        }
+    else:
+        data = {"avatar": get_avatar(instance.email)}
+    return data
 
 
 class DetailMemberSerializer(serializers.Serializer):
@@ -9,14 +23,13 @@ class DetailMemberSerializer(serializers.Serializer):
         data = {
             "id": instance.enterprise_member_id,
             "access_time": instance.access_time,
-            "'is_default'": instance.is_default,
+            "is_default": instance.is_default,
             "is_primary": instance.is_primary,
             "role": instance.role.name,
             "user_id": instance.user.user_id,
             "email": instance.email,
             "status": instance.status,
             "is_activated": instance.is_activated,
-
         }
         data["role"] = instance.role.name
         data["pwd_user_id"] = instance.user.internal_id if instance.user else None
@@ -45,13 +58,12 @@ class CreateMemberSerializer(serializers.Serializer):
 class ShortDetailMemberSerializer(serializers.Serializer):
     def to_representation(self, instance):
         data = {
-            "id": instance.id,
-            "role": instance.id,
-            "user_id": instance.id,
-            "email": instance.id,
-            "status": instance.id,
-
+            "id": instance.enterprise_member_id,
+            "role": instance.role.name,
+            "email": instance.email,
+            "status": instance.status,
         }
+        data.update(get_detail_user_info(instance))
         return data
 
 
