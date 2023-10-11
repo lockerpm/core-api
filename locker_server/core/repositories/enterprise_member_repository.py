@@ -20,6 +20,10 @@ class EnterpriseMemberRepository(ABC):
         pass
 
     @abstractmethod
+    def list_enterprise_member_user_ids(self, **filter_params) -> List[int]:
+        pass
+
+    @abstractmethod
     def list_enterprise_members_by_emails(self, emails_param: [str]) -> List[EnterpriseMember]:
         pass
 
@@ -58,7 +62,7 @@ class EnterpriseMemberRepository(ABC):
         pass
 
     @abstractmethod
-    def create_multiple_member(self, members_create_data: [Dict]) -> NoReturn:
+    def create_multiple_member(self, members_create_data: [Dict]) -> int:
         pass
 
     # ------------------------ Update EnterpriseMember resource --------------------- #

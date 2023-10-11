@@ -6,6 +6,7 @@ from rest_framework.exceptions import NotFound, ValidationError
 from locker_server.core.exceptions.enterprise_domain_exception import *
 from locker_server.core.exceptions.enterprise_exception import EnterpriseDoesNotExistException
 from locker_server.shared.error_responses.error import gen_error
+from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
 from locker_server.shared.external_services.locker_background.constants import BG_DOMAIN
 from .serializers import *
 from locker_server.api.api_base_view import APIBaseViewSet
@@ -70,7 +71,7 @@ class DomainPwdViewSet(APIBaseViewSet):
         return super().list(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
-        entersprise = self.get_enterprise()
+        enterprise = self.get_enterprise()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
@@ -118,8 +119,7 @@ class DomainPwdViewSet(APIBaseViewSet):
             raise NotFound
         # Accept all requested members if the auto_approve is True
         if updated_domain.auto_approve is True:
-            # TODO: create LockerBackgroundFactory
-            LockerBackgroundFactory.get_background(bg_name=BG_DOMAIN, background=False).run(
+            BackgroundFactory.get_background(bg_name=BG_DOMAIN, background=False).run(
                 func_name="domain_auto_approve", **{
                     "user_id_update_domain": self.request.user.user_id,
                     "domain": updated_domain,
@@ -167,8 +167,7 @@ class DomainPwdViewSet(APIBaseViewSet):
             except DomainVerifiedErrorException:
                 raise ValidationError({"non_field_errors": [gen_error("3005")]})
 
-            # TODO: import LockerBackgroundFactory
-            invited_number = LockerBackgroundFactory.get_background(bg_name=BG_DOMAIN, background=False).run(
+            invited_number = BackgroundFactory.get_background(bg_name=BG_DOMAIN, background=False).run(
                 func_name="domain_verified", **{
                     "owner_user_id": user.user_id,
                     "domain": domain

@@ -30,11 +30,13 @@ class EnterpriseMemberORM(AbstractEnterpriseMemberORM):
             enterprise_orm = cls(
                 enterprise_id=data.get("enterprise_id"),
                 user_id=data.get("user_id"),
-                role_id=data.get("role"),
+                role_id=data.get("role") or data.get("role_id"),
+                domain_id=data.get("domain_id"),
                 status=data.get("status", E_MEMBER_STATUS_INVITED),
                 is_primary=data.get("is_primary", False),
                 is_default=data.get("is_default", False),
-                access_time=now()
+                access_time=data.get("access_time") or now()
             )
             enterprises_orm.append(enterprise_orm)
-        cls.objects.bulk_create(enterprises_orm, ignore_conflicts=True, batch_size=100)
+        new_members_obj = cls.objects.bulk_create(enterprises_orm, ignore_conflicts=True, batch_size=100)
+        return len(new_members_obj)

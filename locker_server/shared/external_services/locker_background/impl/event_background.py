@@ -42,6 +42,7 @@ class EventBackground(LockerBackground):
                 connection.close()
 
     def create_by_ciphers(self, ciphers, **data):
+        from locker_server.containers.containers import event_service
         try:
             if ciphers:
                 event_service.create_new_event_by_ciphers(ciphers, **data)

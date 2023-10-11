@@ -110,23 +110,3 @@ class AbstractEnterpriseMemberORM(models.Model):
             }
         )
         return member
-
-    # def create_invitation_token(self):
-    #     if self.email:
-    #         created_time = now()
-    #         expired_time = created_time + TOKEN_EXPIRED_TIME_INVITE_MEMBER * 3600
-    #         payload = {
-    #             "scope": settings.SCOPE_PWD_MANAGER,
-    #             "member": self.email,
-    #             "enterprise": self.enterprise_id,
-    #             "created_time": created_time,
-    #             "expired_time": expired_time,
-    #             "token_type": TOKEN_TYPE_INVITE_MEMBER
-    #         }
-    #         token_value = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
-    #         token_value = TOKEN_PREFIX + token_value
-    #     else:
-    #         token_value = None
-    #     self.token_invitation = token_value
-    #     self.save()
-    #     return token_value

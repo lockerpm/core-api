@@ -146,6 +146,20 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
         ).values_list('user_id', flat=True)
         return list(user_ids)
 
+    def list_enterprise_member_user_ids(self, **filter_params) -> List[int]:
+        enterprise_id_param = filter_params.get("enterprise_id")
+        user_ids_params = filter_params.get("user_ids")
+        if enterprise_id_param:
+            members_orm = EnterpriseMemberORM.objects.filter(enterprise_id=enterprise_id_param)
+            if user_ids_params:
+                members_orm = members_orm.filter(user_id__in=user_ids_params)
+        else:
+            if user_ids_params:
+                members_orm = EnterpriseMemberORM.objects.filter(user_id__in=user_ids_params)
+            else:
+                members_orm = EnterpriseMemberORM.objects.all()
+        return list(members_orm.values_list('user_id', flat=True))
+
     def list_enterprise_members_by_emails(self, emails_param: [str]) -> List[EnterpriseMember]:
         enterprise_members_orm = EnterpriseMemberORM.objects.filter(
             email__in=emails_param
@@ -227,8 +241,8 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
             enterprise_member_orm=enterprise_member_orm
         )
 
-    def create_multiple_member(self, members_create_data: [Dict]) -> NoReturn:
-        EnterpriseMemberORM.create_multiple_member(members_create_data)
+    def create_multiple_member(self, members_create_data: [Dict]) -> int:
+        return EnterpriseMemberORM.create_multiple_member(members_create_data)
 
     # ------------------------ Update EnterpriseMember resource --------------------- #
     def enterprise_invitations_confirm(self, user: User, email: str = None) -> Optional[User]:
