@@ -545,6 +545,9 @@ class UserService:
     def list_user_by_emails(self, emails: List[str]) -> List[User]:
         return self.user_repository.list_users(**{"emails": emails})
 
+    def list_user_ids(self, **filter_params) -> List[int]:
+        return self.user_repository.list_user_ids(**filter_params)
+
     def remove_user_device(self, user_id: int, device_identifier: str) -> List[str]:
         device = self.device_repository.get_device_by_identifier(user_id=user_id, device_identifier=device_identifier)
         if not device:

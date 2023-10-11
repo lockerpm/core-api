@@ -202,6 +202,8 @@ urlpatterns += [
         'post': 'upgrade_trial_enterprise_by_code', 'put': 'generate_trial_enterprise_code'
     })),
     url(r'^payments/plan$', views.PaymentPwdViewSet.as_view({'get': 'current_plan', 'post': 'upgrade_plan'})),
+    url(r'^payments/next_attempt$', views.PaymentPwdViewSet.as_view({'get': 'next_attempt'})),
+    url(r'^payments/plan/limit$', views.PaymentPwdViewSet.as_view({'get': 'plan_limit'})),
     url(r'^payments/plan/cancel$', views.PaymentPwdViewSet.as_view({'post': 'cancel_plan'})),
 
     url(r'^payments/invoices$', views.PaymentPwdViewSet.as_view({'get': 'invoices'})),

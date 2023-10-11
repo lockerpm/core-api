@@ -430,6 +430,14 @@ class PaymentPwdViewSet(APIBaseViewSet):
         })
         return Response(status=status.HTTP_200_OK, data=result)
 
+    @action(methods=["get"], detail=False)
+    def next_attempt(self, request, *args, **kwargs):
+        user = self.request.user
+        current_plan = self.user_service.get_current_plan(user=user)
+        return Response(status=status.HTTP_200_OK, data={
+            "next_payment_attempt": current_plan.get_next_retry_payment_date()
+        })
+
     @action(methods=["post"], detail=False)
     def upgrade_plan(self, request, *args, **kwargs):
         user = self.request.user
