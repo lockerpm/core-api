@@ -88,7 +88,7 @@ class NotificationSettingORMRepository(NotificationSettingRepository):
             notification_orm = NotificationSettingORM.objects.get(id=notification_setting_id)
         except NotificationSettingORM.DoesNotExist:
             return None
-        notification_orm.notification = notification_update_data.get("notification", notification_orm)
+        notification_orm.notification = notification_update_data.get("notification", notification_orm.notification)
         notification_orm.mail = notification_update_data.get("mail", notification_orm.mail)
         notification_orm.save()
         return ModelParser.notification_parser().parse_notification_settings(

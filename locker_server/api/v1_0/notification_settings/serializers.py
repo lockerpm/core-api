@@ -13,7 +13,7 @@ class ListNotificationSettingSerializer(serializers.Serializer):
             data.update({
                 "category": {
                     "id": category.notification_category_id,
-                    "name_en": category.name,
+                    "name": category.name,
                     "name_vi": category.name_vi,
                     "mail": category.mail,
                     "notification": category.notification
