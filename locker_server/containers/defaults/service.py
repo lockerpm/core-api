@@ -168,6 +168,10 @@ class ServiceFactory(containers.DeclarativeContainer):
         event_repository=RepositoryFactory.event_repository,
         user_plan_repository=RepositoryFactory.user_plan_repository,
     )
+    enterprise_billing_contact_service = providers.Factory(
+        EnterpriseBillingContactService,
+        enterprise_billing_contact_repository=RepositoryFactory.enterprise_billing_contact_repository,
+    )
 
     event_service = providers.Factory(
         EventService,

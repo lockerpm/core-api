@@ -112,7 +112,7 @@ class AbstractTeamMemberORM(models.Model):
             "key": data.get("key"),
             "token_invitation": data.get("token_invitation")
         }
-        if data.get("user"):
+        if data.get("user_id"):
             member, is_created = cls.objects.get_or_create(
                 team_id=team_id, user_id=data.get("user_id"), defaults=member_data
             )

@@ -17,6 +17,7 @@ from locker_server.shared.constants.enterprise_members import E_MEMBER_STATUS_CO
 from locker_server.shared.constants.event import EVENT_ENTERPRISE_UPDATED
 from locker_server.shared.constants.transactions import TRIAL_TEAM_PLAN
 from locker_server.shared.error_responses.error import gen_error
+from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
 from locker_server.shared.external_services.locker_background.constants import BG_EVENT
 from locker_server.shared.utils.app import now
 from .serializers import *
@@ -105,8 +106,7 @@ class EnterprisePwdViewSet(APIBaseViewSet):
         except EnterpriseDoesNotExistException:
             raise NotFound
         # Log update activity here
-        # TODO: import LockerBackgroundFactory
-        LockerBackgroundFactory.get_background(bg_name=BG_EVENT).run(func_name="create_by_enterprise_ids", **{
+        BackgroundFactory.get_background(bg_name=BG_EVENT).run(func_name="create_by_enterprise_ids", **{
             "enterprise_ids": [enterprise.id], "acting_user_id": user.user_id, "user_id": user.user_id,
             "type": EVENT_ENTERPRISE_UPDATED, "ip_address": ip
         })

@@ -27,6 +27,7 @@ from .enterprise_service import EnterpriseService
 from .enterprise_group_service import EnterpriseGroupService
 from .enterprise_member_service import EnterpriseMemberService
 from .enterprise_domain_service import EnterpriseDomainService
+from .enterprise_billing_contact_service import EnterpriseBillingContactService
 
 from .event_service import EventService
 

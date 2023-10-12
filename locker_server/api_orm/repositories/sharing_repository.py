@@ -82,7 +82,7 @@ class SharingORMRepository(SharingRepository):
     @staticmethod
     def __create_shared_member_orm(team_orm: TeamORM, member_data, shared_collection_id=None):
         shared_member_orm, is_created = team_orm.team_members.model.retrieve_or_create_with_group(team_orm.id, **{
-            "user": member_data.get("user"),
+            "user_id": member_data.get("user_id"),
             "email": member_data.get("email"),
             "key": member_data.get("key"),
             "is_added_by_group": member_data.get("is_added_by_group", False),

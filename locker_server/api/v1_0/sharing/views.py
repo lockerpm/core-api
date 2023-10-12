@@ -288,12 +288,10 @@ class SharingPwdViewSet(APIBaseViewSet):
         cipher = validated_data.get("cipher")
         shared_cipher_data = validated_data.get("shared_cipher_data")
         folder = validated_data.get("folder")
-
         try:
-            owner_name = user.full_name
+            owner_name = user.full_name or request.data.get("owner_name")
         except AttributeError:
             owner_name = request.data.get("owner_name")
-
         try:
             result = self.sharing_service.share_cipher_or_folder(
                 user=user, sharing_key=sharing_key, members=members, groups=groups,
