@@ -122,10 +122,13 @@ class EventORMRepository(EventRepository):
         return ModelParser.event_parser().parse_event(event_orm=event_orm)
 
     def create_new_event_by_multiple_teams(self, team_ids: list, **data):
-        pass
+        return EventORM.create_multiple_by_team_ids(team_ids, **data)
 
     def create_new_event_by_ciphers(self, ciphers, **data):
-        pass
+        return EventORM.create_multiple_by_ciphers(ciphers, **data)
+
+    def create_multiple_by_enterprise_members(self, member_events_data):
+        return EventORM.create_multiple_by_enterprise_members(member_events_data)
 
     # ------------------------ Update Enterprise resource --------------------- #
 

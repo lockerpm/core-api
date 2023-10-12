@@ -55,7 +55,7 @@ class DomainPwdViewSet(APIBaseViewSet):
 
     def get_queryset(self):
         enterprise = self.get_enterprise()
-        domains = self.enterprise_service.list_enterprise_domains(
+        domains = self.enterprise_domain_service.list_enterprise_domains(
             enterprise_id=enterprise.enterprise_id
         )
         return domains
@@ -76,7 +76,7 @@ class DomainPwdViewSet(APIBaseViewSet):
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
         try:
-            new_domain = self.enterprise_service.create_domain(
+            new_domain = self.enterprise_domain_service.create_domain(
                 domain_create_data={
                     "enterprise_id": enterprise.enterprise_id,
                     "domain": validated_data.get("domain"),
@@ -109,7 +109,7 @@ class DomainPwdViewSet(APIBaseViewSet):
         validated_data = serializer.validated_data
         auto_approve = validated_data.get("auto_approve")
         try:
-            updated_domain = self.enterprise_service.update_domain(
+            updated_domain = self.enterprise_domain_service.update_domain(
                 domain_id=domain.domain,
                 domain_update_data={
                     "auto_approve": auto_approve
@@ -132,7 +132,7 @@ class DomainPwdViewSet(APIBaseViewSet):
     def destroy(self, request, *args, **kwargs):
         domain = self.get_object()
         try:
-            self.enterprise_service.delete_domain(
+            self.enterprise_domain_service.delete_domain(
                 domain_id=domain.domain
             )
         except DomainDoesNotExistException:
@@ -144,7 +144,7 @@ class DomainPwdViewSet(APIBaseViewSet):
         user = request.user
         domain = self.get_object()
         if request.method == "GET":
-            ownerships = self.enterprise_service.get_ownerships_by_domain_id(
+            ownerships = self.enterprise_domain_service.get_ownerships_by_domain_id(
                 domain_id=domain.domain_id
             )
             return Response(status=status.HTTP_200_OK, data=ownerships)
@@ -159,9 +159,7 @@ class DomainPwdViewSet(APIBaseViewSet):
                     }
                 )
             try:
-                self.enterprise_service.verify_domain(
-                    domain=domain
-                )
+                self.enterprise_domain_service.verify_domain(domain=domain)
             except DomainVerifiedByOtherException:
                 raise ValidationError(detail={"domain": ["This domain is verified by other enterprise"]})
             except DomainVerifiedErrorException:

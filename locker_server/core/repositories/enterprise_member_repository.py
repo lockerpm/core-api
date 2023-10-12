@@ -79,6 +79,10 @@ class EnterpriseMemberRepository(ABC):
             -> Optional[EnterpriseMember]:
         pass
 
+    @abstractmethod
+    def update_batch_enterprise_members(self, enterprise_member_ids: List[str], **enterprise_member_update_data):
+        pass
+
     # ------------------------ Delete EnterpriseMember resource --------------------- #
     @abstractmethod
     def delete_enterprise_member(self, enterprise_member_id: str) -> bool:

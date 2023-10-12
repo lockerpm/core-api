@@ -160,6 +160,14 @@ class ServiceFactory(containers.DeclarativeContainer):
         user_repository=RepositoryFactory.user_repository,
         user_plan_repository=RepositoryFactory.user_plan_repository
     )
+    enterprise_domain_service = providers.Factory(
+        EnterpriseDomainService,
+        enterprise_domain_repository=RepositoryFactory.enterprise_domain_repository,
+        enterprise_repository=RepositoryFactory.enterprise_repository,
+        enterprise_member_repository=RepositoryFactory.enterprise_member_repository,
+        event_repository=RepositoryFactory.event_repository,
+        user_plan_repository=RepositoryFactory.user_plan_repository,
+    )
 
     event_service = providers.Factory(
         EventService,

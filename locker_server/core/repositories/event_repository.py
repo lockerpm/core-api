@@ -31,6 +31,10 @@ class EventRepository(ABC):
     def create_new_event_by_ciphers(self, ciphers, **data):
         pass
 
+    @abstractmethod
+    def create_multiple_by_enterprise_members(self, member_events_data):
+        pass
+
     # ------------------------ Update Event resource --------------------- #
 
     # ------------------------ Delete Event resource --------------------- #

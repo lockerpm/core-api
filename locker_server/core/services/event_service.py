@@ -34,6 +34,9 @@ class EventService:
     def create_new_event_by_ciphers(self, ciphers, **data):
         return self.event_repository.create_new_event_by_ciphers(ciphers, **data)
 
+    def create_multiple_by_enterprise_members(self, member_events_data):
+        return self.event_repository.create_multiple_by_enterprise_members(member_events_data)
+
     def normalize_enterprise_activity(self, activity_logs: List[Event]) -> List[Event]:
         user_ids = [activity_log.user_id for activity_log in activity_logs if activity_log.user_id]
         acting_user_ids = [activity_log.acting_user_id for activity_log in activity_logs if activity_log.acting_user_id]

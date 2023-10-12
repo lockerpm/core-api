@@ -1,5 +1,4 @@
-from typing import Union, Dict, Optional, List, NoReturn
-from abc import ABC, abstractmethod
+from typing import Dict, Optional, List
 
 from django.db.models import When, Value, Q, Case, IntegerField
 
@@ -20,11 +19,6 @@ UserORM = get_user_model()
 DomainORM = get_enterprise_domain_model()
 EnterpriseMemberORM = get_enterprise_member_model()
 EnterpriseGroupMemberORM = get_enterprise_group_member_model()
-# PMPlanORM = get_plan_model()
-# PMUserPlanORM = get_user_plan_model()
-# EnterpriseMemberRoleORM = get_enterprise_member_role_model()
-# EnterpriseMemberORM = get_enterprise_member_model()
-# EnterpriseORM = get_enterprise_model()
 ModelParser = get_model_parser()
 
 
@@ -39,6 +33,7 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
     # ------------------------ List EnterpriseMember resource ------------------- #
     def list_enterprise_members(self, **filters) -> List[EnterpriseMember]:
         enterprise_id_param = filters.get("enterprise_id")
+        domain_id_param = filters.get("domain_id")
         ids_param = filters.get("ids")
         user_id_param = filters.get("user_id")
         user_ids_param = filters.get("user_ids")
@@ -59,10 +54,12 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
         # Filter by ids
         if ids_param:
             enterprise_members_orm = enterprise_members_orm.filter(id__in=ids_param)
+        if domain_id_param:
+            enterprise_members_orm = enterprise_members_orm.filter(domain_id=domain_id_param)
 
         # Filter by roles
         if roles_param:
-            enterprise_members_orm = enterprise_members_orm.filter(role__name__in=roles_param)
+            enterprise_members_orm = enterprise_members_orm.filter(role_id__in=roles_param)
 
         # Filter by q_param: search members
         if user_ids_param or email_param or user_id_param:
@@ -184,9 +181,9 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
             enterprises_orm = EnterpriseMemberORM.objects.all()
         if status_param:
             enterprises_orm = enterprises_orm.filter(status=status_param)
-        if is_activated_param == "1" or is_activated_param == True:
+        if is_activated_param == "1" or is_activated_param is True:
             enterprises_orm = enterprises_orm.filter(is_activated=True)
-        elif is_activated_param == "0" or is_activated_param == False:
+        elif is_activated_param == "0" or is_activated_param is False:
             enterprises_orm = enterprises_orm.filter(is_activated=False)
 
         return enterprises_orm.count()
@@ -324,6 +321,11 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
 
         enterprise_member_orm.save()
         return ModelParser.enterprise_parser().parse_enterprise_member(enterprise_member_orm=enterprise_member_orm)
+
+    def update_batch_enterprise_members(self, enterprise_member_ids: List[str], **enterprise_member_update_data):
+        EnterpriseMemberORM.objects.filter(id__in=enterprise_member_ids).update(
+            **enterprise_member_update_data
+        )
 
     # ------------------------ Delete EnterpriseMember resource --------------------- #
     def delete_enterprise_member(self, enterprise_member_id: str) -> bool:

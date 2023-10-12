@@ -164,7 +164,7 @@ class EnterprisePwdViewSet(APIBaseViewSet):
             if status == E_MEMBER_STATUS_CONFIRMED and master_password_score <= 1:
                 weak_master_password_count += 1
             # Leak statistic
-            if status == E_MEMBER_STATUS_CONFIRMED and member.user.is_leaked == True:
+            if status == E_MEMBER_STATUS_CONFIRMED and member.user.is_leaked is True:
                 leaked_account_count += 1
 
             # Failed login
