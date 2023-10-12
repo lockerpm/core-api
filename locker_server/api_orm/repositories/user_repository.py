@@ -56,15 +56,26 @@ class UserORMRepository(UserRepository):
         users_orm = UserORM.objects.all()
         activated_param = filter_params.get("activated")
         q_param = filter_params.get("q")
+        user_ids_param = filter_params.get("user_ids")
+        exclude_user_ids = filter_params.get("exclude_user_ids")
+        emails_param = filter_params.get("emails")
+        email_endswith_param = filter_params.get("email_endswith")
+
         if q_param:
             users_orm = users_orm.filter(
                 Q(email__icontains=q_param.lower()) | Q(full_name__icontains=q_param.lower())
             )
+        if user_ids_param:
+            users_orm = users_orm.filter(user_id__in=user_ids_param)
         if activated_param is not None:
             users_orm = users_orm.filter(activated=activated_param)
-
+        if exclude_user_ids:
+            users_orm = users_orm.exclude(user_id__in=exclude_user_ids)
+        if emails_param:
+            users_orm = users_orm.filter(email__in=emails_param)
+        if email_endswith_param:
+            users_orm = users_orm.filter(email__endswith=email_endswith_param)
         return list(users_orm.values_list('user_id', flat=True))
-
 
     def count_weak_cipher_password(self, user_ids: List[int] = None) -> int:
         if user_ids:

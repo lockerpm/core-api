@@ -65,6 +65,9 @@ class EnterpriseMemberService:
             member_ids=member_ids
         )
 
+    def list_enterprise_member_user_ids(self, **filter_params) -> List[int]:
+        return self.enterprise_member_repository.list_enterprise_member_user_ids(**filter_params)
+
     def get_member_by_id(self, member_id: str) -> Optional[EnterpriseMember]:
         member = self.enterprise_member_repository.get_enterprise_member_by_id(
             member_id=member_id
@@ -139,6 +142,9 @@ class EnterpriseMemberService:
             added_members.append(user.user_id)
         self.enterprise_member_repository.create_multiple_member(members_create_data=members_create_data)
         return added_members, list(set(non_added_members))
+
+    def create_multiple_members(self, members_data) -> int:
+        return self.enterprise_member_repository.create_multiple_member(members_create_data=members_data)
 
     def invite_multiple_member(self,
                                secret: str, current_enterprise: Enterprise,

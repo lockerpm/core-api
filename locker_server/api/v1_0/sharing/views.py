@@ -326,10 +326,10 @@ class SharingPwdViewSet(APIBaseViewSet):
                 user.full_name, shared_type_name, notification_user_ids, service=SENDING_SERVICE_WEB_NOTIFICATION
             )
             self._notify_invited_non_user(user.full_name, shared_type_name, non_existed_member_users)
-            return Response(status=status.HTTP_200_OK, data={"id": str(new_sharing.id)})
+            return Response(status=status.HTTP_200_OK, data={"id": str(new_sharing.team_id)})
 
         return Response(status=status.HTTP_200_OK, data={
-            "id": str(new_sharing.id),
+            "id": str(new_sharing.team_id),
             "shared_type_name": result.get("shared_type_name"),
             "folder_id": result.get("folder_id"),
             "cipher_id": result.get("cipher_id"),
