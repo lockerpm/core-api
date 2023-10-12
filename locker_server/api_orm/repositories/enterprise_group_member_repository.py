@@ -41,12 +41,19 @@ class EnterpriseGroupMemberORMRepository(EnterpriseGroupMemberRepository):
     def list_enterprise_group_member_by_member_id(self, enterprise_member_id: str) -> List[EnterpriseGroupMember]:
         group_members_orm = EnterpriseGroupMemberORM.objects.filter(
             member_id=enterprise_member_id
-        )
+        ).select_related('member').select_related('group')
         return [
             ModelParser.enterprise_parser().parse_enterprise_group_member(
                 enterprise_group_member_orm=group_member_orm
             ) for group_member_orm in group_members_orm
         ]
+
+    def list_groups_name_by_enterprise_member_id(self, enterprise_member_id: str) -> List[str]:
+        return list(
+            EnterpriseGroupMemberORM.objects.filter(
+                member_id=enterprise_member_id
+            ).values_list('group__name', flat=True)
+        )
 
     def list_enterprise_group_members(self, **filters) -> List[EnterpriseGroupMember]:
         enterprise_group_id_param = filters.get("enterprise_group_id")

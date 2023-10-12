@@ -20,7 +20,9 @@ def get_detail_user_info(instance):
 
 class DetailMemberSerializer(serializers.Serializer):
     def to_representation(self, instance):
-        data = {
+        list_group_member_func = self.context["list_group_member_func"]
+        data = dict()
+        data.update({
             "id": instance.enterprise_member_id,
             "access_time": instance.access_time,
             "is_default": instance.is_default,
@@ -30,22 +32,23 @@ class DetailMemberSerializer(serializers.Serializer):
             "email": instance.email,
             "status": instance.status,
             "is_activated": instance.is_activated,
-        }
+        })
         data["role"] = instance.role.name
         data["pwd_user_id"] = instance.user.internal_id if instance.user else None
         data["domain"] = {
-            "id": instance.domain_id,
+            "id": instance.domain.domain_id,
             "domain": instance.domain.domain
         } if instance.domain else None
-        if hasattr(instance, "group_members"):
-            group_members = instance.group_members
-            group_names = [group_member.group.name for group_member in group_members]
-            data["groups"] = group_names
+        if callable(list_group_member_func):
+            data["groups"] = list_group_member_func(enterprise_member_id=instance.member_id)
+        else:
+            data["groups"] = []
         if instance.status != E_MEMBER_STATUS_INVITED:
             data["security_score"] = instance.user.master_password_score if instance.user else None
         else:
             data["security_score"] = None
             data["access_time"] = None
+        data.update(get_detail_user_info(instance))
         return data
 
 

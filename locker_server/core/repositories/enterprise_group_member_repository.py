@@ -24,6 +24,10 @@ class EnterpriseGroupMemberRepository(ABC):
         pass
 
     @abstractmethod
+    def list_groups_name_by_enterprise_member_id(self, enterprise_member_id: str) -> List[str]:
+        pass
+
+    @abstractmethod
     def list_enterprise_group_members(self, **filters) -> List[EnterpriseGroupMember]:
         pass
 
