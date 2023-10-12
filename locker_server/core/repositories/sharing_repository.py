@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 
 from locker_server.core.entities.cipher.cipher import Cipher
 from locker_server.core.entities.cipher.folder import Folder
+from locker_server.core.entities.enterprise.group.group import EnterpriseGroup
 from locker_server.core.entities.member.team_member import TeamMember
 from locker_server.core.entities.team.collection import Collection
 from locker_server.core.entities.team.group import Group
@@ -92,6 +93,10 @@ class SharingRepository(ABC):
     @abstractmethod
     def delete_share_folder(self, collection: Collection,
                             personal_folder_name: str = None, personal_folder_ciphers=None):
+        pass
+
+    @abstractmethod
+    def add_group_member_to_share(self, enterprise_group: EnterpriseGroup, new_member_ids: List[str]):
         pass
 
     # ------------------------ Delete Sharing resource --------------------- #

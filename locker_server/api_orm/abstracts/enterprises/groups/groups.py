@@ -30,5 +30,3 @@ class AbstractEnterpriseGroupORM(models.Model):
         new_group.save()
         return new_group
 
-    def full_delete(self):
-        self.delete()

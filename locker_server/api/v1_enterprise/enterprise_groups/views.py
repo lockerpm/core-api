@@ -7,6 +7,7 @@ from locker_server.core.exceptions.enterprise_exception import EnterpriseDoesNot
 from locker_server.core.exceptions.enterprise_group_exception import EnterpriseGroupDoesNotExistException
 from locker_server.shared.constants.event import EVENT_E_GROUP_CREATED, EVENT_E_GROUP_UPDATED, EVENT_E_GROUP_DELETED
 from locker_server.shared.error_responses.error import gen_error
+from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
 from locker_server.shared.external_services.locker_background.constants import BG_EVENT, BG_ENTERPRISE_GROUP
 from .serializers import *
 from locker_server.api.api_base_view import APIBaseViewSet
@@ -28,14 +29,21 @@ class GroupPwdViewSet(APIBaseViewSet):
             self.serializer_class = UpdateEnterpriseGroupSerializer
         elif self.action == "create":
             self.serializer_class = CreateEnterpriseGroupSerializer
+
         elif self.action == "members":
             if self.request.method == "GET":
                 self.serializer_class = DetailMemberSerializer
             elif self.request.method == "PUT":
                 self.serializer_class = UpdateMemberGroupSerializer
-        elif self.action == "members_list":
-            self.serializer_class = DetailEnterpriseGroupSerializer
         return super(GroupPwdViewSet, self).get_serializer_class()
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        if self.action in ["list", "retrieve"]:
+            context["count_group_members_func"] = self.enterprise_group_service.count_group_members
+        elif self.action == "members":
+            context["list_group_member_func"] = self.enterprise_member_service.list_groups_name_by_enterprise_member_id
+        return context
 
     def get_queryset(self):
         enterprise = self.get_enterprise()
@@ -43,11 +51,6 @@ class GroupPwdViewSet(APIBaseViewSet):
             "enterprise_id": enterprise.enterprise_id,
             "name": self.request.query_params.get("q")
         })
-        for group in groups:
-            group_members = self.enterprise_group_service.list_group_members(**{
-                "enterprise_group_id": group.enterprise_group_id
-            })
-            group.group_members = group_members
         return groups
 
     def get_object(self):
@@ -58,7 +61,6 @@ class GroupPwdViewSet(APIBaseViewSet):
             )
             if group.enterprise.enterprise_id != enterprise.enterprise_id:
                 raise NotFound
-
             return group
         except EnterpriseGroupDoesNotExistException:
             raise NotFound
@@ -93,16 +95,12 @@ class GroupPwdViewSet(APIBaseViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         enterprise_group = self.get_object()
-        group_members = self.enterprise_group_service.list_group_members(**{
-            "enterprise_group_id": enterprise_group.enterprise_group_id
-        })
-        enterprise_group.group_members = group_members
         serializer = self.get_serializer(enterprise_group)
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         user = self.request.user
-        ip = request.data.get("ip")
+        ip = self.get_ip()
         enterprise = self.get_enterprise()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -113,8 +111,7 @@ class GroupPwdViewSet(APIBaseViewSet):
             user=user,
             enterprise_group_create_data=validated_data
         )
-        # TODO: import LockerBackgroundFactory
-        LockerBackgroundFactory.get_background(bg_name=BG_EVENT).run(func_name="create_by_enterprise_ids", **{
+        BackgroundFactory.get_background(bg_name=BG_EVENT).run(func_name="create_by_enterprise_ids", **{
             "enterprise_ids": [enterprise.enterprise_id], "acting_user_id": user.user_id, "user_id": user.user_id,
             "group_id": new_group.enterprise_group_id, "type": EVENT_E_GROUP_CREATED,
             "ip_address": ip, "metadata": {"group_name": new_group.name}
@@ -123,7 +120,7 @@ class GroupPwdViewSet(APIBaseViewSet):
 
     def update(self, request, *args, **kwargs):
         user = self.request.user
-        ip = request.data.get("ip")
+        ip = self.get_ip()
         enterprise_group = self.get_object()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -136,7 +133,7 @@ class GroupPwdViewSet(APIBaseViewSet):
         except EnterpriseGroupDoesNotExistException:
             raise NotFound
 
-        LockerBackgroundFactory.get_background(bg_name=BG_EVENT).run(func_name="create_by_enterprise_ids", **{
+        BackgroundFactory.get_background(bg_name=BG_EVENT).run(func_name="create_by_enterprise_ids", **{
             "enterprise_ids": [enterprise_group.enterprise.enterprise_id], "acting_user_id": user.user_id,
             "user_id": user.user_id,
             "group_id": enterprise_group.enterprise_group_id, "type": EVENT_E_GROUP_UPDATED,
@@ -146,7 +143,7 @@ class GroupPwdViewSet(APIBaseViewSet):
 
     def destroy(self, request, *args, **kwargs):
         user = self.request.user
-        ip = request.data.get("ip")
+        ip = self.get_ip()
         enterprise_group = self.get_object()
         enterprise_id = enterprise_group.enterprise.enterprise_id
         enterprise_group_id = enterprise_group.enterprise_group_id
@@ -154,7 +151,7 @@ class GroupPwdViewSet(APIBaseViewSet):
         self.enterprise_group_service.delete_group_by_id(
             enterprise_group_id=enterprise_group_id
         )
-        LockerBackgroundFactory.get_background(bg_name=BG_EVENT).run(func_name="create_by_enterprise_ids", **{
+        BackgroundFactory.get_background(bg_name=BG_EVENT).run(func_name="create_by_enterprise_ids", **{
             "enterprise_ids": [enterprise_id], "acting_user_id": user.user_id, "user_id": user.user_id,
             "group_id": enterprise_group_id, "type": EVENT_E_GROUP_DELETED,
             "ip_address": ip, "metadata": {"group_name": enterprise_group_name}
@@ -164,19 +161,12 @@ class GroupPwdViewSet(APIBaseViewSet):
     @action(methods=["get", "put"], detail=False)
     def members(self, request, *args, **kwargs):
         enterprise_group = self.get_object()
-        enterprise = enterprise_group.enterprise
 
         if request.method == "GET":
             group_members = self.enterprise_group_service.list_group_members(**{
                 "enterprise_group_id": enterprise_group.enterprise_group_id
             })
-
             members = [group_member.member for group_member in group_members]
-            for member in members:
-                group_members = self.enterprise_member_service.list_group_member_by_enterprise_member_id(
-                    enterprise_member_id=member.enterprise_member_id
-                )
-                member.group_members = group_members
             serializer = self.get_serializer(members, many=True)
             return Response(status=status.HTTP_200_OK, data=serializer.data)
 
@@ -190,7 +180,7 @@ class GroupPwdViewSet(APIBaseViewSet):
                 enterprise_member_ids=members
             )
             if new_member_ids:
-                LockerBackgroundFactory.get_background(bg_name=BG_ENTERPRISE_GROUP).run(
+                BackgroundFactory.get_background(bg_name=BG_ENTERPRISE_GROUP).run(
                     func_name="add_group_member_to_share", **{
                         "enterprise_group": enterprise_group,
                         "new_member_ids": new_member_ids
@@ -220,9 +210,34 @@ class GroupPwdViewSet(APIBaseViewSet):
     @action(methods=["get"], detail=False)
     def members_list(self, request, *args, **kwargs):
         enterprise_group = self.get_enterprise_group()
+        data = {
+            "id": enterprise_group.enterprise_group_id,
+            "creation_date": enterprise_group.creation_date,
+            "revision_date": enterprise_group.revision_datem,
+            "name": enterprise_group.name,
+
+        }
         group_members = self.enterprise_group_service.list_group_members(**{
             "enterprise_group_id": enterprise_group.enterprise_group_id
         })
-        enterprise_group.group_members = group_members
-        serializer = self.get_serializer(enterprise_group)
-        return Response(status=status.HTTP_200_OK, data=serializer.data)
+        members_data = []
+        for group_member in group_members:
+            member = group_member.member
+            member_data = {
+                "email": member.email,
+                "status": member.status,
+                "role": member.role.name,
+                "domain_id": member.domain_id,
+                "is_activated": member.is_activated,
+                "public_key": member.user.public_key if member.user else None
+            }
+            if member.user:
+                member_data.update({
+                    "email": member.user.email,
+                    "full_name": member.user.full_name,
+                    "username": member.user.username,
+                    "avatar": member.user.get_avatar()
+                })
+            members_data.append(member_data)
+        data["members"] = members_data
+        return Response(status=status.HTTP_200_OK, data=data)

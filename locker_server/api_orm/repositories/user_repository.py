@@ -77,6 +77,9 @@ class UserORMRepository(UserRepository):
             users_orm = users_orm.filter(email__endswith=email_endswith_param)
         return list(users_orm.values_list('user_id', flat=True))
 
+    def list_user_emails(self, user_ids: List[int]) -> List[str]:
+        return list(UserORM.objects.filter(user_id__in=user_ids).values_list('email', flat=True))
+
     def count_weak_cipher_password(self, user_ids: List[int] = None) -> int:
         if user_ids:
             users_orm = UserORM.objects.filter(

@@ -1,19 +1,22 @@
-from typing import Union, Dict, Optional, List, NoReturn
-from abc import ABC, abstractmethod
+from typing import Dict, Optional, List, NoReturn
 
 import requests
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Count
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
-from locker_server.api_orm.models.wrapper import get_enterprise_group_model
+from locker_server.api_orm.models.wrapper import get_enterprise_group_model, get_team_member_model
 from locker_server.core.entities.enterprise.group.group import EnterpriseGroup
 from locker_server.core.entities.team import team
 from locker_server.core.repositories.enterprise_group_repository import EnterpriseGroupRepository
+from locker_server.shared.constants.members import MEMBER_ROLE_OWNER
 from locker_server.shared.external_services.requester.retry_requester import requester
 from locker_server.shared.utils.app import now
 
+
 EnterpriseGroupORM = get_enterprise_group_model()
+TeamMemberORM = get_team_member_model()
 ModelParser = get_model_parser()
 
 
@@ -38,7 +41,7 @@ class EnterpriseGroupORMRepository(EnterpriseGroupRepository):
                 enterprise_id=enterprise_id_param
             ).order_by("creation_date")
         else:
-            enterprise_groups_orm = EnterpriseGroupORM.objects.all()
+            enterprise_groups_orm = EnterpriseGroupORM.objects.all().order_by("creation_date")
 
         if name_param:
             enterprise_groups_orm = enterprise_groups_orm.filter(
@@ -159,11 +162,31 @@ class EnterpriseGroupORMRepository(EnterpriseGroupRepository):
         )
 
     # ------------------------ Delete EnterpriseGroup resource --------------------- #
-    def delete_enterprise_group_by_id(self, enterprise_group_id: str) -> NoReturn:
+    def delete_enterprise_group_by_id(self, enterprise_group_id: str) -> bool:
         try:
-            enterprise_group_orm = EnterpriseGroupORM.objects.get(
-                id=enterprise_group_id
-            )
+            enterprise_group_orm = EnterpriseGroupORM.objects.get(id=enterprise_group_id)
         except EnterpriseGroupORM.DoesNotExist:
-            return
-        enterprise_group_orm.full_delete()
+            return False
+
+        sharing_group_members = enterprise_group_orm.sharing_groups.values_list('groups_members__member_id', flat=True)
+        team_members_orm = TeamMemberORM.objects.filter(
+            id__in=list(sharing_group_members), is_added_by_group=True
+        ).exclude(role_id=MEMBER_ROLE_OWNER).annotate(
+            group_count=Count('groups_members')
+        )
+        # Filter list members have only one group. Then delete them
+        team_members_orm.filter(group_count=1).delete()
+
+        #  Filter list members have other groups => Set role_id by other groups
+        more_one_groups_orm = team_members_orm.filter(group_count__gt=1)
+        for m in more_one_groups_orm:
+            first_group_orm = m.groups_members.select_related('group').exclude(
+                group__enterprise_group_id=enterprise_group_orm.id
+            ).order_by('group_id').first()
+            if first_group_orm:
+                m.role_id = first_group_orm.group.role_id
+                m.save()
+
+        # Delete this group objects
+        enterprise_group_orm.delete()
+        return True

@@ -31,6 +31,10 @@ class EnterpriseGroupMemberRepository(ABC):
     def list_enterprise_group_members(self, **filters) -> List[EnterpriseGroupMember]:
         pass
 
+    @abstractmethod
+    def count_enterprise_group_members(self, enterprise_group_id) -> int:
+        pass
+
     # ------------------------ Get EnterpriseGroupMember resource --------------------- #
 
     # ------------------------ Create EnterpriseGroupMember resource --------------------- #

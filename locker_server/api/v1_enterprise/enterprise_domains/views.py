@@ -100,7 +100,7 @@ class DomainPwdViewSet(APIBaseViewSet):
         )
 
     def update(self, request, *args, **kwargs):
-        ip_address = request.data.get("ip")
+        ip_address = self.get_ip()
         domain = self.get_object()
         if domain.verification is False:
             raise ValidationError({"non_field_errors": [gen_error("3005")]})

@@ -1,16 +1,16 @@
 import uuid
-from typing import Union, Dict, Optional, List
-from abc import ABC, abstractmethod
+from typing import Union, Optional, List
 
 from django.db.models import When, Q, IntegerField, Value, Case, Count, OuterRef, Subquery, CharField
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_team_model, get_team_member_model, get_cipher_model, \
     get_collection_model, get_folder_model, get_member_role_model, get_user_model, get_group_model, \
-    get_group_member_model
+    get_group_member_model, get_enterprise_group_model
 from locker_server.api_orm.utils.revision_date import bump_account_revision_date
 from locker_server.core.entities.cipher.cipher import Cipher
 from locker_server.core.entities.cipher.folder import Folder
+from locker_server.core.entities.enterprise.group.group import EnterpriseGroup
 from locker_server.core.entities.member.member_role import MemberRole
 from locker_server.core.entities.team.collection import Collection
 from locker_server.core.entities.member.team_member import TeamMember
@@ -31,6 +31,7 @@ FolderORM = get_folder_model()
 CollectionORM = get_collection_model()
 GroupORM = get_group_model()
 GroupMemberORM = get_group_member_model()
+EnterpriseGroupORM = get_enterprise_group_model()
 ModelParser = get_model_parser()
 
 
@@ -630,6 +631,47 @@ class SharingORMRepository(SharingRepository):
         # Update revision date of user
         bump_account_revision_date(user=user_owner_orm)
         return other_members
+
+    def add_group_member_to_share(self, enterprise_group: EnterpriseGroup, new_member_ids: List[str]):
+        enterprise_group_orm = EnterpriseGroupORM.objects.get(id=enterprise_group.enterprise_group_id)
+        enterprise_group_member_user_ids = enterprise_group_orm.groups_members.filter(
+            member_id__in=new_member_ids
+        ).values_list('member__user_id', flat=True)
+        sharing_groups = enterprise_group_orm.sharing_groups.select_related('team').prefetch_related('groups_members')
+        members = [{"user_id": user_id, "key": None} for user_id in enterprise_group_member_user_ids]
+
+        confirmed_data = []
+        for sharing_group in sharing_groups:
+            team = sharing_group.team
+            try:
+                owner_user = TeamMemberORM.objects.get(is_primary=True, team_id=team.id).user
+            except TeamMemberORM.DoesNotExist:
+                continue
+            collection = team.collections.first()
+            groups = [{
+                "id": sharing_group.enterprise_group_id,
+                "role": sharing_group.role_id,
+                "members": members
+            }]
+            existed_member_users, non_existed_member_users = self.add_group_members(
+                team_id=team.id, shared_collection_id=collection.id, groups=groups
+            )
+            if collection:
+                shared_type_name = "folder"
+            else:
+                cipher_obj = team.ciphers.first()
+                shared_type_name = cipher_obj.type if cipher_obj else None
+            confirmed_data.append({
+                "id": team.id,
+                "name": team.name,
+                "owner": owner_user.user_id,
+                "group_id": sharing_group.enterprise_group_id,
+                "group_name": sharing_group.name,
+                "shared_type_name": shared_type_name,
+                "existed_member_users": existed_member_users,
+                "non_existed_member_users": non_existed_member_users,
+            })
+        return confirmed_data
 
     # ------------------------ Delete Sharing resource --------------------- #
 

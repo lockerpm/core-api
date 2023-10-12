@@ -3,13 +3,23 @@ from rest_framework import serializers
 
 class ListEnterpriseGroupSerializer(serializers.Serializer):
     def to_representation(self, instance):
+        count_group_members_func = self.context.get("count_group_members_func")
+        if callable(count_group_members_func):
+            number_members = count_group_members_func(instance.enterprise_group_id)
+        else:
+            number_members = 1
         data = {
             "id": instance.enterprise_group_id,
             "name": instance.name,
             "creation_date": instance.creation_date,
             "revision_date": instance.revision_date,
-            "created_by": instance.created_by.user_id,
-            "number_members": len(instance.group_members)
+            "created_by": {
+                "email": instance.created_by.email,
+                "username": instance.created_by.username,
+                "full_name": instance.created_by.full_name,
+                "avatar": instance.created_by.get_avatar()
+            },
+            "number_members": number_members
         }
         return data
 
@@ -25,27 +35,6 @@ class UpdateEnterpriseGroupSerializer(serializers.Serializer):
 
 class CreateEnterpriseGroupSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=128)
-
-
-class DetailEnterpriseGroupSerializer(ShortDetailEnterpriseGroupSerializer):
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        enterprise_members = []
-        group_members = instance.group_members
-        for group_member in group_members:
-            enterprise_members.append(
-                group_member.member
-            )
-        data["members"] = [{
-            "user_id": enterprise_member.user.user_id,
-            "email": enterprise_member.email,
-            "status": enterprise_member.status,
-            "role": enterprise_member.role.name,
-            "domain_id": enterprise_member.domain_id,
-            "is_activated": enterprise_member.is_activated,
-            "public_key": enterprise_member.user.public_key if enterprise_member.user else None
-        } for enterprise_member in enterprise_members]
-        return data
 
 
 class UpdateMemberGroupSerializer(serializers.Serializer):
