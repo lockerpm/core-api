@@ -145,7 +145,13 @@ class SharingPwdViewSet(APIBaseViewSet):
         except TeamMemberDoesNotExistException:
             raise NotFound
 
-        result = self.sharing_service.update_sharing_invitation(sharing_invitation=sharing_invitation, status=status)
+        try:
+            user_fullname = user.full_name or request.data.get("user_fullname")
+        except AttributeError:
+            user_fullname = request.data.get("user_fullname")
+        result = self.sharing_service.update_sharing_invitation(
+            sharing_invitation=sharing_invitation, status=status, user_fullname=user_fullname
+        )
         self._notify_invitation_update(user=user, data=result)
         return Response(status=status.HTTP_200_OK, data=result)
 
