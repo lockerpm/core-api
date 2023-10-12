@@ -211,7 +211,7 @@ class SharingORMRepository(SharingRepository):
             user_orm = folder_orm.user
         else:
             if cipher_orm.team:
-                user_orm = cipher.team.team_members.get(role_id=MEMBER_ROLE_OWNER, is_primary=True).user
+                user_orm = cipher_orm.team.team_members.get(role_id=MEMBER_ROLE_OWNER, is_primary=True).user
             else:
                 user_orm = cipher_orm.user
 
