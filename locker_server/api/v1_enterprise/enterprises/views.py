@@ -91,7 +91,7 @@ class EnterprisePwdViewSet(APIBaseViewSet):
 
     def update(self, request, *args, **kwargs):
         user = self.request.user
-        ip = request.data.get("ip")
+        ip = self.get_ip()
         enterprise = self.get_object()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)

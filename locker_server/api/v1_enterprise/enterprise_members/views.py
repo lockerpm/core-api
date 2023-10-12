@@ -127,7 +127,7 @@ class MemberPwdViewSet(APIBaseViewSet):
 
     @action(methods=["post"], detail=False)
     def create_multiple(self, request, *args, **kwargs):
-        ip = request.data.get("ip")
+        ip = self.get_ip()
         members = request.data.get("members")
         if not isinstance(members, list):
             raise ValidationError(detail={"members": ["Members are not valid. This field must be an array"]})
@@ -152,7 +152,7 @@ class MemberPwdViewSet(APIBaseViewSet):
         """
         Create members obj for non-exist users
         """
-        ip = request.data.get("ip")
+        ip = self.get_ip()
         user = self.request.user
         members_data = request.data.get("members", [])
         if not isinstance(members_data, list):
@@ -188,7 +188,7 @@ class MemberPwdViewSet(APIBaseViewSet):
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def update(self, request, *args, **kwargs):
-        ip = request.data.get("ip")
+        ip = self.get_ip()
         user = self.request.user
         enterprise = self.get_object()
         member_id = kwargs.get("member_id")
@@ -265,7 +265,7 @@ class MemberPwdViewSet(APIBaseViewSet):
         )
 
     def destroy(self, request, *args, **kwargs):
-        ip = request.data.get("ip")
+        ip = self.get_ip()
         user = self.request.user
         enterprise = self.get_object()
         enterprise_member = self.get_enterprise_member(enterprise=enterprise, member_id=kwargs.get("member_id"))
@@ -327,7 +327,7 @@ class MemberPwdViewSet(APIBaseViewSet):
     @action(methods=["put"], detail=False)
     def activated(self, request, *args, **kwargs):
         user = self.request.user
-        ip = request.data.get("ip")
+        ip = self.get_ip()
         enterprise = self.get_object()
         enterprise_member = self.get_enterprise_member(enterprise=enterprise, member_id=kwargs.get("member_id"))
 
@@ -423,7 +423,7 @@ class MemberPwdViewSet(APIBaseViewSet):
     @action(methods=["put"], detail=False)
     def user_invitation_update(self, request, *args, **kwargs):
         user = self.request.user
-        ip = request.data.get("ip")
+        ip = self.get_ip()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data

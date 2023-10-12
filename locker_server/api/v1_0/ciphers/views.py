@@ -60,7 +60,7 @@ class CipherPwdViewSet(APIBaseViewSet):
 
     @action(methods=["post"], detail=False)
     def vaults(self, request, *args, **kwargs):
-        ip = request.data.get("ip")
+        ip = self.get_ip()
         user = self.request.user
         self.check_pwd_session_auth(request=request)
         serializer = self.get_serializer(data=request.data)
@@ -103,7 +103,7 @@ class CipherPwdViewSet(APIBaseViewSet):
 
     @action(methods=["put"], detail=False)
     def multiple_delete(self, request, *args, **kwargs):
-        ip = request.data.get("ip")
+        ip = self.get_ip()
         user = self.request.user
         self.check_pwd_session_auth(request=request)
         serializer = self.get_serializer(data=request.data)
@@ -122,7 +122,7 @@ class CipherPwdViewSet(APIBaseViewSet):
 
     @action(methods=["put"], detail=False)
     def multiple_permanent_delete(self, request, *args, **kwargs):
-        ip = request.data.get("ip")
+        ip = self.get_ip()
         user = self.request.user
         self.check_pwd_session_auth(request=request)
         serializer = self.get_serializer(data=request.data)
@@ -147,7 +147,7 @@ class CipherPwdViewSet(APIBaseViewSet):
 
     @action(methods=["put"], detail=False)
     def multiple_restore(self, request, *args, **kwargs):
-        ip = request.data.get("ip")
+        ip = self.get_ip()
         user = self.request.user
         self.check_pwd_session_auth(request=request)
         serializer = self.get_serializer(data=request.data)

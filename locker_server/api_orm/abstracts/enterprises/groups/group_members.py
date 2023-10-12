@@ -18,10 +18,6 @@ class AbstractEnterpriseGroupMemberORM(models.Model):
     @classmethod
     def create_multiple(cls, datas):
         raise NotImplementedError
-        group_members = []
-        for member_id in member_ids:
-            group_members.append(cls(group=group, member_id=member_id))
-        cls.objects.bulk_create(group_members, ignore_conflicts=True)
 
     @classmethod
     def create_multiple_by_member(cls, member, *group_ids):

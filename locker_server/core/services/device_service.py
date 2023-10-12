@@ -18,6 +18,9 @@ class DeviceService:
     def list_devices(self, **filter_params) -> List[Device]:
         return self.device_repository.list_devices(**filter_params)
 
+    def list_fcm_ids(self, user_ids: List[int]) -> List[str]:
+        return self.device_repository.get_fcm_ids_by_user_ids(user_ids=user_ids)
+
     def fetch_device_access_token(self, device: Device, renewal: bool = True,
                                   sso_token_id: str = None) -> Optional[DeviceAccessToken]:
         access_token = self.device_access_token_repository.fetch_device_access_token(

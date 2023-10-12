@@ -3,6 +3,7 @@ from typing import List, Optional, Dict, Union
 
 from locker_server.core.entities.cipher.cipher import Cipher
 from locker_server.core.entities.cipher.folder import Folder
+from locker_server.core.entities.enterprise.group.group import EnterpriseGroup
 from locker_server.core.entities.member.team_member import TeamMember
 from locker_server.core.entities.team.collection import Collection
 from locker_server.core.entities.team.group import Group
@@ -951,3 +952,8 @@ class SharingService:
             data={"id": cipher_obj.cipher_id}
         )
 
+    def add_group_member_to_share(self, enterprise_group: EnterpriseGroup, new_member_ids: List[str]):
+        confirmed_data = self.sharing_repository.add_group_member_to_share(
+            enterprise_group=enterprise_group, new_member_ids=new_member_ids
+        )
+        return confirmed_data

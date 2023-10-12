@@ -64,13 +64,16 @@ class EnterpriseGroupMemberORMRepository(EnterpriseGroupMemberRepository):
         else:
             enterprise_group_members_orm = EnterpriseGroupMemberORM.objects.all().select_related(
                 "group"
-            ).order_by("member_id")
+            ).select_related("member").select_related("group").order_by("member_id")
         return [
             ModelParser.enterprise_parser().parse_enterprise_group_member(
                 enterprise_group_member_orm=enterprise_group_member_orm
             )
             for enterprise_group_member_orm in enterprise_group_members_orm
         ]
+
+    def count_enterprise_group_members(self, enterprise_group_id) -> int:
+        return EnterpriseGroupMemberORM.objects.filter(group_id=enterprise_group_id).count()
 
     # ------------------------ Get EnterpriseGroupMember resource --------------------- #
 
