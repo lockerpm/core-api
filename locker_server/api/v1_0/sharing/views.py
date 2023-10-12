@@ -150,7 +150,7 @@ class SharingPwdViewSet(APIBaseViewSet):
         except AttributeError:
             user_fullname = request.data.get("user_fullname")
         result = self.sharing_service.update_sharing_invitation(
-            sharing_invitation=sharing_invitation, status=status, user_fullname=user_fullname
+            sharing_invitation=sharing_invitation, status=invitation_status, user_fullname=user_fullname
         )
         self._notify_invitation_update(user=user, data=result)
         return Response(status=status.HTTP_200_OK, data=result)
