@@ -40,7 +40,7 @@ class DetailMemberSerializer(serializers.Serializer):
             "domain": instance.domain.domain
         } if instance.domain else None
         if callable(list_group_member_func):
-            data["groups"] = list_group_member_func(enterprise_member_id=instance.member_id)
+            data["groups"] = list_group_member_func(enterprise_member_id=instance.enterprise_member_id)
         else:
             data["groups"] = []
         if instance.status != E_MEMBER_STATUS_INVITED:
