@@ -60,36 +60,6 @@ class EnterpriseService:
             raise EnterpriseMemberPrimaryDoesNotExistException
         return primary_member
 
-    def list_enterprise_billing_contacts(self, enterprise_id: str) -> List[EnterpriseBillingContact]:
-        return self.enterprise_billing_contact_repository.list_enterprise_billing_contacts(
-            enterprise_id=enterprise_id
-        )
-
-    def create_enterprise_billing_contact(self, enterprise_id: str, email: str) -> EnterpriseBillingContact:
-        return self.enterprise_billing_contact_repository.create_enterprise_billing_contact(
-            enterprise_billing_contact_create_data={
-                "enterprise_id": enterprise_id,
-                "email": email
-            }
-        )
-
-    def get_enterprise_billing_contact_by_id(self, enterprise_billing_contact_id: str) \
-            -> Optional[EnterpriseBillingContact]:
-        enterprise_billing_contact = self.enterprise_billing_contact_repository.get_enterprise_billing_contact_by_id(
-            enterprise_billing_contact_id=enterprise_billing_contact_id
-        )
-        if not enterprise_billing_contact:
-            raise EnterpriseBillingContactDoesNotExistException
-        return enterprise_billing_contact
-
-    def delete_enterprise_billing_contact_by_id(self, enterprise_billing_contact_id: str) -> bool:
-        deleted = self.enterprise_billing_contact_repository.delete_enterprise_billing_contact_by_id(
-            enterprise_billing_contact_id=enterprise_billing_contact_id
-        )
-        if not deleted:
-            raise EnterpriseBillingContactDoesNotExistException
-        return deleted
-
     def create_default_enterprise_policies(self, enterprise_id: str) -> List[EnterprisePolicy]:
         policies = []
         for policy_type in LIST_POLICY_TYPE:

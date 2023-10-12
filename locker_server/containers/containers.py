@@ -36,6 +36,7 @@ enterprise_service = ServiceFactory.enterprise_service()
 enterprise_member_service = ServiceFactory.enterprise_member_service()
 enterprise_group_service = ServiceFactory.enterprise_group_service()
 enterprise_domain_service = ServiceFactory.enterprise_domain_service()
+enterprise_billing_contact_service = ServiceFactory.enterprise_billing_contact_service()
 
 event_service = ServiceFactory.event_service()
 relay_address_service = ServiceFactory.relay_address_service()

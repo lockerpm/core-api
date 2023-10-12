@@ -27,7 +27,7 @@ class BillingContactViewSet(APIBaseViewSet):
 
     def get_queryset(self):
         enterprise = self.get_enterprise()
-        billing_contacts = self.enterprise_service.list_enterprise_billing_contacts(
+        billing_contacts = self.enterprise_billing_contact_service.list_enterprise_billing_contacts(
             enterprise_id=enterprise.enterprise_id
         )
 
@@ -36,7 +36,7 @@ class BillingContactViewSet(APIBaseViewSet):
     def get_object(self):
         enterprise = self.get_enterprise()
         try:
-            billing_contact = self.enterprise_service.get_enterprise_billing_contact_by_id(
+            billing_contact = self.enterprise_billing_contact_service.get_enterprise_billing_contact_by_id(
                 enterprise_billing_contact_id=self.kwargs.get("contact_id")
             )
             if billing_contact.enterprise.enterprise_id != enterprise.enterprise_id:
@@ -67,7 +67,7 @@ class BillingContactViewSet(APIBaseViewSet):
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
         email = validated_data.get("email")
-        new_contact = self.enterprise_service.create_enterprise_billing_contact(
+        new_contact = self.enterprise_billing_contact_service.create_enterprise_billing_contact(
             enterprise_id=enterprise.enterprise_id,
             email=email
         )
@@ -76,7 +76,7 @@ class BillingContactViewSet(APIBaseViewSet):
     def destroy(self, request, *args, **kwargs):
         billing_contact = self.get_object()
         try:
-            self.enterprise_service.delete_enterprise_billing_contact_by_id(
+            self.enterprise_billing_contact_service.delete_enterprise_billing_contact_by_id(
                 billing_contact_id=billing_contact.en
             )
         except EnterpriseBillingContactDoesNotExistException:
