@@ -52,6 +52,12 @@ class MemberPwdViewSet(APIBaseViewSet):
             self.serializer_class = SearchMemberGroupSerializer
         return super().get_serializer_class()
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        if self.action == "list" and self.request.query_params.get("shortly", "0") != "1":
+            context["list_group_member_func"] = self.enterprise_member_service.list_groups_name_by_enterprise_member_id
+        return context
+
     def get_object(self):
         try:
             enterprise = self.enterprise_service.get_enterprise_by_id(
@@ -95,23 +101,18 @@ class MemberPwdViewSet(APIBaseViewSet):
 
         members = self.enterprise_member_service.list_enterprise_members(**{
             "enterprise_id": enterprise.enterprise_id,
-            "user_ids": query_params.get("user_ids").split(",") if query_params.get("user_ids") else [],
+            "user_ids": query_params.get("user_ids").split(",") if query_params.get("user_ids") else None,
             "email": query_params.get("email", None),
+            "q": query_params.get("q"),
             "roles": list_filter_roles,
             "status": query_params.get("status"),
-            "statuses": query_params.get("statuses").split(",") if query_params.get('statuses') else [],
+            "statuses": query_params.get("statuses").split(",") if query_params.get('statuses') else None,
             "is_activated": query_params.get("is_activated"),
             "block_login": query_params.get("block_login"),
             "sort": query_params.get("sort"),
 
         })
-        shortly_param = query_params.get("shortly", "0")
-        if shortly_param == "1":
-            for member in members:
-                group_members = self.enterprise_member_service.list_group_member_by_enterprise_member_id(
-                    enterprise_member_id=member.enterprise_member_id
-                )
-                member.group_members = group_members
+
         return members
 
     def list(self, request, *args, **kwargs):

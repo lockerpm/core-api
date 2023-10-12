@@ -38,6 +38,7 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
         user_id_param = filters.get("user_id")
         user_ids_param = filters.get("user_ids")
         email_param = filters.get("email")
+        q_param = filters.get("q")
         roles_param = filters.get("roles")
         status_param = filters.get("status")
         statuses_param = filters.get("statuses")
@@ -46,9 +47,10 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
         sort_param = filters.get("sort")
 
         if enterprise_id_param:
+
             enterprise_members_orm = EnterpriseMemberORM.objects.filter(
                 enterprise_id=enterprise_id_param
-            ).select_related('user').select_related('role')
+            ).select_related('user').select_related('role').select_related('domain')
         else:
             enterprise_members_orm = EnterpriseMemberORM.objects.all().select_related('user').select_related('role')
         # Filter by ids
@@ -81,6 +83,12 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
             if email_param:
                 search_by_email = enterprise_members_orm.filter(email__icontains=email_param)
             enterprise_members_orm = (search_by_users | search_by_email | search_by_user).distinct()
+
+        if q_param:
+            q = q_param.lower()
+            enterprise_members_orm = enterprise_members_orm.filter(
+                Q(user__full_name__icontains=q) | Q(user__email__icontains=q) | Q(email__icontains=q)
+            )
 
         # Filter by status
         if status_param:

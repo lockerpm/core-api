@@ -53,6 +53,9 @@ class EnterpriseMemberService:
         )
         return group_members
 
+    def list_groups_name_by_enterprise_member_id(self, enterprise_member_id: str) -> List[str]:
+        return self.enterprise_group_member_repository.list_groups_name_by_enterprise_member_id(enterprise_member_id)
+
     def list_enterprise_member_user_id_by_roles(self, enterprise_id: str, role_ids: List[str]) -> List[str]:
         return self.enterprise_member_repository.list_enterprise_member_user_id_by_roles(
             enterprise_id=enterprise_id,
