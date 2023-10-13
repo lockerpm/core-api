@@ -545,6 +545,9 @@ class UserService:
     def list_user_by_emails(self, emails: List[str]) -> List[User]:
         return self.user_repository.list_users(**{"emails": emails})
 
+    def list_user_by_ids(self, user_ids: List[int]) -> List[User]:
+        return self.user_repository.list_users(**{"user_ids": user_ids})
+
     def list_user_ids(self, **filter_params) -> List[int]:
         return self.user_repository.list_user_ids(**filter_params)
 

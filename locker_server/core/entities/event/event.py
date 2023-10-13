@@ -101,7 +101,7 @@ class Event(object):
         return ast.literal_eval(str(self.metadata))
 
     def get_description(self, use_html=True):
-        metadata = self.metadata if self.metadata else {}
+        metadata = self.metadata or {}
         log_type = int(self.event_type)
         if use_html:
             description = {
@@ -126,3 +126,24 @@ class Event(object):
         for k, v in metadata.items():
             normalizer_metadata[k] = v.replace("_", " ") if isinstance(v, str) else v
         return normalizer_metadata
+
+    def get_activity_log_data(self):
+        return {
+            "id": self.event_id,
+            "type": self.event_type,
+            "creation_date": self.creation_date,
+            "acting_user": {
+                "id": self.acting_user_id,
+            },
+            "user": {
+                "id": self.user_id,
+            },
+            "ip_address": self.ip_address,
+            "cipher_id": self.cipher_id,
+            "collection_id": self.collection_id,
+            "device_type": self.device_type,
+            "group_id": self.group_id,
+            "enterprise_id": self.team_id,
+            "enterprise_member_id": self.team_member_id,
+            "metadata": self.get_metadata(),
+        }
