@@ -89,6 +89,9 @@ LS_AFFILIATE_SUBMISSION_MODEL = getattr(settings, "LS_AFFILIATE_SUBMISSION_MODEL
 # -------- Factor2 Models ----------- #
 LS_FACTOR2_METHOD_MODEL = getattr(settings, "LS_FACTOR2_METHOD_MODEL", "api_orm.Factor2MethodORM")
 
+# -------- Configuration Models ----------- #
+LS_SSO_CONFIGURATION_MODEL = getattr(settings, "LS_SSO_CONFIGURATION_MODEL", "api_orm.SSOConfigurationORM")
+
 DEFAULTS = {
     "LS_RELEASE_MODEL": LS_RELEASE_MODEL,
 
@@ -145,6 +148,8 @@ DEFAULTS = {
     "LS_AFFILIATE_SUBMISSION_MODEL": LS_AFFILIATE_SUBMISSION_MODEL,
 
     "LS_FACTOR2_METHOD_MODEL": LS_FACTOR2_METHOD_MODEL,
+
+    "LS_SSO_CONFIGURATION_MODEL": LS_SSO_CONFIGURATION_MODEL,
 
     "API_REPOSITORY_CLASS": "locker_server.containers.defaults.repository.RepositoryFactory",
     "API_SERVICE_CLASS": "locker_server.containers.defaults.service.ServiceFactory",

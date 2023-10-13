@@ -216,3 +216,8 @@ def get_notification_model():
 def get_factor2_method_model():
     """ Return the Notification model that is active in this LockerServer """
     return apps.get_model(locker_server_settings.LS_FACTOR2_METHOD_MODEL)
+
+
+def get_sso_configuration_model():
+    """ Return the SSOConfiguration model that is active in this LockerServer"""
+    return apps.get_model(locker_server_settings.LS_SSO_CONFIGURATION_MODEL)
