@@ -65,3 +65,5 @@ class RepositoryFactory(containers.DeclarativeContainer):
 
     mail_provider_repository = providers.Factory(MailProviderORMRepository)
     mail_configuration_repository = providers.Factory(MailConfigurationORMRepository)
+
+    sso_configuration_repository = providers.Factory(SSOConfigurationORMRepository)

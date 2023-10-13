@@ -24,10 +24,10 @@ class DomainBackground(LockerBackground):
         from locker_server.containers.containers import user_service, enterprise_member_service
         try:
             enterprise = domain.enterprise
-            member_user_ids = enterprise_member_service.list_enterprise_member_user_ids(
+            enterprise_user_ids = enterprise_member_service.list_enterprise_member_user_ids(
                 **{"enterprise_id": enterprise.enterprise_id}
             )
-            existed_user_ids = [e for e in member_user_ids if e is not None]
+            existed_user_ids = [e for e in enterprise_user_ids if e is not None]
 
             if not settings.SELF_HOSTED:
                 url = API_NOTIFY_DOMAIN + "/verified"
@@ -50,7 +50,6 @@ class DomainBackground(LockerBackground):
             else:
                 domain_address = domain.domain
                 org_name = enterprise.name
-                existed_user_ids = [e for e in existed_user_ids if e is not None]
                 # Sending mail
                 NotificationSender(
                     job=PWD_VERIFY_DOMAIN_SUCCESS, scope=settings.SCOPE_PWD_MANAGER, services=[SENDING_SERVICE_MAIL]

@@ -48,8 +48,7 @@ class UserORMRepository(UserRepository):
             users_orm = users_orm.filter(email__in=emails_param)
 
         return [
-            ModelParser.user_parser().parse_user(user_orm=user_orm)
-            for user_orm in users_orm
+            ModelParser.user_parser().parse_user(user_orm=user_orm) for user_orm in users_orm
         ]
 
     def list_user_ids(self, **filter_params) -> List[int]:
@@ -65,15 +64,15 @@ class UserORMRepository(UserRepository):
             users_orm = users_orm.filter(
                 Q(email__icontains=q_param.lower()) | Q(full_name__icontains=q_param.lower())
             )
-        if user_ids_param:
+        if user_ids_param is not None:
             users_orm = users_orm.filter(user_id__in=user_ids_param)
         if activated_param is not None:
             users_orm = users_orm.filter(activated=activated_param)
-        if exclude_user_ids:
+        if exclude_user_ids is not None:
             users_orm = users_orm.exclude(user_id__in=exclude_user_ids)
-        if emails_param:
+        if emails_param is not None:
             users_orm = users_orm.filter(email__in=emails_param)
-        if email_endswith_param:
+        if email_endswith_param is not None:
             users_orm = users_orm.filter(email__endswith=email_endswith_param)
         return list(users_orm.values_list('user_id', flat=True))
 

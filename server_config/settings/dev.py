@@ -219,6 +219,8 @@ try:
     LS_QUICK_SHARE_EMAIL_MODEL = "api_orm.QuickShareEmailORM"
     LS_NOTIFICATION_MODEL = "api_orm.NotificationORM"
     LS_FACTOR2_METHOD_MODEL = "api_orm.Factor2MethodORM"
+    LS_SSO_CONFIGURATION_MODEL = "api_orm.SSOConfigurationORM"
+
 
     LOCKER_SERVER_SETTINGS = {
         "API_REPOSITORY_CLASS": "locker_server.containers.defaults.repository.RepositoryFactory",

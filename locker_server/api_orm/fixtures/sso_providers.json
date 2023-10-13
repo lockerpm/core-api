@@ -1,0 +1,18 @@
+[
+  {
+    "model": "api_orm.SSOProviderORM",
+    "fields": {
+      "id": "oidc",
+      "name": "OpenID Connect",
+      "order_index": 1
+    }
+  },
+  {
+    "model": "api_orm.SSOProviderORM",
+    "fields": {
+      "id": "saml",
+      "name": "SAML",
+      "order_index": 2
+    }
+  }
+]

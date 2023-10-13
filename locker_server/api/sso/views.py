@@ -1,0 +1,1 @@
+from locker_server.api.sso.sso_configurations.views import SSOConfigurationViewSet
