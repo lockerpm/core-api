@@ -76,6 +76,7 @@ class ActivityLogPwdViewSet(APIBaseViewSet):
         if settings.SELF_HOSTED:
             users = self.user_service.list_user_by_ids(user_ids=query_user_ids)
             users_data = [{
+                "id": user.user_id,
                 "name": user.full_name,
                 "email": user.email,
                 "username": user.username,
@@ -92,7 +93,7 @@ class ActivityLogPwdViewSet(APIBaseViewSet):
                 users_data = []
         users_data_dict = dict()
         for user_data in users_data:
-            users_data_dict[user_data.user_id] = user_data
+            users_data_dict[user_data.get("id")] = user_data
         return users_data_dict
 
     def list(self, request, *args, **kwargs):
