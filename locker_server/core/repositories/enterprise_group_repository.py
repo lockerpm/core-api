@@ -26,10 +26,6 @@ class EnterpriseGroupRepository(ABC):
 
     # ------------------------ Update EnterpriseGroup resource --------------------- #
     @abstractmethod
-    def add_group_member_to_share(self, enterprise_group_ids: List, new_member_ids: List):
-        pass
-
-    @abstractmethod
     def update_enterprise_group(self, enterprise_group_id: str, enterprise_group_update_data: Dict) \
             -> Optional[EnterpriseGroup]:
         pass

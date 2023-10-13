@@ -634,7 +634,7 @@ class SharingORMRepository(SharingRepository):
 
     def add_group_member_to_share(self, enterprise_group: EnterpriseGroup, new_member_ids: List[str]):
         enterprise_group_orm = EnterpriseGroupORM.objects.get(id=enterprise_group.enterprise_group_id)
-        enterprise_group_member_user_ids = enterprise_group_orm.groups_members.filter(
+        enterprise_group_member_user_ids = enterprise_group_orm.group_members.filter(
             member_id__in=new_member_ids
         ).values_list('member__user_id', flat=True)
         sharing_groups = enterprise_group_orm.sharing_groups.select_related('team').prefetch_related('groups_members')
