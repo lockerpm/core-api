@@ -3,14 +3,12 @@ from rest_framework.routers import DefaultRouter
 
 from locker_server.api.v1_admin import views
 
-
 router = DefaultRouter(trailing_slash=False)
-
+router.register(r'sso_configuration', views.SSOConfigurationViewSet, 'sso_configuration')
 
 urlpatterns = [
     url(r'^', include(router.urls))
 ]
-
 
 # ------------------------------- Mail Configuration ----------------------------- #
 urlpatterns += [
