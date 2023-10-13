@@ -68,7 +68,7 @@ class EnterpriseDomainORMRepository(EnterpriseDomainRepository):
             domain_orm = DomainORM.objects.get(id=domain_id)
         except DomainORM.DoesNotExist:
             return False
-        return domain_orm.get_verifications()
+        return domain_orm.check_verification()
 
     # ------------------------ Create Domain resource --------------------- #
     def create_domain(self, domain_create_data) -> Domain:
