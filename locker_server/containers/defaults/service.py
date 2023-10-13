@@ -235,3 +235,9 @@ class ServiceFactory(containers.DeclarativeContainer):
         MailConfigurationService,
         mail_configuration_repository=RepositoryFactory.mail_configuration_repository,
     )
+
+    sso_configuration_service = providers.Factory(
+        SSOConfigurationService,
+        sso_configuration_repository=RepositoryFactory.sso_configuration_repository,
+        user_repository=RepositoryFactory.user_repository
+    )
