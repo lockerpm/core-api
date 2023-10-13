@@ -56,3 +56,5 @@ factor2_service = ServiceFactory.factor2_service()
 notification_service = ServiceFactory.notification_service()
 
 mail_configuration_service = ServiceFactory.mail_configuration_service()
+
+sso_configuration_service = ServiceFactory.sso_configuration_service()

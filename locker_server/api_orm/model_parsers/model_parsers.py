@@ -1,4 +1,5 @@
 from .factor2_parsers import Factor2Parser
+from .sso_configuration_parsers import SSOConfigurationParser
 from .user_parsers import UserParser
 from .notification_setting_parser import NotificationParser
 from .user_plan_parsers import UserPlanParser
@@ -84,3 +85,7 @@ class ModelParser:
     @classmethod
     def configuration_parser(cls):
         return ConfigurationParser
+
+    @classmethod
+    def sso_configuration_parser(cls):
+        return SSOConfigurationParser

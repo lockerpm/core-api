@@ -47,3 +47,5 @@ from .factor2_service import Factor2Service
 from .notification_service import NotificationService
 
 from .mail_configuration_service import MailConfigurationService
+
+from .sso_configuration_service import SSOConfigurationService
