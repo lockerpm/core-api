@@ -50,7 +50,7 @@ class SSOConfigurationViewSet(APIBaseViewSet):
             self.check_object_permissions(request=self.request, obj=sso_configuration)
             return sso_configuration
         except SSOConfigurationDoesNotExistException:
-            raise NotFound
+            return Response(status=status.HTTP_200_OK)
 
     def list(self, request, *args, **kwargs):
         paging_param = self.request.query_params.get("paging", "1")
@@ -82,7 +82,7 @@ class SSOConfigurationViewSet(APIBaseViewSet):
         except SSOConfigurationIdentifierExistedException:
             raise ValidationError(detail={"identifier": ["SSO with this identifier already exists"]})
         except SSOConfigurationDoesNotExistException:
-            raise NotFound
+            return Response(status=status.HTTP_200_OK)
         serializer = DetailSSOConfigurationSerializer(updated_sso_configuration, many=False)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
@@ -116,7 +116,7 @@ class SSOConfigurationViewSet(APIBaseViewSet):
                 identifier=sso_identifier
             )
         except SSOConfigurationDoesNotExistException:
-            raise NotFound
+            return Response(status=status.HTTP_200_OK)
         serializer = DetailSSOConfigurationSerializer(sso_configuration, many=False)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
@@ -131,5 +131,22 @@ class SSOConfigurationViewSet(APIBaseViewSet):
                 auth_token=validated_data.get("auth_token")
             )
         except SSOConfigurationDoesNotExistException:
-            raise NotFound
+            return Response(status=status.HTTP_200_OK)
         return Response(status=status.HTTP_200_OK, data={"user": user_data})
+
+    @action(methods=["get"], detail=False)
+    def check_exists(self, request, *args, **kwargs):
+        sso_configuration = self.sso_configuration_service.get_first()
+        if sso_configuration:
+            serializer = DetailSSOConfigurationSerializer(sso_configuration, many=False)
+            sso_configuration_data = serializer.data
+            sso_provider_options = sso_configuration_data.get("sso_provider_options")
+            sso_provider_options.pop("client_secret", "default")
+            sso_configuration_data.update({
+                "sso_provider_options": sso_provider_options
+            })
+            return Response(
+                status=status.HTTP_200_OK,
+                data={"existed": True, "sso_configuration_data": sso_configuration_data}
+            )
+        return Response(status=status.HTTP_200_OK, data={"existed": False})

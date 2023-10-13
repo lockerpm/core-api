@@ -1,10 +1,9 @@
 from locker_server.api.permissions.app import APIPermission
-from locker_server.containers.containers import user_service
 
 
 class SSOConfigurationPermission(APIPermission):
     def has_permission(self, request, view):
-        if view.action in ["get_sso_config", "get_user_from_sso"]:
+        if view.action in ["get_sso_config", "get_user_from_sso", "check_exists"]:
             return True
         # TODO: check permission view.action in ["create"]
         return super().has_permission(request, view)

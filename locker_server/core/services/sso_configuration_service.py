@@ -80,14 +80,14 @@ class SSOConfigurationService:
             raise SSOConfigurationDoesNotExistException
         sso_provider_id = sso_configuration.sso_provider.sso_provider_id
         if sso_provider_id == SSO_PROVIDER_OIDC:
-            authority_url = sso_configuration.sso_provider_options.get("authority")
-            info_url = f"{authority_url}/.well-known/openid-configuration"
+            userinfo_endpoint = sso_configuration.sso_provider_options.get("userinfo_endpoint")
             try:
-                res = requester(method="GET", url=info_url)
+                headers = {'Authorization': f"Bearer {auth_token}"}
+                res = requester(method="GET", url=userinfo_endpoint, headers=headers)
                 if res.status_code == 200:
                     try:
-                        oidc_info = res.json()
-                        userinfo_endpoint = oidc_info.get("userinfo_endpoint")
+                        user_info = res.json()
+                        return user_info
 
                     except json.JSONDecodeError:
                         CyLog.error(
@@ -96,12 +96,10 @@ class SSOConfigurationService:
                             }
                         )
                         return {}
-                    headers = {'Authorization': f"Bearer {auth_token}"}
-                    res = requester(method="GET", url=userinfo_endpoint, headers=headers)
-                    if res.status_code == 200:
-                        return res.json()
-                    return {}
                 return {}
             except (requests.RequestException, requests.ConnectTimeout):
                 return {}
         return {}
+
+    def get_first(self) -> SSOConfiguration:
+        return self.sso_configuration_repository.get_first()

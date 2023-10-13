@@ -13,6 +13,10 @@ class SSOConfigurationRepository(ABC):
 
     # ------------------------ Get SSOConfiguration resource --------------------- #
     @abstractmethod
+    def get_first(self) -> Optional[SSOConfiguration]:
+        pass
+
+    @abstractmethod
     def get_sso_configuration(self, sso_configuration_id: str) -> Optional[SSOConfiguration]:
         pass
 

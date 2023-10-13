@@ -29,6 +29,13 @@ class SSOConfigurationORMRepository(SSOConfigurationRepository):
         ]
 
     # ------------------------ Get SSOConfiguration resource --------------------- #
+    def get_first(self) -> Optional[SSOConfiguration]:
+        first_sso_config = SSOConfigurationORM.objects.all().first()
+        if first_sso_config:
+            return ModelParser.sso_configuration_parser().parse_sso_configuration(
+                sso_configuration_orm=first_sso_config)
+        return None
+
     def get_sso_configuration(self, sso_configuration_id: str) -> Optional[SSOConfiguration]:
         try:
             sso_configuration_orm = SSOConfigurationORM.objects.get(

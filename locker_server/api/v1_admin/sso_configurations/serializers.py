@@ -36,7 +36,11 @@ class OIDCOptionSerializer(serializers.Serializer):
     client_secret = serializers.CharField(required=True)
     authority = serializers.CharField(required=True)
     redirect_behavior = serializers.ChoiceField(choices=LIST_OIDC_BEHAVIOR, default=OIDC_BEHAVIOR_POST)
-    metadata_address = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    userinfo_endpoint = serializers.CharField(required=True, allow_null=True, allow_blank=True)
+    scopes = serializers.CharField(required=False, default="openid")
+    user_id_claim_types = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    email_claim_types = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    name_claim_types = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
 
 class SAMLOptionSerializer(serializers.Serializer):
