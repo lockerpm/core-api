@@ -109,6 +109,7 @@ class EnterpriseDomainService:
         )
         if not is_verify:
             raise DomainVerifiedErrorException
+        return is_verify
 
     def domain_auto_approve(self, user_id_update_domain: int, domain: Domain, ip_address: str = None,
                             scope: str = None):
