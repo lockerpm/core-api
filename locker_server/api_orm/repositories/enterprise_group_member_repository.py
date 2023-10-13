@@ -95,7 +95,7 @@ class EnterpriseGroupMemberORMRepository(EnterpriseGroupMemberRepository):
             member_id__in=deleted_member_ids,
             group_id=enterprise_group.enterprise_group_id
         )
-        sharing_group_members = GroupORM.filter(
+        sharing_group_members = GroupORM.objects.filter(
             groups_members__member__user_id__in=deleted_groups_members.values_list('member__user_id', flat=True)
         ).values_list('groups_members__member_id', flat=True)
         TeamMemberORM.objects.filter(

@@ -3,6 +3,10 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, ValidationError
 
+from locker_server.api.api_base_view import APIBaseViewSet
+from locker_server.api.v1_enterprise.enterprise_members.serializers import DetailMemberSerializer
+from locker_server.api.permissions.locker_permissions.enterprise_permissions.group_pwd_permission import \
+    GroupPwdPermission
 from locker_server.core.exceptions.enterprise_exception import EnterpriseDoesNotExistException
 from locker_server.core.exceptions.enterprise_group_exception import EnterpriseGroupDoesNotExistException
 from locker_server.shared.constants.event import EVENT_E_GROUP_CREATED, EVENT_E_GROUP_UPDATED, EVENT_E_GROUP_DELETED
@@ -10,10 +14,6 @@ from locker_server.shared.error_responses.error import gen_error
 from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
 from locker_server.shared.external_services.locker_background.constants import BG_EVENT, BG_ENTERPRISE_GROUP
 from .serializers import *
-from locker_server.api.api_base_view import APIBaseViewSet
-from locker_server.api.v1_enterprise.enterprise_members.serializers import DetailMemberSerializer
-from locker_server.api.permissions.locker_permissions.enterprise_permissions.group_pwd_permission import \
-    GroupPwdPermission
 
 
 class GroupPwdViewSet(APIBaseViewSet):
