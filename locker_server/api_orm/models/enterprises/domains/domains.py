@@ -30,7 +30,7 @@ class DomainORM(AbstractDomainORM):
         new_domain.save()
 
         # Create domain ownerships
-        new_domain.domain_ownership.model.create(new_domain)
+        new_domain.domain_ownership.model.create(domain=new_domain)
 
         return new_domain
 

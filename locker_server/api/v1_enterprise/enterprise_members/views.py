@@ -198,13 +198,13 @@ class MemberPwdViewSet(APIBaseViewSet):
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
         role = validated_data.get("role")
-        status = validated_data.get("status")
+        member_status = validated_data.get("status")
         try:
             change_status, change_role, updated_member = self.enterprise_member_service.update_enterprise_member(
                 current_user=user,
                 enterprise_member=enterprise_member,
                 role=role,
-                status=status
+                status=member_status
             )
         except EnterpriseMemberUpdatedFailedException:
             raise PermissionDenied
@@ -212,7 +212,7 @@ class MemberPwdViewSet(APIBaseViewSet):
             raise NotFound
         if change_role:
             # TODO: import LockerBackgroundFactory
-            LockerBackgroundFactory.get_background(bg_name=BG_EVENT).run(
+            BackgroundFactory.get_background(bg_name=BG_EVENT).run(
                 func_name="create_by_enterprise_ids",
                 **{
                     "enterprise_ids": [updated_member.enterprise.enterprise_id],
@@ -224,8 +224,7 @@ class MemberPwdViewSet(APIBaseViewSet):
                 }
             )
         if change_status:
-            # TODO: import LockerBackgroundFactory
-            LockerBackgroundFactory.get_background(bg_name=BG_EVENT).run(
+            BackgroundFactory.get_background(bg_name=BG_EVENT).run(
                 func_name="create_by_enterprise_ids",
                 **{
                     "enterprise_ids": [updated_member.enterprise.enterprise_id],
@@ -370,8 +369,7 @@ class MemberPwdViewSet(APIBaseViewSet):
                     ).update_quantity_subscription(amount=-1)
                 except (PaymentMethodNotSupportException, ObjectDoesNotExist):
                     pass
-            # TODO: import LockerBackgroundFactory
-            LockerBackgroundFactory.get_background(bg_name=BG_EVENT).run(func_name="create_by_enterprise_ids", **{
+            BackgroundFactory.get_background(bg_name=BG_EVENT).run(func_name="create_by_enterprise_ids", **{
                 "enterprise_ids": [enterprise.enterprise_id], "acting_user_id": user.user_id,
                 "user_id": enterprise_member.user.user_id, "team_member_id": enterprise_member.enterprise_member_id,
                 "type": EVENT_E_MEMBER_ENABLED if activated is True else EVENT_E_MEMBER_DISABLED, "ip_address": ip

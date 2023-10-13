@@ -156,10 +156,10 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
         user_ids_params = filter_params.get("user_ids")
         if enterprise_id_param:
             members_orm = EnterpriseMemberORM.objects.filter(enterprise_id=enterprise_id_param)
-            if user_ids_params:
+            if user_ids_params is not None:
                 members_orm = members_orm.filter(user_id__in=user_ids_params)
         else:
-            if user_ids_params:
+            if user_ids_params is not None:
                 members_orm = EnterpriseMemberORM.objects.filter(user_id__in=user_ids_params)
             else:
                 members_orm = EnterpriseMemberORM.objects.all()
