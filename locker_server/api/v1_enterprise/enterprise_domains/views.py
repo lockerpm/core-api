@@ -32,7 +32,7 @@ class DomainPwdViewSet(APIBaseViewSet):
     def get_object(self):
         try:
             enterprise = self.get_enterprise()
-            domain = self.enterprise_service.get_domain_by_id(
+            domain = self.enterprise_domain_service.get_domain_by_id(
                 domain_id=self.kwargs.get("domain_id")
             )
             if domain.enterprise.enterprise_id != enterprise.enterprise_id:

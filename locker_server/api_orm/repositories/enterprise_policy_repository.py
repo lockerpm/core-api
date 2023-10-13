@@ -263,8 +263,8 @@ class EnterprisePolicyORMRepository(EnterprisePolicyRepository):
             policy_passwordless_orm.only_allow_passwordless
         )
         policy_passwordless_orm.save()
-        policy_passwordless_orm.policy.enable = update_data.get(
-            "enable", policy_passwordless_orm.policy.enable
+        policy_passwordless_orm.policy.enabled = update_data.get(
+            "enabled", policy_passwordless_orm.policy.enabled
         )
         policy_passwordless_orm.policy.save()
         return ModelParser.enterprise_parser().parse_policy_passwordless(

@@ -48,8 +48,7 @@ class UserORMRepository(UserRepository):
             users_orm = users_orm.filter(email__in=emails_param)
 
         return [
-            ModelParser.user_parser().parse_user(user_orm=user_orm)
-            for user_orm in users_orm
+            ModelParser.user_parser().parse_user(user_orm=user_orm) for user_orm in users_orm
         ]
 
     def list_user_ids(self, **filter_params) -> List[int]:
