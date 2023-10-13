@@ -80,8 +80,8 @@ class EnterpriseGroupService:
         existed_group_enterprise_member_ids = [
             group_member.member.enterprise_member_id for group_member in group_members
         ]
-        deleted_member_ids = diff_list(existed_enterprise_member_ids, existed_enterprise_member_ids)
-        new_member_ids = diff_list(existed_enterprise_members, existed_group_enterprise_member_ids)
+        deleted_member_ids = diff_list(existed_group_enterprise_member_ids, existed_enterprise_member_ids)
+        new_member_ids = diff_list(existed_enterprise_member_ids, existed_group_enterprise_member_ids)
 
         # Remove group members
         self.enterprise_group_member_repository.delete_multiple_by_member_ids(
