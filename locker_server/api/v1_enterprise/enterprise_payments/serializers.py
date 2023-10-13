@@ -82,7 +82,7 @@ class UpgradePlanPublicSerializer(UpgradePlanSerializer):
     enterprise_postal_code = serializers.CharField(max_length=16, required=False, allow_blank=True)
 
 
-class BillingAddressSerializer(serializers.ModelSerializer):
+class BillingAddressSerializer(serializers.Serializer):
     enterprise_name = serializers.CharField(max_length=128, required=False, allow_blank=True)
     enterprise_address1 = serializers.CharField(max_length=255, required=False, allow_blank=True)
     enterprise_address2 = serializers.CharField(max_length=255, required=False, allow_blank=True)
@@ -90,15 +90,14 @@ class BillingAddressSerializer(serializers.ModelSerializer):
     enterprise_country = serializers.CharField(max_length=128, required=False, allow_blank=True)
     enterprise_postal_code = serializers.CharField(max_length=16, required=False, allow_blank=True)
 
-
-def to_representation(self, instance):
-    data = {
-        "id": instance.enterprise_id,
-        "enterprise_name": instance.enterprise_name,
-        "enterprise_address1": instance.enterprise_address1,
-        "enterprise_address2": instance.enterprise_address2,
-        "enterprise_phone": instance.enterprise_phone,
-        "enterprise_country": instance.enterprise_country,
-        "enterprise_postal_code": instance.enterprise_postal_code,
-    }
-    return data
+    def to_representation(self, instance):
+        data = {
+            "id": instance.enterprise_id,
+            "enterprise_name": instance.enterprise_name,
+            "enterprise_address1": instance.enterprise_address1,
+            "enterprise_address2": instance.enterprise_address2,
+            "enterprise_phone": instance.enterprise_phone,
+            "enterprise_country": instance.enterprise_country,
+            "enterprise_postal_code": instance.enterprise_postal_code,
+        }
+        return data
