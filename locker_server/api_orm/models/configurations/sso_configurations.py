@@ -19,7 +19,7 @@ class SSOConfigurationORM(AbstractSSOConfigurationORM):
                     created_by_id=data.get("created_by_id"),
                     sso_provider_id=data.get("sso_provider_id"),
                     identifier=data.get("identifier"),
-                    enabled=data.get("enabled"),
+                    enabled=data.get("enabled", False),
                     sso_provider_options=data.get("sso_provider_options"),
                     creation_date=data.get("creation_date", now())
                 )

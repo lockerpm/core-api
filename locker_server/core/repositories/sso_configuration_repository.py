@@ -7,9 +7,6 @@ from locker_server.core.entities.sso_configuration.sso_configuration import SSOC
 class SSOConfigurationRepository(ABC):
 
     # ------------------------ List SSOConfiguration resource ------------------- #
-    @abstractmethod
-    def list_sso_configurations(self, **filters) -> List[SSOConfiguration]:
-        pass
 
     # ------------------------ Get SSOConfiguration resource --------------------- #
     @abstractmethod
@@ -25,16 +22,13 @@ class SSOConfigurationRepository(ABC):
         pass
 
     # ------------------------ Create SSOConfiguration resource --------------------- #
-    @abstractmethod
-    def create_sso_configuration(self, sso_config_create_data) -> SSOConfiguration:
-        pass
 
     # ------------------------ Update SSOConfiguration resource --------------------- #
     @abstractmethod
-    def update_sso_configuration(self, sso_configuration_id: str, sso_config_update_data) -> SSOConfiguration:
+    def update_sso_configuration(self, sso_config_update_data) -> SSOConfiguration:
         pass
 
     # ------------------------ Delete OrganizationSSOConfiguration resource --------------------- #
     @abstractmethod
-    def destroy_sso_configuration(self, organization_id: str):
+    def destroy_sso_configuration(self):
         pass

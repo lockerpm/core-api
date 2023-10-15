@@ -25,6 +25,12 @@ try:
     WEB_ORIGIN = os.getenv("WEB_ORIGIN") or LOCKER_WEB_URL.replace("https://", "").replace("http://", "")
     DEV_WEB_ORIGIN = os.getenv("DEV_WEB_ORIGIN")
 
+    # SSO url
+    DEV_OIDC_CALLBACK = os.getenv("DEV_OIDC_CALLBACK")
+    DEV_OIDC_SIGN_OUT_CALLBACK = os.getenv("DEV_OIDC_SIGN_OUT_CALLBACK")
+    OIDC_CALLBACK = os.getenv("OIDC_CALLBACK")
+    OIDC_SIGN_OUT_CALLBACK = os.getenv("OIDC_SIGN_OUT_CALLBACK")
+
     # CyStack ID Gateway api
     GATEWAY_API = os.getenv("GATEWAY_API", "https://api.cystack.net")
     MICRO_SERVICE_USER_AUTH = os.getenv("MICRO_SERVICE_USER_AUTH")
@@ -220,7 +226,6 @@ try:
     LS_NOTIFICATION_MODEL = "api_orm.NotificationORM"
     LS_FACTOR2_METHOD_MODEL = "api_orm.Factor2MethodORM"
     LS_SSO_CONFIGURATION_MODEL = "api_orm.SSOConfigurationORM"
-
 
     LOCKER_SERVER_SETTINGS = {
         "API_REPOSITORY_CLASS": "locker_server.containers.defaults.repository.RepositoryFactory",

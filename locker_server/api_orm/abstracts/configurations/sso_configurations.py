@@ -10,7 +10,7 @@ from locker_server.settings import locker_server_settings
 class AbstractSSOConfigurationORM(models.Model):
     id = models.CharField(primary_key=True, max_length=128, default=uuid.uuid4)
     identifier = models.CharField(max_length=255, unique=True, db_index=True)
-    sso_provider_options = models.TextField(null=True, blank=True, default="")
+    sso_provider_options = models.CharField(max_length=1024, null=True, blank=True, default="")
     enabled = models.BooleanField(null=True, default=False)
     creation_date = models.FloatField()
     revision_date = models.FloatField(null=True)

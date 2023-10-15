@@ -66,7 +66,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.CharField(default=uuid.uuid4, max_length=128, primary_key=True, serialize=False)),
                 ('identifier', models.CharField(db_index=True, max_length=255, unique=True)),
-                ('sso_provider_options', models.TextField(blank=True, default='', null=True)),
+                ('sso_provider_options', models.CharField(max_length=10244, blank=True, default='', null=True)),
                 ('enabled', models.BooleanField(default=False, null=True)),
                 ('creation_date', models.FloatField()),
                 ('revision_date', models.FloatField(null=True)),
