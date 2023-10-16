@@ -4,7 +4,6 @@ from rest_framework.routers import DefaultRouter
 from locker_server.api.v1_admin import views
 
 router = DefaultRouter(trailing_slash=False)
-router.register(r'sso_configuration', views.SSOConfigurationViewSet, 'sso_configuration')
 
 urlpatterns = [
     url(r'^', include(router.urls))
@@ -16,4 +15,13 @@ urlpatterns += [
         'get': 'mail_configuration', 'put': 'update_mail_configuration', 'delete': 'destroy_mail_configuration'
     })),
     url(r'^mail_configuration/test$', views.AdminMailConfigurationViewSet.as_view({'post': 'send_test_mail'}))
+]
+# ------------------------------- SSO Configuration ----------------------------- #
+urlpatterns += [
+    url(r'^sso_configuration$', views.AdminSSOConfigurationViewSet.as_view({
+        'get': 'sso_configuration', 'put': 'update_sso_configuration', 'delete': 'destroy_sso_configuration'
+    })),
+    url(r'^sso_configuration/connect$', views.AdminSSOConfigurationViewSet.as_view({'get': 'connect'})),
+    url(r'^sso_configuration/check_exists$', views.AdminSSOConfigurationViewSet.as_view({'get': 'check_exists'})),
+    url(r'^sso_configuration/get_user$', views.AdminSSOConfigurationViewSet.as_view({'post': 'get_user_by_code'}))
 ]

@@ -36,23 +36,23 @@ class DomainOwnershipORM(models.Model):
                 key = 'locker-verification.{}'.format(domain.root_domain)
                 value = verification_code
                 cls.objects.create(key=key, value=value, domain=domain, ownership=ownership)
-    #
-    # def set_verified(self):
-    #     self.verification = True
-    #     self.save()
-    #
-    # def verify_dns(self, dns_type):
-    #     """
-    #     :param dns_type: CNAME / TXT
-    #     :return:
-    #     """
-    #     resolver = dns.resolver.Resolver()
-    #     resolver.nameservers = ['1.1.1.1', '8.8.8.8', '8.8.4.4']
-    #     try:
-    #         answers = resolver.query(self.key, dns_type)
-    #         for data in answers:
-    #             if str(data).strip('"')[:-1] == self.value or str(data).strip('"') == self.value:
-    #                 return True
-    #     except Exception as e:
-    #         return False
-    #     return False
+
+    def set_verified(self):
+        self.verification = True
+        self.save()
+
+    def verify_dns(self, dns_type):
+        """
+        :param dns_type: CNAME / TXT
+        :return:
+        """
+        resolver = dns.resolver.Resolver()
+        resolver.nameservers = ['1.1.1.1', '8.8.8.8', '8.8.4.4']
+        try:
+            answers = resolver.query(self.key, dns_type)
+            for data in answers:
+                if str(data).strip('"')[:-1] == self.value or str(data).strip('"') == self.value:
+                    return True
+        except Exception as e:
+            return False
+        return False

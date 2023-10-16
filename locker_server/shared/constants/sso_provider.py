@@ -1,8 +1,8 @@
 SSO_PROVIDER_SAML = "saml"
 SSO_PROVIDER_OIDC = "oidc"
 
-OIDC_BEHAVIOR_GET = "redirect get"
-OIDC_BEHAVIOR_POST = "form post"
+OIDC_BEHAVIOR_GET = "redirect_get"
+OIDC_BEHAVIOR_POST = "form_post"
 
 LIST_VALID_SSO_PROVIDERS = [
     SSO_PROVIDER_OIDC

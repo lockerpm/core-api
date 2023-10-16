@@ -106,7 +106,7 @@ class PaymentPwdViewSet(APIBaseViewSet):
             "start_period": current_plan.start_period,
             "next_billing_time": current_plan.get_next_billing_time(),
             "duration": current_plan.duration,
-            "is_trailing": current_plan.is_trailing(),
+            "is_trailing": current_plan.is_trialing(),
             "cancel_at_period_end": current_plan.is_cancel_at_period_end(),
             "payment_method": current_plan.get_default_payment_method(),
             "enterprise": {
