@@ -38,20 +38,10 @@ class UpgradePlanSerializer(serializers.Serializer):
     family_members = FamilyMemberSerializer(many=True, required=False)
 
     def validate(self, data):
-        current_user = self.context["request"].user
         data["number_members"] = 1
         # Check payment method
         payment_method = data.get("payment_method", PAYMENT_METHOD_CARD)
         data["currency"] = CURRENCY_USD if payment_method == PAYMENT_METHOD_CARD else CURRENCY_VND
-
-        # Check family members
-        family_members = data.get("family_members", []) or []
-        if plan.is_family_plan:
-            if len(family_members) > plan.get_max_number_members() - 1:
-                raise serializers.ValidationError(detail={"non_field_errors": [gen_error("7012")]})
-        else:
-            data["family_members"] = []
-
         return data
 
 
