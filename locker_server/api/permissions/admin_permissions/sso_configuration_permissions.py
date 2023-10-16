@@ -6,9 +6,6 @@ class SSOConfigurationPermission(APIPermission):
     def has_permission(self, request, view):
         if view.action in ["sso_configuration", "get_user_by_code", "check_exists"]:
             return True
-        user = user_service.retrieve_by_id(user_id=1)
-        request.user = user
-        request.auth = user
         return super().has_permission(request, view)
 
     def has_object_permission(self, request, view, obj):

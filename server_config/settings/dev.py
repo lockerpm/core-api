@@ -26,10 +26,10 @@ try:
     DEV_WEB_ORIGIN = os.getenv("DEV_WEB_ORIGIN")
 
     # SSO url
-    DEV_OIDC_CALLBACK = os.getenv("DEV_OIDC_CALLBACK")
-    DEV_OIDC_SIGN_OUT_CALLBACK = os.getenv("DEV_OIDC_SIGN_OUT_CALLBACK")
-    OIDC_CALLBACK = os.getenv("OIDC_CALLBACK")
-    OIDC_SIGN_OUT_CALLBACK = os.getenv("OIDC_SIGN_OUT_CALLBACK")
+    DEV_OAUTH2_CALLBACK = os.getenv("DEV_OAUTH2_CALLBACK")
+    DEV_OAUTH2_SIGN_OUT_CALLBACK = os.getenv("DEV_OAUTH2_SIGN_OUT_CALLBACK")
+    OAUTH2_CALLBACK = os.getenv("OAUTH2_CALLBACK")
+    OAUTH2_SIGN_OUT_CALLBACK = os.getenv("OAUTH2_SIGN_OUT_CALLBACK")
 
     # CyStack ID Gateway api
     GATEWAY_API = os.getenv("GATEWAY_API", "https://api.cystack.net")

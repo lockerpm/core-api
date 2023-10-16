@@ -9,7 +9,7 @@ from locker_server.core.exceptions.sso_configuration_exception import SSOConfigu
 from locker_server.core.exceptions.user_exception import UserDoesNotExistException
 from locker_server.core.repositories.sso_configuration_repository import SSOConfigurationRepository
 from locker_server.core.repositories.user_repository import UserRepository
-from locker_server.shared.constants.sso_provider import SSO_PROVIDER_OIDC
+from locker_server.shared.constants.sso_provider import SSO_PROVIDER_OAUTH2
 from locker_server.shared.external_services.requester.retry_requester import requester
 from locker_server.shared.log.cylog import CyLog
 
@@ -63,7 +63,7 @@ class SSOConfigurationService:
         if not sso_identifier:
             return {}
         sso_provider_id = sso_configuration.sso_provider.sso_provider_id
-        if sso_provider_id == SSO_PROVIDER_OIDC:
+        if sso_provider_id == SSO_PROVIDER_OAUTH2:
             token_endpoint = sso_configuration.sso_provider_options.get("token_endpoint")
             userinfo_endpoint = sso_configuration.sso_provider_options.get("userinfo_endpoint")
             try:

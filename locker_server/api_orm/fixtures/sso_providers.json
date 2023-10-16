@@ -2,17 +2,9 @@
   {
     "model": "api_orm.SSOProviderORM",
     "fields": {
-      "id": "oidc",
-      "name": "OpenID Connect",
+      "id": "oauth2",
+      "name": "OAuth2",
       "order_index": 1
-    }
-  },
-  {
-    "model": "api_orm.SSOProviderORM",
-    "fields": {
-      "id": "saml",
-      "name": "SAML",
-      "order_index": 2
     }
   }
 ]
