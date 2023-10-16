@@ -133,7 +133,7 @@ class DomainPwdViewSet(APIBaseViewSet):
         domain = self.get_object()
         try:
             self.enterprise_domain_service.delete_domain(
-                domain_id=domain.domain
+                domain_id=domain.domain_id
             )
         except DomainDoesNotExistException:
             raise NotFound
