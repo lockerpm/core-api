@@ -494,7 +494,7 @@ class UserPlanORMRepository(UserPlanRepository):
             # Lock all primary sharing
             primary_sharing_owners_orm = user_orm.team_members.filter(is_primary=True, key__isnull=False)
             for primary_sharing_owner_orm in primary_sharing_owners_orm:
-                primary_sharing_owner_orm.team.lock_pm_team()
+                primary_sharing_owner_orm.team.lock_pm_team(lock=True)
             # Lock all enterprises
             primary_admin_enterprises_orm = user_orm.enterprise_members.filter(is_primary=True)
             for primary_sharing_owner_orm in primary_admin_enterprises_orm:
