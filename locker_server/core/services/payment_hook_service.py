@@ -60,7 +60,6 @@ class PaymentHookService:
                 "duration": duration,
                 "promo_code": promo_code,
                 "currency": currency,
-                "payment_method": PAYMENT_METHOD_MOBILE,
                 "mobile_invoice_id": None,
                 "stripe_invoice_id": stripe_invoice_id,
                 "customer": self.user_repository.get_customer_data(user=user, id_card=stripe_card_id),
