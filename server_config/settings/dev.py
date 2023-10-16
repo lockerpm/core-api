@@ -25,12 +25,6 @@ try:
     WEB_ORIGIN = os.getenv("WEB_ORIGIN") or LOCKER_WEB_URL.replace("https://", "").replace("http://", "")
     DEV_WEB_ORIGIN = os.getenv("DEV_WEB_ORIGIN")
 
-    # SSO url
-    DEV_OAUTH2_CALLBACK = os.getenv("DEV_OAUTH2_CALLBACK")
-    DEV_OAUTH2_SIGN_OUT_CALLBACK = os.getenv("DEV_OAUTH2_SIGN_OUT_CALLBACK")
-    OAUTH2_CALLBACK = os.getenv("OAUTH2_CALLBACK")
-    OAUTH2_SIGN_OUT_CALLBACK = os.getenv("OAUTH2_SIGN_OUT_CALLBACK")
-
     # CyStack ID Gateway api
     GATEWAY_API = os.getenv("GATEWAY_API", "https://api.cystack.net")
     MICRO_SERVICE_USER_AUTH = os.getenv("MICRO_SERVICE_USER_AUTH")

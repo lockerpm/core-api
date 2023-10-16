@@ -60,8 +60,3 @@ class UpdateSSOConfigurationSerializer(serializers.Serializer):
             raise serializers.ValidationError(detail={"sso_provider_options": option_srl.errors})
         data["sso_provider_options"] = option_srl.validated_data
         return data
-
-
-class RetrieveUserSerializer(serializers.Serializer):
-    sso_identifier = serializers.CharField(max_length=255, required=False, allow_blank=True)
-    code = serializers.CharField(required=True, allow_blank=False)
