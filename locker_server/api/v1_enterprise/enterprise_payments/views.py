@@ -391,7 +391,7 @@ class PaymentPwdViewSet(APIBaseViewSet):
     def billing_address(self, request, *args, **kwargs):
         enterprise = self.get_enterprise()
         if request.method == "GET":
-            return Response(status=status, data=self.get_serializer(enterprise).data)
+            return Response(status=status.HTTP_200_OK, data=self.get_serializer(enterprise).data)
 
         elif request.method == "PUT":
             serializer = self.get_serializer(enterprise, data=request.data)

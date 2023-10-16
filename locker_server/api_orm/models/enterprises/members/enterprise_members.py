@@ -13,7 +13,7 @@ class EnterpriseMemberORM(AbstractEnterpriseMemberORM):
         member_orm = cls(
             enterprise_id=data.get("enterprise_id"),
             user_id=data.get("user_id"),
-            role_id=data.get("role"),
+            role_id=data.get("role_id") or data.get("role"),
             status=data.get("status", E_MEMBER_STATUS_INVITED),
             is_primary=data.get("is_primary", False),
             is_default=data.get("is_default", False),
