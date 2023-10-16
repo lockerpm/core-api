@@ -146,14 +146,14 @@ class PaymentPwdViewSet(APIBaseViewSet):
         validated_data = serializer.validated_data
         promo_code = validated_data.get("promo_code")
         duration = validated_data.get("duration", DURATION_MONTHLY)
-        plan = validated_data.get("plan")
+        plan_alias = validated_data.get("plan_alias")
         number_members = validated_data.get("number_members", 1)
         currency = validated_data.get("currency", CURRENCY_USD)
         # Calc payment
         try:
             result = self.payment_service.calc_payment(
                 user_id=self.request.user.user_id,
-                plan_alias=plan,
+                plan_alias=plan_alias,
                 duration=duration,
                 currency=currency,
                 number_members=number_members,

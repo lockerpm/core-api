@@ -55,6 +55,9 @@ class User(object):
         self._is_factor2 = is_factor2
         self._base32_secret_factor2 = base32_secret_factor2
 
+    def __str__(self):
+        return f"<User object {self._user_id}>"
+
     @property
     def user_id(self):
         return self._user_id
