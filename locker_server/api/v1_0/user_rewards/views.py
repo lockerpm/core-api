@@ -56,7 +56,7 @@ class UserRewardMissionPwdViewSet(APIBaseViewSet):
         user = self.request.user
         self.gen_default_missions()
         user_reward_missions = self.user_reward_mission_service.list_user_reward_mission(
-            user_id=user.user.id,
+            user_id=user.user_id,
             **{
                 "available": True
             }
