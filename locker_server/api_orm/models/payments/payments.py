@@ -1,14 +1,11 @@
-from django.apps import apps
 from django.conf import settings
 from django.db import models
 
 from locker_server.api_orm.abstracts.payments.payments import AbstractPaymentORM
 from locker_server.api_orm.models.payments.customers import CustomerORM
-from locker_server.settings import locker_server_settings
 from locker_server.shared.constants.transactions import *
+from locker_server.shared.utils.app import now
 
-
-# PromoCodeORM = apps.get_model(locker_server_settings.LS_PROMO_CODE_MODEL)
 
 class PaymentORM(AbstractPaymentORM):
     customer = models.ForeignKey(CustomerORM, on_delete=models.SET_NULL, related_name="payments", null=True)
