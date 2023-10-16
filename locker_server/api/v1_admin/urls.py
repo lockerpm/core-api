@@ -20,8 +20,5 @@ urlpatterns += [
 urlpatterns += [
     url(r'^sso_configuration$', views.AdminSSOConfigurationViewSet.as_view({
         'get': 'sso_configuration', 'put': 'update_sso_configuration', 'delete': 'destroy_sso_configuration'
-    })),
-    url(r'^sso_configuration/connect$', views.AdminSSOConfigurationViewSet.as_view({'get': 'connect'})),
-    url(r'^sso_configuration/check_exists$', views.AdminSSOConfigurationViewSet.as_view({'get': 'check_exists'})),
-    url(r'^sso_configuration/get_user$', views.AdminSSOConfigurationViewSet.as_view({'post': 'get_user_by_code'}))
+    }))
 ]

@@ -19,13 +19,11 @@ urlpatterns += [
         views.ResourcePwdViewSet.as_view({'get': 'mail_providers'})),
 ]
 
-
 """ User """
 urlpatterns += [
     url(r'^me$', views.UserViewSet.as_view({'get': 'retrieve', 'put': 'update'})),
     url(r'^users/logout$', views.UserViewSet.as_view({'post': 'logout'})),
 ]
-
 
 """ Factor2 """
 urlpatterns += [
@@ -35,10 +33,16 @@ urlpatterns += [
     url(r'^sso/me/factor2/activate$', views.Factor2ViewSet.as_view({'post': 'factor2_is_activate'})),
 ]
 
-
 """ Notification """
 urlpatterns += [
     url(r'^notifications$', views.NotificationViewSet.as_view({'get': 'list'})),
     url(r'^notifications/read_all$', views.NotificationViewSet.as_view({'get': 'read_all'})),
     url(r'^notifications/(?P<id>[0-9a-z]+)$', views.NotificationViewSet.as_view({'get': 'retrieve', 'put': 'update'})),
+]
+
+""" SSO Configuration """
+urlpatterns += [
+    url(r'^sso_configuration/check_exists$', views.SSOConfigurationViewSet.as_view({'get': 'check_exists'})),
+    url(r'^sso_configuration/get_user$', views.SSOConfigurationViewSet.as_view({'post': 'get_user_by_code'}))
+
 ]
