@@ -111,14 +111,12 @@ class AdminSSOConfigurationViewSet(APIBaseViewSet):
             return Response(status=status.HTTP_200_OK, data={})
         sso_provider_id = sso_configuration.sso_provider.sso_provider_id
         redirect_uri = self.get_redirect_uri(sso_provider_id=sso_provider_id)
-        if sso_provider_id == SSO_PROVIDER_OIDC:
+        if sso_provider_id == SSO_PROVIDER_OAUTH2:
             sso_provider_options = sso_configuration.sso_provider_options
             authorization_endpoint = sso_provider_options.get("authorization_endpoint")
             redirect_behavior = sso_provider_options.get("redirect_behavior")
             scopes = sso_provider_options.get("scopes")
             response_type = "code"
-            if "openid" not in scopes:
-                scopes += " openid"
             client_id = sso_provider_options.get("client_id")
             location = (f"{authorization_endpoint}?redirect_uri={redirect_uri}&"
                         f"response_mode={redirect_behavior}&"
@@ -126,7 +124,6 @@ class AdminSSOConfigurationViewSet(APIBaseViewSet):
                         f"client_id={client_id}&"
                         f"response_type={response_type}"
                         )
-            print(location)
             response = HttpResponseRedirect(location)
             response['Location'] = location
             return response
@@ -135,11 +132,11 @@ class AdminSSOConfigurationViewSet(APIBaseViewSet):
     @staticmethod
     def get_redirect_uri(sso_provider_id: str):
         env = os.getenv("PROD_ENV", "dev")
-        if sso_provider_id == SSO_PROVIDER_OIDC:
+        if sso_provider_id == SSO_PROVIDER_OAUTH2:
             if env == "dev":
-                redirect_uri = settings.DEV_OIDC_CALLBACK
+                redirect_uri = settings.DEV_OAUTH2_CALLBACK
             else:
-                redirect_uri = settings.OIDC_CALLBACK
+                redirect_uri = settings.OAUTH2_CALLBACK
         else:
             redirect_uri = ""
         return redirect_uri

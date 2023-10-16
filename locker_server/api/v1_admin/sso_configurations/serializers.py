@@ -1,8 +1,7 @@
 from rest_framework import serializers
 
-from locker_server.shared.constants.sso_provider import LIST_OIDC_BEHAVIOR, OIDC_BEHAVIOR_POST, \
-    LIST_VALID_SSO_PROVIDERS, \
-    SSO_PROVIDER_OIDC, SSO_PROVIDER_SAML
+from locker_server.shared.constants.sso_provider import LIST_OAUTH2_BEHAVIOR, OAUTH2_BEHAVIOR_POST, \
+    LIST_VALID_SSO_PROVIDERS, SSO_PROVIDER_OAUTH2
 
 
 class DetailSSOConfigurationSerializer(serializers.Serializer):
@@ -26,26 +25,19 @@ class DetailSSOConfigurationSerializer(serializers.Serializer):
         return data
 
 
-class OIDCOptionSerializer(serializers.Serializer):
+class OAuth2OptionSerializer(serializers.Serializer):
     client_id = serializers.CharField(required=True)
     client_secret = serializers.CharField(required=True)
     authority = serializers.CharField(required=True)
     authorization_endpoint = serializers.CharField(required=True)
     token_endpoint = serializers.CharField(required=True)
-    redirect_behavior = serializers.ChoiceField(choices=LIST_OIDC_BEHAVIOR, default=OIDC_BEHAVIOR_POST)
+    redirect_behavior = serializers.ChoiceField(choices=LIST_OAUTH2_BEHAVIOR, default=OAUTH2_BEHAVIOR_POST)
     userinfo_endpoint = serializers.CharField(required=True, allow_null=True, allow_blank=True)
     metadata_url = serializers.CharField(required=False, allow_null=True, allow_blank=True)
-    scopes = serializers.CharField(required=False, default="openid")
+    scopes = serializers.CharField(required=False)
     user_id_claim_types = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     email_claim_types = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     name_claim_types = serializers.CharField(required=False, allow_null=True, allow_blank=True)
-
-
-class SAMLOptionSerializer(serializers.Serializer):
-    idp_entity_id = serializers.CharField(required=True, allow_blank=False, allow_null=False)
-    idp_single_sign_on_service_url = serializers.CharField(required=False, allow_null=True, allow_blank=True)
-    idp_single_log_out_service_url = serializers.CharField(required=False, allow_null=True, allow_blank=True)
-    idp_x509_public_cert = serializers.CharField(required=True)
 
 
 class UpdateSSOConfigurationSerializer(serializers.Serializer):
@@ -59,10 +51,8 @@ class UpdateSSOConfigurationSerializer(serializers.Serializer):
         sso_provider_options = data.get("sso_provider_options")
         option_srl = None
         option_is_valid = None
-        if sso_provider == SSO_PROVIDER_OIDC:
-            option_srl = OIDCOptionSerializer(data=sso_provider_options)
-        elif sso_provider == SSO_PROVIDER_SAML:
-            option_srl = SAMLOptionSerializer(data=sso_provider_options)
+        if sso_provider == SSO_PROVIDER_OAUTH2:
+            option_srl = OAuth2OptionSerializer(data=sso_provider_options)
         if option_srl:
             option_is_valid = option_srl.is_valid(raise_exception=False)
         if option_is_valid is not None and option_is_valid is False:
