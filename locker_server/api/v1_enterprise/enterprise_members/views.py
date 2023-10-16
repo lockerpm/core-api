@@ -160,7 +160,7 @@ class MemberPwdViewSet(APIBaseViewSet):
         enterprise = self.get_object()
         added_members, non_added_members = self.enterprise_member_service.invite_multiple_member(
             secret=settings.SECRET_KEY,
-            current_enterprise=enterprise.enterprise_id,
+            current_enterprise=enterprise,
             members_data=members_data,
             scope=settings.SCOPE_PWD_MANAGER
         )
