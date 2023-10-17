@@ -3,7 +3,8 @@ from datetime import datetime
 from locker_server.core.entities.payment.customer import Customer
 from locker_server.core.entities.payment.promo_code import PromoCode
 from locker_server.core.entities.user.user import User
-from locker_server.shared.constants.transactions import CURRENCY_USD, TRANSACTION_TYPE_PAYMENT, DURATION_MONTHLY
+from locker_server.shared.constants.transactions import CURRENCY_USD, TRANSACTION_TYPE_PAYMENT, DURATION_MONTHLY, \
+    DURATION_YEARLY, DURATION_HALF_YEARLY
 
 
 class Payment(object):
@@ -156,3 +157,11 @@ class Payment(object):
             "brand": self.customer.brand,
             "country": "" if not self.customer.country else self.customer.country.country_name
         }
+
+    @classmethod
+    def get_duration_month_number(cls, duration):
+        if duration == DURATION_YEARLY:
+            return 12
+        elif duration == DURATION_HALF_YEARLY:
+            return 6
+        return 1

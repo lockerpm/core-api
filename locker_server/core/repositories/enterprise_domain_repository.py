@@ -8,6 +8,10 @@ class EnterpriseDomainRepository(ABC):
 
     # ------------------------ List Domain resource ------------------- #
     @abstractmethod
+    def list_domains(self, **filters) -> List[Domain]:
+        pass
+
+    @abstractmethod
     def list_enterprise_domains(self, enterprise_id: str, **filters) -> List[Domain]:
         pass
 

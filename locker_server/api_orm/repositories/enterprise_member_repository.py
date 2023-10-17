@@ -189,10 +189,11 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
             enterprises_orm = EnterpriseMemberORM.objects.all()
         if status_param:
             enterprises_orm = enterprises_orm.filter(status=status_param)
-        if is_activated_param == "1" or is_activated_param is True:
-            enterprises_orm = enterprises_orm.filter(is_activated=True)
-        elif is_activated_param == "0" or is_activated_param is False:
-            enterprises_orm = enterprises_orm.filter(is_activated=False)
+        if is_activated_param is not None:
+            if is_activated_param == "1" or is_activated_param is True:
+                enterprises_orm = enterprises_orm.filter(is_activated=True)
+            elif is_activated_param == "0" or is_activated_param is False:
+                enterprises_orm = enterprises_orm.filter(is_activated=False)
 
         return enterprises_orm.count()
 
@@ -332,6 +333,11 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
 
     def update_batch_enterprise_members(self, enterprise_member_ids: List[str], **enterprise_member_update_data):
         EnterpriseMemberORM.objects.filter(id__in=enterprise_member_ids).update(
+            **enterprise_member_update_data
+        )
+
+    def update_batch_enterprise_members_by_user_ids(self, user_ids: List[str], **enterprise_member_update_data):
+        return EnterpriseMemberORM.objects.filter(user__in=user_ids).update(
             **enterprise_member_update_data
         )
 

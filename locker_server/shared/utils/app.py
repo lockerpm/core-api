@@ -11,6 +11,14 @@ import humps
 from locker_server.shared.constants.ciphers import *
 
 
+def datetime_from_ts(ts):
+    try:
+        ts = int(ts)
+        return datetime.fromtimestamp(ts, tz=pytz.UTC)
+    except (AttributeError, TypeError, ValueError):
+        return None
+
+
 def now(return_float=False):
     """
     Get time now (UNIX timestamp)

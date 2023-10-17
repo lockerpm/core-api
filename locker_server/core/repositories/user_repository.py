@@ -23,6 +23,18 @@ class UserRepository(ABC):
     def count_weak_cipher_password(self, user_ids: List[int] = None) -> int:
         pass
 
+    @abstractmethod
+    def list_new_users(self) -> List[Dict]:
+        pass
+
+    @abstractmethod
+    def count_users(self, **filters) -> int:
+        pass
+
+    @abstractmethod
+    def tutorial_reminder(self, duration_unit: int):
+        pass
+
     # ------------------------ Get User resource --------------------- #
     @abstractmethod
     def get_user_by_id(self, user_id: int) -> Optional[User]:

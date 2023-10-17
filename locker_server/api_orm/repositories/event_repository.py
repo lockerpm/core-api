@@ -23,7 +23,6 @@ from locker_server.shared.log.cylog import CyLog
 from locker_server.shared.utils.app import now
 from locker_server.shared.utils.network import extract_root_domain
 
-
 EventORM = get_event_model()
 EnterpriseMemberORM = get_enterprise_member_model()
 EnterpriseGroupORM = get_enterprise_group_model()
@@ -174,3 +173,5 @@ class EventORMRepository(EventRepository):
     # ------------------------ Update Enterprise resource --------------------- #
 
     # ------------------------ Delete Enterprise resource --------------------- #
+    def delete_old_events(self, creation_date_pivot: float):
+        EventORM.objects.filter(creation_date__lte=creation_date_pivot).delete()

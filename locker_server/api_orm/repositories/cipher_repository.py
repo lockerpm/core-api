@@ -149,7 +149,7 @@ class CipherORMRepository(CipherRepository):
                 default=True,
                 output_field=BooleanField()
             )
-        ).order_by('-revision_date')    # .prefetch_related('collections_ciphers')
+        ).order_by('-revision_date')  # .prefetch_related('collections_ciphers')
 
     # ------------------------ List Cipher resource ------------------- #
     def list_cipher_collection_ids(self, cipher_id: str) -> List[str]:
@@ -435,7 +435,8 @@ class CipherORMRepository(CipherRepository):
         existed_folder_ids = list(user_orm.folders.values_list('id', flat=True))
 
         # Check limit ciphers
-        existed_ciphers_orm = CipherORM.objects.filter(created_by_id=user_id).values('type').annotate(count=Count('type'))
+        existed_ciphers_orm = CipherORM.objects.filter(created_by_id=user_id).values('type').annotate(
+            count=Count('type'))
         existed_ciphers_count = {item["type"]: item["count"] for item in list(existed_ciphers_orm)}
 
         # Create multiple ciphers
@@ -646,3 +647,9 @@ class CipherORMRepository(CipherRepository):
         bump_account_revision_date(user=user_restored_orm)
 
         return restored_cipher_ids
+
+    def delete_trash_ciphers(self, deleted_date_pivot: float) -> bool:
+        CipherORM.objects.filter(
+            deleted_date__isnull=False
+        ).filter(deleted_date__lte=deleted_date_pivot).delete()
+        return deleted_date_pivot

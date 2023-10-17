@@ -58,3 +58,5 @@ notification_service = ServiceFactory.notification_service()
 mail_configuration_service = ServiceFactory.mail_configuration_service()
 
 sso_configuration_service = ServiceFactory.sso_configuration_service()
+
+cron_task_service = ServiceFactory.cron_task_service()
