@@ -286,23 +286,18 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
         from locker_server.shared.external_services.locker_background.constants import BG_ENTERPRISE_GROUP
         from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
 
-        enterprise_group_ids = EnterpriseGroupMemberORM.objects.filter(
+        enterprise_groups_orm = EnterpriseGroupMemberORM.objects.filter(
             member__user_id=user.user_id
-        ).values_list('group_id', flat=True)
-        BackgroundFactory.get_background(bg_name=BG_ENTERPRISE_GROUP).run(
-            func_name="add_group_member_to_share", **{
-                "enterprise_group_ids": list(enterprise_group_ids),
-                "new_member_ids": [user.user_id]
-            }
-        )
-
-        # for enterprise_group_member_orm in enterprise_group_members_orm:
-        #     BackgroundFactory.get_background(bg_name=BG_ENTERPRISE_GROUP).run(
-        #         func_name="add_group_member_to_share", **{
-        #             "enterprise_group": enterprise_group_member.group,
-        #             "new_member_ids": [user.user_id]
-        #         }
-        #     )
+        ).select_related('group')
+        for enterprise_group_orm in enterprise_groups_orm:
+            BackgroundFactory.get_background(bg_name=BG_ENTERPRISE_GROUP).run(
+                func_name="add_group_member_to_share", **{
+                    "enterprise_group": ModelParser.enterprise_parser().parse_enterprise_group(
+                        enterprise_group_orm=enterprise_group_orm.group
+                    ),
+                    "new_member_ids": [user.user_id]
+                }
+            )
         return user
 
     def update_enterprise_member(self, enterprise_member_id: str, enterprise_member_update_data: Dict) \

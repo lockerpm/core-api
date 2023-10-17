@@ -675,6 +675,9 @@ class UserPlanORMRepository(UserPlanRepository):
         user_plan_orm.end_period = user_plan_update_data.get(
             "end_period", user_plan_orm.end_period
         )
+        user_plan_orm.member_billing_updated_time = user_plan_update_data.get(
+            "member_billing_updated_time", user_plan_orm.member_billing_updated_time
+        )
         user_plan_orm.save()
         return ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=user_plan_orm)
 
