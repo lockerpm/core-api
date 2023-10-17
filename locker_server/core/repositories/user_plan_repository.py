@@ -11,6 +11,17 @@ from locker_server.shared.constants.transactions import DURATION_MONTHLY, CURREN
 
 class UserPlanRepository(ABC):
     # ------------------------ List PMUserPlan resource ------------------- #
+    @abstractmethod
+    def list_downgrade_plans(self) -> List[PMUserPlan]:
+        pass
+
+    @abstractmethod
+    def list_expiring_plans(self) -> List[PMUserPlan]:
+        pass
+
+    @abstractmethod
+    def list_expiring_enterprise_plans(self) -> List[PMUserPlan]:
+        pass
 
     # ------------------------ Get PMUserPlan resource --------------------- #
     @abstractmethod

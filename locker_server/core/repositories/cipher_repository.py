@@ -117,3 +117,7 @@ class CipherRepository(ABC):
     @abstractmethod
     def restore_multiple_cipher(self, cipher_ids: List[str], user_id_restored: int) -> List[str]:
         pass
+
+    @abstractmethod
+    def delete_trash_ciphers(self, deleted_date_pivot: float) -> bool:
+        pass

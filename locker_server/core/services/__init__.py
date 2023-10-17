@@ -49,3 +49,5 @@ from .notification_service import NotificationService
 from .mail_configuration_service import MailConfigurationService
 
 from .sso_configuration_service import SSOConfigurationService
+
+from .cron_task_service import CronTaskService

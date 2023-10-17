@@ -53,6 +53,10 @@ class EmergencyAccessRepository(ABC):
     def approve_emergency_access(self, emergency_access: EmergencyAccess):
         pass
 
+    @abstractmethod
+    def auto_approve_emergency_accesses(self):
+        pass
+
     # ------------------------ Delete EmergencyAccess resource --------------------- #
     @abstractmethod
     def destroy_emergency_access(self, emergency_access_id: str):

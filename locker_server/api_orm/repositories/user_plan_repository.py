@@ -3,7 +3,7 @@ from typing import Dict, Optional, List
 
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned
-from django.db.models import F
+from django.db.models import F, Count
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models import PMUserPlanFamilyORM
@@ -119,6 +119,48 @@ class UserPlanORMRepository(UserPlanRepository):
         return default_enterprise
 
     # ------------------------ List PMUserPlan resource ------------------- #
+    def list_downgrade_plans(self) -> List[PMUserPlan]:
+        user_plans_orm = PMUserPlanORM.objects.filter(
+            pm_stripe_subscription__isnull=True
+        ).exclude(
+            pm_plan__alias=PLAN_TYPE_PM_FREE
+        ).exclude(end_period__isnull=True).filter(end_period__lte=now()).annotate(
+            family_members_count=Count('user__pm_plan_family')
+        ).filter(family_members_count__lt=1)
+        return [
+            ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=user_plan_orm)
+            for user_plan_orm in user_plans_orm
+        ]
+
+    def list_expiring_plans(self) -> List[PMUserPlan]:
+        current_time = now()
+        expiring_plans_orm = PMUserPlanORM.objects.exclude(
+            pm_plan__alias=PLAN_TYPE_PM_FREE
+        ).exclude(end_period__isnull=True).annotate(
+            plan_period=F('end_period') - F('start_period'),
+        ).filter(
+            plan_period__lte=15 * 86400, plan_period__gt=0
+        ).exclude(cancel_at_period_end=True).filter(
+            end_period__gte=current_time + 5 * 86400,
+            end_period__lte=current_time + 7 * 86400
+        ).select_related('pm_plan')
+        return [
+            ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=user_plan_orm)
+            for user_plan_orm in expiring_plans_orm
+        ]
+
+    def list_expiring_enterprise_plans(self) -> List[PMUserPlan]:
+        current_time = now()
+        expiring_enterprise_plans_orm = PMUserPlanORM.objects.filter(pm_plan__alias=PLAN_TYPE_PM_ENTERPRISE).filter(
+            pm_stripe_subscription__isnull=False, end_period__isnull=False,
+        ).filter(
+            end_period__gte=current_time + 4 * 86400,
+            end_period__lte=current_time + 5 * 86400
+        ).select_related('pm_plan')
+        return [
+            ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=user_plan_orm)
+            for user_plan_orm in expiring_enterprise_plans_orm
+        ]
 
     # ------------------------ Get PMUserPlan resource --------------------- #
     def get_user_plan(self, user_id: int) -> Optional[PMUserPlan]:
@@ -626,6 +668,12 @@ class UserPlanORMRepository(UserPlanRepository):
         )
         user_plan_orm.personal_trial_web_applied = user_plan_update_data.get(
             "personal_trial_web_applied", user_plan_orm.personal_trial_web_applied
+        )
+        user_plan_orm.attempts = user_plan_update_data.get(
+            "attempts", user_plan_orm.attempts
+        )
+        user_plan_orm.end_period = user_plan_update_data.get(
+            "end_period", user_plan_orm.end_period
         )
         user_plan_orm.save()
         return ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=user_plan_orm)

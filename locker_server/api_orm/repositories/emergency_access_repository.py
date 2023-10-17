@@ -1,6 +1,8 @@
 from typing import Union, Dict, Optional, List
 from abc import ABC, abstractmethod
 
+from django.db.models import F
+
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_emergency_access_model
 from locker_server.api_orm.utils.revision_date import bump_account_revision_date
@@ -53,12 +55,12 @@ class EmergencyAccessORMRepository(EmergencyAccessRepository):
                                 grantee_id: int = None, email: str = None) -> bool:
         if grantee_id is not None:
             if EmergencyAccessORM.objects.filter(
-                grantor_id=grantor_id, type=emergency_access_type, grantee_id=grantee_id
+                    grantor_id=grantor_id, type=emergency_access_type, grantee_id=grantee_id
             ).exists():
                 return True
         if email is not None:
             if EmergencyAccessORM.objects.filter(
-                grantor_id=grantor_id, type=emergency_access_type, email=email
+                    grantor_id=grantor_id, type=emergency_access_type, email=email
             ).exists():
                 return True
         return False
@@ -118,6 +120,13 @@ class EmergencyAccessORMRepository(EmergencyAccessRepository):
         emergency_access_orm = self._get_emergency_access_orm(emergency_access_id=emergency_access.emergency_access_id)
         emergency_access_orm.status = EMERGENCY_ACCESS_STATUS_RECOVERY_APPROVED
         emergency_access_orm.save()
+
+    def auto_approve_emergency_accesses(self):
+        current_time = now()
+        EmergencyAccessORM.objects.filter(
+            status=EMERGENCY_ACCESS_STATUS_RECOVERY_INITIATED,
+            recovery_initiated_date__lte=current_time - F('wait_time_days') * 86400
+        ).update(status=EMERGENCY_ACCESS_STATUS_RECOVERY_APPROVED)
 
     # ------------------------ Delete EmergencyAccess resource --------------------- #
     def destroy_emergency_access(self, emergency_access_id: str):

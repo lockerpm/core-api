@@ -11,6 +11,17 @@ DomainORM = get_enterprise_domain_model()
 
 class EnterpriseDomainORMRepository(EnterpriseDomainRepository):
     # ------------------------ List Domain resource ------------------- #
+    def list_domains(self, **filters) -> List[Domain]:
+        verification_param = filters.get("verification")
+
+        domains_orm = DomainORM.objects.all()
+        if verification_param:
+            domains_orm = domains_orm.filter(verification=verification_param)
+        return [
+            ModelParser.enterprise_parser().parse_domain(domain_orm=domain_orm)
+            for domain_orm in domains_orm
+        ]
+
     def list_enterprise_domains(self, enterprise_id: str, **filters) -> List[Domain]:
         domains_orm = DomainORM.objects.filter(
             enterprise_id=enterprise_id
@@ -82,6 +93,7 @@ class EnterpriseDomainORMRepository(EnterpriseDomainRepository):
         except DomainORM.DoesNotExist:
             return None
         domain_orm.auto_approve = domain_update_data.get("auto_approve", domain_orm.auto_approve)
+        domain_orm.is_notify_failed = domain_update_data.get("is_notify_failed", domain_orm.is_notify_failed)
         domain_orm.save()
         return ModelParser.enterprise_parser().parse_domain(domain_orm=domain_orm)
 
