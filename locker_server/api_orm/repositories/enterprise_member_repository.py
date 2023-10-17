@@ -335,6 +335,11 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
             **enterprise_member_update_data
         )
 
+    def update_batch_enterprise_members_by_user_ids(self, user_ids: List[str], **enterprise_member_update_data):
+        return EnterpriseMemberORM.objects.filter(user__in=user_ids).update(
+            **enterprise_member_update_data
+        )
+
     # ------------------------ Delete EnterpriseMember resource --------------------- #
     def delete_enterprise_member(self, enterprise_member_id: str) -> bool:
         try:

@@ -241,3 +241,14 @@ class ServiceFactory(containers.DeclarativeContainer):
         sso_configuration_repository=RepositoryFactory.sso_configuration_repository,
         user_repository=RepositoryFactory.user_repository
     )
+    cron_task_service = providers.Factory(
+        CronTaskService,
+        event_repository=RepositoryFactory.event_repository,
+        cipher_repository=RepositoryFactory.cipher_repository,
+        enterprise_repository=RepositoryFactory.enterprise_repository,
+        enterprise_domain_repository=RepositoryFactory.enterprise_domain_repository,
+        enterprise_member_repository=RepositoryFactory.enterprise_member_repository,
+        user_repository=RepositoryFactory.user_repository,
+        user_plan_repository=RepositoryFactory.user_plan_repository,
+        emergency_access_repository=RepositoryFactory.emergency_access_repository,
+    )

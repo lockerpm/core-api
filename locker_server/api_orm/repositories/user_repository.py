@@ -1,27 +1,35 @@
 from typing import Union, Dict, Optional, Tuple, List
 
+import requests
 import stripe
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Subquery, OuterRef, Count, Case, When, IntegerField, Value, Q, Sum
+from django.db.models import Subquery, OuterRef, Count, Case, When, IntegerField, Value, Q, Sum, CharField, F, Min
+from django.forms import FloatField
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models import UserScoreORM
 from locker_server.api_orm.models.wrapper import get_user_model, get_enterprise_member_model, get_enterprise_model, \
-    get_event_model, get_cipher_model, get_device_access_token_model, get_team_model, get_team_member_model
+    get_event_model, get_cipher_model, get_device_access_token_model, get_team_model, get_team_member_model, \
+    get_device_model
 from locker_server.api_orm.utils.revision_date import bump_account_revision_date
 from locker_server.core.entities.user.user import User
 from locker_server.core.repositories.user_repository import UserRepository
 from locker_server.shared.caching.sync_cache import delete_sync_cache_data
 from locker_server.shared.constants.account import ACCOUNT_TYPE_ENTERPRISE, ACCOUNT_TYPE_PERSONAL
-from locker_server.shared.constants.ciphers import CIPHER_TYPE_MASTER_PASSWORD, CIPHER_TYPE_LOGIN
+from locker_server.shared.constants.ciphers import *
 from locker_server.shared.constants.enterprise_members import E_MEMBER_STATUS_CONFIRMED, E_MEMBER_ROLE_PRIMARY_ADMIN, \
     E_MEMBER_ROLE_ADMIN
 from locker_server.shared.constants.event import EVENT_USER_BLOCK_LOGIN
 from locker_server.shared.constants.members import MEMBER_ROLE_OWNER
 from locker_server.shared.constants.policy import POLICY_TYPE_PASSWORDLESS, POLICY_TYPE_2FA
+from locker_server.shared.constants.transactions import PAYMENT_STATUS_PAID
+from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
+from locker_server.shared.external_services.locker_background.constants import BG_NOTIFY
+from locker_server.shared.external_services.requester.retry_requester import requester
 from locker_server.shared.log.cylog import CyLog
-from locker_server.shared.utils.app import now, start_end_month_current
+from locker_server.shared.utils.app import now, start_end_month_current, datetime_from_ts
 
+DeviceORM = get_device_model()
 UserORM = get_user_model()
 TeamORM = get_team_model()
 TeamMemberORM = get_team_member_model()
@@ -95,6 +103,94 @@ class UserORMRepository(UserRepository):
             )
         ).values('user_id', 'weak_ciphers').filter(weak_ciphers__gte=10).count()
         return weak_cipher_password_count
+
+    def list_new_users(self) -> List[Dict]:
+        current_time = now()
+        devices = DeviceORM.objects.filter(user_id=OuterRef("user_id")).order_by('last_login')
+        new_users = UserORM.objects.filter(
+            activated=True,
+            activated_date__lte=current_time, activated_date__gt=current_time - 86400
+        ).annotate(
+            first_device_client_id=Subquery(devices.values('client_id')[:1], output_field=CharField()),
+            first_device_name=Subquery(devices.values('device_name')[:1], output_field=CharField()),
+        ).order_by('activated_date').values('user_id', 'first_device_client_id', 'first_device_name')
+        return new_users
+
+    def count_users(self, **filters) -> int:
+        users_orm = UserORM.objects.all()
+        activated_param = filters.get("activated")
+        if activated_param:
+            if activated_param == "1" or activated_param is True:
+                users_orm = users_orm.filter(activated=True)
+            elif activated_param == "0" or activated_param is False:
+                users_orm = users_orm.filter(activated=False)
+        return users_orm.count()
+
+    def tutorial_reminder(self, duration_unit: int):
+        current_time = now()
+
+        users_orm = UserORM.objects.filter()
+        enterprise_user_ids = EnterpriseMemberORM.objects.filter(
+            status=E_MEMBER_STATUS_CONFIRMED
+        ).values_list('user_id', flat=True)
+        exclude_enterprise_users_orm = users_orm.exclude(user_id__in=enterprise_user_ids)
+
+        # 3 days
+        users_3days_orm = users_orm.filter(
+            creation_date__range=(current_time - 3 * duration_unit, current_time - 2 * duration_unit)
+        ).values_list('user_id', flat=True)
+        BackgroundFactory.get_background(bg_name=BG_NOTIFY, background=False).run(
+            func_name="notify_tutorial", **{
+                "job": "tutorial_day_3_add_items", "user_ids": list(users_3days_orm),
+            }
+        )
+
+        # 5 days
+        users_5days_orm = users_orm.filter(
+            creation_date__range=(current_time - 5 * duration_unit, current_time - 4 * duration_unit)
+        ).values_list('user_id', flat=True)
+        BackgroundFactory.get_background(bg_name=BG_NOTIFY, background=False).run(
+            func_name="notify_tutorial", **{
+                "job": "tutorial_day_5_download", "user_ids": list(users_5days_orm),
+            }
+        )
+
+        # 7 days
+        users_7days_orm = users_orm.filter(
+            creation_date__range=(current_time - 7 * duration_unit, current_time - 6 * duration_unit)
+        ).values_list('user_id', flat=True)
+        BackgroundFactory.get_background(bg_name=BG_NOTIFY, background=False).run(
+            func_name="notify_tutorial", **{
+                "job": "tutorial_day_7_autofill", "user_ids": list(users_7days_orm),
+            }
+        )
+
+        # 13 days
+        users_13days_orm = exclude_enterprise_users_orm.exclude(
+            pm_user_plan__start_period__isnull=True
+        ).exclude(
+            pm_user_plan__end_period__isnull=True
+        ).annotate(
+            plan_period=F('pm_user_plan__end_period') - F('pm_user_plan__start_period'),
+            remain_period=F('pm_user_plan__end_period') - current_time
+        ).filter(
+            plan_period__lte=15 * duration_unit, remain_period__lte=duration_unit, remain_period__gte=0
+        ).values_list('user_id', flat=True)
+        BackgroundFactory.get_background(bg_name=BG_NOTIFY, background=False).run(
+            func_name="notify_tutorial", **{
+                "job": "tutorial_day_13_trial_end", "user_ids": list(users_13days_orm),
+            }
+        )
+
+        # 20 days
+        users_20days_orm = exclude_enterprise_users_orm.filter(
+            creation_date__range=(current_time - 20 * duration_unit, current_time - 19 * duration_unit)
+        ).values_list('user_id', flat=True)
+        BackgroundFactory.get_background(bg_name=BG_NOTIFY, background=False).run(
+            func_name="notify_tutorial", **{
+                "job": "tutorial_day_20_refer_friend", "user_ids": list(users_20days_orm),
+            }
+        )
 
     # ------------------------ Get User resource --------------------- #
     def get_user_by_id(self, user_id: int) -> Optional[User]:
@@ -339,6 +435,8 @@ class UserORMRepository(UserRepository):
         user_orm.language = user_update_data.get("language", user_orm.language)
 
         user_orm.base32_secret_factor2 = user_update_data.get("base32_secret_factor2", user_orm.base32_secret_factor2)
+
+        user_orm.is_leaked = user_update_data.get("is_leaked", user_orm.is_leaked)
 
         if user_update_data.get("master_password_hash"):
             user_orm.set_master_password(raw_password=user_update_data.get("master_password_hash"))

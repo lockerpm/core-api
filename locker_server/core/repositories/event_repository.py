@@ -38,3 +38,6 @@ class EventRepository(ABC):
     # ------------------------ Update Event resource --------------------- #
 
     # ------------------------ Delete Event resource --------------------- #
+    @abstractmethod
+    def delete_old_events(self, creation_date_pivot: float):
+        pass

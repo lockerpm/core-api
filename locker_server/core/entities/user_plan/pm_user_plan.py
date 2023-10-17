@@ -121,6 +121,10 @@ class PMUserPlan(object):
         return self._extra_plan
 
     @property
+    def member_billing_updated_time(self):
+        return self._member_billing_updated_time
+
+    @property
     def attempts(self):
         return self._attempts
 
@@ -199,6 +203,12 @@ class PMUserPlan(object):
         if current_number_attempts < 2:
             return 86400
         return 86400 * 3
+
+    @classmethod
+    def get_next_attempts_day_str(cls, current_number_attempts):
+        if current_number_attempts < 2:
+            return "1 day from today"
+        return "3 days from today"
 
     def get_next_retry_payment_date(self, stripe_subscription=None):
         if self.get_plan_type_alias() in [PLAN_TYPE_PM_FREE]:

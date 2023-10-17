@@ -43,6 +43,18 @@ class EnterpriseORMRepository(EnterpriseRepository):
             return None
 
     # ------------------------ List Enterprise resource ------------------- #
+    def list_enterprises(self, **filters) -> List[Enterprise]:
+        locked_param = filters.get("locked")
+        enterprises_orm = EnterpriseORM.objects.all()
+        if locked_param:
+            enterprises_orm = enterprises_orm.filter(
+                locked=locked_param
+            ).order_by('creation_date')
+        return [
+            ModelParser.enterprise_parser().parse_enterprise(enterprise_orm=enterprise_orm)
+            for enterprise_orm in enterprises_orm
+        ]
+
     def list_user_enterprises(self, user_id: int, **filter_params) -> List[Enterprise]:
         status_param = filter_params.get("status", E_MEMBER_STATUS_CONFIRMED)
 

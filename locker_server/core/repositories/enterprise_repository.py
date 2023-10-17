@@ -7,6 +7,10 @@ from locker_server.core.entities.enterprise.enterprise import Enterprise
 class EnterpriseRepository(ABC):
     # ------------------------ List Enterprise resource ------------------- #
     @abstractmethod
+    def list_enterprises(self, **filters) -> List[Enterprise]:
+        pass
+
+    @abstractmethod
     def list_user_enterprises(self, user_id: int, **filter_params) -> List[Enterprise]:
         pass
 
