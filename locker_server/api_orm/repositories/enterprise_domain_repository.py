@@ -15,7 +15,7 @@ class EnterpriseDomainORMRepository(EnterpriseDomainRepository):
         verification_param = filters.get("verification")
 
         domains_orm = DomainORM.objects.all()
-        if verification_param:
+        if verification_param is not None:
             domains_orm = domains_orm.filter(verification=verification_param)
         return [
             ModelParser.enterprise_parser().parse_domain(domain_orm=domain_orm)

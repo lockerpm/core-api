@@ -46,7 +46,7 @@ class EnterpriseORMRepository(EnterpriseRepository):
     def list_enterprises(self, **filters) -> List[Enterprise]:
         locked_param = filters.get("locked")
         enterprises_orm = EnterpriseORM.objects.all()
-        if locked_param:
+        if locked_param is not None:
             enterprises_orm = enterprises_orm.filter(
                 locked=locked_param
             ).order_by('creation_date')

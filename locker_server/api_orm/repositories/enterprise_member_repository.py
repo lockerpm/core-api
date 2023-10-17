@@ -189,10 +189,11 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
             enterprises_orm = EnterpriseMemberORM.objects.all()
         if status_param:
             enterprises_orm = enterprises_orm.filter(status=status_param)
-        if is_activated_param == "1" or is_activated_param is True:
-            enterprises_orm = enterprises_orm.filter(is_activated=True)
-        elif is_activated_param == "0" or is_activated_param is False:
-            enterprises_orm = enterprises_orm.filter(is_activated=False)
+        if is_activated_param is not None:
+            if is_activated_param == "1" or is_activated_param is True:
+                enterprises_orm = enterprises_orm.filter(is_activated=True)
+            elif is_activated_param == "0" or is_activated_param is False:
+                enterprises_orm = enterprises_orm.filter(is_activated=False)
 
         return enterprises_orm.count()
 
