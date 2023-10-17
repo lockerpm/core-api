@@ -212,7 +212,7 @@ class UserService:
         self.team_member_repository.sharing_invitations_confirm(user=user)
         # Update enterprise invitations
         self.enterprise_member_repository.enterprise_invitations_confirm(user=user)
-        # TODO: Update enterprise share groups
+        # Update enterprise share groups
         self.enterprise_member_repository.enterprise_share_groups_confirm(user=user)
         # Update lifetime mail
         if user.saas_source:

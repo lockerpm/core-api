@@ -116,8 +116,7 @@ class CronTaskService:
             # If user cancels at the end of period => Downgrade
             if pm_user_plan.cancel_at_period_end is True:
                 self.user_plan_repository.update_plan(
-                    user_id=user.user_id,
-                    plan_type_alias=PLAN_TYPE_PM_FREE
+                    user_id=user.user_id, plan_type_alias=PLAN_TYPE_PM_FREE, scope=scope
                 )
                 BackgroundFactory.get_background(
                     bg_name=BG_NOTIFY, background=False
@@ -151,7 +150,8 @@ class CronTaskService:
                     "user_id": user.user_id,
                     "current_attempt": updated_pm_user_plan.attempts,
                     "next_attempt": updated_pm_user_plan.get_next_attempts_day_str(
-                        current_number_attempts=updated_pm_user_plan.attempts),
+                        current_number_attempts=updated_pm_user_plan.attempts
+                    ),
                     "scope": scope
                 })
             else:
@@ -287,6 +287,12 @@ class CronTaskService:
                         pass
             else:
                 pass
+            self.user_plan_repository.update_user_plan_by_id(
+                user_plan_id=user_plan.pm_user_plan_id,
+                user_plan_update_data={
+                    "member_billing_updated_time": current_time
+                }
+            )
 
     def pm_expiring_notify(self, scope):
         expiring_plans = self.user_plan_repository.list_expiring_plans()
