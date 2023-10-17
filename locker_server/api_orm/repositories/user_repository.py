@@ -119,7 +119,7 @@ class UserORMRepository(UserRepository):
     def count_users(self, **filters) -> int:
         users_orm = UserORM.objects.all()
         activated_param = filters.get("activated")
-        if activated_param:
+        if activated_param is not None:
             if activated_param == "1" or activated_param is True:
                 users_orm = users_orm.filter(activated=True)
             elif activated_param == "0" or activated_param is False:

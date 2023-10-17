@@ -21,7 +21,7 @@ class UserRewardMissionORMRepository(UserRewardMissionRepository):
         ).select_related('mission').order_by('mission__order_index')
         available_param = filters.get("available")
         reward_type_param = filters.get("reward_type")
-        if available_param:
+        if available_param is not None:
             user_reward_missions_orm = user_reward_missions_orm.filter(mission__available=available_param)
         if reward_type_param:
             user_reward_missions_orm = user_reward_missions_orm.filter(mission__reward_type=reward_type_param)

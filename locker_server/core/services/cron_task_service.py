@@ -433,4 +433,5 @@ class CronTaskService:
                         user_update_data={
                             "is_leaked": True
                         }
+
                     )

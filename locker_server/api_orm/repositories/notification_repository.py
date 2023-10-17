@@ -20,10 +20,10 @@ class NotificationORMRepository(NotificationRepository):
             notifications_orm = NotificationORM.objects.filter(user_id=user_id_param)
         else:
             notifications_orm = NotificationORM.objects.all()
-        if read_param:
-            if read_param == "1":
+        if read_param is not None:
+            if read_param == "1" or read_param is True:
                 notifications_orm = notifications_orm.filter(read=True)
-            elif read_param == "0":
+            elif read_param == "0" or read_param is False:
                 notifications_orm = notifications_orm.filter(read=False)
         if scope_param:
             notifications_orm = notifications_orm.filter(scope=scope_param)
@@ -40,10 +40,10 @@ class NotificationORMRepository(NotificationRepository):
             notifications_orm = NotificationORM.objects.filter(user_id=user_id_param).order_by('-publish_time')
         else:
             notifications_orm = NotificationORM.objects.all().order_by('-publish_time')
-        if read_param:
-            if read_param == "1":
+        if read_param is not None:
+            if read_param == "1" or read_param is True:
                 notifications_orm = notifications_orm.filter(read=True)
-            elif read_param == "0":
+            elif read_param == "0" or read_param is False:
                 notifications_orm = notifications_orm.filter(read=False)
         if scope_param:
             notifications_orm = notifications_orm.filter(scope=scope_param)
@@ -86,10 +86,10 @@ class NotificationORMRepository(NotificationRepository):
             notifications_orm = NotificationORM.objects.filter(user_id=user_id_param)
         else:
             notifications_orm = NotificationORM.objects.all()
-        if read_param:
-            if read_param == "1":
+        if read_param is not None:
+            if read_param == "1" or read_param is True:
                 notifications_orm = notifications_orm.filter(read=True)
-            elif read_param == "0":
+            elif read_param == "0" or read_param is False:
                 notifications_orm = notifications_orm.filter(read=False)
         if scope_param:
             notifications_orm = notifications_orm.filter(scope=scope_param)
