@@ -149,10 +149,11 @@ class EnterprisePwdViewSet(APIBaseViewSet):
         for member in members:
             status = member.status
             is_activated = member.is_activated
-            master_password_score = member.user.master_password_score
+            master_password_score = member.user.master_password_score if member.user else 0
             if status == E_MEMBER_STATUS_CONFIRMED:
                 e_members_status_confirmed_count += 1
-                confirmed_user_ids.append(member.user.user_id)
+                if member.user:
+                    confirmed_user_ids.append(member.user.user_id)
             elif status == E_MEMBER_STATUS_REQUESTED:
                 e_member_status_requested_count += 1
             elif status == E_MEMBER_STATUS_INVITED:
@@ -164,11 +165,11 @@ class EnterprisePwdViewSet(APIBaseViewSet):
             if status == E_MEMBER_STATUS_CONFIRMED and master_password_score <= 1:
                 weak_master_password_count += 1
             # Leak statistic
-            if status == E_MEMBER_STATUS_CONFIRMED and member.user.is_leaked is True:
+            if status == E_MEMBER_STATUS_CONFIRMED and member.user and member.user.is_leaked is True:
                 leaked_account_count += 1
 
             # Failed login
-            if status == E_MEMBER_STATUS_CONFIRMED and member.user.login_block_until and member.user.login_block_until >= now():
+            if status == E_MEMBER_STATUS_CONFIRMED and member.user and member.user.login_block_until and member.user.login_block_until >= now():
                 being_blocked_login.append({
                     "id": member.enterprise_member_id,
                     "user_id": member.user.user_id,
