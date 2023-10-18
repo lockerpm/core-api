@@ -436,7 +436,8 @@ class CipherORMRepository(CipherRepository):
 
         # Check limit ciphers
         existed_ciphers_orm = CipherORM.objects.filter(created_by_id=user_id).values('type').annotate(
-            count=Count('type'))
+            count=Count('type')
+        )
         existed_ciphers_count = {item["type"]: item["count"] for item in list(existed_ciphers_orm)}
 
         # Create multiple ciphers
