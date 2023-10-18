@@ -270,7 +270,7 @@ class StripePaymentMethod(PaymentMethod):
             "description": "Upgrade plan onetime payment",
             "plan": plan_type,
             "payment_method": PAYMENT_METHOD_CARD,
-            "duration": "Lifetime",
+            "duration": "lifetime",
             "currency": CURRENCY_USD,
             "promo_code": promo_code_str,
             "customer": user_service.get_customer_data(user=self.user_plan.user, id_card=card.get("id_card")),
