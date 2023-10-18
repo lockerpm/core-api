@@ -344,7 +344,12 @@ class PaymentPwdViewSet(APIBaseViewSet):
             raise ValidationError(detail={"non_field_errors": [gen_error("7016")]})
         except PaymentFailedByUserInLifetimeException:
             raise ValidationError(detail={"non_field_errors": [gen_error("7017")]})
-
+        except Exception as e:
+            import traceback
+            tb = traceback.format_exc()
+            from locker_server.shared.log.cylog import CyLog
+            CyLog.error(**{"message": f"[!] upgrade_lifetime_public error:::{tb}"})
+            raise e
         update_result = payment_result.get("success")
         if update_result is False:
             if payment_result.get("stripe_error"):
