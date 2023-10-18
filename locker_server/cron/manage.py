@@ -15,7 +15,7 @@ def generate_tasks():
             continue
         i = join(directory, item)
         if isfile(i):
-            module_name = 'cron.tasks.' + item.split('.')[0]
+            module_name = 'locker_server.cron.tasks.' + item.split('.')[0]
             task = factory(module_name)
             if task is not None:
                 result.append(task)

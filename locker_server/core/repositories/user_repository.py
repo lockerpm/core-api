@@ -32,7 +32,7 @@ class UserRepository(ABC):
         pass
 
     @abstractmethod
-    def tutorial_reminder(self, duration_unit: int):
+    def list_user_ids_tutorial_reminder(self, duration_unit: int) -> Dict:
         pass
 
     # ------------------------ Get User resource --------------------- #
