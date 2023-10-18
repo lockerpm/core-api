@@ -75,6 +75,12 @@ class UserService:
     def get_current_plan(self, user: User) -> PMUserPlan:
         return self.user_plan_repository.get_user_plan(user_id=user.user_id)
 
+    def update_plan(self, user_id: int, plan_type_alias: str, duration: str = DURATION_MONTHLY, scope: str = None,
+                    **kwargs):
+        return self.user_plan_repository.update_plan(
+            user_id=user_id, plan_type_alias=plan_type_alias, duration=duration, scope=scope, **kwargs
+        )
+
     def get_user_type(self, user: User) -> str:
         return self.user_repository.get_user_type(user_id=user.user_id)
 

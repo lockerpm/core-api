@@ -384,9 +384,14 @@ class PaymentService:
                 user_id=user_id, plan_type_alias=plan_obj.alias,
                 duration=DURATION_MONTHLY, scope=scope, **plan_metadata
             )
-
             # Cancel the current Stripe subscription: Free/Premium/Family
             self.user_plan_repository.cancel_plan(user=current_plan.user, immediately=True)
+            # Make sure the plan is upgraded
+            self.user_plan_repository.update_plan(
+                user_id=user_id, plan_type_alias=plan_obj.alias,
+                duration=DURATION_MONTHLY, scope=scope, **plan_metadata
+            )
+
             # Set default payment method
             self.user_plan_repository.set_default_payment_method(user_id=user_id, payment_method=PAYMENT_METHOD_CARD)
 
