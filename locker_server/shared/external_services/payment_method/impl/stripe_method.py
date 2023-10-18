@@ -252,7 +252,75 @@ class StripePaymentMethod(PaymentMethod):
         pass
 
     def onetime_payment(self, amount: float, plan_type: str, coupon=None, **kwargs):
-        pass
+        from locker_server.containers.containers import payment_service, user_service
+
+        card = kwargs.get("card")
+        if not card or isinstance(card, dict) is False or not card.get("stripe_customer_id"):
+            return {"success": False}
+        stripe_customer_id = card.get("stripe_customer_id")
+
+        # Crete new billing history
+        try:
+            promo_code_str = coupon.promo_code_id if coupon else None
+        except AttributeError:
+            promo_code_str = None
+
+        new_payment_data = {
+            "user_id": self.user_plan.user.user_id,
+            "description": "Upgrade plan onetime payment",
+            "plan": plan_type,
+            "payment_method": PAYMENT_METHOD_CARD,
+            "duration": "Lifetime",
+            "currency": CURRENCY_USD,
+            "promo_code": promo_code_str,
+            "customer": user_service.get_customer_data(user=self.user_plan.user, id_card=card.get("id_card")),
+            "scope": self.scope,
+            "metadata": kwargs
+        }
+        new_payment = payment_service.create_payment(**new_payment_data)
+        # Create new invoice item
+        stripe.InvoiceItem.create(
+            customer=stripe_customer_id,
+            description="Upgrade plan onetime payment",
+            unit_amount=int(amount * 100),
+            currency="USD",
+            metadata={
+                "scope": self.scope,
+                "user_id": self.user_plan.user.user_id,
+                "plan": plan_type
+            }
+        )
+        # Then, create onetime invoice for the user
+        new_stripe_invoice = stripe.Invoice.create(
+            customer=stripe_customer_id,
+            default_payment_method=card.get("id_card"),
+            metadata={
+                "scope": self.scope,
+                "user_id": self.user_plan.user.user_id,
+                "payment_id": new_payment.payment_id,
+            }
+        )
+        # Finalize new stripe invoice
+        stripe_invoice_id = new_stripe_invoice.get("id")
+        stripe.Invoice.finalize_invoice(stripe_invoice_id)
+        try:
+            paid_invoice = stripe.Invoice.pay(stripe_invoice_id)
+            print(paid_invoice)
+        except stripe.error.CardError as e:
+            return {
+                "success": False,
+                "stripe_error": True,
+                "error_details": self.handle_error(e)
+            }
+
+        new_payment = payment_service.update_payment(payment=new_payment, update_data={
+            "stripe_invoice_id": stripe_invoice_id,
+            "status": PAYMENT_STATUS_PAID
+        })
+        return {
+            "success": True,
+            "payment_id": new_payment.payment_id
+        }
 
     def update_quantity_subscription(self, new_quantity: int = None, amount: int = None):
         """

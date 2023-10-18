@@ -287,6 +287,8 @@ class PaymentORMRepository(PaymentRepository):
         payment_orm.total_price = update_data.get("total_price", payment_orm.total_price)
         payment_orm.discount = update_data.get("discount", payment_orm.discount)
         payment_orm.transaction_type = update_data.get("transaction_type", payment_orm.transaction_type)
+        payment_orm.stripe_invoice_id = update_data.get("stripe_invoice_id", payment_orm.stripe_invoice_id)
+        payment_orm.status = update_data.get("status", payment_orm.status)
         payment_orm.save()
         return ModelParser.payment_parser().parse_payment(payment_orm=payment_orm)
 
