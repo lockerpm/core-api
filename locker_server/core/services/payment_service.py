@@ -371,13 +371,8 @@ class PaymentService:
             user_plan=current_plan, scope=scope, payment_method=PAYMENT_METHOD_CARD
         )
         payment_result = payment.onetime_payment(
-            amount=immediate_payment, plan_type=plan_obj.get_alias(), coupon=promo_code_obj, **plan_metadata
+            amount=immediate_payment, plan_type=plan_obj.alias, coupon=promo_code_obj, **plan_metadata
 
-        )
-
-        payment_result = payment.upgrade_recurring_subscription(
-            amount=immediate_payment, plan_type=plan_obj.alias, coupon=promo_code_obj, duration=DURATION_MONTHLY,
-            **plan_metadata
         )
         if payment_result.get("success") is True:
             self.user_plan_repository.update_user_plan_by_id(user_plan_id=user_id, user_plan_update_data={
