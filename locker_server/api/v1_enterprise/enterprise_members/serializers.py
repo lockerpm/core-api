@@ -28,7 +28,7 @@ class DetailMemberSerializer(serializers.Serializer):
             "is_default": instance.is_default,
             "is_primary": instance.is_primary,
             "role": instance.role.name,
-            "user_id": instance.user.user_id,
+            "user_id": instance.user.user_id if instance.user else None,
             "email": instance.email,
             "status": instance.status,
             "is_activated": instance.is_activated,

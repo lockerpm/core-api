@@ -1,19 +1,12 @@
-from typing import Dict, Optional, List, NoReturn
-
-import requests
-from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
+from typing import Dict, Optional, List
 from django.db.models import Count
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_enterprise_group_model, get_team_member_model
 from locker_server.core.entities.enterprise.group.group import EnterpriseGroup
-from locker_server.core.entities.team import team
 from locker_server.core.repositories.enterprise_group_repository import EnterpriseGroupRepository
 from locker_server.shared.constants.members import MEMBER_ROLE_OWNER
-from locker_server.shared.external_services.requester.retry_requester import requester
 from locker_server.shared.utils.app import now
-
 
 EnterpriseGroupORM = get_enterprise_group_model()
 TeamMemberORM = get_team_member_model()

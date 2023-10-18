@@ -126,7 +126,7 @@ class UserORMRepository(UserRepository):
                 users_orm = users_orm.filter(activated=False)
         return users_orm.count()
 
-    def tutorial_reminder(self, duration_unit: int):
+    def list_user_ids_tutorial_reminder(self, duration_unit: int) -> Dict:
         current_time = now()
 
         users_orm = UserORM.objects.filter()
@@ -136,37 +136,22 @@ class UserORMRepository(UserRepository):
         exclude_enterprise_users_orm = users_orm.exclude(user_id__in=enterprise_user_ids)
 
         # 3 days
-        users_3days_orm = users_orm.filter(
+        user_ids_3days = users_orm.filter(
             creation_date__range=(current_time - 3 * duration_unit, current_time - 2 * duration_unit)
         ).values_list('user_id', flat=True)
-        BackgroundFactory.get_background(bg_name=BG_NOTIFY, background=False).run(
-            func_name="notify_tutorial", **{
-                "job": "tutorial_day_3_add_items", "user_ids": list(users_3days_orm),
-            }
-        )
 
         # 5 days
-        users_5days_orm = users_orm.filter(
+        user_ids_5days = users_orm.filter(
             creation_date__range=(current_time - 5 * duration_unit, current_time - 4 * duration_unit)
         ).values_list('user_id', flat=True)
-        BackgroundFactory.get_background(bg_name=BG_NOTIFY, background=False).run(
-            func_name="notify_tutorial", **{
-                "job": "tutorial_day_5_download", "user_ids": list(users_5days_orm),
-            }
-        )
 
         # 7 days
-        users_7days_orm = users_orm.filter(
+        user_ids_7days = users_orm.filter(
             creation_date__range=(current_time - 7 * duration_unit, current_time - 6 * duration_unit)
         ).values_list('user_id', flat=True)
-        BackgroundFactory.get_background(bg_name=BG_NOTIFY, background=False).run(
-            func_name="notify_tutorial", **{
-                "job": "tutorial_day_7_autofill", "user_ids": list(users_7days_orm),
-            }
-        )
 
         # 13 days
-        users_13days_orm = exclude_enterprise_users_orm.exclude(
+        user_ids_13days = exclude_enterprise_users_orm.exclude(
             pm_user_plan__start_period__isnull=True
         ).exclude(
             pm_user_plan__end_period__isnull=True
@@ -176,21 +161,18 @@ class UserORMRepository(UserRepository):
         ).filter(
             plan_period__lte=15 * duration_unit, remain_period__lte=duration_unit, remain_period__gte=0
         ).values_list('user_id', flat=True)
-        BackgroundFactory.get_background(bg_name=BG_NOTIFY, background=False).run(
-            func_name="notify_tutorial", **{
-                "job": "tutorial_day_13_trial_end", "user_ids": list(users_13days_orm),
-            }
-        )
 
         # 20 days
-        users_20days_orm = exclude_enterprise_users_orm.filter(
+        user_ids_20days = exclude_enterprise_users_orm.filter(
             creation_date__range=(current_time - 20 * duration_unit, current_time - 19 * duration_unit)
         ).values_list('user_id', flat=True)
-        BackgroundFactory.get_background(bg_name=BG_NOTIFY, background=False).run(
-            func_name="notify_tutorial", **{
-                "job": "tutorial_day_20_refer_friend", "user_ids": list(users_20days_orm),
-            }
-        )
+        return {
+            "user_ids_3days": list(user_ids_3days),
+            "user_ids_5days": list(user_ids_5days),
+            "user_ids_7days": list(user_ids_7days),
+            "user_ids_13days": list(user_ids_13days),
+            "user_ids_20days": list(user_ids_20days),
+        }
 
     # ------------------------ Get User resource --------------------- #
     def get_user_by_id(self, user_id: int) -> Optional[User]:
