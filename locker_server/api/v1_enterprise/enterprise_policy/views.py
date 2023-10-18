@@ -4,6 +4,7 @@ from rest_framework.exceptions import NotFound, ValidationError
 
 from locker_server.core.exceptions.enterprise_exception import EnterpriseDoesNotExistException
 from locker_server.core.exceptions.enterprise_policy_exception import EnterprisePolicyDoesNotExistException
+from locker_server.shared.background.i_background import background_exception_wrapper, BackgroundThread
 from locker_server.shared.constants.policy import POLICY_TYPE_PASSWORD_REQUIREMENT, \
     POLICY_TYPE_MASTER_PASSWORD_REQUIREMENT, POLICY_TYPE_BLOCK_FAILED_LOGIN, POLICY_TYPE_PASSWORDLESS, POLICY_TYPE_2FA
 from locker_server.shared.error_responses.error import gen_error
@@ -91,4 +92,16 @@ class PolicyPwdViewSet(APIBaseViewSet):
             policy=policy,
             policy_update_data=validated_data
         )
+        BackgroundThread(task=self.delete_cache_enterprise_members, **{"enterprise": policy.enterprise})
         return Response(status=status.HTTP_200_OK, data={"success": True})
+
+    @background_exception_wrapper
+    def delete_cache_enterprise_members(self, enterprise):
+        user_ids = self.enterprise_member_service.list_enterprise_member_user_ids(**{
+            "enterprise_id": enterprise.enterprise_id
+        })
+        for user_id in user_ids:
+            if not user_id:
+                continue
+            self.user_service.delete_sync_cache_data(user_id=user_id)
+
