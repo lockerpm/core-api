@@ -222,7 +222,7 @@ class UserService:
         self.enterprise_member_repository.enterprise_share_groups_confirm(user=user)
         # Update lifetime mail
         if user.saas_source:
-            if current_plan.pm_plan.alias == PLAN_TYPE_PM_LIFETIME:
+            if current_plan.pm_plan.alias in [PLAN_TYPE_PM_LIFETIME, PLAN_TYPE_PM_LIFETIME_FAMILY]:
                 BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
                     func_name="notify_locker_mail", **{
                         "user_ids": [user.user_id],
