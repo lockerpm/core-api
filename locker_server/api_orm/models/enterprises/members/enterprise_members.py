@@ -18,7 +18,8 @@ class EnterpriseMemberORM(AbstractEnterpriseMemberORM):
             is_primary=data.get("is_primary", False),
             is_default=data.get("is_default", False),
             token_invitation=data.get("token_invitation", None),
-            access_time=now()
+            access_time=now(),
+            email=data.get("email", None),
         )
         member_orm.save()
         return member_orm
