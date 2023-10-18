@@ -55,12 +55,12 @@ class EmergencyAccessORMRepository(EmergencyAccessRepository):
                                 grantee_id: int = None, email: str = None) -> bool:
         if grantee_id is not None:
             if EmergencyAccessORM.objects.filter(
-                    grantor_id=grantor_id, type=emergency_access_type, grantee_id=grantee_id
+                grantor_id=grantor_id, type=emergency_access_type, grantee_id=grantee_id
             ).exists():
                 return True
         if email is not None:
             if EmergencyAccessORM.objects.filter(
-                    grantor_id=grantor_id, type=emergency_access_type, email=email
+                grantor_id=grantor_id, type=emergency_access_type, email=email
             ).exists():
                 return True
         return False

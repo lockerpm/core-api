@@ -62,7 +62,9 @@ class PaymentParser:
             description_vi=promo_code_orm.description_vi,
             promo_code_type=cls.parse_promo_code_type(promo_code_type_orm=promo_code_orm.type),
             is_saas_code=promo_code_orm.is_saas_code,
-            saas_market=cls.parse_saas_market(saas_market_orm=promo_code_orm.saas_market),
+            saas_market=cls.parse_saas_market(
+                saas_market_orm=promo_code_orm.saas_market
+            ) if promo_code_orm.saas_market else None,
             saas_plan=promo_code_orm.saas_plan,
             only_user=user_parser.parse_user(user_orm=promo_code_orm.only_user) if promo_code_orm.only_user else None,
             only_period=promo_code_orm.only_period,
