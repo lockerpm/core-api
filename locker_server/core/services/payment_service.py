@@ -341,7 +341,7 @@ class PaymentService:
             if not promo_code_obj:
                 raise PaymentPromoCodeInvalidException
         current_plan = self.user_plan_repository.get_user_plan(user_id=user_id)
-        if current_plan.pm_plan.alias in [PLAN_TYPE_PM_LIFETIME, PLAN_TYPE_PM_LIFETIME_FAMILY]:
+        if current_plan.pm_plan.alias == plan_alias:
             raise PaymentFailedByUserInLifetimeException
         if plan_alias == PLAN_TYPE_PM_LIFETIME_FAMILY:
             if self.user_plan_repository.is_family_member(user_id=user_id):
