@@ -415,7 +415,38 @@ class CronTaskService:
         })
 
     def tutorial_reminder(self, duration_unit):
-        self.user_repository.tutorial_reminder(duration_unit=duration_unit)
+        user_ids_dict = self.user_repository.list_user_ids_tutorial_reminder(duration_unit=duration_unit)
+        user_ids_3days = user_ids_dict.get("user_ids_3days")
+        user_ids_5days = user_ids_dict.get("user_ids_5days")
+        user_ids_7days = user_ids_dict.get("user_ids_7days")
+        user_ids_13days = user_ids_dict.get("user_ids_13days")
+        user_ids_20days = user_ids_dict.get("user_ids_20days")
+
+        BackgroundFactory.get_background(bg_name=BG_NOTIFY, background=False).run(
+            func_name="notify_tutorial", **{
+                "job": "tutorial_day_3_add_items", "user_ids": user_ids_3days,
+            }
+        )
+        BackgroundFactory.get_background(bg_name=BG_NOTIFY, background=False).run(
+            func_name="notify_tutorial", **{
+                "job": "tutorial_day_5_download", "user_ids": user_ids_5days,
+            }
+        )
+        BackgroundFactory.get_background(bg_name=BG_NOTIFY, background=False).run(
+            func_name="notify_tutorial", **{
+                "job": "tutorial_day_7_autofill", "user_ids": user_ids_7days,
+            }
+        )
+        BackgroundFactory.get_background(bg_name=BG_NOTIFY, background=False).run(
+            func_name="notify_tutorial", **{
+                "job": "tutorial_day_13_trial_end", "user_ids": user_ids_13days,
+            }
+        )
+        BackgroundFactory.get_background(bg_name=BG_NOTIFY, background=False).run(
+            func_name="notify_tutorial", **{
+                "job": "tutorial_day_20_refer_friend", "user_ids": user_ids_20days,
+            }
+        )
 
     def breach_scan(self):
         enterprises = self.enterprise_repository.list_enterprises(**{
@@ -439,4 +470,5 @@ class CronTaskService:
                         user_update_data={
                             "is_leaked": True
                         }
+
                     )
