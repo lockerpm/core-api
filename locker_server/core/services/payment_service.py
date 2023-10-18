@@ -350,7 +350,7 @@ class PaymentService:
             if self.user_plan_repository.is_in_family_plan(user_plan=current_plan):
                 raise PaymentFailedByUserInFamilyException
 
-        plan_obj = self.plan_repository.get_plan_by_alias(alias=PLAN_TYPE_PM_LIFETIME)
+        plan_obj = self.plan_repository.get_plan_by_alias(alias=plan_alias)
         plan_metadata = {
             "start_period": now(),
             "end_period": None,
