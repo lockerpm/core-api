@@ -350,8 +350,6 @@ class PaymentService:
             if self.user_plan_repository.is_in_family_plan(user_plan=current_plan):
                 raise PaymentFailedByUserInFamilyException
 
-
-
         plan_obj = self.plan_repository.get_plan_by_alias(alias=PLAN_TYPE_PM_LIFETIME)
         plan_metadata = {
             "start_period": now(),
@@ -372,6 +370,11 @@ class PaymentService:
         payment = PaymentMethodFactory.get_method(
             user_plan=current_plan, scope=scope, payment_method=PAYMENT_METHOD_CARD
         )
+        payment_result = payment.onetime_payment(
+            amount=immediate_payment, plan_type=plan_obj.get_alias(), coupon=promo_code_obj, **plan_metadata
+
+        )
+
         payment_result = payment.upgrade_recurring_subscription(
             amount=immediate_payment, plan_type=plan_obj.alias, coupon=promo_code_obj, duration=DURATION_MONTHLY,
             **plan_metadata
@@ -703,3 +706,9 @@ class PaymentService:
             user_id=current_user.user_id,
             code=promo_code
         )
+
+    def create_payment(self, **payment_data) -> Payment:
+        return self.payment_repository.create_payment(**payment_data)
+
+    def update_payment(self, payment: Payment, update_data) -> Payment:
+        return self.payment_repository.update_payment(payment=payment, update_data=update_data)

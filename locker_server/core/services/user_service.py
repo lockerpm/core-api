@@ -618,3 +618,6 @@ class UserService:
         return self.user_repository.get_user_cipher_overview(
             user_id=user_id
         )
+
+    def get_customer_data(self, user: User, token_card=None, id_card=None):
+        return self.user_repository.get_customer_data(user=user, token_card=token_card, id_card=id_card)
