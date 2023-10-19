@@ -97,7 +97,6 @@ class MobilePaymentService:
             BackgroundFactory.get_background(bg_name=BG_NOTIFY, background=False).run(
                 func_name="trial_successfully", **{
                     "user_id": new_payment.user.user_id,
-                    "scope": new_payment.scope,
                     "plan": new_payment.plan,
                     "payment_method": new_payment.payment_method,
                     "duration": TRIAL_PERSONAL_DURATION_TEXT
