@@ -1,6 +1,7 @@
 import io
+import json
 import traceback
-from typing import Tuple, Dict, List, Optional, NoReturn
+from typing import Dict, List
 
 import django_rq
 import xlsxwriter
@@ -69,6 +70,7 @@ class EventService:
             } if user_data else None
             metadata = log.get("metadata", {})
             metadata.update({"user_email": user_data.get("email") if user_data else "Former user"})
+            activity_log.metadata = json.dumps(metadata)
             log["description"] = activity_log.get_description(use_html=use_html)
             log.pop("metadata", None)
             logs.append(log)

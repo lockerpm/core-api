@@ -77,8 +77,6 @@ class SyncPwdViewSet(APIBaseViewSet):
         if response_cache_data:
             return Response(status=status.HTTP_200_OK, data=response_cache_data)
 
-        policies = self.enterprise_service.list_policies_by_user(user_id=user.user_id)
-
         # Check team policies
         block_team_ids = []
         # for policy in policies:
@@ -107,27 +105,17 @@ class SyncPwdViewSet(APIBaseViewSet):
                 ciphers_page = []
 
         ciphers_serializer = SyncCipherSerializer(ciphers_page, many=True, context={"user": user})
-        folders = self.folder_service.get_multiple_by_user(user_id=user.user_id)
-        collections = self.collection_service.list_user_collections(
-            user_id=user.user_id, exclude_team_ids=block_team_ids
-        )
         sync_data = {
             "object": "sync",
             "count": statistic_count,
-            "profile": SyncProfileSerializer(user, many=False, context=self.get_serializer_context()).data,
             "ciphers": ciphers_serializer.data,
-            "collections": SyncCollectionSerializer(collections, many=True, context={"user": user}).data,
-            "folders": SyncFolderSerializer(folders, many=True).data,
-            "domains": None,
-            "policies": SyncEnterprisePolicySerializer(policies, many=True).data,
-            "sends": []
         }
         if settings.SELF_HOSTED:
             sync_data["profile"]["email"] = user.email
             sync_data["profile"]["name"] = user.full_name
         sync_data = camel_snake_data(sync_data, snake_to_camel=True)
         cache.set(cache_key, sync_data, SYNC_CACHE_TIMEOUT)
-        return Response(status=200, data=sync_data)
+        return Response(status=status.HTTP_200_OK, data=sync_data)
 
     @action(methods=["get"], detail=False)
     def sync_count(self, request, *args, **kwargs):
