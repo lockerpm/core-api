@@ -293,13 +293,15 @@ class CipherPwdViewSet(APIBaseViewSet):
         folder_id = validated_data.get("folderId")
 
         try:
-            self.cipher_service.move_multiple_cipher(
+            moved_cipher_ids = self.cipher_service.move_multiple_cipher(
                 cipher_ids=cipher_ids, user_id_moved=self.request.user.user_id, folder_id=folder_id
             )
         except FolderDoesNotExistException:
             raise ValidationError(detail={"folderId": ["This folder does not exist"]})
         self.user_service.delete_sync_cache_data(user_id=request.user.user_id)
-        PwdSync(event=SYNC_EVENT_VAULT, user_ids=[request.user.user_id]).send()
+        PwdSync(event=SYNC_EVENT_CIPHER_UPDATE, user_ids=[request.user.user_id]).send(
+            data={"ids": moved_cipher_ids}
+        )
         return Response(status=status.HTTP_200_OK, data={"success": True})
 
     # ----------------- (DEPRECATED) ---------------------- #

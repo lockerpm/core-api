@@ -98,7 +98,7 @@ class CipherRepository(ABC):
         pass
 
     @abstractmethod
-    def move_multiple_cipher(self, cipher_ids: List[str], user_id_moved: int, folder_id: str):
+    def move_multiple_cipher(self, cipher_ids: List[str], user_id_moved: int, folder_id: str) -> List[str]:
         pass
 
     # ------------------------ Delete Cipher resource --------------------- #
