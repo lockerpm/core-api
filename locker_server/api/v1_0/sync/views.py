@@ -11,15 +11,10 @@ from locker_server.api.permissions.locker_permissions.sync_pwd_permission import
 from locker_server.core.exceptions.cipher_exception import FolderDoesNotExistException, CipherDoesNotExistException
 from locker_server.core.exceptions.collection_exception import CollectionDoesNotExistException
 from locker_server.core.exceptions.team_member_exception import TeamMemberDoesNotExistException
-from locker_server.shared.background.i_background import background_exception_wrapper, BackgroundThread
 from locker_server.shared.caching.sync_cache import SYNC_CACHE_TIMEOUT
 from locker_server.shared.constants.account import LOGIN_METHOD_PASSWORDLESS
 from locker_server.shared.constants.ciphers import CIPHER_TYPE_MASTER_PASSWORD
 from locker_server.shared.constants.members import MEMBER_ROLE_MEMBER
-from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
-from locker_server.shared.external_services.locker_background.constants import BG_NOTIFY
-from locker_server.shared.external_services.websocket.websocket_sender import WebSocketSender
-from locker_server.shared.general_websocket_consumer import WS_PWD_SYNC_GROUP_NAME
 from locker_server.shared.utils.app import camel_snake_data
 from .serializers import SyncFolderSerializer, SyncCollectionSerializer, SyncEnterprisePolicySerializer, \
     SyncCipherSerializer, SyncProfileSerializer, SyncOrgDetailSerializer
@@ -127,21 +122,10 @@ class SyncPwdViewSet(APIBaseViewSet):
             "policies": SyncEnterprisePolicySerializer(policies, many=True).data,
             "sends": []
         }
-        sync_data = camel_snake_data(sync_data, snake_to_camel=True)
         if settings.SELF_HOSTED:
             sync_data["profile"]["email"] = user.email
             sync_data["profile"]["name"] = user.full_name
-            BackgroundThread(
-                task=self.send_sync_data,
-                user_id=user.user_id,
-                message={
-                    "event": "sync",
-                    "type": f"sync_data",
-                    "data": {
-                        "sync_data": sync_data
-                    }
-                }
-            )
+        sync_data = camel_snake_data(sync_data, snake_to_camel=True)
         cache.set(cache_key, sync_data, SYNC_CACHE_TIMEOUT)
         return Response(status=200, data=sync_data)
 
@@ -266,10 +250,3 @@ class SyncPwdViewSet(APIBaseViewSet):
         serializer = SyncEnterprisePolicySerializer(policies, many=True)
         result = camel_snake_data(serializer.data, snake_to_camel=True)
         return Response(status=status.HTTP_200_OK, data=result)
-
-    @background_exception_wrapper
-    def send_sync_data(self, user_id, message):
-        WebSocketSender.send_message(
-            group_name=f"{WS_PWD_SYNC_GROUP_NAME}".format(user_id),
-            message=message
-        )
