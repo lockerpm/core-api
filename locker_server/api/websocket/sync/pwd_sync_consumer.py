@@ -78,8 +78,6 @@ class PwdSyncConsumer(AppGeneralWebsocketConsumer):
             event_data_event = "members"
         elif event_data_type.startswith("emergency"):
             event_data_event = "emergency_access"
-        elif event_data_type.startswith("quick_share"):
-            event_data_event = "quick_share"
         content = {
             "event": event_data_event,
             "type": event_data_type,
