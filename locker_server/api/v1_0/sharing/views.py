@@ -603,7 +603,7 @@ class SharingPwdViewSet(APIBaseViewSet):
 
         try:
             result = self.sharing_service.add_member(
-                sharing=personal_share, members=members, groups=groups
+                user=user, sharing=personal_share, members=members, groups=groups
             )
         except CollectionDoesNotExistException:
             raise NotFound
