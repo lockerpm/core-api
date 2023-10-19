@@ -1,7 +1,8 @@
 from django.db import connection
 
 from locker_server.shared.external_services.locker_background.background import LockerBackground
-from locker_server.shared.external_services.pm_sync import PwdSync, SYNC_EVENT_CIPHER_DELETE, SYNC_EVENT_VAULT
+from locker_server.shared.external_services.pm_sync import PwdSync, SYNC_EVENT_CIPHER_DELETE, SYNC_EVENT_VAULT, \
+    SYNC_EVENT_CIPHER_RESTORE
 
 
 class CipherBackground(LockerBackground):
@@ -36,7 +37,9 @@ class CipherBackground(LockerBackground):
             # Sync event
             restored_ciphers = cipher_service.get_multiple_by_ids(cipher_ids=restored_cipher_ids)
             teams = [restored_cipher.team for restored_cipher in restored_ciphers if restored_cipher.team]
-            PwdSync(event=SYNC_EVENT_VAULT, user_ids=[user.user_id], teams=teams, add_all=True).send()
+            PwdSync(event=SYNC_EVENT_CIPHER_RESTORE, user_ids=[user.user_id], teams=teams, add_all=True).send(
+                data={"ids": list(restored_cipher_ids)}
+            )
         except Exception as e:
             self.log_error(func_name="multiple_restore")
         finally:
