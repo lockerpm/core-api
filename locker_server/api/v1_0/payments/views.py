@@ -250,7 +250,7 @@ class PaymentPwdViewSet(APIBaseViewSet):
     @action(methods=["post"], detail=False)
     def upgrade_lifetime(self, request, *args, **kwargs):
         user = self.request.user
-        if user.enterprise_members.filter().exists():
+        if self.enterprise_service.is_in_enterprise(user_id=user.user_id):
             raise ValidationError(detail={"non_field_errors": [gen_error("7015")]})
         # current_plan = self.user_repository.get_current_plan(user=user, scope=settings.SCOPE_PWD_MANAGER)
         serializer = self.get_serializer(data=request.data)
@@ -259,7 +259,7 @@ class PaymentPwdViewSet(APIBaseViewSet):
         code = validated_data.get("code")
 
         try:
-            self.payment_service.upgrade_lifetime(user_id=user.user_id, code=code, scope=settings.SC)
+            self.payment_service.upgrade_lifetime(user_id=user.user_id, code=code, scope=settings.SCOPE_PWD_MANAGER)
         except EnterpriseMemberExistedException:
             raise ValidationError(detail={"non_field_errors": [gen_error("7015")]})
         except PaymentPromoCodeInvalidException:
