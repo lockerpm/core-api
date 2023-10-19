@@ -1,8 +1,7 @@
 from django.db import connection
 
 from locker_server.shared.external_services.locker_background.background import LockerBackground
-from locker_server.shared.external_services.pm_sync import PwdSync, SYNC_EVENT_CIPHER_DELETE, SYNC_EVENT_VAULT, \
-    SYNC_EVENT_CIPHER_RESTORE
+from locker_server.shared.external_services.pm_sync import PwdSync, SYNC_EVENT_CIPHER_DELETE, SYNC_EVENT_CIPHER_RESTORE
 
 
 class CipherBackground(LockerBackground):
