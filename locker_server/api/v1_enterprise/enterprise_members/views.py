@@ -532,14 +532,15 @@ class MemberPwdViewSet(APIBaseViewSet):
         enterprise = enterprise_member.enterprise
         primary_user = self.enterprise_service.get_primary_member(enterprise_id=enterprise.enterprise_id).user
         current_plan = self.user_service.get_current_plan(user=primary_user)
-        from_param = current_plan.start_period if current_plan.start_period else current_plan.creation_date
+        from_param = current_plan.start_period if current_plan.start_period else enterprise.creation_date
         to_param = current_plan.end_period if current_plan.end_period else now()
         events = self.event_service.list_events(**{
             "team_id": enterprise.enterprise_id,
             "types": [EVENT_E_MEMBER_ENABLED, EVENT_E_MEMBER_CONFIRMED],
             "user_id": enterprise_member.user.user_id if enterprise_member.user else None,
+            "from": from_param,
+            "to": to_param,
             "creation_date_range": (from_param, to_param)
-
         })
         if not events:
             return True
@@ -555,8 +556,9 @@ class MemberPwdViewSet(APIBaseViewSet):
             "team_id": enterprise.enterprise_id,
             "types": [EVENT_E_MEMBER_DISABLED, EVENT_E_MEMBER_REMOVED],
             "user_id": enterprise_member.user.user_id if enterprise_member.user else None,
+            "from": from_param,
+            "to": to_param,
             "creation_date_range": (from_param, to_param)
-
         })
         if not events:
             return True
