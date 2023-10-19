@@ -182,7 +182,7 @@ class PaymentPwdViewSet(APIBaseViewSet):
         trial_applied = current_plan.is_personal_trial_applied()
         if trial_applied is True:
             raise ValidationError({"non_field_errors": [gen_error("7013")]})
-        if self.enterprise_service.is_in_enterprise(user_id=user, enterprise_locked=False):
+        if self.enterprise_service.is_in_enterprise(user_id=user.user_id, enterprise_locked=False):
             raise ValidationError(detail={"non_field_errors": [gen_error("7015")]})
 
         plan_metadata = {
