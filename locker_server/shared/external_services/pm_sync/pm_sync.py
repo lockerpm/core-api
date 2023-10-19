@@ -52,14 +52,22 @@ class PwdSync:
                 for user_id in user_ids:
                     delete_sync_cache_data(user_id=user_id)
             user_ids = list(set(user_ids))
-            for user_id in user_ids:
-                WebSocketSender.send_message(
-                    group_name=f"{WS_PWD_SYNC_GROUP_NAME}".format(user_id),
-                    message={
-                        "event": self.event,
-                        "data": data
-                    }
-                )
+            if settings.SELF_HOSTED:
+                for user_id in user_ids:
+                    WebSocketSender.send_message(
+                        group_name=WS_PWD_SYNC_GROUP_NAME.format(user_id),
+                        message={
+                            "event": self.event,
+                            "data": data
+                        }
+                    )
+            else:
+                requester(method="POST", url=API_SYNC, headers=HEADERS, timeout=10, data_send={
+                    "event": self.event,
+                    "user_ids": list(set(user_ids)),
+                    "data": data
+                })
+
         except (requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout,
                 requests.exceptions.ReadTimeout):
             pass
