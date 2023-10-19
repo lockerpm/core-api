@@ -204,9 +204,10 @@ class CipherService:
             folder = self.folder_repository.get_by_id(folder_id=folder_id)
             if not folder or folder.user.user_id != user_id_moved:
                 raise FolderDoesNotExistException
-        self.cipher_repository.move_multiple_cipher(
+        moved_cipher_ids = self.cipher_repository.move_multiple_cipher(
             cipher_ids=cipher_ids, user_id_moved=user_id_moved, folder_id=folder_id
         )
+        return moved_cipher_ids
 
     def check_member_belongs_cipher_collections(self, cipher: Cipher, member: TeamMember) -> bool:
         return self.cipher_repository.check_member_belongs_cipher_collections(cipher, member)

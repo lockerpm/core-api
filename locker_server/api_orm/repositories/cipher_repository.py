@@ -558,17 +558,20 @@ class CipherORMRepository(CipherRepository):
         bump_account_revision_date(user=cipher_orm.user)
         return ModelParser.cipher_parser().parse_cipher(cipher_orm=cipher_orm)
 
-    def move_multiple_cipher(self, cipher_ids: List[str], user_id_moved: int, folder_id: str):
+    def move_multiple_cipher(self, cipher_ids: List[str], user_id_moved: int, folder_id: str) -> List[str]:
         # Filter list ciphers of users
         ciphers_orm = self._get_multiple_ciphers_orm_by_user(
             user_id=user_id_moved
         ).filter(
             id__in=cipher_ids, deleted_date__isnull=True
         ).exclude(type__in=IMMUTABLE_CIPHER_TYPES)
+        moved_cipher_ids = []
         for cipher_orm in ciphers_orm:
             cipher_orm.set_folder(user_id=user_id_moved, folder_id=folder_id)
+            moved_cipher_ids.append(cipher_orm.id)
         # Bump revision date of user
         bump_account_revision_date(user=self._get_user_orm(user_id=user_id_moved))
+        return moved_cipher_ids
 
     # ------------------------ Delete Cipher resource --------------------- #
     def delete_permanent_multiple_cipher_by_teams(self, team_ids):
