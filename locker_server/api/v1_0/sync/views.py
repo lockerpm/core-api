@@ -81,10 +81,6 @@ class SyncPwdViewSet(APIBaseViewSet):
 
         # Check team policies
         block_team_ids = []
-        # for policy in policies:
-        #     check_policy = self.team_repository.check_team_policy(request=request, team=policy.team)
-        #     if check_policy is False:
-        #         block_team_ids.append(policy.team_id)
 
         # Check the login method to exclude
         exclude_types = []
@@ -158,6 +154,43 @@ class SyncPwdViewSet(APIBaseViewSet):
         }
         sync_count_data = camel_snake_data(sync_count_data, snake_to_camel=True)
         return Response(status=status.HTTP_200_OK, data=sync_count_data)
+
+    @action(methods=["get"], detail=False)
+    def sync_ciphers(self, request, *args, **kwargs):
+        user = self.request.user
+        self.check_pwd_session_auth(request=request)
+
+        paging_param = self.request.query_params.get("paging", "0")
+        page_size_param = self.check_int_param(self.request.query_params.get("size", 50))
+        page_param = self.check_int_param(self.request.query_params.get("page", 1))
+        # Check team policies
+        block_team_ids = []
+        # for policy in policies:
+        #     check_policy = self.team_repository.check_team_policy(request=request, team=policy.team)
+        #     if check_policy is False:
+        #         block_team_ids.append(policy.team_id)
+
+        # Check the login method to exclude
+        exclude_types = []
+        if user.login_method == LOGIN_METHOD_PASSWORDLESS:
+            exclude_types = [CIPHER_TYPE_MASTER_PASSWORD]
+
+        sync_statistic_ciphers = self.cipher_service.sync_and_statistic_ciphers(
+            user_id=user.user_id, exclude_team_ids=block_team_ids, exclude_types=exclude_types
+        )
+        ciphers = sync_statistic_ciphers.get("ciphers")
+
+        if paging_param == "0":
+            ciphers_page = ciphers
+        else:
+            try:
+                paginator = Paginator(list(ciphers), page_size_param or 50)
+                ciphers_page = paginator.page(page_param).object_list
+            except EmptyPage:
+                ciphers_page = []
+        serializer = SyncCipherSerializer(ciphers_page, many=True, context={"user": user})
+        result = camel_snake_data(serializer.data, snake_to_camel=True)
+        return Response(status=status.HTTP_200_OK, data=result)
 
     @action(methods=["get"], detail=False)
     def sync_cipher_detail(self, request, *args, **kwargs):

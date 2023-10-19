@@ -4,19 +4,16 @@ from rest_framework.routers import DefaultRouter
 from locker_server.api.v1_0 import views
 from locker_server.shared.caching.api_cache_page import LONG_TIME_CACHE
 
-
 router = DefaultRouter(trailing_slash=False)
 
 urlpatterns = [
     url(r'^', include(router.urls))
 ]
 
-
 # ------------------------------- Management Command ----------------------------- #
 urlpatterns += [
 
 ]
-
 
 # ----------------------------------- Resources ----------------------------- #
 urlpatterns += [
@@ -25,13 +22,11 @@ urlpatterns += [
     url(r'^resources/mail_providers$', views.ResourcePwdViewSet.as_view({'get': 'mail_providers'})),
 ]
 
-
 # ----------------------------------- Tools ----------------------------- #
 urlpatterns += [
     url(r'^tools/breach$', views.ToolPwdViewSet.as_view({'post': 'breach'})),
     url(r'^tools/public/breach$', views.ToolPwdViewSet.as_view({'post': 'public_breach'})),
 ]
-
 
 # ----------------------------------- Exclude domains ----------------------------- #
 urlpatterns += [
@@ -39,7 +34,6 @@ urlpatterns += [
     url(r'^exclude_domains/(?P<pk>[a-z0-9\-]+)$',
         views.ExcludeDomainPwdViewSet.as_view({'get': 'retrieve', 'delete': 'destroy'})),
 ]
-
 
 # ----------------------------------- Users ----------------------------- #
 urlpatterns += [
@@ -85,6 +79,7 @@ urlpatterns += [
 # -------------------------------- Sync ----------------------------------- #
 urlpatterns += [
     url(r'^sync$', views.SyncPwdViewSet.as_view({'get': 'sync'})),
+    url(r'^sync/ciphers$', views.SyncPwdViewSet.as_view({'get': 'sync_ciphers'})),
     url(r'^sync/ciphers/(?P<pk>[0-9a-z\-]+)$', views.SyncPwdViewSet.as_view({'get': 'sync_cipher_detail'})),
     url(r'^sync/folders$', views.SyncPwdViewSet.as_view({'get': 'sync_folders'})),
     url(r'^sync/folders/(?P<pk>[0-9a-z\-]+)$', views.SyncPwdViewSet.as_view({'get': 'sync_folder_detail'})),
@@ -219,5 +214,3 @@ urlpatterns += [
     url(r'^family/members$', views.FamilyPwdViewSet.as_view({'get': 'member_list', 'post': 'member_create'})),
     url(r'^family/members/(?P<member_id>[0-9]+)$', views.FamilyPwdViewSet.as_view({'delete': 'member_destroy'})),
 ]
-
-
