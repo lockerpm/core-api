@@ -176,10 +176,32 @@ class SyncPwdViewSet(APIBaseViewSet):
         return Response(status=status.HTTP_200_OK, data=result)
 
     @action(methods=["get"], detail=False)
+    def sync_folders(self, request, *args, **kwargs):
+        self.check_pwd_session_auth(request=request)
+        user = self.request.user
+        folders = self.folder_service.get_multiple_by_user(user_id=user.user_id)
+        serializer = SyncFolderSerializer(folders, many=True)
+        result = camel_snake_data(serializer.data, snake_to_camel=True)
+        return Response(status=status.HTTP_200_OK, data=result)
+
+    @action(methods=["get"], detail=False)
     def sync_folder_detail(self, request, *args, **kwargs):
         self.check_pwd_session_auth(request=request)
         folder = self.get_folder_obj()
         serializer = SyncFolderSerializer(folder, many=False)
+        result = camel_snake_data(serializer.data, snake_to_camel=True)
+        return Response(status=status.HTTP_200_OK, data=result)
+
+    @action(methods=["get"], detail=False)
+    def sync_collections(self, request, *args, **kwargs):
+        user = self.request.user
+        self.check_pwd_session_auth(request=request)
+        # Check team policies
+        block_team_ids = []
+        collections = self.collection_service.list_user_collections(
+            user_id=user.user_id, exclude_team_ids=block_team_ids
+        )
+        serializer = SyncCollectionSerializer(collections, many=True, context={"user": user})
         result = camel_snake_data(serializer.data, snake_to_camel=True)
         return Response(status=status.HTTP_200_OK, data=result)
 
@@ -214,5 +236,14 @@ class SyncPwdViewSet(APIBaseViewSet):
         except TeamMemberDoesNotExistException:
             raise NotFound
         serializer = SyncOrgDetailSerializer(team_member, many=False, context=self.get_serializer_context())
+        result = camel_snake_data(serializer.data, snake_to_camel=True)
+        return Response(status=status.HTTP_200_OK, data=result)
+
+    @action(methods=["get"], detail=False)
+    def sync_policies(self, request, *args, **kwargs):
+        user = self.request.user
+        self.check_pwd_session_auth(request=request)
+        policies = self.enterprise_service.list_policies_by_user(user_id=user.user_id)
+        serializer = SyncEnterprisePolicySerializer(policies, many=True)
         result = camel_snake_data(serializer.data, snake_to_camel=True)
         return Response(status=status.HTTP_200_OK, data=result)

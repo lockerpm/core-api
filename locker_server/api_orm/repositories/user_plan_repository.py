@@ -126,7 +126,7 @@ class UserPlanORMRepository(UserPlanRepository):
             pm_plan__alias=PLAN_TYPE_PM_FREE
         ).exclude(end_period__isnull=True).filter(end_period__lte=now()).annotate(
             family_members_count=Count('user__pm_plan_family')
-        ).filter(family_members_count__lt=1)
+        ).filter(family_members_count__lt=1).select_related('user')
         return [
             ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=user_plan_orm)
             for user_plan_orm in user_plans_orm
