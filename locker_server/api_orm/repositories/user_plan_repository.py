@@ -237,7 +237,7 @@ class UserPlanORMRepository(UserPlanRepository):
         pm_current_plan_alias = current_plan_orm.pm_plan.alias
 
         # The retrieving user is owner of the family plan
-        if pm_current_plan_alias == PLAN_TYPE_PM_FAMILY:
+        if current_plan_orm.pm_plan.is_family_plan:
             owner_orm = current_plan_orm.user
             family_members_orm = current_plan_orm.pm_plan_family.all().order_by('-user_id', '-created_time')
         # Else, user is a member
