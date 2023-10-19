@@ -12,7 +12,7 @@ class CountryRepository(ABC):
 
     # ------------------------ Get Country resource --------------------- #
     @abstractmethod
-    def get_country_by_code(self, country_id: str) -> Optional[Country]:
+    def get_country_by_code(self, country_code: str) -> Optional[Country]:
         pass
 
     @abstractmethod
@@ -24,4 +24,3 @@ class CountryRepository(ABC):
     # ------------------------ Update Country resource --------------------- #
 
     # ------------------------ Delete Country resource --------------------- #
-
