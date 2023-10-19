@@ -25,7 +25,13 @@ class EnterpriseBillingContactORMRepository(EnterpriseBillingContactRepository):
     # ------------------------ Get EnterpriseBillingContact resource --------------------- #
     def get_enterprise_billing_contact_by_id(self, enterprise_billing_contact_id: str) \
             -> Optional[EnterpriseBillingContact]:
-        pass
+        try:
+            billing_contact_orm = EnterpriseBillingContactORM.objects.get(id=enterprise_billing_contact_id)
+        except EnterpriseBillingContactORM.DoesNotExist:
+            return None
+        return ModelParser.enterprise_parser().parse_enterprise_billing_contact(
+            enterprise_billing_contact_orm=billing_contact_orm
+        )
 
     # ------------------------ Create EnterpriseBillingContact resource --------------------- #
     def create_enterprise_billing_contact(self, enterprise_billing_contact_create_data) \
