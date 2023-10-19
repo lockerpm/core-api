@@ -40,7 +40,8 @@ from locker_server.shared.external_services.locker_background.background_factory
 from locker_server.shared.external_services.locker_background.constants import BG_EVENT
 from locker_server.shared.external_services.pm_sync import PwdSync, SYNC_EVENT_MEMBER_ACCEPTED, \
     SYNC_EVENT_CIPHER_UPDATE, SYNC_EVENT_COLLECTION_UPDATE, SYNC_EVENT_MEMBER_REJECT, SYNC_EVENT_MEMBER_INVITATION, \
-    SYNC_EVENT_CIPHER, SYNC_EVENT_MEMBER_CONFIRMED, SYNC_EVENT_MEMBER_UPDATE, SYNC_EVENT_MEMBER_REMOVE
+    SYNC_EVENT_CIPHER, SYNC_EVENT_MEMBER_CONFIRMED, SYNC_EVENT_MEMBER_UPDATE, SYNC_EVENT_MEMBER_REMOVE, \
+    SYNC_EVENT_CIPHER_SHARE
 from locker_server.shared.utils.app import now
 from locker_server.shared.utils.avatar import get_avatar
 
@@ -339,8 +340,8 @@ class SharingService:
                 cipher_id = cipher_obj.cipher_id
                 self.user_repository.delete_sync_cache_data(user_id=user.user_id)
                 PwdSync(
-                    event=SYNC_EVENT_CIPHER_UPDATE, user_ids=[user.user_id], team=new_sharing, add_all=True
-                ).send(data={"id": cipher_obj.cipher_id})
+                    event=SYNC_EVENT_CIPHER_SHARE, user_ids=[user.user_id], team=new_sharing, add_all=True
+                ).send(data={"ids": [cipher_obj.cipher_id], "id": cipher_obj.cipher_id})
 
         if folder:
             shared_type_name = "folder"
@@ -448,6 +449,7 @@ class SharingService:
         })
 
         # Start sharing ciphers
+        shared_cipher_ids = []
         if ciphers:
             for cipher_member in ciphers:
                 members = cipher_member.get("members") or []
@@ -479,6 +481,7 @@ class SharingService:
                         })
                 existed_member_users += existed_members
                 non_existed_member_users += non_existed_members
+                shared_cipher_ids.append(cipher.get("id"))
 
         # Sharing folders
         if folders:
@@ -515,7 +518,10 @@ class SharingService:
         # Sync member invitation
         PwdSync(event=SYNC_EVENT_MEMBER_INVITATION, user_ids=sync_user_ids).send()
         # Sync ciphers
-        PwdSync(event=SYNC_EVENT_CIPHER, user_ids=sync_user_ids).send()
+        if share_type == "cipher":
+            PwdSync(event=SYNC_EVENT_CIPHER_SHARE, user_ids=sync_user_ids).send(data={"ids": shared_cipher_ids})
+        else:
+            PwdSync(event=SYNC_EVENT_CIPHER, user_ids=sync_user_ids).send()
 
         # Get notification user: Mail and notification
         mail_user_ids = self.notification_setting_repository.get_user_mail(
@@ -550,8 +556,6 @@ class SharingService:
         member = self.sharing_repository.confirm_invitation(member=sharing_invitation, key=key)
         sharing_id = member.team.team_id
 
-        PwdSync(event=SYNC_EVENT_CIPHER, user_ids=[member.user.user_id]).send()
-        PwdSync(event=SYNC_EVENT_MEMBER_CONFIRMED, user_ids=[member.user.user_id, user.user_id]).send()
 
         # Sending notification
         shared_type_name = None
@@ -572,6 +576,14 @@ class SharingService:
                 shared_type_name = "folder"
                 item_id = share_collection.collection_id
                 folder_id = item_id
+
+        if cipher_id:
+            PwdSync(event=SYNC_EVENT_CIPHER_SHARE, user_ids=[member.user.user_id]).send(data={
+                "ids": [cipher_id], "id": cipher_id
+            })
+        else:
+            PwdSync(event=SYNC_EVENT_CIPHER, user_ids=[member.user.user_id]).send()
+        PwdSync(event=SYNC_EVENT_MEMBER_CONFIRMED, user_ids=[member.user.user_id, user.user_id]).send()
 
         mail_user_ids = self.notification_setting_repository.get_user_mail(
             category_id=NOTIFY_SHARING, user_ids=[member.user.user_id]
@@ -612,8 +624,8 @@ class SharingService:
         PwdSync(event=SYNC_EVENT_MEMBER_UPDATE, user_ids=[member.user.user_id, primary_member.user.user_id]).send()
         if self.is_folder_sharing(sharing_id=sharing_id) is False:
             share_cipher = self.sharing_repository.get_share_cipher(sharing_id=sharing_id)
-            PwdSync(event=SYNC_EVENT_CIPHER_UPDATE, user_ids=[member.user.user_id]).send(
-                data={"id": share_cipher.cipher_id}
+            PwdSync(event=SYNC_EVENT_CIPHER_SHARE, user_ids=[member.user.user_id]).send(
+                data={"id": share_cipher.cipher_id, "ids": [share_cipher.cipher_id]}
             )
         # Else, share a folder
         else:
@@ -659,8 +671,8 @@ class SharingService:
         PwdSync(event=SYNC_EVENT_MEMBER_UPDATE, user_ids=group_members_user_ids + [primary_member.user.user_id]).send()
         if self.is_folder_sharing(sharing_id=sharing_id) is False:
             share_cipher = self.sharing_repository.get_share_cipher(sharing_id=sharing_id)
-            PwdSync(event=SYNC_EVENT_CIPHER_UPDATE, user_ids=group_members_user_ids).send(
-                data={"id": share_cipher.cipher_id}
+            PwdSync(event=SYNC_EVENT_CIPHER_SHARE, user_ids=group_members_user_ids).send(
+                data={"ids": [share_cipher.cipher_id], "id": share_cipher.cipher_id}
             )
         # Else, share a folder
         else:
@@ -776,8 +788,8 @@ class SharingService:
         # Re-sync data of the owner and removed member
         if cipher_obj:
             PwdSync(
-                event=SYNC_EVENT_CIPHER_UPDATE, user_ids=[user.user_id] + removed_member_user_ids
-            ).send(data={"id": cipher_obj.cipher_id})
+                event=SYNC_EVENT_CIPHER_SHARE, user_ids=[user.user_id] + removed_member_user_ids
+            ).send(data={"id": cipher_obj.cipher_id, "ids": [cipher_obj.cipher_id]})
         if collection_obj:
             PwdSync(event=SYNC_EVENT_CIPHER, user_ids=[user.user_id] + removed_member_user_ids).send()
 
@@ -793,7 +805,9 @@ class SharingService:
         if self.is_folder_sharing(sharing_id=sharing_id) is False:
             share_cipher = self.sharing_repository.get_share_cipher(sharing_id=sharing_id)
             self.user_repository.delete_sync_cache_data(user_id=member_user_id)
-            PwdSync(event=SYNC_EVENT_CIPHER_UPDATE, user_ids=[member_user_id]).send(data={"id": share_cipher.cipher_id})
+            PwdSync(event=SYNC_EVENT_CIPHER_SHARE, user_ids=[member_user_id]).send(data={
+                "id": share_cipher.cipher_id, "ids": [share_cipher.cipher_id]
+            })
         # Else, share a folder
         else:
             share_collection = self.sharing_repository.get_share_collection(sharing_id=sharing_id)
@@ -831,8 +845,8 @@ class SharingService:
         PwdSync(event=SYNC_EVENT_MEMBER_REMOVE, user_ids=[user.user_id] + removed_members_user_id).send()
         # Re-sync data of the owner and removed member
         if cipher_obj:
-            PwdSync(event=SYNC_EVENT_CIPHER_UPDATE, user_ids=[user.user_id] + removed_members_user_id).send(
-                data={"id": cipher_obj.cipher_id}
+            PwdSync(event=SYNC_EVENT_CIPHER_SHARE, user_ids=[user.user_id] + removed_members_user_id).send(
+                data={"id": cipher_obj.cipher_id, "ids": [cipher_obj.cipher_id]}
             )
         if collection_obj:
             PwdSync(event=SYNC_EVENT_CIPHER, user_ids=[user.user_id] + removed_members_user_id).send()
@@ -925,9 +939,12 @@ class SharingService:
             collection=collection_obj, name=collection_obj.name, revision_date=now()
         )
         self.user_repository.delete_sync_cache_data(user_id=user.user_id)
+        # PwdSync(
+        #     event=SYNC_EVENT_CIPHER_UPDATE, user_ids=[user.user_id], team=sharing, add_all=True
+        # ).send(data={"id": cipher_obj.cipher_id})
         PwdSync(
-            event=SYNC_EVENT_CIPHER_UPDATE, user_ids=[user.user_id], team=sharing, add_all=True
-        ).send(data={"id": cipher_obj.cipher_id})
+            event=SYNC_EVENT_CIPHER_SHARE, user_ids=[user.user_id], team=sharing, add_all=True
+        ).send(data={"id": cipher_obj.cipher_id, "ids": [cipher_obj.cipher_id]})
 
     def remove_item_share_folder(self, user: User, sharing: Team, folder_id: str, cipher: Dict):
         sharing_id = sharing.team_id
@@ -948,8 +965,8 @@ class SharingService:
             collection=collection_obj, name=collection_obj.name, revision_date=now()
         )
         self.user_repository.delete_sync_cache_data(user_id=user.user_id)
-        PwdSync(event=SYNC_EVENT_CIPHER_UPDATE, user_ids=[user.user_id], team=sharing, add_all=True).send(
-            data={"id": cipher_obj.cipher_id}
+        PwdSync(event=SYNC_EVENT_CIPHER_SHARE, user_ids=[user.user_id], team=sharing, add_all=True).send(
+            data={"id": cipher_obj.cipher_id, "ids": [cipher_obj.cipher_id]}
         )
 
     def add_group_member_to_share(self, enterprise_group: EnterpriseGroup, new_member_ids: List[str]):
