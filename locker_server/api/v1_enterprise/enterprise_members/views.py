@@ -179,7 +179,7 @@ class MemberPwdViewSet(APIBaseViewSet):
         enterprise_member = self.get_enterprise_member(enterprise=enterprise, member_id=member_id)
         # TODO: get cipher_overview of member
         cipher_overview = {}
-        if enterprise_member.user and enterprise_member.status != E_MEMBER_STATUS_INVITED:
+        if enterprise_member.user and enterprise_member.user and enterprise_member.status != E_MEMBER_STATUS_INVITED:
             cipher_overview = self.user_service.get_user_cipher_overview(
                 user_id=enterprise_member.user.user_id
             )
@@ -211,13 +211,12 @@ class MemberPwdViewSet(APIBaseViewSet):
         except EnterpriseMemberDoesNotExistException:
             raise NotFound
         if change_role:
-            # TODO: import LockerBackgroundFactory
             BackgroundFactory.get_background(bg_name=BG_EVENT).run(
                 func_name="create_by_enterprise_ids",
                 **{
                     "enterprise_ids": [updated_member.enterprise.enterprise_id],
                     "acting_user_id": user.user_id,
-                    "user_id": updated_member.user.user_id,
+                    "user_id": updated_member.user.user_id if updated_member.user else None,
                     "team_member_id": updated_member.enterprise_member_id,
                     "type": EVENT_E_MEMBER_UPDATED_ROLE, "ip_address": ip,
                     "metadata": {"old_role": enterprise_member.role.name, "new_role": role}
@@ -229,7 +228,7 @@ class MemberPwdViewSet(APIBaseViewSet):
                 **{
                     "enterprise_ids": [updated_member.enterprise.enterprise_id],
                     "acting_user_id": user.user_id,
-                    "user_id": updated_member.user.user_id,
+                    "user_id": updated_member.user.user_id if updated_member.user else None,
                     "team_member_id": updated_member.enterprise_member_id,
                     "type": EVENT_E_MEMBER_CONFIRMED, "ip_address": ip
                 }
@@ -256,7 +255,7 @@ class MemberPwdViewSet(APIBaseViewSet):
                 "change_status": change_status,
                 "change_role": change_role,
                 "member_id": updated_member.enterprise_member_id,
-                "member_user_id": updated_member.user.user_id,
+                "member_user_id": updated_member.user.user_id if updated_member.user else None,
                 "enterprise_name": updated_member.enterprise.name,
                 "status": updated_member.status,
                 "role": updated_member.role.name
@@ -271,7 +270,8 @@ class MemberPwdViewSet(APIBaseViewSet):
         deleted_member_user_id = enterprise_member.user.user_id if enterprise_member.user else None
         deleted_member_status = enterprise_member.status
         # Not allow delete themselves
-        if enterprise_member.user.user_id == user.user_id or enterprise_member.role.name == E_MEMBER_ROLE_PRIMARY_ADMIN:
+        if ((enterprise_member.user and enterprise_member.user.user_id == user.user_id)
+                or enterprise_member.role.name == E_MEMBER_ROLE_PRIMARY_ADMIN):
             raise PermissionDenied
         try:
             self.enterprise_member_service.delete_enterprise_member(
@@ -291,7 +291,8 @@ class MemberPwdViewSet(APIBaseViewSet):
         # Log activity delete member here
         BackgroundFactory.get_background(bg_name=BG_EVENT).run(func_name="create_by_enterprise_ids", **{
             "enterprise_ids": [enterprise.enterprise_id], "acting_user_id": user.user_id,
-            "user_id": enterprise_member.user.user_id, "team_member_id": enterprise_member.enterprise_member_id,
+            "user_id": enterprise_member.user.user_id if enterprise_member.user else None,
+            "team_member_id": enterprise_member.enterprise_member_id,
             "type": EVENT_E_MEMBER_REMOVED, "ip_address": ip,
         })
 
@@ -314,7 +315,7 @@ class MemberPwdViewSet(APIBaseViewSet):
         return Response(
             status=status.HTTP_200_OK,
             data={
-                "user_id": enterprise_member.user.user_id,
+                "user_id": enterprise_member.user.user_id if enterprise_member.user else None,
                 "email": enterprise_member.email,
                 "token_invitation": enterprise_member.token_invitation,
                 "enterprise_id": enterprise.enterprise_id,
@@ -368,16 +369,20 @@ class MemberPwdViewSet(APIBaseViewSet):
                     ).update_quantity_subscription(amount=-1)
                 except (PaymentMethodNotSupportException, ObjectDoesNotExist):
                     pass
-            BackgroundFactory.get_background(bg_name=BG_EVENT).run(func_name="create_by_enterprise_ids", **{
-                "enterprise_ids": [enterprise.enterprise_id], "acting_user_id": user.user_id,
-                "user_id": enterprise_member.user.user_id, "team_member_id": enterprise_member.enterprise_member_id,
-                "type": EVENT_E_MEMBER_ENABLED if activated is True else EVENT_E_MEMBER_DISABLED, "ip_address": ip
-            })
+            BackgroundFactory.get_background(bg_name=BG_EVENT).run(
+                func_name="create_by_enterprise_ids",
+                **{
+                    "enterprise_ids": [enterprise.enterprise_id], "acting_user_id": user.user_id,
+                    "user_id": enterprise_member.user.user_id if enterprise_member.user else None,
+                    "team_member_id": enterprise_member.enterprise_member_id,
+                    "type": EVENT_E_MEMBER_ENABLED if activated is True else EVENT_E_MEMBER_DISABLED,
+                    "ip_address": ip
+                })
             return Response(
                 status=status.HTTP_200_OK,
                 data={
                     "success": True, "notification": True,
-                    "member_user_id": enterprise_member.user.user_id,
+                    "member_user_id": enterprise_member.user.user_id if enterprise_member.user else None,
                     "enterprise_name": enterprise_member.enterprise.name,
                     "activated": activated
                 }
@@ -532,7 +537,7 @@ class MemberPwdViewSet(APIBaseViewSet):
         events = self.event_service.list_events(**{
             "team_id": enterprise.enterprise_id,
             "types": [EVENT_E_MEMBER_ENABLED, EVENT_E_MEMBER_CONFIRMED],
-            "user_id": enterprise_member.user.user_id,
+            "user_id": enterprise_member.user.user_id if enterprise_member.user else None,
             "creation_date_range": (from_param, to_param)
 
         })
@@ -549,7 +554,7 @@ class MemberPwdViewSet(APIBaseViewSet):
         events = self.event_service.list_events(**{
             "team_id": enterprise.enterprise_id,
             "types": [EVENT_E_MEMBER_DISABLED, EVENT_E_MEMBER_REMOVED],
-            "user_id": enterprise_member.user.user_id,
+            "user_id": enterprise_member.user.user_id if enterprise_member.user else None,
             "creation_date_range": (from_param, to_param)
 
         })
