@@ -259,7 +259,7 @@ class PaymentPwdViewSet(APIBaseViewSet):
         code = validated_data.get("code")
 
         try:
-            self.payment_service.upgrade_lifetime(user_id=user.user_id, code=code, scope=settings.SC)
+            self.payment_service.upgrade_lifetime(user_id=user.user_id, code=code, scope=settings.SCOPE_PWD_MANAGER)
         except EnterpriseMemberExistedException:
             raise ValidationError(detail={"non_field_errors": [gen_error("7015")]})
         except PaymentPromoCodeInvalidException:
