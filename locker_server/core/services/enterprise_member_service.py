@@ -339,6 +339,11 @@ class EnterpriseMemberService:
             )
         return enterprise_ids
 
+    def delete_group_members_by_member_id(self, enterprise_member_id: str):
+        self.enterprise_group_member_repository.delete_group_members_by_member_id(
+            enterprise_member_id=enterprise_member_id
+        )
+
     @staticmethod
     def create_invitation_token(secret: str, email: str, enterprise_id: str, scope: str = None) -> str:
         created_time = now()
