@@ -57,6 +57,9 @@ class BillingContactViewSet(APIBaseViewSet):
         except EnterpriseDoesNotExistException:
             raise NotFound
 
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
     def list(self, request, *args, **kwargs):
         self.pagination_class = None
         return super().list(request, *args, **kwargs)

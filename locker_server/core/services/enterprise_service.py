@@ -164,8 +164,8 @@ class EnterpriseService:
     def update_enterprise(self, enterprise_id: str, enterprise_update_data) -> Optional[Enterprise]:
         enterprise_country = enterprise_update_data.get("enterprise_country")
         if enterprise_country:
-            country = self.country_repository.get_country_by_name(
-                country_name=enterprise_country
+            country = self.country_repository.get_country_by_code(
+                country_code=enterprise_country
             )
             if not country:
                 raise CountryDoesNotExistException
@@ -189,5 +189,3 @@ class EnterpriseService:
 
     def is_in_enterprise(self, user_id: int, enterprise_locked: bool = None) -> bool:
         return self.enterprise_member_repository.is_in_enterprise(user_id=user_id, enterprise_locked=enterprise_locked)
-
-
