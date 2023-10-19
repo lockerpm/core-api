@@ -176,9 +176,7 @@ class CronTaskService:
             )
             if not primary_member:
                 continue
-            user_plan = self.user_plan_repository.get_user_plan(
-                user_id=primary_member.user.user_id
-            )
+            user_plan = self.user_plan_repository.get_user_plan(user_id=primary_member.user.user_id)
             # Only accept stripe subscription
             stripe_subscription = user_plan.get_stripe_subscription()
             if not stripe_subscription or not user_plan.start_period or not user_plan.end_period:
@@ -466,3 +464,31 @@ class CronTaskService:
                         }
 
                     )
+
+    def asking_for_feedback_after_subscription(self):
+        pass
+        return
+        payments = Payment.objects.filter(
+            user_id=OuterRef("user_id"), total_price__gt=0,
+            status=PAYMENT_STATUS_PAID
+        ).order_by('created_time')
+        users = User.objects.filter(activated=True).annotate(
+            first_payment_date=Subquery(payments.values('created_time')[:1], output_field=FloatField()),
+            first_payment_plan=Subquery(payments.values('plan')[:1], output_field=CharField()),
+        ).exclude(first_payment_date__isnull=True).filter(
+            first_payment_date__gte=now() - 30 * 86400,
+            first_payment_date__lt=now() - 29 * 86400
+        ).values('user_id', 'first_payment_plan')
+        for user in users:
+            if user.get("first_payment_plan") == PLAN_TYPE_PM_ENTERPRISE:
+                review_url = "https://www.g2.com/products/locker-password-manager/reviews#reviews"
+            else:
+                review_url = "https://www.trustpilot.com/review/locker.io?sort=recency&utm_medium=trustbox&utm_source=MicroReviewCount"
+            LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY, background=False).run(
+                func_name="notify_locker_mail", **{
+                    "user_ids": [user.get("user_id")],
+                    "job": "asking_for_feedback_after_subscription",
+                    "scope": settings.SCOPE_PWD_MANAGER,
+                    "review_url": review_url,
+                }
+            )

@@ -9,7 +9,7 @@ from locker_server.shared.constants.transactions import PAYMENT_STATUS_PAID
 from locker_server.shared.external_services.locker_background.background import LockerBackground
 from locker_server.shared.external_services.requester.retry_requester import requester
 from locker_server.shared.external_services.user_notification.list_jobs import PWD_ACCOUNT_DOWNGRADE, \
-    PWD_CARD_PAYMENT_FAILED
+    PWD_CARD_PAYMENT_FAILED, PWD_BANK_TRANSFER_EXPIRED, PWD_ENTERPRISE_NEXT_PAYMENT_CYCLE
 from locker_server.shared.external_services.user_notification.notification_sender import NotificationSender, \
     SENDING_SERVICE_MAIL
 from locker_server.shared.utils.app import now
@@ -87,6 +87,7 @@ class NotifyBackground(LockerBackground):
 
     def banking_expiring(self, user_id, current_plan, start_period, end_period, payment_method, scope,
                          payment_url=None):
+        from locker_server.containers.containers import user_service
         try:
             url = API_NOTIFY_PAYMENT + "/notify_expiring"
             notification_data = {
@@ -99,7 +100,30 @@ class NotifyBackground(LockerBackground):
                 "payment_url": payment_url,
                 "demo": False
             }
-            requester(method="POST", url=url, headers=HEADERS, data_send=notification_data)
+            if not settings.SELF_HOSTED:
+                requester(method="POST", url=url, headers=HEADERS, data_send=notification_data)
+            else:
+                try:
+                    user_obj = user_service.retrieve_by_id(user_id=user_id)
+                    NotificationSender(
+                        job=PWD_BANK_TRANSFER_EXPIRED, scope=scope,services=[SENDING_SERVICE_MAIL]
+                    ).send(**{
+                        "user_ids": [user_id],
+                        "account": user_obj.email,
+                        "plan": current_plan,
+                        "email": user_obj.email,
+                        "start_date": "{} (UTC)".format(
+                            datetime.utcfromtimestamp(start_period).strftime('%H:%M:%S %d-%m-%Y')
+                        ),
+                        "expire_date": "{} (UTC)".format(
+                            datetime.utcfromtimestamp(end_period).strftime('%H:%M:%S %d-%m-%Y')
+                        ),
+                        "payment_method": payment_method,
+                        "payment_url": payment_url
+                    })
+                except UserDoesNotExistException:
+                    pass
+
         except requests.ConnectionError:
             self.log_error(func_name="banking_expiring")
         finally:
@@ -232,10 +256,15 @@ class NotifyBackground(LockerBackground):
         url = API_NOTIFY_LOCKER + "/tutorial"
         try:
             notification_data = {"job": job, "user_ids": user_ids}
-            requester(
-                method="POST", url=url, headers=HEADERS, data_send=notification_data,
-                retry=True, max_retries=3, timeout=5
-            )
+            if not settings.SELF_HOSTED:
+                requester(
+                    method="POST", url=url, headers=HEADERS, data_send=notification_data,
+                    retry=True, max_retries=3, timeout=5
+                )
+            else:
+                NotificationSender(
+                    job=job, scope=settings.SCOPE_PWD_MANAGER, services=[SENDING_SERVICE_MAIL]
+                ).send(**{"user_ids": user_ids, "cc": notification_data.get("cc", [])})
         except Exception:
             self.log_error(func_name="notify_tutorial")
         finally:
@@ -245,10 +274,11 @@ class NotifyBackground(LockerBackground):
     def notify_add_group_member_to_share(self, data):
         url = API_NOTIFY_LOCKER + "/group_member_to_share"
         try:
-            requester(
-                method="POST", url=url, headers=HEADERS, data_send=data,
-                retry=True, max_retries=3, timeout=5
-            )
+            if not settings.SELF_HOSTED:
+                requester(
+                    method="POST", url=url, headers=HEADERS, data_send=data,
+                    retry=True, max_retries=3, timeout=5
+                )
         except Exception:
             self.log_error(func_name="notify_tutorial")
         finally:
@@ -258,10 +288,16 @@ class NotifyBackground(LockerBackground):
     def notify_enterprise_next_cycle(self, data):
         url = API_NOTIFY_LOCKER + "/enterprise_next_cycle"
         try:
-            requester(
-                method="POST", url=url, headers=HEADERS, data_send=data,
-                retry=True, max_retries=3, timeout=5
-            )
+            if not settings.SELF_HOSTED:
+                requester(
+                    method="POST", url=url, headers=HEADERS, data_send=data,
+                    retry=True, max_retries=3, timeout=5
+                )
+            else:
+                NotificationSender(
+                    job=PWD_ENTERPRISE_NEXT_PAYMENT_CYCLE, scope=settings.SCOPE_PWD_MANAGER,
+                    services=[SENDING_SERVICE_MAIL]
+                ).send(**data)
         except Exception:
             self.log_error(func_name="notify_enterprise_next_cycle")
         finally:

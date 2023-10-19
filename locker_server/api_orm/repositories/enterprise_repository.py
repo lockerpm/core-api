@@ -39,11 +39,9 @@ class EnterpriseORMRepository(EnterpriseRepository):
     # ------------------------ List Enterprise resource ------------------- #
     def list_enterprises(self, **filters) -> List[Enterprise]:
         locked_param = filters.get("locked")
-        enterprises_orm = EnterpriseORM.objects.all()
+        enterprises_orm = EnterpriseORM.objects.all().order_by('creation_date')
         if locked_param is not None:
-            enterprises_orm = enterprises_orm.filter(
-                locked=locked_param
-            ).order_by('creation_date')
+            enterprises_orm = enterprises_orm.filter(locked=locked_param)
         return [
             ModelParser.enterprise_parser().parse_enterprise(enterprise_orm=enterprise_orm)
             for enterprise_orm in enterprises_orm

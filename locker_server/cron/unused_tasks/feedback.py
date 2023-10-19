@@ -27,8 +27,16 @@ class Feedback(Task):
         except Exception as e:
             self.logger.error()
 
+        try:
+            self.asking_for_feedback_after_subscription()
+        except Exception as e:
+            self.logger.error()
+
     def log_new_users(self):
         cron_task_service.log_new_users()
+
+    def asking_for_feedback_after_subscription(self):
+        cron_task_service.asking_for_feedback_after_subscription()
 
     def scheduling(self):
         if os.getenv("PROD_ENV") != "staging":

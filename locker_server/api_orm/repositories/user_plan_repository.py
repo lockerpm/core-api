@@ -143,7 +143,7 @@ class UserPlanORMRepository(UserPlanRepository):
         ).exclude(cancel_at_period_end=True).filter(
             end_period__gte=current_time + 5 * 86400,
             end_period__lte=current_time + 7 * 86400
-        ).select_related('pm_plan')
+        ).select_related('pm_plan').select_related('user')
         return [
             ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=user_plan_orm)
             for user_plan_orm in expiring_plans_orm
