@@ -55,14 +55,10 @@ class CronTaskService:
         self.emergency_access_repository = emergency_access_repository
 
     def delete_old_events(self, creation_date_pivot) -> NoReturn:
-        return self.event_repository.delete_old_events(
-            creation_date_pivot=creation_date_pivot
-        )
+        return self.event_repository.delete_old_events(creation_date_pivot=creation_date_pivot)
 
     def delete_trash_ciphers(self, deleted_date_pivot: float) -> NoReturn:
-        return self.cipher_repository.delete_trash_ciphers(
-            deleted_date_pivot=deleted_date_pivot
-        )
+        return self.cipher_repository.delete_trash_ciphers(deleted_date_pivot=deleted_date_pivot)
 
     def domain_verification(self) -> NoReturn:
         current_time = now()
@@ -101,9 +97,7 @@ class CronTaskService:
                     )
                     self.enterprise_domain_repository.update_domain(
                         domain_id=unverified_domain.domain_id,
-                        domain_update_data={
-                            "is_notify_failed": True
-                        }
+                        domain_update_data={"is_notify_failed": True}
                     )
 
     def downgrade_plan(self, scope: str) -> NoReturn:

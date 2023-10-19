@@ -8,6 +8,8 @@ from locker_server.core.exceptions.user_exception import UserDoesNotExistExcepti
 from locker_server.shared.constants.transactions import PAYMENT_STATUS_PAID
 from locker_server.shared.external_services.locker_background.background import LockerBackground
 from locker_server.shared.external_services.requester.retry_requester import requester
+from locker_server.shared.external_services.user_notification.list_jobs import PWD_ACCOUNT_DOWNGRADE, \
+    PWD_CARD_PAYMENT_FAILED
 from locker_server.shared.external_services.user_notification.notification_sender import NotificationSender, \
     SENDING_SERVICE_MAIL
 from locker_server.shared.utils.app import now
@@ -33,16 +35,34 @@ class NotifyBackground(LockerBackground):
                     return
             except UserDoesNotExistException:
                 current_plan = "Free Plan"
-            url = API_NOTIFY_PAYMENT + "/notify_downgrade"
-            notification_data = {
-                "user_id": user_id,
-                "old_plan": old_plan,
-                "current_plan": current_plan,
-                "downgrade_time": downgrade_time,
-                "payment_data": metadata.get("payment_data"),
-                "scope": scope
-            }
-            requester(method="POST", url=url, headers=HEADERS, data_send=notification_data)
+
+            if not settings.SELF_HOSTED:
+                url = API_NOTIFY_PAYMENT + "/notify_downgrade"
+                notification_data = {
+                    "user_id": user_id,
+                    "old_plan": old_plan,
+                    "current_plan": current_plan,
+                    "downgrade_time": downgrade_time,
+                    "payment_data": metadata.get("payment_data"),
+                    "scope": scope
+                }
+                requester(method="POST", url=url, headers=HEADERS, data_send=notification_data)
+            else:
+                try:
+                    user_obj = user_service.retrieve_by_id(user_id=user_id)
+                    downgrade_time_str = "{} (UTC)".format(
+                        datetime.utcfromtimestamp(downgrade_time).strftime('%H:%M:%S %d-%m-%Y')
+                    )
+                    NotificationSender(job=PWD_ACCOUNT_DOWNGRADE, scope=scope, services=[SENDING_SERVICE_MAIL]).send(**{
+                        "user_ids": [user_id],
+                        "email": user_obj.email,
+                        "prior_plan": old_plan,
+                        "downgrade_time": downgrade_time_str,
+                        "current_plan": current_plan
+                    })
+                except UserDoesNotExistException:
+                    pass
+
         except requests.ConnectionError:
             self.log_error(func_name="downgrade_plan")
         finally:
@@ -169,6 +189,8 @@ class NotifyBackground(LockerBackground):
                 connection.close()
 
     def pay_failed(self, **data):
+        from locker_server.containers.containers import user_service
+
         url = API_NOTIFY_PAYMENT + "/notify_payment_failed"
         try:
             notification_data = {
@@ -180,7 +202,26 @@ class NotifyBackground(LockerBackground):
                 "current_attempt": data.get("current_attempt"),
                 "next_attempt": data.get("next_attempt"),
             }
-            requester(method="POST", url=url, headers=HEADERS, data_send=notification_data)
+            if not settings.SELF_HOSTED:
+                requester(method="POST", url=url, headers=HEADERS, data_send=notification_data)
+            else:
+                user_id = data.get("user_id")
+                try:
+                    user_obj = user_service.retrieve_by_id(user_id=user_id)
+                    mail_data = notification_data.copy()
+                    mail_data.update({
+                        "user_ids": [user_id],
+                        "account": user_obj.email,
+                        "email": user_obj.email,
+                        "user_fullname": user_obj.full_name,
+                        "language": user_obj.language,
+                    })
+                    mail_data.pop("scope", None)
+                    NotificationSender(
+                        job=PWD_CARD_PAYMENT_FAILED, scope=data.get("scope"), services=[SENDING_SERVICE_MAIL]
+                    ).send(**notification_data)
+                except UserDoesNotExistException:
+                    pass
         except Exception:
             self.log_error(func_name="notify_pay_failed")
         finally:

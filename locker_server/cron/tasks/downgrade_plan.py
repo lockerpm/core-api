@@ -22,9 +22,7 @@ class DowngradePlan(Task):
     def real_run(self, *args):
         # Close old connections
         close_old_connections()
-        cron_task_service.downgrade_plan(
-            scope=settings.SCOPE_PWD_MANAGER
-        )
+        cron_task_service.downgrade_plan(scope=settings.SCOPE_PWD_MANAGER)
 
     def scheduling(self):
         schedule.every(10).minutes.do(self.run)
