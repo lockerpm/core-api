@@ -25,9 +25,7 @@ class DeleteOldEvents(Task):
         current_time = now()
         creation_date_pivot = current_time - 90 * 86400
         # Delete old events if the creation date is less than 90 days
-        cron_task_service.delete_old_events(
-            creation_date_pivot=creation_date_pivot
-        )
+        cron_task_service.delete_old_events(creation_date_pivot=creation_date_pivot)
 
     def scheduling(self):
         schedule.every().day.at("17:00").do(self.run)

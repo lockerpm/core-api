@@ -23,11 +23,9 @@ class DeleteTrashCiphers(Task):
         # Close old connections
         close_old_connections()
         current_time = now()
-        deleted_date_pivot = current_time - 30 * 86400
         # Delete ciphers in trash if the deleted time is less than 30 days
-        cron_task_service.delete_trash_ciphers(
-            deleted_date_pivot=deleted_date_pivot
-        )
+        deleted_date_pivot = current_time - 30 * 86400
+        cron_task_service.delete_trash_ciphers(deleted_date_pivot=deleted_date_pivot)
 
     def scheduling(self):
         schedule.every().day.at("17:00").do(self.run)
