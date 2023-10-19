@@ -202,7 +202,7 @@ class EnterpriseMemberService:
         change_role = False
         member_update_data = update_data.copy()
         if role:
-            if enterprise_member.user.user_id == current_user.user_id or enterprise_member.is_primary:
+            if enterprise_member.user and enterprise_member.user.user_id == current_user.user_id or enterprise_member.is_primary:
                 raise EnterpriseMemberUpdatedFailedException
             member_update_data.update({
                 "role": role
@@ -232,7 +232,7 @@ class EnterpriseMemberService:
             -> EnterpriseMember:
         if enterprise_member.status != E_MEMBER_STATUS_CONFIRMED:
             raise EnterpriseMemberDoesNotExistException
-        if enterprise_member.user.user_id == current_user.user_id:
+        if enterprise_member.user and enterprise_member.user.user_id == current_user.user_id:
             raise EnterpriseMemberUpdatedFailedException
         enterprise_member_update_data = {
             "is_activated": activated
@@ -258,22 +258,25 @@ class EnterpriseMemberService:
             raise EnterpriseMemberDoesNotExistException
         if enterprise_member.status != E_MEMBER_STATUS_CONFIRMED:
             raise EnterpriseMemberDoesNotExistException
-        if enterprise_member.user.user_id == current_user.user_id:
+        if enterprise_member.user and enterprise_member.user and enterprise_member.user.user_id == current_user.user_id:
             raise EnterpriseMemberUpdatedFailedException
-        user_update_data = {
-            "login_failed_attempts": 0,
-            "login_block_until": None
-        }
-        self.user_repository.update_login_time_user(
-            user_id=enterprise_member.user.user_id,
-            update_data=user_update_data
-        )
+        if enterprise_member.user:
+            user_update_data = {
+                "login_failed_attempts": 0,
+                "login_block_until": None
+            }
+            self.user_repository.update_login_time_user(
+                user_id=enterprise_member.user.user_id,
+                update_data=user_update_data
+            )
 
     def update_user_invitations(self, current_user: User, enterprise_member_id: str, status: str) -> EnterpriseMember:
         member_invitation = self.enterprise_member_repository.get_enterprise_member_by_id(
             member_id=enterprise_member_id
         )
-        if not member_invitation or member_invitation.user.user_id != current_user.user_id or member_invitation.status != E_MEMBER_STATUS_INVITED:
+        if not member_invitation or \
+                (member_invitation.user and member_invitation.user.user_id != current_user.user_id) or \
+                member_invitation.status != E_MEMBER_STATUS_INVITED:
             raise EnterpriseMemberDoesNotExistException
         # If the member has a domain => Not allow reject
         if member_invitation.domain:
@@ -324,8 +327,8 @@ class EnterpriseMemberService:
             })
             primary_user = self.enterprise_member_repository.get_primary_member(
                 enterprise_id=enterprise.enterprise_id
-            )
-            primary_plan = self.user_plan_repository.get_user_plan(user_id=primary_user.user.user_id)
+            ).user
+            primary_plan = self.user_plan_repository.get_user_plan(user_id=primary_user.user_id)
             max_allow_members = primary_plan.get_max_allow_members()
             if max_allow_members and current_total_members + 1 > max_allow_members:
                 continue
