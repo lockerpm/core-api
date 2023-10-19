@@ -4,7 +4,7 @@ from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_PRIM
     E_MEMBER_ROLE_MEMBER
 
 
-class PaymentPwdPermission(EnterprisePwdPermission):
+class EnterprisePaymentPwdPermission(EnterprisePwdPermission):
     scope = 'payment'
 
     def has_permission(self, request, view):

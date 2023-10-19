@@ -268,7 +268,7 @@ class MemberPwdViewSet(APIBaseViewSet):
         user = self.request.user
         enterprise = self.get_object()
         enterprise_member = self.get_enterprise_member(enterprise=enterprise, member_id=kwargs.get("member_id"))
-        deleted_member_user_id = enterprise_member.user.user_id
+        deleted_member_user_id = enterprise_member.user.user_id if enterprise_member.user else None
         deleted_member_status = enterprise_member.status
         # Not allow delete themselves
         if enterprise_member.user.user_id == user.user_id or enterprise_member.role.name == E_MEMBER_ROLE_PRIMARY_ADMIN:
@@ -289,8 +289,7 @@ class MemberPwdViewSet(APIBaseViewSet):
             pass
 
         # Log activity delete member here
-        # TODO: import LockerBackgroundFactory
-        LockerBackgroundFactory.get_background(bg_name=BG_EVENT).run(func_name="create_by_enterprise_ids", **{
+        BackgroundFactory.get_background(bg_name=BG_EVENT).run(func_name="create_by_enterprise_ids", **{
             "enterprise_ids": [enterprise.enterprise_id], "acting_user_id": user.user_id,
             "user_id": enterprise_member.user.user_id, "team_member_id": enterprise_member.enterprise_member_id,
             "type": EVENT_E_MEMBER_REMOVED, "ip_address": ip,

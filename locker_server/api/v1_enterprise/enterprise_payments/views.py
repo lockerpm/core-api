@@ -16,19 +16,19 @@ from locker_server.core.exceptions.payment_exception import PaymentInvoiceDoesNo
 from locker_server.core.exceptions.plan_repository import PlanDoesNotExistException
 from locker_server.shared.constants.enterprise_members import E_MEMBER_STATUS_CONFIRMED, E_MEMBER_ROLE_MEMBER, \
     E_MEMBER_ROLE_ADMIN
-from locker_server.shared.constants.transactions import PLAN_TYPE_PM_ENTERPRISE, CURRENCY_USD, PAYMENT_METHOD_CARD, \
-    DURATION_MONTHLY
+from locker_server.shared.constants.transactions import PLAN_TYPE_PM_ENTERPRISE, PAYMENT_METHOD_CARD
 from locker_server.shared.error_responses.error import gen_error
 from locker_server.shared.external_services.payment_method.payment_method_factory import PaymentMethodFactory
 from locker_server.shared.log.cylog import CyLog
 from locker_server.shared.utils.app import now
 from .serializers import *
 from locker_server.api.api_base_view import APIBaseViewSet
-from locker_server.api.permissions.locker_permissions.payment_pwd_permission import PaymentPwdPermission
+from locker_server.api.permissions.locker_permissions.enterprise_permissions.payment_pwd_permission import \
+    EnterprisePaymentPwdPermission
 
 
 class PaymentPwdViewSet(APIBaseViewSet):
-    permission_classes = (PaymentPwdPermission,)
+    permission_classes = (EnterprisePaymentPwdPermission,)
     http_method_names = ["head", "options", "get", "post", "put"]
 
     def get_serializer_class(self):
@@ -46,7 +46,7 @@ class PaymentPwdViewSet(APIBaseViewSet):
             self.serializer_class = UpgradePlanPublicSerializer
         elif self.action == "billing_address":
             self.serializer_class = BillingAddressSerializer
-        return super(PaymentPwdViewSet, self).get_serializer_class()
+        return super().get_serializer_class()
 
     def get_enterprise(self):
         try:
@@ -62,7 +62,7 @@ class PaymentPwdViewSet(APIBaseViewSet):
         enterprise = self.get_enterprise()
         query_params = self.request.query_params
         invoices = self.payment_service.list_all_invoices(**{
-            "enterprise_id": enterprise.id,
+            "enterprise_id": enterprise.enterprise_id,
             "status": query_params.get("status"),
             "from": self.check_int_param(query_params.get("from")),
             "to": self.check_int_param(query_params.get("to")),
