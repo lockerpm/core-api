@@ -96,7 +96,7 @@ class Event(object):
         return self._metadata
 
     @metadata.setter
-    def metadata(self, new_metadata: str):
+    def metadata(self, new_metadata):
         self._metadata = new_metadata
 
     def get_metadata(self):
@@ -105,7 +105,7 @@ class Event(object):
         return ast.literal_eval(str(self.metadata))
 
     def get_description(self, use_html=True):
-        metadata = self.metadata or {}
+        metadata = self.get_metadata()
         log_type = int(self.event_type)
         if use_html:
             description = {
