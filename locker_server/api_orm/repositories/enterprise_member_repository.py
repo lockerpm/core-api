@@ -1,5 +1,6 @@
 from typing import Dict, Optional, List
 
+from django.conf import settings
 from django.db.models import When, Value, Q, Case, IntegerField
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
@@ -86,7 +87,7 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
                 search_by_email = enterprise_members_orm.filter(email__icontains=email_param)
             enterprise_members_orm = (search_by_users | search_by_email | search_by_user).distinct()
 
-        if q_param:
+        if q_param and settings.SELF_HOSTED:
             q = q_param.lower()
             enterprise_members_orm = enterprise_members_orm.filter(
                 Q(user__full_name__icontains=q) | Q(user__email__icontains=q) | Q(email__icontains=q)
