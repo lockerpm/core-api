@@ -225,6 +225,9 @@ class SyncPwdViewSet(APIBaseViewSet):
         self.check_pwd_session_auth(request=request)
         serializer = SyncProfileSerializer(user, many=False, context=self.get_serializer_context())
         result = camel_snake_data(serializer.data, snake_to_camel=True)
+        if settings.SELF_HOSTED:
+            result["email"] = user.email
+            result["name"] = user.full_name
         return Response(status=status.HTTP_200_OK, data=result)
 
     @action(methods=["get"], detail=False)
