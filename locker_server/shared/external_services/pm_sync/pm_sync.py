@@ -2,13 +2,13 @@ import requests
 
 from django.conf import settings
 
-
 from locker_server.shared.background.i_background import BackgroundThread, background_exception_wrapper
 from locker_server.shared.caching.sync_cache import delete_sync_cache_data
 from locker_server.shared.constants.members import PM_MEMBER_STATUS_CONFIRMED
 from locker_server.shared.external_services.pm_sync import LIST_DELETE_SYNC_CACHE_EVENTS
 from locker_server.shared.external_services.requester.retry_requester import requester
-
+from locker_server.shared.external_services.websocket.websocket_sender import WebSocketSender
+from locker_server.shared.general_websocket_consumer import WS_PWD_SYNC_GROUP_NAME
 
 API_SYNC = "{}/micro_services/cystack_platform/pm/sync".format(settings.GATEWAY_API)
 HEADERS = {
@@ -51,11 +51,23 @@ class PwdSync:
             if self.event in LIST_DELETE_SYNC_CACHE_EVENTS:
                 for user_id in user_ids:
                     delete_sync_cache_data(user_id=user_id)
-            requester(method="POST", url=API_SYNC, headers=HEADERS, timeout=10, data_send={
-                "event": self.event,
-                "user_ids": list(set(user_ids)),
-                "data": data
-            })
+            user_ids = list(set(user_ids))
+            if settings.SELF_HOSTED:
+                for user_id in user_ids:
+                    WebSocketSender.send_message(
+                        group_name=WS_PWD_SYNC_GROUP_NAME.format(user_id),
+                        message={
+                            "event": self.event,
+                            "data": data
+                        }
+                    )
+            else:
+                requester(method="POST", url=API_SYNC, headers=HEADERS, timeout=10, data_send={
+                    "event": self.event,
+                    "user_ids": list(set(user_ids)),
+                    "data": data
+                })
+
         except (requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout,
                 requests.exceptions.ReadTimeout):
             pass
