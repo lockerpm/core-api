@@ -14,7 +14,7 @@ class EnterpriseDomainORMRepository(EnterpriseDomainRepository):
     def list_domains(self, **filters) -> List[Domain]:
         verification_param = filters.get("verification")
 
-        domains_orm = DomainORM.objects.all()
+        domains_orm = DomainORM.objects.all().select_related("enterprise")
         if verification_param is not None:
             domains_orm = domains_orm.filter(verification=verification_param)
         return [
