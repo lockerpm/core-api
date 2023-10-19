@@ -95,6 +95,10 @@ class Event(object):
     def metadata(self):
         return self._metadata
 
+    @metadata.setter
+    def metadata(self, new_metadata: str):
+        self._metadata = new_metadata
+
     def get_metadata(self):
         if not self.metadata:
             return {}
