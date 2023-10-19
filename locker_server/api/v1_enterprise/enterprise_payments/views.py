@@ -73,7 +73,7 @@ class PaymentPwdViewSet(APIBaseViewSet):
     def get_object(self):
         enterprise = self.get_enterprise()
         try:
-            invoice = self.payment_service.get_by_id(
+            invoice = self.payment_service.get_by_payment_id(
                 payment_id=self.kwargs.get("payment_id")
             )
             if invoice.enterprise_id != enterprise.enterprise_id:

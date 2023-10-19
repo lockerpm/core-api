@@ -3,15 +3,12 @@ from rest_framework.routers import DefaultRouter
 
 from locker_server.api.v1_enterprise import views
 
-
 router = DefaultRouter(trailing_slash=False)
 router.register(r'', views.EnterprisePwdViewSet, 'enterprises')
-
 
 urlpatterns = [
     url(r'^', include(router.urls))
 ]
-
 
 # ----------------------------------- Domain ------------------------- #
 urlpatterns += [
@@ -68,7 +65,7 @@ urlpatterns += [
     url(r'^(?P<pk>[0-9a-z]+)/billing_contacts$',
         views.BillingContactViewSet.as_view({'get': 'list', 'post': 'create'})),
     url(r'^(?P<pk>[0-9a-z]+)/billing_contacts/(?P<contact_id>[0-9]+)$',
-        views.BillingContactViewSet.as_view({'delete': 'destroy'}))
+        views.BillingContactViewSet.as_view({'delete': 'destroy', 'get': 'retrieve'}))
 ]
 
 # ----------------------------------- Activity Log ------------------------- #
