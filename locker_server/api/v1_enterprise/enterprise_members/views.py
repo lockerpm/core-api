@@ -414,13 +414,17 @@ class MemberPwdViewSet(APIBaseViewSet):
             "user_id": user.user_id,
             "statuses": [E_MEMBER_STATUS_INVITED, E_MEMBER_STATUS_REQUESTED]
         })
+        member_invitations_data = []
         for member_invitation in member_invitations:
             primary_user = self.enterprise_service.get_primary_member(
                 enterprise_id=member_invitation.enterprise.enterprise_id
-            )
-            member_invitation.owner = primary_user.user.user_id
-        serializer = self.get_serializer(member_invitations, many=True)
-        return Response(status=status.HTTP_200_OK, data=serializer.data)
+            ).user
+            member_invitation_data = UserInvitationSerializer(member_invitation, many=False).data
+            member_invitation_data.update({
+                "owner": primary_user.user_id
+            })
+            member_invitations_data.append(member_invitation_data)
+        return Response(status=status.HTTP_200_OK, data=member_invitations_data)
 
     @action(methods=["put"], detail=False)
     def user_invitation_update(self, request, *args, **kwargs):
