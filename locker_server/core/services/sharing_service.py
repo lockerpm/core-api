@@ -925,7 +925,7 @@ class SharingService:
             raise CollectionDoesNotExistException
 
         cipher_obj = self.cipher_repository.get_by_id(cipher_id=cipher.get("id"))
-        if not cipher_obj or cipher_obj.user.user_id != user.user_id:
+        if not cipher_obj or (cipher_obj.user and cipher_obj.user.user_id != user.user_id):
             raise CipherDoesNotExistException
         if cipher_obj.team:
             raise CipherBelongTeamException
