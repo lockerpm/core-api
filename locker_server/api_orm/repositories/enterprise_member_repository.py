@@ -52,7 +52,9 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
                 enterprise_id=enterprise_id_param
             ).select_related('user').select_related('role').select_related('domain')
         else:
-            enterprise_members_orm = EnterpriseMemberORM.objects.all().select_related('user').select_related('role')
+            enterprise_members_orm = EnterpriseMemberORM.objects.all().select_related(
+                'user'
+            ).select_related('role').select_related('domain')
         # Filter by ids
         if ids_param:
             enterprise_members_orm = enterprise_members_orm.filter(id__in=ids_param)
@@ -168,7 +170,7 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
     def list_enterprise_members_by_emails(self, emails_param: [str]) -> List[EnterpriseMember]:
         enterprise_members_orm = EnterpriseMemberORM.objects.filter(
             email__in=emails_param
-        )
+        ).select_related('user').select_related('role').select_related('domain')
         return [
             ModelParser.enterprise_parser().parse_enterprise_member(
                 enterprise_members_orm=enterprise_member_orm

@@ -14,7 +14,7 @@ class EnterpriseBillingContactORMRepository(EnterpriseBillingContactRepository):
     def list_enterprise_billing_contacts(self, enterprise_id: str, **filters) -> List[EnterpriseBillingContact]:
         billing_contacts_orm = EnterpriseBillingContactORM.objects.filter(
             enterprise_id=enterprise_id
-        ).order_by('-created_time')
+        ).order_by('-created_time').select_related("enterprise")
         return [
             ModelParser.enterprise_parser().parse_enterprise_billing_contact(
                 enterprise_billing_contact_orm=billing_contact_orm

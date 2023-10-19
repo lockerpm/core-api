@@ -32,9 +32,11 @@ class EnterpriseGroupORMRepository(EnterpriseGroupRepository):
         if enterprise_id_param:
             enterprise_groups_orm = EnterpriseGroupORM.objects.filter(
                 enterprise_id=enterprise_id_param
-            ).order_by("creation_date")
+            ).order_by("creation_date").select_related("created_by").select_related("enterprise")
         else:
-            enterprise_groups_orm = EnterpriseGroupORM.objects.all().order_by("creation_date")
+            enterprise_groups_orm = EnterpriseGroupORM.objects.all().order_by(
+                "creation_date"
+            ).select_related("created_by").select_related("enterprise")
 
         if name_param:
             enterprise_groups_orm = enterprise_groups_orm.filter(

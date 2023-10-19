@@ -41,14 +41,14 @@ class EnterprisePolicyORMRepository(EnterprisePolicyRepository):
     def list_2fa_policy(self, enterprise_ids: List[str], enabled: bool = True) -> List[Policy2FA]:
         policies_orm = EnterprisePolicyORM.objects.filter(
             enterprise_id__in=enterprise_ids, policy_type=POLICY_TYPE_2FA, enabled=enabled
-        )
+        ).select_related('enterprise')
         return [ModelParser.enterprise_parser().parse_policy_2fa(policy_2fa_orm=policy_2fa_orm)
                 for policy_2fa_orm in policies_orm]
 
     def list_enterprise_policies(self, enterprise_id: str) -> List[EnterprisePolicy]:
         policies_orm = EnterprisePolicyORM.objects.filter(
             enterprise_id=enterprise_id
-        ).order_by("id")
+        ).order_by("id").select_related('enterprise')
         return [
             ModelParser.enterprise_parser().parse_enterprise_policy(
                 enterprise_policy_orm=policy_orm
