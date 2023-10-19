@@ -70,7 +70,7 @@ class EventService:
             } if user_data else None
             metadata = log.get("metadata", {})
             metadata.update({"user_email": user_data.get("email") if user_data else "Former user"})
-            activity_log.metadata = json.dumps(metadata)
+            activity_log.metadata = metadata
             log["description"] = activity_log.get_description(use_html=use_html)
             log.pop("metadata", None)
             logs.append(log)
