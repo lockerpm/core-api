@@ -201,7 +201,6 @@ class PaymentPwdViewSet(APIBaseViewSet):
         BackgroundFactory.get_background(bg_name=BG_NOTIFY, background=False).run(
             func_name="trial_successfully", **{
                 "user_id": user.user_id,
-                "scope": settings.SCOPE_PWD_MANAGER,
                 "plan": validated_data.get("trial_plan"),
                 "payment_method": None,
                 "duration": TRIAL_PERSONAL_DURATION_TEXT
