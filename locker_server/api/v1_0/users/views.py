@@ -2,6 +2,7 @@ import json
 from datetime import datetime
 
 from django.conf import settings
+# from django.conf import settings
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, ValidationError, AuthenticationFailed
@@ -84,6 +85,7 @@ class UserPwdViewSet(APIBaseViewSet):
         master_password_hash = validated_data.get("master_password_hash")
         try:
             self.user_service.register_user(
+                current_pm_plan_alias=settings.DEFAULT_PLAN,
                 user_id=validated_data.get("email"),
                 master_password_hash=master_password_hash,
                 key=key,
