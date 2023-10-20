@@ -28,7 +28,7 @@ class NotificationViewSet(APIBaseViewSet):
 
     def get_queryset(self):
         current_user = self.request.user
-        notifications = self.notification_service.list_notificiation(**{
+        notifications = self.notification_service.list_notifications(**{
             "user_id": current_user.user_id,
             "read": self.request.query_params.get('read', None),
             "scope": self.request.query_params.get('scope', "app")
