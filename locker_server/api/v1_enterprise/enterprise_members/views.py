@@ -460,7 +460,7 @@ class MemberPwdViewSet(APIBaseViewSet):
         if not primary_admin_user:
             primary_admin_user_id = None
         else:
-            primary_admin_user_id = primary_admin_user.user.user_id
+            primary_admin_user_id = primary_admin_user.user_id
         admin_members = self.enterprise_member_service.list_enterprise_members(**{
             "enterprise_id": enterprise.enterprise_id,
             "roles": [E_MEMBER_ROLE_ADMIN],
