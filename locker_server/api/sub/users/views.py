@@ -11,7 +11,8 @@ from ...permissions.locker_permissions.user_pwd_permission import UserPwdPermiss
 
 class UserViewSet(APIBaseViewSet):
     http_method_names = ["head", "options", "get", "post", "put"]
-    permission_classes = UserPwdPermission
+    permission_classes = (UserPwdPermission, )
+
     def get_serializer_class(self):
         if self.action == "retrieve":
             self.serializer_class = UserMeSerializer
