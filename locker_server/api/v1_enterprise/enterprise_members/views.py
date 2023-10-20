@@ -56,6 +56,8 @@ class MemberPwdViewSet(APIBaseViewSet):
         context = super().get_serializer_context()
         if self.action == "list" and self.request.query_params.get("shortly", "0") != "1":
             context["list_group_member_func"] = self.enterprise_member_service.list_groups_name_by_enterprise_member_id
+        elif self.action == "retrieve":
+            context["list_group_member_func"] = self.enterprise_member_service.list_groups_name_by_enterprise_member_id
         return context
 
     def get_object(self):
