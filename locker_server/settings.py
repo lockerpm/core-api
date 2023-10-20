@@ -157,7 +157,9 @@ DEFAULTS = {
 
     "GEOIP_PATH": os.path.join(settings.BASE_DIR, 'locker_server', 'shared', 'geoip2'),
     "MAXMIND_API_KEY": None,
-    "INIT_MAXMIND_DB": "1"
+    "INIT_MAXMIND_DB": "1",
+    "DEFAULT_PLAN": os.getenv("DEFAULT_PLAN", "pm_free")
+
 }
 
 # List of settings that cannot be empty

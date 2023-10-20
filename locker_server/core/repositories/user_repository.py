@@ -81,6 +81,14 @@ class UserRepository(ABC):
     def get_customer_data(self, user: User, token_card=None, id_card=None) -> Dict:
         pass
 
+    @abstractmethod
+    def allow_create_enterprise_user(self) -> bool:
+        pass
+
+    @abstractmethod
+    def check_exist(self) -> bool:
+        pass
+
     # ------------------------ Create User resource --------------------- #
     @abstractmethod
     def retrieve_or_create_by_id(self, user_id, creation_date=None) -> Tuple[User, bool]:

@@ -1,5 +1,6 @@
 from datetime import timedelta, datetime
 
+from django.conf import settings
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -120,7 +121,10 @@ class EnterprisePwdViewSet(APIBaseViewSet):
         primary_admin = self.enterprise_service.get_primary_member(
             enterprise_id=enterprise.enterprise_id
         )
-        self.user_service.cancel_plan(user=primary_admin, immediately=True)
+        self.user_service.cancel_plan(
+            user=primary_admin, immediately=True,
+            scope=settings.SCOPE_PWD_MANAGER
+        )
 
         self.enterprise_service.delete_enterprise_complete(
             enterprise=enterprise

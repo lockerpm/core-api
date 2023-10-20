@@ -7,7 +7,7 @@ class SSOConfigurationPermission(APIPermission):
         return super().has_permission(request, view)
 
     def has_object_permission(self, request, view, obj):
-        # TODO: check permission
+        user = request.user
         if view.action in ["sso_configuration", "update_sso_configuration", "destroy_sso_configuration"]:
-            return obj.created_by.user_id == request.user.user_id
+            return user.is_supper_admin and obj.created_by.user_id == user.user_id
         return request.user

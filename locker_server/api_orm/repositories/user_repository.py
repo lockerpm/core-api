@@ -369,6 +369,12 @@ class UserORMRepository(UserRepository):
         except AttributeError:
             return UserScoreORM.objects.get_or_create(user_id=user_orm.user_id, defaults={"user_id": user_orm.user_id})
 
+    def allow_create_enterprise_user(self) -> bool:
+        return not UserORM.objects.count() >= 1
+
+    def check_exist(self) -> bool:
+        return UserORM.objects.filter().exists()
+
     # ------------------------ Create User resource --------------------- #
     def retrieve_or_create_by_id(self, user_id, creation_date=None) -> Tuple[User, bool]:
         creation_date = now() if not creation_date else float(creation_date)
@@ -420,6 +426,8 @@ class UserORMRepository(UserRepository):
 
         user_orm.is_leaked = user_update_data.get("is_leaked", user_orm.is_leaked)
 
+        user_orm.is_supper_admin = user_update_data.get("is_supper_admin", False)
+        
         if user_update_data.get("master_password_hash"):
             user_orm.set_master_password(raw_password=user_update_data.get("master_password_hash"))
 

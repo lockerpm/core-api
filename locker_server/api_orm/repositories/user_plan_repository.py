@@ -40,7 +40,9 @@ class UserPlanORMRepository(UserPlanRepository):
         try:
             user_plan_orm = user_orm.pm_user_plan
         except (ValueError, AttributeError):
-            user_plan_orm = PMUserPlanORM.update_or_create(user=user_orm)
+            user_plan_orm = PMUserPlanORM.update_or_create(
+                user=user_orm,
+            )
         return user_plan_orm
 
     @staticmethod

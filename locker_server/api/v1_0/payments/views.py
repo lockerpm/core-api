@@ -27,7 +27,7 @@ from .serializers import CalcSerializer, ListInvoiceSerializer, AdminUpgradePlan
 
 
 class PaymentPwdViewSet(APIBaseViewSet):
-    permission_classes = (PaymentPwdPermission, )
+    permission_classes = (PaymentPwdPermission,)
     http_method_names = ["head", "options", "get", "post", "put"]
 
     def get_throttles(self):
@@ -508,7 +508,8 @@ class PaymentPwdViewSet(APIBaseViewSet):
         immediately = validated_data.get("immediately", False)
         try:
             current_plan_name, end_time = self.payment_service.cancel_plan(
-                user_id=user.user_id, immediately=immediately
+                user_id=user.user_id, immediately=immediately,
+                scope=settings.SCOPE_PWD_MANAGER
             )
         except CannotCancelDefaultPlanException:
             raise ValidationError({"non_field_errors": [gen_error("7004")]})

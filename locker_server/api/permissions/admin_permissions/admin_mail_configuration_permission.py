@@ -7,4 +7,4 @@ class AdminMailConfigurationPermission(APIPermission):
         return self.is_auth(request) and self.is_admin(request)
 
     def has_object_permission(self, request, view, obj):
-        return False
+        return request.user and request.user.is_supper_admin
