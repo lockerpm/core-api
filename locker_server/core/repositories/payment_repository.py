@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Dict
 from abc import ABC, abstractmethod
 
 from locker_server.core.entities.payment.payment import Payment
@@ -13,6 +13,10 @@ class PaymentRepository(ABC):
 
     @abstractmethod
     def list_invoices_by_user(self, user_id: int, **filter_params) -> List[Payment]:
+        pass
+
+    @abstractmethod
+    def list_feedback_after_subscription(self, after_days: int = 30) -> List[Dict]:
         pass
 
     # ------------------------ Get Payment resource --------------------- #

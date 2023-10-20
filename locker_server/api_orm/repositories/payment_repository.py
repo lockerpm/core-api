@@ -1,9 +1,9 @@
 import os
-from typing import Optional, List
+from typing import Optional, List, Dict
 import stripe
 import stripe.error
 
-from django.db.models import F
+from django.db.models import F, OuterRef, Subquery, FloatField, CharField
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models import CustomerORM
@@ -95,6 +95,20 @@ class PaymentORMRepository(PaymentRepository):
         for payment_orm in payments_orm:
             payments.append(ModelParser.payment_parser().parse_payment(payment_orm=payment_orm))
         return payments
+
+    def list_feedback_after_subscription(self, after_days: int = 30) -> List[Dict]:
+        payments_orm = PaymentORM.objects.filter(
+            user_id=OuterRef("user_id"), total_price__gt=0,
+            status=PAYMENT_STATUS_PAID
+        ).order_by('created_time')
+        users_feedback = UserORM.objects.filter(activated=True).annotate(
+            first_payment_date=Subquery(payments_orm.values('created_time')[:1], output_field=FloatField()),
+            first_payment_plan=Subquery(payments_orm.values('plan')[:1], output_field=CharField()),
+        ).exclude(first_payment_date__isnull=True).filter(
+            first_payment_date__gte=now() - after_days * 86400,
+            first_payment_date__lt=now() - (after_days-1) * 86400
+        ).values('user_id', 'first_payment_plan')
+        return users_feedback
 
     # ------------------------ Get Payment resource --------------------- #
     def is_blocked_by_source(self, user_id: int, utm_source: str) -> bool:

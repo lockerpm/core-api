@@ -2,6 +2,7 @@ import os
 import time
 import schedule
 
+from django.conf import settings
 from django.db import close_old_connections
 
 from locker_server.containers.containers import cron_task_service
@@ -36,7 +37,7 @@ class Feedback(Task):
         cron_task_service.log_new_users()
 
     def asking_for_feedback_after_subscription(self):
-        cron_task_service.asking_for_feedback_after_subscription()
+        cron_task_service.asking_for_feedback_after_subscription(scope=settings.SCOPE_PWD_MANAGER)
 
     def scheduling(self):
         if os.getenv("PROD_ENV") != "staging":
