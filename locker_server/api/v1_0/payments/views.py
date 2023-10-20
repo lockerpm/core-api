@@ -508,8 +508,7 @@ class PaymentPwdViewSet(APIBaseViewSet):
         immediately = validated_data.get("immediately", False)
         try:
             current_plan_name, end_time = self.payment_service.cancel_plan(
-                user_id=user.user_id, immediately=immediately,
-                scope=settings.SCOPE_PWD_MANAGER
+                user_id=user.user_id, immediately=immediately
             )
         except CannotCancelDefaultPlanException:
             raise ValidationError({"non_field_errors": [gen_error("7004")]})

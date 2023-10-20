@@ -11,7 +11,6 @@ class UserPwdPermission(APIPermission):
             return self.is_auth(request)
         elif view.action in ["register"]:
             return self.is_auth(request) is False or request.user.activated is False
-            return self.is_auth(request) and request.user.activated is False
         elif view.action in ["retrieve", "dashboard", "list_users", "list_user_ids", "destroy"]:
             return self.is_admin(request)
         return self.is_auth(request) and request.user.activated

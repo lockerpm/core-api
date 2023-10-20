@@ -160,10 +160,9 @@ class UserService:
         user = self.user_repository.update_user(user_id=user.user_id, user_update_data=user_new_creation_data)
         current_plan = self.get_current_plan(user=user)
         # Upgrade user to default plan
-        if default_plan:
+        if default_plan is not None and default_plan != PLAN_TYPE_PM_FREE:
             current_plan = self.update_plan(
-                user_id=user_id, plan_type_alias=default_plan,
-                duration=current_plan.duration
+                user_id=user_id, plan_type_alias=default_plan, duration=current_plan.duration,
             )
         # Upgrade trial plan
         trial_plan = kwargs.get("trial_plan")
@@ -600,30 +599,8 @@ class UserService:
             user_plan_update_data=user_plan_update_data
         )
 
-    def cancel_plan(self, user: User, scope: str, immediately=False, **kwargs):
-        current_plan = self.get_current_plan(user=user)
-        pm_plan_alias = current_plan.get_plan_type_alias()
-        if pm_plan_alias == PLAN_TYPE_PM_FREE:
-            return
-        stripe_subscription = current_plan.get_stripe_subscription()
-        if stripe_subscription:
-            payment_method = PAYMENT_METHOD_CARD
-        else:
-            payment_method = PAYMENT_METHOD_WALLET
-
-        if immediately is False:
-            from locker_server.shared.external_services.payment_method.payment_method_factory import \
-                PaymentMethodFactory
-            end_time = PaymentMethodFactory.get_method(
-                user_plan=current_plan, scope=scope, payment_method=payment_method
-            ).cancel_recurring_subscription(**kwargs)
-        else:
-            from locker_server.shared.external_services.payment_method.payment_method_factory import \
-                PaymentMethodFactory
-            PaymentMethodFactory.get_method(
-                user_plan=current_plan, scope=scope, payment_method=payment_method
-            ).cancel_immediately_recurring_subscription()
-            end_time = now()
+    def cancel_plan(self, user: User, immediately=False, **kwargs):
+        end_time = self.user_plan_repository.cancel_plan(user=user, immediately=immediately, **kwargs)
         return end_time
 
     def count_weak_cipher_password(self, user_ids: List[int]) -> int:

@@ -121,10 +121,7 @@ class EnterprisePwdViewSet(APIBaseViewSet):
         primary_admin = self.enterprise_service.get_primary_member(
             enterprise_id=enterprise.enterprise_id
         )
-        self.user_service.cancel_plan(
-            user=primary_admin, immediately=True,
-            scope=settings.SCOPE_PWD_MANAGER
-        )
+        self.user_service.cancel_plan(user=primary_admin, immediately=True)
 
         self.enterprise_service.delete_enterprise_complete(
             enterprise=enterprise
