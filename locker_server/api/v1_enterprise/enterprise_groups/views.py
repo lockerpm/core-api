@@ -227,7 +227,7 @@ class GroupPwdViewSet(APIBaseViewSet):
                 "email": member.email,
                 "status": member.status,
                 "role": member.role.name,
-                "domain_id": member.domain_id,
+                "domain_id": member.domain.domain_id if member.domain else None,
                 "is_activated": member.is_activated,
                 "public_key": member.user.public_key if member.user else None
             }
