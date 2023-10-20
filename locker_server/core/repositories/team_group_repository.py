@@ -26,6 +26,10 @@ class TeamGroupRepository(ABC):
     def get_share_group_by_id(self, sharing_id: str, group_id: str) -> Optional[Group]:
         pass
 
+    @abstractmethod
+    def get_share_group_by_enterprise_group_id(self, sharing_id: str, enterprise_group_id: str) -> Optional[Group]:
+        pass
+
     # ------------------------ Create TeamGroup resource --------------------- #
 
     # ------------------------ Update TeamGroup resource --------------------- #

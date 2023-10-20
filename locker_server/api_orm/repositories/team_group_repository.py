@@ -57,6 +57,13 @@ class TeamGroupORMRepository(TeamGroupRepository):
             return None
         return ModelParser.team_parser().parse_group(group_orm=group_orm)
 
+    def get_share_group_by_enterprise_group_id(self, sharing_id: str, enterprise_group_id: str) -> Optional[Group]:
+        try:
+            group_orm = GroupORM.objects.get(identerprise_group_id=enterprise_group_id, team_id=sharing_id)
+        except GroupORM.DoesNotExist:
+            return None
+        return ModelParser.team_parser().parse_group(group_orm=group_orm)
+
     # ------------------------ Create TeamGroup resource --------------------- #
 
     # ------------------------ Update TeamGroup resource --------------------- #
