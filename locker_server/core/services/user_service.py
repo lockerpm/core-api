@@ -155,7 +155,8 @@ class UserService:
             "activated_date": now(),
             "revision_date": now(),
             "delete_account_date": None,
-            "is_supper_admin": is_supper_admin
+            "is_supper_admin": is_supper_admin,
+            "full_name": kwargs.get("full_name") or user_id,
         }
         user = self.user_repository.update_user(user_id=user.user_id, user_update_data=user_new_creation_data)
         current_plan = self.get_current_plan(user=user)

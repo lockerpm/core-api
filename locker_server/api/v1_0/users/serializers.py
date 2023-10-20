@@ -50,6 +50,7 @@ class EncryptedPairKey(serializers.Serializer):
 
 class UserRegisterSerializer(serializers.Serializer):
     email = serializers.EmailField(max_length=255)
+    full_name = serializers.CharField(max_length=255, required=False, allow_blank=True)
     kdf = serializers.IntegerField(default=0)
     kdf_iterations = serializers.IntegerField(default=100000)
     key = serializers.CharField()
