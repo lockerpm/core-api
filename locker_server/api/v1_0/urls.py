@@ -61,6 +61,9 @@ urlpatterns += [
     url(r'^users/invitations/confirmation$', views.UserPwdViewSet.as_view({'get': 'invitation_confirmation'})),
     url(r'^users/invitations$', views.UserPwdViewSet.as_view({'get': 'invitations'})),
     url(r'^users/invitations/(?P<pk>[a-z0-9\-]+)$', views.UserPwdViewSet.as_view({'put': 'invitation_update'})),
+    url(r'^users/check_exist$', views.UserPwdViewSet.as_view({'get': 'check_exist'})),
+    url(r'^users/prelogin$', views.UserPwdViewSet.as_view({'post': 'prelogin'})),
+
 ]
 
 # ----------------------------------- Passwordless ----------------------------- #
