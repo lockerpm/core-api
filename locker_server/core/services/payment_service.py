@@ -1,24 +1,16 @@
 from typing import List, Optional, Dict
 
 import jwt
-import stripe
 
 from locker_server.core.entities.payment.payment import Payment
 from locker_server.core.entities.user.user import User
 from locker_server.core.entities.user_plan.pm_plan import PMPlan
-from locker_server.core.entities.user_plan.pm_user_plan import PMUserPlan
 from locker_server.core.exceptions.enterprise_member_repository import EnterpriseMemberExistedException
-from locker_server.core.exceptions.payment_exception import PaymentInvoiceDoesNotExistException, \
-    PaymentPromoCodeInvalidException, PaymentFailedByUserInFamilyException, CurrentPlanDoesNotSupportOperatorException, \
-    PaymentFailedByUserInLifetimeException, EducationEmailClaimedException, EducationEmailInvalidException, \
-    CreateEducationEmailPromoCodeFailedException, UpgradePlanNotChangeException, UpgradePaymentMethodChangedException, \
-    MaxFamilyMemberReachedException, PaymentNotFoundCardException, CannotCancelDefaultPlanException
+from locker_server.core.exceptions.payment_exception import *
 from locker_server.core.exceptions.plan_repository import PlanDoesNotExistException
 from locker_server.core.exceptions.user_exception import UserDoesNotExistException
-from locker_server.core.exceptions.user_plan_exception import EnterpriseTrialCodeInvalidException, \
-    EnterpriseTrialAppliedException
+from locker_server.core.exceptions.user_plan_exception import *
 from locker_server.core.repositories.cipher_repository import CipherRepository
-from locker_server.core.repositories.device_repository import DeviceRepository
 from locker_server.core.repositories.education_email_repository import EducationEmailRepository
 from locker_server.core.repositories.enterprise_member_repository import EnterpriseMemberRepository
 from locker_server.core.repositories.payment_repository import PaymentRepository
@@ -27,8 +19,7 @@ from locker_server.core.repositories.relay_repositories.relay_address_repository
 from locker_server.core.repositories.user_plan_repository import UserPlanRepository
 from locker_server.core.repositories.user_repository import UserRepository
 from locker_server.shared.constants.relay_address import MAX_FREE_RElAY_DOMAIN
-from locker_server.shared.constants.token import TOKEN_TYPE_TRIAL_ENTERPRISE, TOKEN_EXPIRED_TIME_TRIAL_ENTERPRISE, \
-    TOKEN_TYPE_EDUCATION_CLAIM
+from locker_server.shared.constants.token import *
 from locker_server.shared.constants.transactions import *
 from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
 from locker_server.shared.external_services.locker_background.constants import BG_NOTIFY
@@ -663,12 +654,6 @@ class PaymentService:
             "relay_addresses": relay_addresses_statistic_data,
             "plan_limit": plan_limit
         }
-
-    def get_by_payment_id(self, payment_id: str) -> Optional[Payment]:
-        payment = self.payment_repository.get_by_payment_id(payment_id=payment_id)
-        if not payment:
-            raise PaymentInvoiceDoesNotExistException
-        return payment
 
     def get_pm_plan_by_alias(self, alias: str) -> PMPlan:
         plan = self.plan_repository.get_plan_by_alias(alias=alias)
