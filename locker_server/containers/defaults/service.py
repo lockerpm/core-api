@@ -251,4 +251,5 @@ class ServiceFactory(containers.DeclarativeContainer):
         user_repository=RepositoryFactory.user_repository,
         user_plan_repository=RepositoryFactory.user_plan_repository,
         emergency_access_repository=RepositoryFactory.emergency_access_repository,
+        payment_repository=RepositoryFactory.payment_repository,
     )
