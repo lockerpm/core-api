@@ -14,19 +14,19 @@ from locker_server.core.repositories.enterprise_domain_repository import Enterpr
 from locker_server.core.repositories.enterprise_member_repository import EnterpriseMemberRepository
 from locker_server.core.repositories.enterprise_repository import EnterpriseRepository
 from locker_server.core.repositories.event_repository import EventRepository
+from locker_server.core.repositories.payment_repository import PaymentRepository
 from locker_server.core.repositories.user_plan_repository import UserPlanRepository
 from locker_server.core.repositories.user_repository import UserRepository
 from locker_server.shared.constants.enterprise_members import E_MEMBER_STATUS_CONFIRMED
-from locker_server.shared.constants.event import EVENT_E_MEMBER_ENABLED, EVENT_E_MEMBER_CONFIRMED, \
-    EVENT_E_MEMBER_REMOVED, EVENT_E_MEMBER_DISABLED
-from locker_server.shared.constants.transactions import PLAN_TYPE_PM_FREE, PAYMENT_METHOD_MOBILE, MAX_ATTEMPTS, \
-    DURATION_YEARLY, PAYMENT_METHOD_CARD
+from locker_server.shared.constants.event import *
+from locker_server.shared.constants.transactions import *
 from locker_server.shared.external_services.hibp.hibp_service import HibpService
 from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
 from locker_server.shared.external_services.locker_background.constants import BG_DOMAIN, BG_NOTIFY
 from locker_server.shared.external_services.locker_background.impl import NotifyBackground
 from locker_server.shared.external_services.payment_method.payment_method_factory import PaymentMethodFactory
 from locker_server.shared.external_services.spreadsheet.spreadsheet import API_USERS, HEADERS
+from locker_server.shared.external_services.user_notification.list_jobs import PWD_ASKING_FEEDBACK
 from locker_server.shared.log.cylog import CyLog
 from locker_server.shared.utils.app import now, convert_readable_date
 
@@ -43,7 +43,8 @@ class CronTaskService:
                  enterprise_member_repository: EnterpriseMemberRepository,
                  user_repository: UserRepository,
                  user_plan_repository: UserPlanRepository,
-                 emergency_access_repository: EmergencyAccessRepository
+                 emergency_access_repository: EmergencyAccessRepository,
+                 payment_repository: PaymentRepository
                  ):
         self.event_repository = event_repository
         self.cipher_repository = cipher_repository
@@ -53,6 +54,7 @@ class CronTaskService:
         self.user_repository = user_repository
         self.user_plan_repository = user_plan_repository
         self.emergency_access_repository = emergency_access_repository
+        self.payment_repository = payment_repository
 
     def delete_old_events(self, creation_date_pivot) -> NoReturn:
         return self.event_repository.delete_old_events(creation_date_pivot=creation_date_pivot)
@@ -465,30 +467,18 @@ class CronTaskService:
 
                     )
 
-    def asking_for_feedback_after_subscription(self):
-        pass
-        return
-        payments = Payment.objects.filter(
-            user_id=OuterRef("user_id"), total_price__gt=0,
-            status=PAYMENT_STATUS_PAID
-        ).order_by('created_time')
-        users = User.objects.filter(activated=True).annotate(
-            first_payment_date=Subquery(payments.values('created_time')[:1], output_field=FloatField()),
-            first_payment_plan=Subquery(payments.values('plan')[:1], output_field=CharField()),
-        ).exclude(first_payment_date__isnull=True).filter(
-            first_payment_date__gte=now() - 30 * 86400,
-            first_payment_date__lt=now() - 29 * 86400
-        ).values('user_id', 'first_payment_plan')
-        for user in users:
+    def asking_for_feedback_after_subscription(self, scope):
+        users_feedback = self.payment_repository.list_feedback_after_subscription(after_days=30)
+        for user in users_feedback:
             if user.get("first_payment_plan") == PLAN_TYPE_PM_ENTERPRISE:
                 review_url = "https://www.g2.com/products/locker-password-manager/reviews#reviews"
             else:
                 review_url = "https://www.trustpilot.com/review/locker.io?sort=recency&utm_medium=trustbox&utm_source=MicroReviewCount"
-            LockerBackgroundFactory.get_background(bg_name=BG_NOTIFY, background=False).run(
+            BackgroundFactory.get_background(bg_name=BG_NOTIFY, background=False).run(
                 func_name="notify_locker_mail", **{
                     "user_ids": [user.get("user_id")],
-                    "job": "asking_for_feedback_after_subscription",
-                    "scope": settings.SCOPE_PWD_MANAGER,
+                    "job": PWD_ASKING_FEEDBACK,
+                    "scope": scope,
                     "review_url": review_url,
                 }
             )

@@ -322,7 +322,17 @@ class NotifyBackground(LockerBackground):
         try:
             if "scope" not in data:
                 data.update({"scope": settings.SCOPE_PWD_MANAGER})
-            requester(method="POST", url=url, headers=HEADERS, data_send=data, retry=True, max_retries=3, timeout=5)
+            if not settings.SELF_HOSTED:
+                requester(method="POST", url=url, headers=HEADERS, data_send=data, retry=True, max_retries=3, timeout=5)
+            else:
+                mail_data = data.copy()
+                job = mail_data.get("job")
+                scope = mail_data.get("scope", settings.SCOPE_PWD_MANAGER)
+                services = mail_data.get("services", [SENDING_SERVICE_MAIL])
+                mail_data.pop("job", None)
+                mail_data.pop("scope", None)
+                mail_data.pop("services", None)
+                NotificationSender(job=job, scope=scope, services=services).send(**mail_data)
         except Exception:
             self.log_error(func_name="notify_locker_mail")
         finally:

@@ -262,7 +262,7 @@ class UserPlanORMRepository(UserPlanRepository):
 
     def get_family_member(self, owner_user_id: int, family_member_id: int) -> Optional[PMUserPlanFamily]:
         try:
-            family_member_orm = PMUserPlanFamilyORM.objects.filter(root_user_plan_id=owner_user_id, id=family_member_id)
+            family_member_orm = PMUserPlanFamilyORM.objects.get(root_user_plan_id=owner_user_id, id=family_member_id)
             return ModelParser.user_plan_parser().parse_user_plan_family(user_plan_family_orm=family_member_orm)
         except PMUserPlanFamilyORM.DoesNotExist:
             return None
