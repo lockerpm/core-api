@@ -440,14 +440,14 @@ class MemberPwdViewSet(APIBaseViewSet):
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
 
-        status = validated_data.get("status")
-        if status not in ["confirmed", "reject"]:
+        member_status = validated_data.get("status")
+        if member_status not in ["confirmed", "reject"]:
             raise ValidationError(detail={"status": ["This status is not valid"]})
         try:
             updated_member_invitation = self.enterprise_member_service.update_user_invitations(
                 current_user=user,
                 enterprise_member_id=kwargs.get("pk"),
-                status=status
+                status=member_status
             )
         except EnterpriseMemberDoesNotExistException:
             raise NotFound
@@ -460,7 +460,7 @@ class MemberPwdViewSet(APIBaseViewSet):
         if not primary_admin_user:
             primary_admin_user_id = None
         else:
-            primary_admin_user_id = primary_admin_user.user.user_id
+            primary_admin_user_id = primary_admin_user.user_id
         admin_members = self.enterprise_member_service.list_enterprise_members(**{
             "enterprise_id": enterprise.enterprise_id,
             "roles": [E_MEMBER_ROLE_ADMIN],
@@ -468,7 +468,7 @@ class MemberPwdViewSet(APIBaseViewSet):
         })
         admin_user_ids = [admin_member.user.user_id for admin_member in admin_members]
 
-        member_status = updated_member_invitation.status if status != "reject" else None
+        member_status = updated_member_invitation.status if member_status != "reject" else None
         if member_status == E_MEMBER_STATUS_CONFIRMED:
             # Log event
             BackgroundFactory.get_background(bg_name=BG_EVENT).run(func_name="create_by_enterprise_ids", **{
@@ -477,8 +477,8 @@ class MemberPwdViewSet(APIBaseViewSet):
                 "type": EVENT_E_MEMBER_CONFIRMED, "ip_address": ip
             })
             # Update subscription quantity here
-            if self.is_billing_members_added(
-                    enterprise_member=updated_member_invitation) is True and primary_admin_user:
+            if self.is_billing_members_added(enterprise_member=updated_member_invitation) is True \
+                    and primary_admin_user:
                 try:
                     PaymentMethodFactory.get_method(
                         user_plan=admin_plan, scope=settings.SCOPE_PWD_MANAGER, payment_method=PAYMENT_METHOD_CARD
