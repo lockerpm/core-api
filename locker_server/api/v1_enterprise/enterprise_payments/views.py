@@ -379,7 +379,11 @@ class PaymentPwdViewSet(APIBaseViewSet):
             if not promo_code_obj:
                 raise ValidationError(detail={"promo_code": ["This coupon is expired or invalid"]})
         duration = validated_data.get("duration", DURATION_MONTHLY)
-        number_members = enterprise.get_activated_members_count()
+        number_members = self.enterprise_member_service.count_enterprise_members(**{
+            "status": E_MEMBER_STATUS_CONFIRMED,
+            "is_activated": True,
+            "enterprise_id": enterprise.enterprise_id
+        })
         currency = validated_data.get("currency")
         self._upgrade_plan(
             user=user, enterprise=enterprise, card=card, promo_code_obj=promo_code_obj,
