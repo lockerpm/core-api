@@ -41,7 +41,7 @@ from locker_server.shared.external_services.locker_background.constants import B
 from locker_server.shared.external_services.pm_sync import PwdSync, SYNC_EVENT_MEMBER_ACCEPTED, \
     SYNC_EVENT_CIPHER_UPDATE, SYNC_EVENT_COLLECTION_UPDATE, SYNC_EVENT_MEMBER_REJECT, SYNC_EVENT_MEMBER_INVITATION, \
     SYNC_EVENT_CIPHER, SYNC_EVENT_MEMBER_CONFIRMED, SYNC_EVENT_MEMBER_UPDATE, SYNC_EVENT_MEMBER_REMOVE, \
-    SYNC_EVENT_CIPHER_SHARE
+    SYNC_EVENT_CIPHER_SHARE, SYNC_EVENT_CIPHER_INVITATION
 from locker_server.shared.utils.app import now
 from locker_server.shared.utils.avatar import get_avatar
 
@@ -330,6 +330,7 @@ class SharingService:
 
         # Sending sync event
         PwdSync(event=SYNC_EVENT_MEMBER_INVITATION, user_ids=existed_member_users + [user.user_id]).send()
+        PwdSync(event=SYNC_EVENT_CIPHER_INVITATION, user_ids=existed_member_users).send()
         shared_type_name = None
         cipher_id = None
         folder_id = None
@@ -340,7 +341,7 @@ class SharingService:
                 cipher_id = cipher_obj.cipher_id
                 self.user_repository.delete_sync_cache_data(user_id=user.user_id)
                 PwdSync(
-                    event=SYNC_EVENT_CIPHER_SHARE, user_ids=[user.user_id], team=new_sharing, add_all=True
+                    event=SYNC_EVENT_CIPHER_SHARE, user_ids=[user.user_id]
                 ).send(data={"ids": [cipher_obj.cipher_id], "id": cipher_obj.cipher_id})
 
         if folder:
@@ -517,9 +518,10 @@ class SharingService:
         sync_user_ids = existed_member_users + [user.user_id]
         # Sync member invitation
         PwdSync(event=SYNC_EVENT_MEMBER_INVITATION, user_ids=sync_user_ids).send()
+        PwdSync(event=SYNC_EVENT_CIPHER_INVITATION, user_ids=existed_member_users).send()
         # Sync ciphers
         if share_type == "cipher":
-            PwdSync(event=SYNC_EVENT_CIPHER_SHARE, user_ids=sync_user_ids).send(data={"ids": shared_cipher_ids})
+            PwdSync(event=SYNC_EVENT_CIPHER_SHARE, user_ids=[user.user_id]).send(data={"ids": shared_cipher_ids})
         else:
             PwdSync(event=SYNC_EVENT_CIPHER, user_ids=sync_user_ids).send()
 
@@ -555,7 +557,6 @@ class SharingService:
     def invitation_confirm(self, user: User, sharing_invitation: TeamMember, key: str):
         member = self.sharing_repository.confirm_invitation(member=sharing_invitation, key=key)
         sharing_id = member.team.team_id
-
 
         # Sending notification
         shared_type_name = None
