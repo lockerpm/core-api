@@ -637,7 +637,9 @@ class SharingService:
         return member
 
     def invitation_group_confirm(self, user: User, sharing: Team, group_id: str, members: List):
-        group = self.team_group_repository.get_share_group_by_id(sharing_id=sharing.team_id, group_id=group_id)
+        group = self.team_group_repository.get_share_group_by_enterprise_group_id(
+            sharing_id=sharing.team_id, enterprise_group_id=group_id
+        )
         if not group:
             raise TeamGroupDoesNotExistException
         members_user_ids = [member_data.get("user_id") for member_data in members if member_data.get("user_id")]
