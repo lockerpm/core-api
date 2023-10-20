@@ -225,6 +225,7 @@ try:
         "API_REPOSITORY_CLASS": "locker_server.containers.defaults.repository.RepositoryFactory",
         "API_SERVICE_CLASS": "locker_server.containers.defaults.service.ServiceFactory",
         "MODEL_PARSER_CLASS": "locker_server.api_orm.model_parsers.model_parsers.ModelParser",
+        "DEFAULT_PLAN": os.getenv("DEFAULT_PLAN", "pm_free")
     }
 
     # -------------- 3rd Lib ------------------------ #

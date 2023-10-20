@@ -132,18 +132,15 @@ class UserService:
         return self.user_repository.get_from_cystack_id(user_id=user_id)
 
     def register_user(self, user_id: Union[str, int], master_password_hash: str, key: str, keys,
-                      current_pm_plan_alias=PLAN_TYPE_PM_FREE,
+                      default_plan=PLAN_TYPE_PM_FREE,
                       **kwargs):
-        if not self.allow_create_user(current_pm_plan_alias):
+        if not self.allow_create_user(default_plan=default_plan):
             raise UserCreationDeniedException
         if isinstance(user_id, int):
             user = self.retrieve_or_create_by_id(user_id=user_id)
         else:
             user = self.retrieve_or_create_by_email(email=user_id)
-        if current_pm_plan_alias == PLAN_TYPE_PM_ENTERPRISE:
-            is_supper_admin = True
-        else:
-            is_supper_admin = False
+        is_supper_admin = True if default_plan == PLAN_TYPE_PM_ENTERPRISE else False
         user_new_creation_data = {
             "kdf": kwargs.get("kdf", 0),
             "kdf_iterations": kwargs.get("kdf_iterations", 100000),
@@ -162,10 +159,12 @@ class UserService:
         }
         user = self.user_repository.update_user(user_id=user.user_id, user_update_data=user_new_creation_data)
         current_plan = self.get_current_plan(user=user)
-        current_plan = self.update_plan(
-            user_id=user_id, plan_type_alias=current_pm_plan_alias,
-            duration=current_plan.duration
-        )
+        # Upgrade user to default plan
+        if default_plan:
+            current_plan = self.update_plan(
+                user_id=user_id, plan_type_alias=default_plan,
+                duration=current_plan.duration
+            )
         # Upgrade trial plan
         trial_plan = kwargs.get("trial_plan")
         is_trial_promotion = kwargs.get("is_trial_promotion", False)
@@ -640,8 +639,8 @@ class UserService:
     def get_customer_data(self, user: User, token_card=None, id_card=None):
         return self.user_repository.get_customer_data(user=user, token_card=token_card, id_card=id_card)
 
-    def allow_create_user(self, current_plan: str) -> bool:
-        if current_plan == PLAN_TYPE_PM_ENTERPRISE:
+    def allow_create_user(self, default_plan: str) -> bool:
+        if default_plan == PLAN_TYPE_PM_ENTERPRISE:
             return self.user_repository.allow_create_enterprise_user()
         return True
 

@@ -21,6 +21,7 @@ from locker_server.core.exceptions.user_exception import UserDoesNotExistExcepti
     UserAuthBlockingEnterprisePolicyException, UserAuthFailedException, UserAuthBlockedEnterprisePolicyException, \
     UserIsLockedByEnterpriseException, UserEnterprisePlanExpiredException, UserBelongEnterpriseException, \
     User2FARequireException, UserAuthFailedPasswordlessRequiredException, UserCreationDeniedException
+from locker_server.settings import locker_server_settings
 from locker_server.shared.constants.account import *
 from locker_server.shared.error_responses.error import refer_error, gen_error
 from locker_server.api.v1_0.ciphers.serializers import VaultItemSerializer, UpdateVaultItemSerializer
@@ -85,11 +86,11 @@ class UserPwdViewSet(APIBaseViewSet):
         master_password_hash = validated_data.get("master_password_hash")
         try:
             self.user_service.register_user(
-                current_pm_plan_alias=settings.DEFAULT_PLAN,
                 user_id=validated_data.get("email"),
                 master_password_hash=master_password_hash,
                 key=key,
                 keys=keys,
+                default_plan=locker_server_settings.DEFAULT_PLAN,
                 **{
                     "kdf": validated_data.get("kdf", 0),
                     "kdf_iterations": validated_data.get("kdf_iterations", 100000),
