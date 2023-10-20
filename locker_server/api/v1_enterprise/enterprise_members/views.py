@@ -420,9 +420,15 @@ class MemberPwdViewSet(APIBaseViewSet):
                 enterprise_id=member_invitation.enterprise.enterprise_id
             ).user
             member_invitation_data = UserInvitationSerializer(member_invitation, many=False).data
-            member_invitation_data.update({
-                "owner": primary_user.user_id
-            })
+            if settings.SELF_HOSTED:
+                member_invitation_data.update({
+                    "owner": primary_user.full_name,
+                    "owner_email": primary_user.email
+                })
+            else:
+                member_invitation_data.update({
+                    "owner": primary_user.user_id
+                })
             member_invitations_data.append(member_invitation_data)
         return Response(status=status.HTTP_200_OK, data=member_invitations_data)
 
