@@ -4,6 +4,7 @@ SYNC_EVENT_CIPHER_DELETE = "cipher_delete"
 SYNC_EVENT_CIPHER_RESTORE = "cipher_restore"
 SYNC_EVENT_CIPHER_DELETE_PERMANENT = "cipher_delete_permanent"
 SYNC_EVENT_CIPHER_SHARE = "cipher_share"
+SYNC_EVENT_CIPHER_INVITATION = "cipher_invitation"
 
 SYNC_EVENT_FOLDER_UPDATE = "folder_update"
 SYNC_EVENT_FOLDER_DELETE = "folder_delete"
