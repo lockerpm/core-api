@@ -31,6 +31,12 @@ class UserAuthFailedPasswordlessRequiredException(UserAuthFailedException):
     """
 
 
+class UserCreationDeniedException(UserException):
+    """
+    The admin user is created. So users can not create new one for enterprise plan.
+    """
+
+
 class UserAuthBlockingEnterprisePolicyException(UserAuthFailedException):
     def __init__(self, wait, message="Login locked due to the enterprise's policy"):
         super().__init__(message)

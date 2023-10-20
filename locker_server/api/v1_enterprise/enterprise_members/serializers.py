@@ -74,7 +74,6 @@ class DetailActiveMemberSerializer(DetailMemberSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         data["login_block_until"] = instance.user.login_block_until if instance.user else None
-        data["cipher_overview"] = instance.cipher_overview
         return data
 
 

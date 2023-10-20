@@ -131,12 +131,16 @@ class UserService:
     def get_from_cystack_id(self, user_id: int) -> Dict:
         return self.user_repository.get_from_cystack_id(user_id=user_id)
 
-    def register_user(self, user_id: Union[str, int], master_password_hash: str, key: str, keys, **kwargs):
+    def register_user(self, user_id: Union[str, int], master_password_hash: str, key: str, keys,
+                      default_plan=PLAN_TYPE_PM_FREE,
+                      **kwargs):
+        if not self.allow_create_user(default_plan=default_plan):
+            raise UserCreationDeniedException
         if isinstance(user_id, int):
             user = self.retrieve_or_create_by_id(user_id=user_id)
         else:
             user = self.retrieve_or_create_by_email(email=user_id)
-
+        is_supper_admin = True if default_plan == PLAN_TYPE_PM_ENTERPRISE else False
         user_new_creation_data = {
             "kdf": kwargs.get("kdf", 0),
             "kdf_iterations": kwargs.get("kdf_iterations", 100000),
@@ -151,9 +155,16 @@ class UserService:
             "activated_date": now(),
             "revision_date": now(),
             "delete_account_date": None,
+            "is_supper_admin": is_supper_admin
         }
         user = self.user_repository.update_user(user_id=user.user_id, user_update_data=user_new_creation_data)
         current_plan = self.get_current_plan(user=user)
+        # Upgrade user to default plan
+        if default_plan:
+            current_plan = self.update_plan(
+                user_id=user_id, plan_type_alias=default_plan,
+                duration=current_plan.duration
+            )
         # Upgrade trial plan
         trial_plan = kwargs.get("trial_plan")
         is_trial_promotion = kwargs.get("is_trial_promotion", False)
@@ -589,7 +600,7 @@ class UserService:
             user_plan_update_data=user_plan_update_data
         )
 
-    def cancel_plan(self, user: User, immediately=False, **kwargs):
+    def cancel_plan(self, user: User, scope: str, immediately=False, **kwargs):
         current_plan = self.get_current_plan(user=user)
         pm_plan_alias = current_plan.get_plan_type_alias()
         if pm_plan_alias == PLAN_TYPE_PM_FREE:
@@ -604,13 +615,13 @@ class UserService:
             from locker_server.shared.external_services.payment_method.payment_method_factory import \
                 PaymentMethodFactory
             end_time = PaymentMethodFactory.get_method(
-                user_plan=current_plan, scope=settings.SCOPE_PWD_MANAGER, payment_method=payment_method
+                user_plan=current_plan, scope=scope, payment_method=payment_method
             ).cancel_recurring_subscription(**kwargs)
         else:
             from locker_server.shared.external_services.payment_method.payment_method_factory import \
                 PaymentMethodFactory
             PaymentMethodFactory.get_method(
-                user_plan=current_plan, scope=settings.SCOPE_PWD_MANAGER, payment_method=payment_method
+                user_plan=current_plan, scope=scope, payment_method=payment_method
             ).cancel_immediately_recurring_subscription()
             end_time = now()
         return end_time
@@ -627,3 +638,11 @@ class UserService:
 
     def get_customer_data(self, user: User, token_card=None, id_card=None):
         return self.user_repository.get_customer_data(user=user, token_card=token_card, id_card=id_card)
+
+    def allow_create_user(self, default_plan: str) -> bool:
+        if default_plan == PLAN_TYPE_PM_ENTERPRISE:
+            return self.user_repository.allow_create_enterprise_user()
+        return True
+
+    def check_exist(self) -> bool:
+        return self.user_repository.check_exist()
