@@ -92,6 +92,9 @@ LS_FACTOR2_METHOD_MODEL = getattr(settings, "LS_FACTOR2_METHOD_MODEL", "api_orm.
 # -------- Configuration Models ----------- #
 LS_SSO_CONFIGURATION_MODEL = getattr(settings, "LS_SSO_CONFIGURATION_MODEL", "api_orm.SSOConfigurationORM")
 
+
+DEFAULT_PLAN = getattr(settings, "DEFAULT_PLAN", "pm_free")
+
 DEFAULTS = {
     "LS_RELEASE_MODEL": LS_RELEASE_MODEL,
 
@@ -158,7 +161,7 @@ DEFAULTS = {
     "GEOIP_PATH": os.path.join(settings.BASE_DIR, 'locker_server', 'shared', 'geoip2'),
     "MAXMIND_API_KEY": None,
     "INIT_MAXMIND_DB": "1",
-    "DEFAULT_PLAN": "pm_free",
+    "DEFAULT_PLAN": DEFAULT_PLAN,
 
 }
 
@@ -172,7 +175,6 @@ IMPORT_STRINGS = (
     "API_REPOSITORY_CLASS",
     "API_SERVICE_CLASS",
     "MODEL_PARSER_CLASS",
-    "DEFAULT_PLAN"
 )
 
 
