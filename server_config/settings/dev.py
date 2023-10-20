@@ -12,7 +12,6 @@ try:
     SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
     DEBUG = True
     SELF_HOSTED = True
-    DEFAULT_PLAN = os.getenv("DEFAULT_PLAN", "pm_free")
     ALLOWED_HOSTS = ["*"]
     WSGI_APPLICATION = 'server_config.wsgi.application'
     ASGI_APPLICATION = 'server_config.routing.application'

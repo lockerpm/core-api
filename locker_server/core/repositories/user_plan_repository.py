@@ -25,7 +25,7 @@ class UserPlanRepository(ABC):
 
     # ------------------------ Get PMUserPlan resource --------------------- #
     @abstractmethod
-    def get_user_plan(self, user_id: int, pm_plan_alias=PLAN_TYPE_PM_FREE) -> Optional[PMUserPlan]:
+    def get_user_plan(self, user_id: int) -> Optional[PMUserPlan]:
         pass
 
     @abstractmethod

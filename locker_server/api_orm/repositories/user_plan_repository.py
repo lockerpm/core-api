@@ -35,14 +35,13 @@ ModelParser = get_model_parser()
 
 class UserPlanORMRepository(UserPlanRepository):
     @staticmethod
-    def _get_current_plan_orm(user_id: int, pm_plan_alias=PLAN_TYPE_PM_FREE) -> PMUserPlanORM:
+    def _get_current_plan_orm(user_id: int) -> PMUserPlanORM:
         user_orm = UserORM.objects.get(user_id=user_id)
         try:
             user_plan_orm = user_orm.pm_user_plan
         except (ValueError, AttributeError):
             user_plan_orm = PMUserPlanORM.update_or_create(
                 user=user_orm,
-                pm_plan_alias=pm_plan_alias
             )
         return user_plan_orm
 
@@ -166,8 +165,8 @@ class UserPlanORMRepository(UserPlanRepository):
         ]
 
     # ------------------------ Get PMUserPlan resource --------------------- #
-    def get_user_plan(self, user_id: int, pm_plan_alias=PLAN_TYPE_PM_FREE) -> Optional[PMUserPlan]:
-        user_plan_orm = self._get_current_plan_orm(user_id=user_id, pm_plan_alias=pm_plan_alias)
+    def get_user_plan(self, user_id: int) -> Optional[PMUserPlan]:
+        user_plan_orm = self._get_current_plan_orm(user_id=user_id)
         return ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=user_plan_orm)
 
     def get_mobile_user_plan(self, pm_mobile_subscription: str) -> Optional[PMUserPlan]:

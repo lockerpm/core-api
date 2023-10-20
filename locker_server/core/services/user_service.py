@@ -72,8 +72,8 @@ class UserService:
         self.enterprise_policy_repository = enterprise_policy_repository
         self.notification_setting_repository = notification_setting_repository
 
-    def get_current_plan(self, user: User, pm_plan_alias=PLAN_TYPE_PM_FREE) -> PMUserPlan:
-        return self.user_plan_repository.get_user_plan(user_id=user.user_id, pm_plan_alias=pm_plan_alias)
+    def get_current_plan(self, user: User) -> PMUserPlan:
+        return self.user_plan_repository.get_user_plan(user_id=user.user_id)
 
     def update_plan(self, user_id: int, plan_type_alias: str, duration: str = DURATION_MONTHLY, scope: str = None,
                     **kwargs):
@@ -161,7 +161,11 @@ class UserService:
             "is_supper_admin": is_supper_admin
         }
         user = self.user_repository.update_user(user_id=user.user_id, user_update_data=user_new_creation_data)
-        current_plan = self.get_current_plan(user=user, pm_plan_alias=current_pm_plan_alias)
+        current_plan = self.get_current_plan(user=user)
+        current_plan = self.update_plan(
+            user_id=user_id, plan_type_alias=current_pm_plan_alias,
+            duration=current_plan.duration
+        )
         # Upgrade trial plan
         trial_plan = kwargs.get("trial_plan")
         is_trial_promotion = kwargs.get("is_trial_promotion", False)
