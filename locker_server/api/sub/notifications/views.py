@@ -58,7 +58,7 @@ class NotificationViewSet(APIBaseViewSet):
             serializer = self.get_serializer(page, many=True)
             response = self.get_paginated_response(serializer.data)
             response.data.update({
-                "unread_count": self.notification_service.count_notification(**{
+                "unread_count": self.notification_service.count_notifications(**{
                     "user_id": user.user_id,
                     "read": "0",
                     "scope": self.request.query_params.get('scope', settings.SCOPE_PWD_MANAGER)
