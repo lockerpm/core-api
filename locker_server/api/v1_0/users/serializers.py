@@ -38,7 +38,7 @@ class UserScoreUpdateSerializer(serializers.Serializer):
 
 
 class UserUpdateMeSerializer(serializers.Serializer):
-    timeout = serializers.IntegerField(allow_null=True, min_value=0, required=False)
+    timeout = serializers.IntegerField(allow_null=True, min_value=-1, required=False)
     timeout_action = serializers.ChoiceField(choices=["lock", "logOut"], required=False)
     scores = UserScoreUpdateSerializer(allow_null=True, required=False, many=False)
 
