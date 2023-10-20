@@ -659,7 +659,9 @@ class SharingService:
 
     def update_group_role(self, sharing: Team, group_id: str, role_id: str) -> Group:
         sharing_id = sharing.team_id
-        group = self.team_group_repository.get_share_group_by_id(sharing_id=sharing_id, group_id=group_id)
+        group = self.team_group_repository.get_share_group_by_enterprise_group_id(
+            sharing_id=sharing_id, enterprise_group_id=group_id
+        )
         if not group:
             raise TeamGroupDoesNotExistException
         group = self.team_group_repository.update_group_role_invitation(
@@ -754,7 +756,9 @@ class SharingService:
 
         group = None
         if group_id:
-            group = self.team_group_repository.get_share_group_by_id(sharing_id=sharing_id, group_id=group_id)
+            group = self.team_group_repository.get_share_group_by_enterprise_group_id(
+                sharing_id=sharing_id, enterprise_group_id=group_id
+            )
             if not group:
                 raise TeamGroupDoesNotExistException
         member = None
