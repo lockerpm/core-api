@@ -642,5 +642,5 @@ class UserPwdViewSet(APIBaseViewSet):
                     "require_passwordless": require_passwordless
                 }
             )
-        except UserDeviceSerializer:
-            return Response(status=status.HTTP_200_OK)
+        except UserDoesNotExistException:
+            raise ValidationError(detail={"email": ["User with email does not exist"]})
