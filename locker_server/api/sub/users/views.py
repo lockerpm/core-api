@@ -3,15 +3,15 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
+from locker_server.api.permissions.locker_permissions.user_sub_permission import UserSubPermission
 from locker_server.core.exceptions.user_exception import UserDoesNotExistException
-from .serializer import UserMeSerializer, UpdateMeSerializer
 from locker_server.api.api_base_view import APIBaseViewSet
-from ...permissions.locker_permissions.user_pwd_permission import UserPwdPermission
+from .serializer import UserMeSerializer, UpdateMeSerializer
 
 
 class UserViewSet(APIBaseViewSet):
     http_method_names = ["head", "options", "get", "post", "put"]
-    permission_classes = (UserPwdPermission, )
+    permission_classes = (UserSubPermission, )
 
     def get_serializer_class(self):
         if self.action == "retrieve":

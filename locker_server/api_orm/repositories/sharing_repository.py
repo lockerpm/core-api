@@ -655,7 +655,7 @@ class SharingORMRepository(SharingRepository):
                 "members": members
             }]
             existed_member_users, non_existed_member_users = self.add_group_members(
-                team_id=team.id, shared_collection_id=collection.id, groups=groups
+                team_id=team.id, shared_collection_id=collection.id if collection else None, groups=groups
             )
             if collection:
                 shared_type_name = "folder"
