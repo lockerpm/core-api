@@ -36,7 +36,7 @@ from locker_server.shared.utils.network import get_ip_by_request, detect_device
 from .serializers import UserMeSerializer, UserUpdateMeSerializer, UserRegisterSerializer, UserSessionSerializer, \
     DeviceFcmSerializer, UserChangePasswordSerializer, UserNewPasswordSerializer, UserCheckPasswordSerializer, \
     UserMasterPasswordHashSerializer, UpdateOnboardingProcessSerializer, UserPwdInvitationSerializer, \
-    UserDeviceSerializer
+    UserDeviceSerializer, PreloginSerializer
 
 
 class UserPwdViewSet(APIBaseViewSet):
@@ -73,6 +73,8 @@ class UserPwdViewSet(APIBaseViewSet):
             self.serializer_class = UserPwdInvitationSerializer
         elif self.action == "devices":
             self.serializer_class = UserDeviceSerializer
+        elif self.action == "prelogin":
+            self.serializer_class = PreloginSerializer
         return super().get_serializer_class()
 
     @action(methods=["post"], detail=False)
@@ -612,6 +614,33 @@ class UserPwdViewSet(APIBaseViewSet):
         return Response(status=status.HTTP_200_OK, data={"sso_token_ids": sso_token_ids})
 
     @action(methods=["get"], detail=False)
-    def exist(self, request, *args, **kwargs):
+    def check_exist(self, request, *args, **kwargs):
         exist = self.user_service.check_exist()
         return Response(status=status.HTTP_200_OK, data={"exist": exist})
+
+    @action(methods=["post"], detail=False)
+    def prelogin(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        email = validated_data.get("email")
+        try:
+            user = self.user_service.retrieve_by_email(
+                email=email
+            )
+            login_method = user.login_method
+            require_passwordless = self.user_service.is_require_passwordless(user_id=user.user_id)
+            return Response(
+                status=status.HTTP_200_OK,
+                data={
+                    "email": user.email,
+                    "name": user.full_name or user.username,
+                    "avatar": user.get_avatar(),
+                    "activated": user.activated,
+                    "set_up_passwordless": True if user.fd_credential_id else False,
+                    "login_method": login_method,
+                    "require_passwordless": require_passwordless
+                }
+            )
+        except UserDeviceSerializer:
+            return Response(status=status.HTTP_200_OK)

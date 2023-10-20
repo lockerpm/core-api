@@ -174,3 +174,7 @@ class UserDeviceSerializer(serializers.Serializer):
             "is_active": instance.is_active
         }
         return data
+
+
+class PreloginSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
