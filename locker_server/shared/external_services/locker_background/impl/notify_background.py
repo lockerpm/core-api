@@ -177,7 +177,7 @@ class NotifyBackground(LockerBackground):
             current_plan = user_service.get_current_plan(user=user)
             enterprise = user_service.get_default_enterprise(user_id=user.user_id)
             payment_data = {
-                "enterprise_id": enterprise.id if enterprise else None,
+                "enterprise_id": enterprise.enterprise_id if enterprise else None,
                 "enterprise_name": enterprise.name if enterprise else None,
                 "stripe_invoice_id": payment.stripe_invoice_id,
                 "plan_name": current_plan.pm_plan.name,

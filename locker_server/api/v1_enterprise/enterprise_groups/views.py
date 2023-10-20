@@ -213,7 +213,7 @@ class GroupPwdViewSet(APIBaseViewSet):
         data = {
             "id": enterprise_group.enterprise_group_id,
             "creation_date": enterprise_group.creation_date,
-            "revision_date": enterprise_group.revision_datem,
+            "revision_date": enterprise_group.revision_date,
             "name": enterprise_group.name,
 
         }

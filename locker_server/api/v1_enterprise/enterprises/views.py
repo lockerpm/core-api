@@ -108,7 +108,7 @@ class EnterprisePwdViewSet(APIBaseViewSet):
             raise NotFound
         # Log update activity here
         BackgroundFactory.get_background(bg_name=BG_EVENT).run(func_name="create_by_enterprise_ids", **{
-            "enterprise_ids": [enterprise.id], "acting_user_id": user.user_id, "user_id": user.user_id,
+            "enterprise_ids": [enterprise.enterprise_id], "acting_user_id": user.user_id, "user_id": user.user_id,
             "type": EVENT_ENTERPRISE_UPDATED, "ip_address": ip
         })
         updated_enterprise = self.normalize_enterprise([updated_enterprise])[0]
