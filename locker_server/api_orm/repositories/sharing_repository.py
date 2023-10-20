@@ -405,8 +405,9 @@ class SharingORMRepository(SharingRepository):
         return list(set(existed_member_users)), list(set(non_existed_member_users))
 
     def add_group_members(self, team_id: str, shared_collection_id: str, groups):
-        primary_user = TeamMemberORM.objects.get(is_primary=True, team_id=team_id).user
-        team_orm = primary_user.team
+        primary_member = TeamMemberORM.objects.get(is_primary=True, team_id=team_id)
+        primary_user = primary_member.user
+        team_orm = primary_member.team
         non_existed_member_users = []
         existed_member_users = []
         existed_user_ids = list(team_orm.team_members.filter(user_id__isnull=False).values_list('user_id', flat=True))
