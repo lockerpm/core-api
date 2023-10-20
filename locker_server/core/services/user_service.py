@@ -146,7 +146,7 @@ class UserService:
             "kdf_iterations": kwargs.get("kdf_iterations", 100000),
             "key": key,
             "public_key": keys.get("public_key"),
-            "private_key": keys.get("private_key"),
+            "private_key": keys.get("encrypted_private_key"),
             "master_password_hash": master_password_hash,
             "master_password_hint": kwargs.get("master_password_hint", ""),
             "master_password_score": kwargs.get("score") or kwargs.get("master_password_score"),
