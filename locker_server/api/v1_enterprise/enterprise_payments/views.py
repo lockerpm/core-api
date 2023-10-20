@@ -186,7 +186,8 @@ class PaymentPwdViewSet(APIBaseViewSet):
 
         stripe_default_payment_method = stripe_subscription.default_payment_method if stripe_subscription else None
         return Response(
-            status=status.HTTP_200_OK, data={
+            status=status.HTTP_200_OK,
+            data={
                 "primary_admin": primary_admin.user_id,
                 "stripe_default_payment_method": stripe_default_payment_method
             }
@@ -319,7 +320,7 @@ class PaymentPwdViewSet(APIBaseViewSet):
             "promo_code": promo_code_obj,
             "card": card,
             "number_members": number_members,
-            "enterprise_id": enterprise.id,
+            "enterprise_id": enterprise.enterprise_id,
         }
         # Calc payment price of new plan
         promo_code_value = promo_code_obj.code if promo_code_obj else None
