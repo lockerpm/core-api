@@ -757,7 +757,7 @@ class SharingService:
         member = None
         if member_id:
             member = self.team_member_repository.get_team_member_by_id(team_member_id=member_id)
-            if member.user.user_id == user.user_id or member.team.team_id != sharing_id:
+            if not member and member.user.user_id == user.user_id or member.team.team_id != sharing_id:
                 raise TeamMemberDoesNotExistException
 
         shared_team = group.team if group else member.team
@@ -805,14 +805,14 @@ class SharingService:
         if self.is_folder_sharing(sharing_id=sharing_id) is False:
             share_cipher = self.sharing_repository.get_share_cipher(sharing_id=sharing_id)
             self.user_repository.delete_sync_cache_data(user_id=member_user_id)
-            PwdSync(event=SYNC_EVENT_CIPHER_SHARE, user_ids=[member_user_id]).send(data={
+            PwdSync(event=SYNC_EVENT_CIPHER_SHARE, user_ids=[member_user_id], team=sharing, add_all=True).send(data={
                 "id": share_cipher.cipher_id, "ids": [share_cipher.cipher_id]
             })
         # Else, share a folder
         else:
             share_collection = self.sharing_repository.get_share_collection(sharing_id=sharing_id)
             self.user_repository.delete_sync_cache_data(user_id=user.user_id)
-            PwdSync(event=SYNC_EVENT_COLLECTION_UPDATE, user_ids=[user.user_id]).send(
+            PwdSync(event=SYNC_EVENT_COLLECTION_UPDATE, user_ids=[user.user_id], team=sharing, add_all=True).send(
                 data={"id": share_collection.collection_id}
             )
 
