@@ -644,7 +644,7 @@ class SharingService:
             raise TeamGroupDoesNotExistException
         members_user_ids = [member_data.get("user_id") for member_data in members if member_data.get("user_id")]
         # Get list group members that were invited
-        invited_members = self.team_group_repository.list_group_members(group_id=group_id, **{
+        invited_members = self.team_group_repository.list_group_members(group_id=group.group_id, **{
             "statuses": [PM_MEMBER_STATUS_ACCEPTED, PM_MEMBER_STATUS_INVITED],
             "user_ids": members_user_ids
         })
