@@ -179,15 +179,14 @@ class MemberPwdViewSet(APIBaseViewSet):
         enterprise = self.get_object()
         member_id = kwargs.get("member_id")
         enterprise_member = self.get_enterprise_member(enterprise=enterprise, member_id=member_id)
-        # TODO: get cipher_overview of member
         cipher_overview = {}
         if enterprise_member.user and enterprise_member.user and enterprise_member.status != E_MEMBER_STATUS_INVITED:
             cipher_overview = self.user_service.get_user_cipher_overview(
                 user_id=enterprise_member.user.user_id
             )
-        enterprise_member.cipher_overview = cipher_overview
-        serializer = self.get_serializer(enterprise_member)
-        return Response(status=status.HTTP_200_OK, data=serializer.data)
+        serializer_data = self.get_serializer(enterprise_member).data
+        serializer_data["cipher_overview"] = cipher_overview
+        return Response(status=status.HTTP_200_OK, data=serializer_data)
 
     def update(self, request, *args, **kwargs):
         ip = self.get_ip()
