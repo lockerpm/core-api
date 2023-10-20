@@ -6,7 +6,7 @@ from locker_server.core.entities.user.user import User
 from locker_server.core.entities.user_plan.pm_plan import PMPlan
 from locker_server.core.entities.user_plan.pm_user_plan import PMUserPlan
 from locker_server.core.entities.user_plan.pm_user_plan_family import PMUserPlanFamily
-from locker_server.shared.constants.transactions import DURATION_MONTHLY, CURRENCY_USD
+from locker_server.shared.constants.transactions import DURATION_MONTHLY, CURRENCY_USD, PLAN_TYPE_PM_FREE
 
 
 class UserPlanRepository(ABC):
@@ -25,7 +25,7 @@ class UserPlanRepository(ABC):
 
     # ------------------------ Get PMUserPlan resource --------------------- #
     @abstractmethod
-    def get_user_plan(self, user_id: int) -> Optional[PMUserPlan]:
+    def get_user_plan(self, user_id: int, pm_plan_alias=PLAN_TYPE_PM_FREE) -> Optional[PMUserPlan]:
         pass
 
     @abstractmethod

@@ -19,7 +19,7 @@ from locker_server.core.exceptions.team_member_exception import TeamMemberDoesNo
 from locker_server.core.exceptions.user_exception import UserDoesNotExistException, \
     UserAuthBlockingEnterprisePolicyException, UserAuthFailedException, UserAuthBlockedEnterprisePolicyException, \
     UserIsLockedByEnterpriseException, UserEnterprisePlanExpiredException, UserBelongEnterpriseException, \
-    User2FARequireException, UserAuthFailedPasswordlessRequiredException
+    User2FARequireException, UserAuthFailedPasswordlessRequiredException, UserCreationDeniedException
 from locker_server.shared.constants.account import *
 from locker_server.shared.error_responses.error import refer_error, gen_error
 from locker_server.api.v1_0.ciphers.serializers import VaultItemSerializer, UpdateVaultItemSerializer
@@ -82,21 +82,24 @@ class UserPwdViewSet(APIBaseViewSet):
         key = validated_data.get("key")
         keys = validated_data.get("keys", {})
         master_password_hash = validated_data.get("master_password_hash")
-        self.user_service.register_user(
-            user_id=validated_data.get("email"),
-            master_password_hash=master_password_hash,
-            key=key,
-            keys=keys,
-            **{
-                "kdf": validated_data.get("kdf", 0),
-                "kdf_iterations": validated_data.get("kdf_iterations", 100000),
-                "master_password_hint": validated_data.get("master_password_hint", ""),
-                "score": validated_data.get("score", 0),
-                "trial_plan": validated_data.get("trial_plan"),
-                "is_trial_promotion": validated_data.get("is_trial_promotion"),
-                "enterprise_name": validated_data.get("enterprise_name")
-            }
-        )
+        try:
+            self.user_service.register_user(
+                user_id=validated_data.get("email"),
+                master_password_hash=master_password_hash,
+                key=key,
+                keys=keys,
+                **{
+                    "kdf": validated_data.get("kdf", 0),
+                    "kdf_iterations": validated_data.get("kdf_iterations", 100000),
+                    "master_password_hint": validated_data.get("master_password_hint", ""),
+                    "score": validated_data.get("score", 0),
+                    "trial_plan": validated_data.get("trial_plan"),
+                    "is_trial_promotion": validated_data.get("is_trial_promotion"),
+                    "enterprise_name": validated_data.get("enterprise_name")
+                }
+            )
+        except UserCreationDeniedException:
+            raise ValidationError(detail={"email": ["Please contact to your administrator to create new account"]})
         return Response(status=status.HTTP_200_OK, data={"success": True})
 
     @action(methods=["get"], detail=False)
@@ -604,3 +607,8 @@ class UserPwdViewSet(APIBaseViewSet):
         except DeviceDoesNotExistException:
             raise NotFound
         return Response(status=status.HTTP_200_OK, data={"sso_token_ids": sso_token_ids})
+
+    @action(methods=["get"], detail=False)
+    def exist(self, request, *args, **kwargs):
+        exist = self.user_service.check_exist()
+        return Response(status=status.HTTP_200_OK, data={"exist": exist})
