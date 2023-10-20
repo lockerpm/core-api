@@ -11,4 +11,5 @@ try:
     db_name = args[1]
 except (IndexError, KeyError):
     db_name = 'default'
-django_config(db_name=db_name)
+
+django_config()
