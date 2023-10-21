@@ -43,3 +43,6 @@ class NotificationService:
 
     def read_all(self, **filters):
         self.notification_repository.read_all(**filters)
+
+    def count_notification(self, **filters) -> int:
+        return self.notification_repository.count_notifications(**filters)

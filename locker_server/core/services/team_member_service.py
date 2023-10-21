@@ -15,7 +15,8 @@ class TeamMemberService:
     def __init__(self, team_member_repository: TeamMemberRepository):
         self.team_member_repository = team_member_repository
 
-    def list_member_user_ids_by_teams(self, teams: List[Team], status: str = None, personal_share: bool = None) -> List[int]:
+    def list_member_user_ids_by_teams(self, teams: List[Team], status: str = None, personal_share: bool = None) -> List[
+        int]:
         return self.team_member_repository.list_member_user_ids_by_teams(
             teams=teams, status=status, personal_share=personal_share
         )
@@ -39,3 +40,8 @@ class TeamMemberService:
 
     def get_role_notify(self, user_id: int, team_id: str) -> Dict:
         return self.team_member_repository.get_role_notify_dict(team_id=team_id, user_id=user_id)
+
+    def get_primary_member(self, team_id: str) -> Optional[TeamMember]:
+        return self.team_member_repository.get_primary_member(
+            team_id=team_id
+        )

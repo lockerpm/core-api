@@ -46,3 +46,8 @@ urlpatterns += [
     url(r'^sso_configuration/get_user$', views.SSOConfigurationViewSet.as_view({'post': 'get_user_by_code'}))
 
 ]
+
+""" Teams Management """
+urlpatterns += [
+    url(r'^teams$', views.TeamPwdViewSet.as_view({'get': 'list'}))
+]
