@@ -230,7 +230,7 @@ class CipherPwdViewSet(APIBaseViewSet):
     def _update_cipher(self, cipher_obj, cipher_data):
         try:
             return self.cipher_service.update_cipher(
-                cipher=cipher_obj, user=self.request.user, cipher_data=cipher_data,
+                cipher=cipher_obj, user=self.request.user, cipher_data=cipher_data, view_action="update"
             )
         except FolderDoesNotExistException:
             raise ValidationError(detail={"folderId": ["This folder does not exist"]})
