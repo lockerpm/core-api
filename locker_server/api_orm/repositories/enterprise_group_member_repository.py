@@ -90,16 +90,17 @@ class EnterpriseGroupMemberORMRepository(EnterpriseGroupMemberRepository):
         group_members_orm.delete()
         return True
 
-    def delete_multiple_by_member_ids(self, enterprise_group: EnterpriseGroup, deleted_member_ids: [str]) -> bool:
+    def delete_multiple_by_member_ids(self, enterprise_group: EnterpriseGroup, deleted_member_ids: [str]) -> List[int]:
         deleted_groups_members = EnterpriseGroupMemberORM.objects.filter(
             member_id__in=deleted_member_ids,
             group_id=enterprise_group.enterprise_group_id
         )
+        deleted_user_ids = list(deleted_groups_members.values_list('member__user_id', flat=True))
         sharing_group_members = GroupORM.objects.filter(
-            groups_members__member__user_id__in=deleted_groups_members.values_list('member__user_id', flat=True)
+            groups_members__member__user_id__in=deleted_user_ids
         ).values_list('groups_members__member_id', flat=True)
         TeamMemberORM.objects.filter(
             id__in=list(sharing_group_members), is_added_by_group=True
         ).exclude(role_id=MEMBER_ROLE_OWNER).delete()
         deleted_groups_members.delete()
-        return True
+        return deleted_user_ids

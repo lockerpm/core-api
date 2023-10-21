@@ -151,6 +151,7 @@ class ServiceFactory(containers.DeclarativeContainer):
         enterprise_group_repository=RepositoryFactory.enterprise_group_repository,
         enterprise_group_member_repository=RepositoryFactory.enterprise_group_member_repository,
         enterprise_member_repository=RepositoryFactory.enterprise_member_repository,
+        user_repository=RepositoryFactory.user_repository
     )
     enterprise_member_service = providers.Factory(
         EnterpriseMemberService,
