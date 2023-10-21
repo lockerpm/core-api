@@ -40,7 +40,6 @@ class SSOConfigurationService:
         user = self.user_repository.get_user_by_id(user_id=user_id)
         if not user:
             raise UserDoesNotExistException
-        # TODO: check permission of user
         sso_config_update_data.update({
             "created_by_id": user.user_id
         })

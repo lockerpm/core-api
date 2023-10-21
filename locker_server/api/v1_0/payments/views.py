@@ -78,7 +78,6 @@ class PaymentPwdViewSet(APIBaseViewSet):
         if self.enterprise_service.is_in_enterprise(user_id=user.user_id):
             raise ValidationError({"non_field_errors": [gen_error("7015")]})
 
-        # TODO: Check the user applied trial enterprise or not
         pm_current_plan = self.user_service.get_current_plan(user=user)
         if pm_current_plan.enterprise_trial_applied is True:
             raise ValidationError({"non_field_errors": [gen_error("7013")]})
