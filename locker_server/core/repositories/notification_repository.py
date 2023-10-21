@@ -20,6 +20,10 @@ class NotificationRepository(ABC):
         pass
 
     # ------------------------ Create Notification resource --------------------- #
+    @abstractmethod
+    def create_multiple(self, user_ids: [int], notification_type,
+                        vi_title="", en_title="", vi_description="", en_description="", metadata=None):
+        pass
 
     # ------------------------ Update Notification resource --------------------- #
     @abstractmethod

@@ -31,7 +31,7 @@ from locker_server.shared.external_services.pm_sync import PwdSync, SYNC_EVENT_C
 from locker_server.shared.external_services.user_notification.list_jobs import PWD_MASTER_PASSWORD_CHANGED, \
     PWD_NO_MASTER_PASSWORD_HINT, PWD_HINT_FOR_MASTER_PASSWORD, PWD_ACCOUNT_DELETED, PWD_DELETE_SHARE_ITEM, \
     PWD_CONFIRM_INVITATION
-from locker_server.shared.utils.app import now
+from locker_server.shared.utils.app import now, get_ip_location
 from locker_server.shared.utils.network import get_ip_by_request, detect_device
 from .serializers import UserMeSerializer, UserUpdateMeSerializer, UserRegisterSerializer, UserSessionSerializer, \
     DeviceFcmSerializer, UserChangePasswordSerializer, UserNewPasswordSerializer, UserCheckPasswordSerializer, \
@@ -373,8 +373,7 @@ class UserPwdViewSet(APIBaseViewSet):
             # Sending mail when user changes master password
             if user.user_id in mail_user_ids:
                 device = detect_device(ua_string=self.get_client_agent())
-                # TODO: Retrieve ip location from factor2Method
-                ip_location = Factor2Method.get_ip_location(ip=get_ip_by_request(request))
+                ip_location = get_ip_location(ip=get_ip_by_request(request))
                 browser = device.get("browser", None)
                 browser = "" if browser is None else browser.get("family") + " " + browser.get("version", "")
                 os = device.get("os", None)

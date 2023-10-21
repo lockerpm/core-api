@@ -43,3 +43,15 @@ class NotificationService:
 
     def read_all(self, **filters):
         self.notification_repository.read_all(**filters)
+
+    def create_multiple(self, user_ids: [int], notification_type,
+                        vi_title="", en_title="", vi_description="", en_description="", metadata=None):
+        self.notification_repository.create_multiple(
+            user_ids=user_ids,
+            notification_type=notification_type,
+            vi_title=vi_title,
+            en_title=en_title,
+            vi_description=vi_description,
+            en_description=en_description,
+            metadata=metadata
+        )

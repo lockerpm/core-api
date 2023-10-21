@@ -58,6 +58,17 @@ class NotificationORMRepository(NotificationRepository):
         return ModelParser.notification_parser().parse_notification(notification_orm=notification_orm)
 
     # ------------------------ Create Notification resource --------------------- #
+    def create_multiple(self, user_ids: [int], notification_type,
+                        vi_title="", en_title="", vi_description="", en_description="", metadata=None):
+        NotificationORM.create_multiple(
+            user_ids=user_ids,
+            notification_type=notification_type,
+            vi_title=vi_title,
+            en_title=en_title,
+            vi_description=vi_description,
+            en_description=en_description,
+            metadata=metadata
+        )
 
     # ------------------------ Update Notification resource --------------------- #
     def update_notification(self, notification_id: str, read: bool, clicked=None) -> Optional[Notification]:
