@@ -54,7 +54,7 @@ logging_config = {
         'django.server': DEFAULT_LOGGING['handlers']['django.server'],
         'rq_console': {
             'level': 'DEBUG',
-            'class': 'rq.utils.ColorizingStreamHandler',
+            'class': 'rq.logutils.ColorizingStreamHandler',
             'formatter': 'rq_console',
             # 'exclude': ['%(asctime)s'],
         },
