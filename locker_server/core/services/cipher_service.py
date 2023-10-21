@@ -41,8 +41,8 @@ class CipherService:
         return folder_id
 
     def _validated_team(self, user: User, data, view_action: str, specific_validate_collections_func: str = None):
-        organization_id = data.get("organizationId")
-        collection_ids = data.get("collectionIds", [])
+        organization_id = data.get("organization_id") or data.get("organizationId")
+        collection_ids = data.get("collection_ids", []) or data.get("collectionIds", [])
         # Check the permission in the organization_id
         allow_roles = [MEMBER_ROLE_OWNER]
         if view_action == "update":
