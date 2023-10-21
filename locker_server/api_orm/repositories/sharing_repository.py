@@ -330,7 +330,7 @@ class SharingORMRepository(SharingRepository):
         member_orm.key = key
         member_orm.status = PM_MEMBER_STATUS_CONFIRMED
         member_orm.save()
-        bump_account_revision_date(user=member.user)
+        bump_account_revision_date(user=member_orm.user)
 
         member.status = member_orm.status
         member.key = member_orm.key
