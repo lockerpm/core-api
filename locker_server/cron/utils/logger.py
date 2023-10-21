@@ -10,9 +10,9 @@ from django.conf import settings
 
 NOTIFY_LEVEL_NUM = 100
 if os.getenv("PROD_ENV") == "staging":
-    MSG_PREFIX = "[locker-api-cron-staging]"
+    MSG_PREFIX = "[locker-sever-cron-staging]"
 else:
-    MSG_PREFIX = "[locker-api-cron]"
+    MSG_PREFIX = "[locker-sever-cron]"
 
 
 class SlackHandler(logging.Handler):
