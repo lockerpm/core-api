@@ -23,7 +23,7 @@ class RelaySubdomainORMRepository(RelaySubdomainRepository):
         ).order_by('created_time')
 
         return [
-            ModelParser.relay_parser().parse_relay_subdomain(relay_domain_orm=relay_subdomain_orm)
+            ModelParser.relay_parser().parse_relay_subdomain(relay_subdomain_orm=relay_subdomain_orm)
             for relay_subdomain_orm in relay_subdomains_orm
         ]
 
@@ -41,7 +41,7 @@ class RelaySubdomainORMRepository(RelaySubdomainRepository):
                 relay_subdomains_orm = relay_subdomains_orm.filter(is_deleted=True)
 
         return [
-            ModelParser.relay_parser().parse_relay_subdomain(relay_domain_orm=relay_subdomain_orm)
+            ModelParser.relay_parser().parse_relay_subdomain(relay_subdomain_orm=relay_subdomain_orm)
             for relay_subdomain_orm in relay_subdomains_orm
         ]
 
