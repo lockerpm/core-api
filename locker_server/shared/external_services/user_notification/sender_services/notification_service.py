@@ -1,3 +1,4 @@
+from locker_server.containers.containers import notification_service
 from locker_server.shared.external_services.user_notification.list_jobs import *
 from locker_server.shared.external_services.user_notification.sender_services import SenderService
 
@@ -10,14 +11,12 @@ class NotificationService(SenderService):
         notification = kwargs.get("notification")
         kwargs = self.__get_web_notification_kwargs(**kwargs)
 
-        # TODO: Change to service creation
-        from locker_server.api_orm.models import NotificationORM
-        NotificationORM.create_multiple(
+        notification_service.create_multiple(
             user_ids=user_ids,
             notification_type=notification["type"],
             vi_title=notification["title"]["vi"].format(**kwargs),
             en_title=notification["title"]["en"].format(**kwargs),
-            metadata=self.__get_web_notification_metadata(**kwargs)
+            metadata=self.__get_web_notification_metadata(**kwargs),
         )
 
     @staticmethod
