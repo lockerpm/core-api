@@ -50,5 +50,5 @@ class EnterpriseGroupMemberRepository(ABC):
         pass
 
     @abstractmethod
-    def delete_multiple_by_member_ids(self, enterprise_group: EnterpriseGroup, deleted_member_ids: [str]) -> bool:
+    def delete_multiple_by_member_ids(self, enterprise_group: EnterpriseGroup, deleted_member_ids: [str]) -> List[int]:
         pass
