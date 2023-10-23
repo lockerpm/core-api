@@ -5,6 +5,7 @@ from locker_server.core.entities.enterprise.enterprise import Enterprise
 from locker_server.core.entities.enterprise.member.enterprise_member import EnterpriseMember
 from locker_server.core.entities.enterprise.payment.billing_contact import EnterpriseBillingContact
 from locker_server.core.entities.enterprise.policy.policy import EnterprisePolicy
+from locker_server.core.entities.user.user import User
 from locker_server.core.exceptions.country_exception import CountryDoesNotExistException
 from locker_server.core.exceptions.enterprise_billing_contact_exception import \
     EnterpriseBillingContactDoesNotExistException
@@ -18,6 +19,7 @@ from locker_server.core.repositories.enterprise_domain_repository import Enterpr
 from locker_server.core.repositories.enterprise_member_repository import EnterpriseMemberRepository
 from locker_server.core.repositories.enterprise_policy_repository import EnterprisePolicyRepository
 from locker_server.core.repositories.enterprise_repository import EnterpriseRepository
+from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_PRIMARY_ADMIN, E_MEMBER_STATUS_CONFIRMED
 from locker_server.shared.constants.policy import LIST_POLICY_TYPE, POLICY_TYPE_PASSWORD_REQUIREMENT, \
     POLICY_TYPE_MASTER_PASSWORD_REQUIREMENT, POLICY_TYPE_BLOCK_FAILED_LOGIN, POLICY_TYPE_PASSWORDLESS, POLICY_TYPE_2FA
 
@@ -155,11 +157,14 @@ class EnterpriseService:
             config = None
         return config
 
-    def list_user_enterprises(self, user_id: int, **filters):
+    def list_user_enterprises(self, user_id: int, **filters) -> List[Enterprise]:
         return self.enterprise_repository.list_user_enterprises(
             user_id=user_id,
             **filters
         )
+
+    def list_enterprises(self, **filters) -> List[Enterprise]:
+        return self.enterprise_repository.list_enterprises(**filters)
 
     def update_enterprise(self, enterprise_id: str, enterprise_update_data) -> Optional[Enterprise]:
         enterprise_country = enterprise_update_data.get("enterprise_country")
@@ -189,3 +194,23 @@ class EnterpriseService:
 
     def is_in_enterprise(self, user_id: int, enterprise_locked: bool = None) -> bool:
         return self.enterprise_member_repository.is_in_enterprise(user_id=user_id, enterprise_locked=enterprise_locked)
+
+    def create_enterprise(self, user: User, enterprise_create_data) -> Enterprise:
+        enterprise_country = enterprise_create_data.get("enterprise_country")
+        if enterprise_country:
+            country = self.country_repository.get_country_by_code(
+                country_code=enterprise_country
+            )
+            if not country:
+                raise CountryDoesNotExistException
+        enterprise_create_data.update({
+            "members": [{
+                "user_id": user.user_id,
+                "role_id": E_MEMBER_ROLE_PRIMARY_ADMIN,
+                "status": E_MEMBER_STATUS_CONFIRMED,
+                "is_primary": True
+            }]
+        })
+        return self.enterprise_repository.create_enterprise(
+            enterprise_create_data=enterprise_create_data
+        )

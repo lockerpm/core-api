@@ -80,6 +80,9 @@ class EnterpriseORMRepository(EnterpriseRepository):
         return ModelParser.enterprise_parser().parse_enterprise(enterprise_orm=enterprise_orm)
 
     # ------------------------ Create Enterprise resource --------------------- #
+    def create_enterprise(self, enterprise_create_data: Dict) -> Enterprise:
+        new_enterprise_orm = EnterpriseORM.create(**enterprise_create_data)
+        return ModelParser.enterprise_parser().parse_enterprise(enterprise_orm=new_enterprise_orm)
 
     # ------------------------ Update Enterprise resource --------------------- #
     def update_enterprise(self, enterprise_id: str, enterprise_update_data) -> Optional[Enterprise]:
