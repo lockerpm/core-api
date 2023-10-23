@@ -195,7 +195,7 @@ class EnterpriseService:
     def is_in_enterprise(self, user_id: int, enterprise_locked: bool = None) -> bool:
         return self.enterprise_member_repository.is_in_enterprise(user_id=user_id, enterprise_locked=enterprise_locked)
 
-    def create_enterprise(self, user: User, enterprise_create_data) -> Enterprise:
+    def create_enterprise(self, primary_user: User, enterprise_create_data) -> Enterprise:
         enterprise_country = enterprise_create_data.get("enterprise_country")
         if enterprise_country:
             country = self.country_repository.get_country_by_code(
@@ -205,7 +205,7 @@ class EnterpriseService:
                 raise CountryDoesNotExistException
         enterprise_create_data.update({
             "members": [{
-                "user_id": user.user_id,
+                "user_id": primary_user.user_id,
                 "role_id": E_MEMBER_ROLE_PRIMARY_ADMIN,
                 "status": E_MEMBER_STATUS_CONFIRMED,
                 "is_primary": True

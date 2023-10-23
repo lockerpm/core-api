@@ -315,6 +315,10 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
             "is_activated",
             enterprise_member_orm.is_activated
         )
+        enterprise_member_orm.is_primary = enterprise_member_update_data.get(
+            "is_primary",
+            enterprise_member_orm.is_primary
+        )
         enterprise_member_orm.access_time = enterprise_member_update_data.get(
             "access_time",
             enterprise_member_orm.access_time

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from locker_server.shared.constants.enterprise_members import ENTERPRISE_LIST_ROLE, E_MEMBER_ROLE_MEMBER
 from locker_server.shared.utils.avatar import get_avatar
 
 
@@ -43,3 +44,21 @@ class ListMemberSerializer(serializers.Serializer):
 class DetailMemberSerializer(ListMemberSerializer):
     def to_representation(self, instance):
         return super().to_representation(instance)
+
+
+class UpdateMemberSerializer(serializers.Serializer):
+    role = serializers.ChoiceField(
+        choices=ENTERPRISE_LIST_ROLE, default=E_MEMBER_ROLE_MEMBER, required=False
+    )
+    is_primary = serializers.BooleanField(required=False, default=False)
+
+    def validate(self, data):
+        role = data.get("role")
+        is_primary = data.get("is_primary")
+        if role is None and is_primary is None:
+            raise serializers.ValidationError(detail={"role": ["The role or is_primary is required"]})
+        return data
+
+
+class EnabledMemberSerializer(serializers.Serializer):
+    activated = serializers.BooleanField()

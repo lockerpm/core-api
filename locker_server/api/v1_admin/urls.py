@@ -24,9 +24,9 @@ urlpatterns += [
 ]
 # ------------------------------- Enterprise ----------------------------- #
 urlpatterns += [
-    url(r'^enterprises$', views.AdminEnterpriseViewSet.as_view())
+    url(r'^enterprises$', views.AdminEnterpriseViewSet)
 ]
 # ------------------------------- Enterprise Member ----------------------------- #
 urlpatterns += [
-    url(r'^enterprises/(?P<enterprise_id>[0-9a-z]+)/members$', views.AdminEnterpriseMemberViewSet.as_view())
+    url(r'^enterprises/(?P<enterprise_id>[0-9a-z]+)/members$', views.AdminEnterpriseMemberViewSet)
 ]

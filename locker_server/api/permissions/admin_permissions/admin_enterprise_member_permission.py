@@ -11,6 +11,6 @@ class AdminEnterpriseMemberPermission(AdminEnterprisePermission):
         member = self.get_enterprise_member(user=request.user, obj=obj)
         role = member.role
         role_name = role.name
-        if view.action in ["list", "retrieve"]:
+        if view.action in ["list", "retrieve", "update", "activated", "destroy"]:
             return role_name in [E_MEMBER_ROLE_PRIMARY_ADMIN]
         return super().has_object_permission(request, view, obj)
