@@ -6,7 +6,7 @@ from locker_server.core.entities.team.team import Team
 class Group(object):
     def __init__(self, group_id: int, access_all: bool = True, creation_date: float = None, revision_date: float = None,
                  team: Team = None, enterprise_group: EnterpriseGroup = None, role: MemberRole = None):
-        self._group_id = group_id,
+        self._group_id = group_id
         self._access_all = access_all
         self._creation_date = creation_date
         self._revision_date = revision_date
