@@ -329,10 +329,10 @@ class SharingService:
         )
 
         # Sending sync event
-        PwdSync(event=SYNC_EVENT_MEMBER_INVITATION, user_ids=existed_member_users + [user.user_id]).send()
-        PwdSync(event=SYNC_EVENT_CIPHER_INVITATION, user_ids=existed_member_users).send()
         for u_id in existed_member_users + [user.user_id]:
             self.user_repository.delete_sync_cache_data(user_id=u_id)
+        PwdSync(event=SYNC_EVENT_MEMBER_INVITATION, user_ids=existed_member_users + [user.user_id]).send()
+        PwdSync(event=SYNC_EVENT_CIPHER_INVITATION, user_ids=existed_member_users).send()
         shared_type_name = None
         cipher_id = None
         folder_id = None
@@ -519,10 +519,10 @@ class SharingService:
         share_type = "folder" if folders else "cipher"
         sync_user_ids = existed_member_users + [user.user_id]
         # Sync member invitation
-        PwdSync(event=SYNC_EVENT_MEMBER_INVITATION, user_ids=sync_user_ids).send()
-        PwdSync(event=SYNC_EVENT_CIPHER_INVITATION, user_ids=existed_member_users).send()
         for u_id in sync_user_ids:
             self.user_repository.delete_sync_cache_data(user_id=u_id)
+        PwdSync(event=SYNC_EVENT_MEMBER_INVITATION, user_ids=sync_user_ids).send()
+        PwdSync(event=SYNC_EVENT_CIPHER_INVITATION, user_ids=existed_member_users).send()
         # Sync ciphers
         if share_type == "cipher":
             PwdSync(event=SYNC_EVENT_CIPHER_SHARE, user_ids=[user.user_id]).send(data={"ids": shared_cipher_ids})
@@ -878,9 +878,9 @@ class SharingService:
         existed_member_users, non_existed_member_users = self.sharing_repository.add_members(
             team_id=sharing_id, shared_collection_id=share_folder.collection_id, members=members, groups=groups
         )
-        PwdSync(event=SYNC_EVENT_MEMBER_INVITATION, user_ids=existed_member_users + [user.user_id]).send()
         for u_id in existed_member_users + [user.user_id]:
             self.user_repository.delete_sync_cache_data(user_id=u_id)
+        PwdSync(event=SYNC_EVENT_MEMBER_INVITATION, user_ids=existed_member_users + [user.user_id]).send()
 
         mail_user_ids = self.notification_setting_repository.get_user_mail(
             category_id=NOTIFY_SHARING, user_ids=existed_member_users
