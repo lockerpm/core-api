@@ -1,5 +1,5 @@
 from locker_server.api.permissions.admin_permissions.admin_enterprise_permission import AdminEnterprisePermission
-from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_PRIMARY_ADMIN, E_MEMBER_ROLE_ADMIN
+from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_PRIMARY_ADMIN
 
 
 class AdminEnterpriseMemberPermission(AdminEnterprisePermission):
@@ -11,6 +11,6 @@ class AdminEnterpriseMemberPermission(AdminEnterprisePermission):
         member = self.get_enterprise_member(user=request.user, obj=obj)
         role = member.role
         role_name = role.name
-        if view.action in ["list"]:
+        if view.action in ["list", "retrieve"]:
             return role_name in [E_MEMBER_ROLE_PRIMARY_ADMIN]
         return super().has_object_permission(request, view, obj)

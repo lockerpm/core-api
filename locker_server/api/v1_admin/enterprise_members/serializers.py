@@ -38,3 +38,8 @@ class ListMemberSerializer(serializers.Serializer):
         } if instance.domain else None
         data.update(get_detail_user_info(instance))
         return data
+
+
+class DetailMemberSerializer(ListMemberSerializer):
+    def to_representation(self, instance):
+        return super().to_representation(instance)

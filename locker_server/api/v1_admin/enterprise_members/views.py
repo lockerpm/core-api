@@ -1,6 +1,7 @@
 from rest_framework.exceptions import NotFound
 
 from locker_server.core.exceptions.enterprise_exception import EnterpriseDoesNotExistException
+from locker_server.core.exceptions.enterprise_member_exception import EnterpriseMemberDoesNotExistException
 
 from .serializers import *
 from locker_server.api.api_base_view import APIBaseViewSet
@@ -17,6 +18,8 @@ class AdminEnterpriseMemberViewSet(APIBaseViewSet):
     def get_serializer_class(self):
         if self.action == "list":
             self.serializer_class = ListMemberSerializer
+        elif self.action == "retrieve":
+            self.serializer_class = DetailMemberSerializer
         return super().get_serializer_class()
 
     def get_enterprise(self):
@@ -37,6 +40,18 @@ class AdminEnterpriseMemberViewSet(APIBaseViewSet):
 
         return members
 
+    def get_object(self):
+        enterprise = self.get_enterprise()
+        try:
+            member = self.enterprise_member_service.get_member_by_id(
+                member_id=self.kwargs.get("pk")
+            )
+            if member.enterprise.enterprise_id != enterprise.enterprise_id:
+                raise NotFound
+            return member
+        except EnterpriseMemberDoesNotExistException:
+            raise NotFound
+
     def list(self, request, *args, **kwargs):
         paging_param = self.request.query_params.get("paging", "1")
         page_size_param = self.check_int_param(self.request.query_params.get("size", 10))
@@ -46,3 +61,6 @@ class AdminEnterpriseMemberViewSet(APIBaseViewSet):
             self.pagination_class.page_size = page_size_param if page_size_param else 10
 
         return super().list(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
