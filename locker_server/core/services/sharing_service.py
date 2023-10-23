@@ -871,6 +871,7 @@ class SharingService:
         existed_member_users, non_existed_member_users = self.sharing_repository.add_members(
             team_id=sharing_id, shared_collection_id=share_folder.collection_id, members=members, groups=groups
         )
+        PwdSync(event=SYNC_EVENT_MEMBER_INVITATION, user_ids=existed_member_users + [user.user_id]).send()
         mail_user_ids = self.notification_setting_repository.get_user_mail(
             category_id=NOTIFY_SHARING, user_ids=existed_member_users
         )
