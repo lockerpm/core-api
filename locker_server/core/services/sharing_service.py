@@ -799,6 +799,9 @@ class SharingService:
             ).send(data={"id": cipher_obj.cipher_id, "ids": [cipher_obj.cipher_id]})
         if collection_obj:
             PwdSync(event=SYNC_EVENT_CIPHER, user_ids=[user.user_id] + removed_member_user_ids).send()
+        # Delete cached data
+        for u_id in [user.user_id] + removed_member_user_ids:
+            self.user_repository.delete_sync_cache_data(user_id=u_id)
 
     def leave_sharing_team(self, user: User, sharing: Team):
         member = self.team_member_repository.get_user_team_member(user_id=user.user_id, team_id=sharing.team_id)
@@ -871,6 +874,7 @@ class SharingService:
         existed_member_users, non_existed_member_users = self.sharing_repository.add_members(
             team_id=sharing_id, shared_collection_id=share_folder.collection_id, members=members, groups=groups
         )
+        PwdSync(event=SYNC_EVENT_MEMBER_INVITATION, user_ids=existed_member_users + [user.user_id]).send()
         mail_user_ids = self.notification_setting_repository.get_user_mail(
             category_id=NOTIFY_SHARING, user_ids=existed_member_users
         )

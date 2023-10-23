@@ -22,3 +22,11 @@ urlpatterns += [
         'get': 'sso_configuration', 'put': 'update_sso_configuration', 'delete': 'destroy_sso_configuration'
     }))
 ]
+# ------------------------------- Enterprise ----------------------------- #
+urlpatterns += [
+    url(r'^enterprises$', views.AdminEnterpriseViewSet)
+]
+# ------------------------------- Enterprise Member ----------------------------- #
+urlpatterns += [
+    url(r'^enterprises/(?P<enterprise_id>[0-9a-z]+)/members$', views.AdminEnterpriseMemberViewSet)
+]
