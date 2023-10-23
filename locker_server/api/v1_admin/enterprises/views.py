@@ -6,6 +6,7 @@ from locker_server.api.api_base_view import APIBaseViewSet
 
 from locker_server.core.exceptions.country_exception import CountryDoesNotExistException
 from locker_server.core.exceptions.enterprise_exception import EnterpriseDoesNotExistException
+from locker_server.core.exceptions.user_exception import UserDoesNotExistException
 from .serializers import *
 from locker_server.api.permissions.admin_permissions.admin_enterprise_permission import AdminEnterprisePermission
 
@@ -56,8 +57,14 @@ class AdminEnterpriseViewSet(APIBaseViewSet):
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
         try:
+            primary_user = self.user_service.retrieve_by_email(
+                email=validated_data.get("primary_admin")
+            )
+        except UserDoesNotExistException:
+            primary_user = user
+        try:
             new_enterprise = self.enterprise_service.create_enterprise(
-                user=user,
+                primary_user=primary_user,
                 enterprise_create_data=validated_data
             )
         except CountryDoesNotExistException:
