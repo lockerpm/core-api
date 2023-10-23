@@ -67,23 +67,23 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
             enterprise_members_orm = enterprise_members_orm.filter(role_id__in=roles_param)
 
         # Filter by q_param: search members
-        if user_ids_param or email_param or user_id_param:
+        if user_ids_param is not None or email_param is not None or user_id_param is not None:
             search_by_user = enterprise_members_orm.none()
             search_by_users = enterprise_members_orm.none()
             search_by_email = enterprise_members_orm.none()
-            if user_id_param:
+            if user_id_param is not None:
                 try:
                     user_id_int_param = int(user_id_param)
                     search_by_user = enterprise_members_orm.filter(user_id=user_id_int_param)
                 except AttributeError:
                     pass
-            if user_ids_param:
+            if user_ids_param is not None:
                 try:
                     user_ids_int_param = [int(user_id) for user_id in user_ids_param]
                     search_by_users = enterprise_members_orm.filter(user_id__in=user_ids_int_param)
                 except AttributeError:
                     pass
-            if email_param:
+            if email_param is not None:
                 search_by_email = enterprise_members_orm.filter(email__icontains=email_param)
             enterprise_members_orm = (search_by_users | search_by_email | search_by_user).distinct()
 
