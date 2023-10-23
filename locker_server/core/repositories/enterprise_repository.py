@@ -24,6 +24,9 @@ class EnterpriseRepository(ABC):
         pass
 
     # ------------------------ Create Enterprise resource --------------------- #
+    @abstractmethod
+    def create_enterprise(self, enterprise_create_data: Dict) -> Enterprise:
+        pass
 
     # ------------------------ Update Enterprise resource --------------------- #
     @abstractmethod
