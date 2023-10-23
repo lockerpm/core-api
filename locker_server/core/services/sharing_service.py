@@ -799,6 +799,9 @@ class SharingService:
             ).send(data={"id": cipher_obj.cipher_id, "ids": [cipher_obj.cipher_id]})
         if collection_obj:
             PwdSync(event=SYNC_EVENT_CIPHER, user_ids=[user.user_id] + removed_member_user_ids).send()
+        # Delete cached data
+        for u_id in [user.user_id] + removed_member_user_ids:
+            self.user_repository.delete_sync_cache_data(user_id=u_id)
 
     def leave_sharing_team(self, user: User, sharing: Team):
         member = self.team_member_repository.get_user_team_member(user_id=user.user_id, team_id=sharing.team_id)
