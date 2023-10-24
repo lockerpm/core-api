@@ -1,8 +1,11 @@
+import ssl
 import traceback
 import os
 import stripe
 import logging.config
 from pathlib import Path
+
+from locker_server.shared.channel.redis_channel import CustomSSLConnection
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -33,9 +36,13 @@ try:
     TEST_DOMAINS = ["dev.cystack.org"]
 
     # Channel layers
+    ssl_context = ssl.SSLContext()
+    ssl_context.check_hostname = False
     CHANNEL_REDIS_LOCATION = os.getenv("CHANNEL_REDIS_LOCATION")
     default_channel_host = {
         'address': CHANNEL_REDIS_LOCATION,
+        'connection_class': CustomSSLConnection,
+        'ssl_context': ssl_context,
     }
     CHANNEL_LAYERS = {
         'default': {
