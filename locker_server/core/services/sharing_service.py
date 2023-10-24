@@ -626,16 +626,18 @@ class SharingService:
             raise TeamMemberDoesNotExistException
         sharing_id = member.team.team_id
         primary_member = self.team_member_repository.get_primary_member(team_id=sharing_id)
-        PwdSync(event=SYNC_EVENT_MEMBER_UPDATE, user_ids=[member.user.user_id, primary_member.user.user_id]).send()
+        sync_user_ids = [member.user.user_id, primary_member.user.user_id] if member.user else \
+            [primary_member.user.user_id]
+        PwdSync(event=SYNC_EVENT_MEMBER_UPDATE, user_ids=sync_user_ids).send()
         if self.is_folder_sharing(sharing_id=sharing_id) is False:
             share_cipher = self.sharing_repository.get_share_cipher(sharing_id=sharing_id)
-            PwdSync(event=SYNC_EVENT_CIPHER_SHARE, user_ids=[member.user.user_id]).send(
+            PwdSync(event=SYNC_EVENT_CIPHER_SHARE, user_ids=[member.user.user_id] if member.user else []).send(
                 data={"id": share_cipher.cipher_id, "ids": [share_cipher.cipher_id]}
             )
         # Else, share a folder
         else:
             share_collection = self.sharing_repository.get_share_collection(sharing_id=sharing_id)
-            PwdSync(event=SYNC_EVENT_COLLECTION_UPDATE, user_ids=[member.user.user_id]).send(
+            PwdSync(event=SYNC_EVENT_COLLECTION_UPDATE, user_ids=[member.user.user_id] if member.user else []).send(
                 data={"id": share_collection.collection_id}
             )
         return member
