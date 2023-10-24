@@ -9,7 +9,6 @@ original = django.db.backends.utils.CursorWrapper.execute
 
 def execute_wrapper(*args, **kwargs):
     attempts = 0
-    CyLog.error(**{"message": "[DATABASE] error, try restart query"})
     while attempts < 3:
         try:
             return original(*args, **kwargs)
@@ -19,6 +18,7 @@ def execute_wrapper(*args, **kwargs):
                 raise e
             attempts += 1
             time.sleep(0.2)
+            CyLog.error(**{"message": "[DATABASE] error, try restart query"})
 
 
 django.db.backends.utils.CursorWrapper.execute = execute_wrapper
