@@ -17,8 +17,9 @@ def execute_wrapper(*args, **kwargs):
             if attempts == 2 or code != 1213:
                 raise e
             attempts += 1
-            time.sleep(0.2)
             CyLog.error(**{"message": "[DATABASE] error, try restart query"})
+            time.sleep(0.2)
+
 
 
 django.db.backends.utils.CursorWrapper.execute = execute_wrapper
