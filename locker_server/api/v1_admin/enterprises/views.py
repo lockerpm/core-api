@@ -1,3 +1,5 @@
+from typing import List
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, ValidationError
@@ -7,6 +9,7 @@ from locker_server.api.api_base_view import APIBaseViewSet
 from locker_server.core.exceptions.country_exception import CountryDoesNotExistException
 from locker_server.core.exceptions.enterprise_exception import EnterpriseDoesNotExistException
 from locker_server.core.exceptions.user_exception import UserDoesNotExistException
+from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_PRIMARY_ADMIN, E_MEMBER_ROLE_ADMIN
 from .serializers import *
 from locker_server.api.permissions.admin_permissions.admin_enterprise_permission import AdminEnterprisePermission
 
@@ -40,13 +43,22 @@ class AdminEnterpriseViewSet(APIBaseViewSet):
         return enterprises
 
     def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
         paging_param = self.request.query_params.get("paging", "1")
         page_size_param = self.check_int_param(self.request.query_params.get("size", 10))
         if paging_param == "0":
             self.pagination_class = None
         else:
             self.pagination_class.page_size = page_size_param if page_size_param else 10
-        return super().list(request, *args, **kwargs)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            normalize_data = self.normalize_enterprises(serializer.data)
+            return self.get_paginated_response(normalize_data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        normalize_data = self.normalize_enterprises(serializer.data)
+        return Response(status=status.HTTP_200_OK, data=normalize_data)
 
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
@@ -76,3 +88,28 @@ class AdminEnterpriseViewSet(APIBaseViewSet):
                 "id": new_enterprise.enterprise_id
             }
         )
+
+    def normalize_enterprises(self, enterprises_data: List):
+        normalize_datas = []
+        for enterprise_data in enterprises_data:
+            enterprise_id = enterprise_data.get("id")
+            enterprise_admin_members = self.enterprise_member_service.list_enterprise_members(**{
+                "enterprise_id": enterprise_id,
+                "roles": [E_MEMBER_ROLE_PRIMARY_ADMIN, E_MEMBER_ROLE_ADMIN]
+            })
+            enterprise_admin_datas = [
+                {
+                    "id": enterprise_admin_member.enterprise_member_id,
+                    "role": enterprise_admin_member.role.name,
+                    "user_id": enterprise_admin_member.user.user_id if enterprise_admin_member.user else None,
+                    "email": enterprise_admin_member.email,
+                    "status": enterprise_admin_member.status,
+                    "is_activated": enterprise_admin_member.is_activated,
+                }
+                for enterprise_admin_member in enterprise_admin_members
+            ]
+            enterprise_data.update({
+                "admins": enterprise_admin_datas
+            })
+            normalize_datas.append(enterprise_data)
+        return normalize_datas

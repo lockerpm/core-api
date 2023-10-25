@@ -6,6 +6,7 @@ from rest_framework.permissions import BasePermission
 from locker_server.shared.constants.token import TOKEN_PREFIX
 
 CACHE_ROLE_PERMISSION_PREFIX = "cs_role_permission_"
+CACHE_ROLE_ENTERPRISE_PERMISSION_PREFIX = "e_role_permission_"
 
 
 class AppBasePermission(BasePermission):
@@ -22,6 +23,10 @@ class AppBasePermission(BasePermission):
         if request.user and (request.auth is not None):
             return False if isinstance(request.user, AnonymousUser) else True
         return False
+
+    @staticmethod
+    def is_super_admin(request):
+        return request.user and request.user.is_supper_admin
 
     @staticmethod
     def _decode_token(token_value):
