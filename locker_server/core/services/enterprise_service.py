@@ -35,7 +35,7 @@ class EnterpriseService:
                  enterprise_policy_repository: EnterprisePolicyRepository,
                  enterprise_billing_contact_repository: EnterpriseBillingContactRepository,
                  enterprise_domain_repository: EnterpriseDomainRepository,
-                 country_repository: CountryRepository
+                 country_repository: CountryRepository,
                  ):
         self.enterprise_repository = enterprise_repository
         self.enterprise_member_repository = enterprise_member_repository
@@ -215,3 +215,30 @@ class EnterpriseService:
         return self.enterprise_repository.create_enterprise(
             enterprise_create_data=enterprise_create_data
         )
+
+    def update_enterprise_avatar(self, enterprise_id: str, avatar) -> str:
+        enterprise = self.enterprise_repository.get_enterprise_by_id(
+            enterprise_id=enterprise_id
+        )
+        if not enterprise:
+            raise EnterpriseDoesNotExistException
+        avatar_url = self.enterprise_repository.update_enterprise_avatar(
+            enterprise_id=enterprise_id,
+            avatar=avatar
+        )
+        if not avatar_url:
+            raise FileNotFoundError
+        return avatar_url
+
+    def get_enterprise_avatar(self, enterprise_id: str) -> str:
+        enterprise = self.enterprise_repository.get_enterprise_by_id(
+            enterprise_id=enterprise_id
+        )
+        if not enterprise:
+            raise EnterpriseDoesNotExistException
+        avatar_url = self.enterprise_repository.get_enterprise_avatar_url_by_id(
+            enterprise_id=enterprise_id,
+        )
+        if not avatar_url:
+            raise FileNotFoundError
+        return avatar_url

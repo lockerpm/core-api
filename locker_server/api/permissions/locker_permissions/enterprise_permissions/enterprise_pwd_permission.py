@@ -10,15 +10,19 @@ class EnterprisePwdPermission(APIPermission):
     scope = 'enterprise'
 
     def has_permission(self, request, view):
+        if view.action in ["get_avatar"]:
+            return True
         return self.is_auth(request)
 
     def has_object_permission(self, request, view, obj):
         if self.is_super_admin(request):
             return True
+        if view.action in ["get_avatar"]:
+            return True
         member = self.get_enterprise_member(user=request.user, obj=obj)
         role = member.role
         role_name = role.name
-        if view.action in ["dashboard", "update", "destroy"]:
+        if view.action in ["dashboard", "update", "destroy", "upload_avatar"]:
             return role_name in [E_MEMBER_ROLE_PRIMARY_ADMIN, E_MEMBER_ROLE_ADMIN]
         return member
 
