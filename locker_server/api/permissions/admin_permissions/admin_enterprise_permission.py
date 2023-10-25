@@ -13,10 +13,7 @@ class AdminEnterprisePermission(APIPermission):
 
     def has_object_permission(self, request, view, obj):
         if view.action in ["retrieve"]:
-            member = self.get_enterprise_member(user=request.user, obj=obj)
-            role = member.role
-            role_name = role.name
-            return role_name in [E_MEMBER_ROLE_PRIMARY_ADMIN]
+            return request.user.is_supper_admin
         return super().has_object_permission(request, view, obj)
 
     @staticmethod

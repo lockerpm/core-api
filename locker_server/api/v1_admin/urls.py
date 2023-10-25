@@ -4,9 +4,9 @@ from rest_framework.routers import DefaultRouter
 from locker_server.api.v1_admin import views
 
 router = DefaultRouter(trailing_slash=False)
-router.register(r'^enterprises$', views.AdminEnterpriseViewSet, "admin_enterprise")
+router.register(r'enterprises', views.AdminEnterpriseViewSet, "admin_enterprise")
 router.register(
-    r'^enterprises/(?P<enterprise_id>[0-9a-z-]+)/members$', views.AdminEnterpriseMemberViewSet,
+    r'enterprises/(?P<enterprise_id>[0-9a-z-]+)/members', views.AdminEnterpriseMemberViewSet,
     "admin_enterprise_member"
 )
 urlpatterns = [

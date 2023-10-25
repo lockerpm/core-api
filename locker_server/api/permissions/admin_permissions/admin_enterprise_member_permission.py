@@ -8,9 +8,6 @@ class AdminEnterpriseMemberPermission(AdminEnterprisePermission):
         return self.is_auth(request) and request.user.is_supper_admin
 
     def has_object_permission(self, request, view, obj):
-        member = self.get_enterprise_member(user=request.user, obj=obj)
-        role = member.role
-        role_name = role.name
         if view.action in ["list", "retrieve", "update", "activated", "destroy"]:
-            return role_name in [E_MEMBER_ROLE_PRIMARY_ADMIN]
+            return request.user.is_supper_admin
         return super().has_object_permission(request, view, obj)
