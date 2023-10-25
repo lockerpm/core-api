@@ -36,6 +36,8 @@ class EnterprisePwdViewSet(APIBaseViewSet):
             self.serializer_class = DetailEnterpriseSerializer
         elif self.action in ["update"]:
             self.serializer_class = UpdateEnterpriseSerializer
+        elif self.action == "upload_avatar":
+            self.serializer_class = UploadAvatarEnterpriseSerializer
         return super().get_serializer_class()
 
     def get_object(self):
@@ -209,6 +211,39 @@ class EnterprisePwdViewSet(APIBaseViewSet):
             # "blocking_login": blocking_login,
             "unverified_domain": unverified_domain_count
         })
+
+    @action(methods=['post'], detail=True, )
+    def upload_avatar(self, request, *args, **kwargs):
+        enterprise = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        avatar = validated_data.get("avatar")
+        try:
+            new_avatar_url = self.enterprise_service.update_enterprise_avatar(
+                enterprise_id=enterprise.enterprise_id, avatar=avatar
+            )
+
+            return Response(status=status.HTTP_200_OK, data={"avatar": request.build_absolute_uri(new_avatar_url)})
+        except ValueError:
+            return Response(status=status.HTTP_200_OK, data=None)
+        except FileNotFoundError:
+            return Response(status=status.HTTP_200_OK, data=None)
+        except EnterpriseDoesNotExistException:
+            raise NotFound
+
+    @action(methods=['get'], detail=True)
+    def get_avatar(self, request, *args, **kwargs):
+        enterprise = self.get_object()
+        try:
+            avatar_url = self.enterprise_service.get_enterprise_avatar(enterprise_id=enterprise.enterprise_id)
+            return Response(status=status.HTTP_200_OK, data={"avatar": request.build_absolute_uri(avatar_url)})
+        except ValueError:
+            return Response(status=status.HTTP_200_OK, data=None)
+        except FileNotFoundError:
+            return Response(status=status.HTTP_200_OK, data=None)
+        except EnterpriseDoesNotExistException:
+            raise NotFound
 
     def _statistic_login_by_time(self, enterprise_id, user_ids, from_param, to_param):
         start_date = datetime.fromtimestamp(from_param)

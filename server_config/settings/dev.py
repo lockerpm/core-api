@@ -222,6 +222,7 @@ try:
     LS_ENTERPRISE_GROUP_MODEL = "api_orm.EnterpriseGroupORM"
     LS_ENTERPRISE_GROUP_MEMBER_MODEL = "api_orm.EnterpriseGroupMemberORM"
     LS_ENTERPRISE_POLICY_MODEL = "api_orm.EnterprisePolicyORM"
+    LS_ENTERPRISE_AVATAR_MODEL = "api_orm.EnterpriseAvatarORM"
     LS_QUICK_SHARE_MODEL = "api_orm.QuickShareORM"
     LS_QUICK_SHARE_EMAIL_MODEL = "api_orm.QuickShareEmailORM"
     LS_NOTIFICATION_MODEL = "api_orm.NotificationORM"
@@ -345,6 +346,9 @@ try:
 
     # Static files (CSS, JavaScript, Images)
     STATIC_URL = '/static/'
+    ENTERPRISE_AVATAR_URL = "avatars/"
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = os.path.join(BASE_DIR.parent, 'media')
 
     # Default primary key field type
     # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field

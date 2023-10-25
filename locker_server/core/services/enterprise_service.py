@@ -15,6 +15,7 @@ from locker_server.core.exceptions.enterprise_exception import EnterpriseDoesNot
 from locker_server.core.exceptions.enterprise_member_exception import EnterpriseMemberPrimaryDoesNotExistException
 from locker_server.core.exceptions.enterprise_policy_exception import EnterprisePolicyDoesNotExistException
 from locker_server.core.repositories.country_repository import CountryRepository
+from locker_server.core.repositories.enterprise_avatar_repository import EnterpriseAvatarRepository
 from locker_server.core.repositories.enterprise_billing_contact_repository import EnterpriseBillingContactRepository
 from locker_server.core.repositories.enterprise_domain_repository import EnterpriseDomainRepository
 from locker_server.core.repositories.enterprise_member_repository import EnterpriseMemberRepository
@@ -35,7 +36,8 @@ class EnterpriseService:
                  enterprise_policy_repository: EnterprisePolicyRepository,
                  enterprise_billing_contact_repository: EnterpriseBillingContactRepository,
                  enterprise_domain_repository: EnterpriseDomainRepository,
-                 country_repository: CountryRepository
+                 country_repository: CountryRepository,
+                 enterprise_avatar_repository: EnterpriseAvatarRepository,
                  ):
         self.enterprise_repository = enterprise_repository
         self.enterprise_member_repository = enterprise_member_repository
@@ -43,6 +45,7 @@ class EnterpriseService:
         self.enterprise_billing_contact_repository = enterprise_billing_contact_repository
         self.enterprise_domain_repository = enterprise_domain_repository
         self.country_repository = country_repository
+        self.enterprise_avatar_repository = enterprise_avatar_repository
 
     def list_policies_by_user(self, user_id: int) -> List[EnterprisePolicy]:
         return self.enterprise_policy_repository.list_policies_by_user(user_id=user_id)
@@ -215,3 +218,30 @@ class EnterpriseService:
         return self.enterprise_repository.create_enterprise(
             enterprise_create_data=enterprise_create_data
         )
+
+    def update_enterprise_avatar(self, enterprise_id: str, avatar) -> str:
+        enterprise = self.enterprise_repository.get_enterprise_by_id(
+            enterprise_id=enterprise_id
+        )
+        if not enterprise:
+            raise EnterpriseDoesNotExistException
+        avatar_url = self.enterprise_avatar_repository.update_enterprise_avatar(
+            enterprise_id=enterprise_id,
+            avatar=avatar
+        )
+        if not avatar_url:
+            raise FileNotFoundError
+        return avatar_url
+
+    def get_enterprise_avatar(self, enterprise_id: str) -> str:
+        enterprise = self.enterprise_repository.get_enterprise_by_id(
+            enterprise_id=enterprise_id
+        )
+        if not enterprise:
+            raise EnterpriseDoesNotExistException
+        avatar_url = self.enterprise_avatar_repository.get_enterprise_avatar_by_enterprise_id(
+            enterprise_id=enterprise_id,
+        )
+        if not avatar_url:
+            raise FileNotFoundError
+        return avatar_url

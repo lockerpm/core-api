@@ -32,6 +32,7 @@ from .enterprise_group_repository import EnterpriseGroupORMRepository
 from .enterprise_group_member_repository import EnterpriseGroupMemberORMRepository
 from .enterprise_billing_contact_repository import EnterpriseBillingContactORMRepository
 from .enterprise_domain_repository import EnterpriseDomainORMRepository
+from .enterprise_avatar_repository import EnterpriseAvatarORMRepository
 
 from .event_repository import EventORMRepository
 

@@ -86,6 +86,7 @@ from locker_server.api_orm.models.enterprises.policy.policy_master_password impo
 from locker_server.api_orm.models.enterprises.policy.policy_failed_login import PolicyFailedLoginORM
 from locker_server.api_orm.models.enterprises.policy.policy_passwordless import PolicyPasswordlessORM
 from locker_server.api_orm.models.enterprises.policy.policy_2fa import Policy2FAORM
+from locker_server.api_orm.models.enterprises.enterprise_avatars import EnterpriseAvatarORM
 
 # -------------------------- RELAY ADDRESS -------------------------- #
 from locker_server.api_orm.models.relay.deleted_relay_addresses import DeletedRelayAddressORM
