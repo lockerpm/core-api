@@ -170,7 +170,7 @@ class AdminEnterpriseMemberViewSet(APIBaseViewSet):
             }
         )
 
-    @action(methods=["put"], detail=False)
+    @action(methods=["put"], detail=True)
     def activated(self, request, *args, **kwargs):
         user = self.request.user
         ip = self.get_ip()
