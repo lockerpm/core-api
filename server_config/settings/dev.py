@@ -222,7 +222,6 @@ try:
     LS_ENTERPRISE_GROUP_MODEL = "api_orm.EnterpriseGroupORM"
     LS_ENTERPRISE_GROUP_MEMBER_MODEL = "api_orm.EnterpriseGroupMemberORM"
     LS_ENTERPRISE_POLICY_MODEL = "api_orm.EnterprisePolicyORM"
-    LS_ENTERPRISE_AVATAR_MODEL = "api_orm.EnterpriseAvatarORM"
     LS_QUICK_SHARE_MODEL = "api_orm.QuickShareORM"
     LS_QUICK_SHARE_EMAIL_MODEL = "api_orm.QuickShareEmailORM"
     LS_NOTIFICATION_MODEL = "api_orm.NotificationORM"

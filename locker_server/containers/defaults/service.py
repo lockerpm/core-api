@@ -144,7 +144,6 @@ class ServiceFactory(containers.DeclarativeContainer):
         enterprise_policy_repository=RepositoryFactory.enterprise_policy_repository,
         enterprise_billing_contact_repository=RepositoryFactory.enterprise_billing_contact_repository,
         enterprise_domain_repository=RepositoryFactory.enterprise_domain_repository,
-        enterprise_avatar_repository=RepositoryFactory.enterprise_avatar_repository,
         country_repository=RepositoryFactory.country_repository
     )
     enterprise_group_service = providers.Factory(

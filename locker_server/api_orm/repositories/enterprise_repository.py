@@ -1,15 +1,12 @@
+import os
 from typing import Union, Dict, Optional, List
 
-from django.core.cache import cache
-
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
-from locker_server.api_orm.models import EnterpriseRolePermissionORM
 from locker_server.api_orm.models.wrapper import get_user_model, get_enterprise_domain_model, \
     get_enterprise_member_model, get_enterprise_group_member_model, get_enterprise_model, get_event_model
 from locker_server.core.entities.enterprise.enterprise import Enterprise
 from locker_server.core.repositories.enterprise_repository import EnterpriseRepository
 from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_MEMBER, E_MEMBER_STATUS_CONFIRMED
-from locker_server.shared.permissions.app import CACHE_ROLE_ENTERPRISE_PERMISSION_PREFIX
 from locker_server.shared.utils.app import now
 
 UserORM = get_user_model()
@@ -83,6 +80,16 @@ class EnterpriseORMRepository(EnterpriseRepository):
             return None
         return ModelParser.enterprise_parser().parse_enterprise(enterprise_orm=enterprise_orm)
 
+    def get_enterprise_avatar_url_by_id(self, enterprise_id: str) -> Optional[str]:
+        try:
+            enterprise_orm = EnterpriseORM.objects.get(id=enterprise_id)
+            avatar = enterprise_orm.avatar
+            if avatar:
+                return avatar.url
+            return None
+        except EnterpriseORM.DoesNotExist:
+            return None
+
     # ------------------------ Create Enterprise resource --------------------- #
     def create_enterprise(self, enterprise_create_data: Dict) -> Enterprise:
         new_enterprise_orm = EnterpriseORM.create(**enterprise_create_data)
@@ -130,6 +137,23 @@ class EnterpriseORMRepository(EnterpriseRepository):
 
         enterprise_orm.save()
         return ModelParser.enterprise_parser().parse_enterprise(enterprise_orm=enterprise_orm)
+
+    def update_enterprise_avatar(self, enterprise_id: str, avatar) -> Optional[str]:
+        try:
+            enterprise_orm = EnterpriseORM.objects.get(id=enterprise_id)
+            old_avatar = enterprise_orm.avatar
+            if old_avatar is not None:
+                try:
+                    os.remove(old_avatar.path)
+                except FileNotFoundError:
+                    pass
+                except ValueError:
+                    pass
+            enterprise_orm.avatar = avatar
+            enterprise_orm.save()
+            return enterprise_orm.avatar.url
+        except EnterpriseORM.DoesNotExist:
+            return None
 
     # ------------------------ Delete Enterprise resource --------------------- #
     def delete_completely(self, enterprise: Enterprise):

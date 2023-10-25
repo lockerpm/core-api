@@ -225,8 +225,7 @@ class EnterprisePwdViewSet(APIBaseViewSet):
             )
 
             return Response(status=status.HTTP_200_OK, data={"avatar": request.build_absolute_uri(new_avatar_url)})
-        except ValueError:
-            return Response(status=status.HTTP_200_OK, data=None)
+
         except FileNotFoundError:
             return Response(status=status.HTTP_200_OK, data=None)
         except EnterpriseDoesNotExistException:
