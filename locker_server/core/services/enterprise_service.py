@@ -3,6 +3,7 @@ from typing import List, Optional, NoReturn
 from locker_server.core.entities.enterprise.domain.domain import Domain
 from locker_server.core.entities.enterprise.enterprise import Enterprise
 from locker_server.core.entities.enterprise.member.enterprise_member import EnterpriseMember
+from locker_server.core.entities.enterprise.member.enterprise_member_role import EnterpriseMemberRole
 from locker_server.core.entities.enterprise.payment.billing_contact import EnterpriseBillingContact
 from locker_server.core.entities.enterprise.policy.policy import EnterprisePolicy
 from locker_server.core.entities.user.user import User
@@ -214,3 +215,6 @@ class EnterpriseService:
         return self.enterprise_repository.create_enterprise(
             enterprise_create_data=enterprise_create_data
         )
+
+    def list_enterprise_permissions_by_role_name(self, role_name: str) -> List:
+        return self.enterprise_repository.list_enterprise_permissions_by_role_name(role_name)

@@ -11,6 +11,8 @@ class MemberPwdPermission(EnterprisePwdPermission):
         return self.is_auth(request)  # request.user.activated
 
     def has_object_permission(self, request, view, obj):
+        if self.is_super_admin(request):
+            return True
         member = self.get_enterprise_member(user=request.user, obj=obj)
         role = member.role
         role_name = role.name

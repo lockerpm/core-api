@@ -3,7 +3,7 @@ from rest_framework.exceptions import PermissionDenied
 from locker_server.api.permissions.app import APIPermission
 from locker_server.core.exceptions.enterprise_member_exception import EnterpriseMemberDoesNotExistException
 from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_PRIMARY_ADMIN, E_MEMBER_ROLE_ADMIN
-from locker_server.containers.containers import enterprise_member_service
+from locker_server.containers.containers import enterprise_member_service, enterprise_service
 
 
 class EnterprisePwdPermission(APIPermission):
@@ -13,12 +13,20 @@ class EnterprisePwdPermission(APIPermission):
         return self.is_auth(request)
 
     def has_object_permission(self, request, view, obj):
+        if self.is_super_admin(request):
+            return True
+        member = self.get_enterprise_member(user=request.user, obj=obj)
+        role = member.role
+        role_name = role.name
         if view.action in ["dashboard"]:
-            member = self.get_enterprise_member(user=request.user, obj=obj)
-            role = member.role
-            role_name = role.name
             return role_name in [E_MEMBER_ROLE_PRIMARY_ADMIN, E_MEMBER_ROLE_ADMIN]
-        return super().has_object_permission(request, view, obj)
+        role_permissions = enterprise_service.list_enterprise_permissions_by_role_name(role_name=role_name)
+        role_pattern = self.get_role_pattern(view)
+        return role_pattern in role_permissions
+
+    def get_role_pattern(self, view):
+        role_pattern = "{}.{}".format(self.scope, view.action)
+        return role_pattern
 
     @staticmethod
     def get_enterprise_member(user, obj):

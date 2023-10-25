@@ -1,11 +1,15 @@
 from typing import Union, Dict, Optional, List
 
+from django.core.cache import cache
+
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
+from locker_server.api_orm.models import EnterpriseRolePermissionORM
 from locker_server.api_orm.models.wrapper import get_user_model, get_enterprise_domain_model, \
     get_enterprise_member_model, get_enterprise_group_member_model, get_enterprise_model, get_event_model
 from locker_server.core.entities.enterprise.enterprise import Enterprise
 from locker_server.core.repositories.enterprise_repository import EnterpriseRepository
 from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_MEMBER, E_MEMBER_STATUS_CONFIRMED
+from locker_server.shared.permissions.app import CACHE_ROLE_ENTERPRISE_PERMISSION_PREFIX
 from locker_server.shared.utils.app import now
 
 UserORM = get_user_model()
@@ -70,6 +74,15 @@ class EnterpriseORMRepository(EnterpriseRepository):
         if is_activated_param is not None:
             enterprises_orm = enterprises_orm.filter(enterprise_members__is_activated=is_activated_param)
         return list(enterprises_orm.values_list('id', flat=True))
+
+    def list_enterprise_permissions_by_role_name(self, role_name: str) -> List:
+        cache_key = "{}{}".format(CACHE_ROLE_ENTERPRISE_PERMISSION_PREFIX, role_name).lower()
+        if cache_key not in cache:
+            perms = EnterpriseRolePermissionORM.objects.filter(
+                enterprise_role__name=role_name
+            ).values_list('permission__scope', 'permission__codename').order_by()
+            cache.set(cache_key, ["{}.{}".format(scope, codename) for scope, codename in perms], 4 * 60 * 60)
+        return cache.get(cache_key)
 
     # ------------------------ Get Enterprise resource --------------------- #
     def get_enterprise_by_id(self, enterprise_id: str) -> Optional[Enterprise]:
