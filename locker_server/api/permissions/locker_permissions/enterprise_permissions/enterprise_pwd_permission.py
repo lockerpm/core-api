@@ -18,11 +18,9 @@ class EnterprisePwdPermission(APIPermission):
         member = self.get_enterprise_member(user=request.user, obj=obj)
         role = member.role
         role_name = role.name
-        if view.action in ["dashboard"]:
+        if view.action in ["dashboard", "update", "destroy"]:
             return role_name in [E_MEMBER_ROLE_PRIMARY_ADMIN, E_MEMBER_ROLE_ADMIN]
-        role_permissions = enterprise_service.list_enterprise_permissions_by_role_name(role_name=role_name)
-        role_pattern = self.get_role_pattern(view)
-        return role_pattern in role_permissions
+        return member
 
     def get_role_pattern(self, view):
         role_pattern = "{}.{}".format(self.scope, view.action)

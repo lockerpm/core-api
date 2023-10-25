@@ -75,15 +75,6 @@ class EnterpriseORMRepository(EnterpriseRepository):
             enterprises_orm = enterprises_orm.filter(enterprise_members__is_activated=is_activated_param)
         return list(enterprises_orm.values_list('id', flat=True))
 
-    def list_enterprise_permissions_by_role_name(self, role_name: str) -> List:
-        cache_key = "{}{}".format(CACHE_ROLE_ENTERPRISE_PERMISSION_PREFIX, role_name).lower()
-        if cache_key not in cache:
-            perms = EnterpriseRolePermissionORM.objects.filter(
-                enterprise_role__name=role_name
-            ).values_list('permission__scope', 'permission__codename').order_by()
-            cache.set(cache_key, ["{}.{}".format(scope, codename) for scope, codename in perms], 4 * 60 * 60)
-        return cache.get(cache_key)
-
     # ------------------------ Get Enterprise resource --------------------- #
     def get_enterprise_by_id(self, enterprise_id: str) -> Optional[Enterprise]:
         try:

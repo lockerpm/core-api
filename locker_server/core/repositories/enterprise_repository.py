@@ -18,10 +18,6 @@ class EnterpriseRepository(ABC):
     def list_user_enterprise_ids(self, user_id: int, **filter_params) -> List[str]:
         pass
 
-    @abstractmethod
-    def list_enterprise_permissions_by_role_name(self, role_name: str) -> List:
-        pass
-
     # ------------------------ Get Enterprise resource --------------------- #
     @abstractmethod
     def get_enterprise_by_id(self, enterprise_id: str) -> Optional[Enterprise]:

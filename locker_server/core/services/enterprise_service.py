@@ -215,6 +215,3 @@ class EnterpriseService:
         return self.enterprise_repository.create_enterprise(
             enterprise_create_data=enterprise_create_data
         )
-
-    def list_enterprise_permissions_by_role_name(self, role_name: str) -> List:
-        return self.enterprise_repository.list_enterprise_permissions_by_role_name(role_name)
