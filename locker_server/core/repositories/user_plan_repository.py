@@ -74,7 +74,8 @@ class UserPlanRepository(ABC):
         pass
 
     @abstractmethod
-    def calc_lifetime_payment_public(self, new_plan: PMPlan, currency: str = CURRENCY_USD, promo_code: str = None):
+    def calc_lifetime_payment_public(self, new_plan: PMPlan, currency: str = CURRENCY_USD, promo_code: str = None,
+                                     user: User = None):
         pass
 
     @abstractmethod

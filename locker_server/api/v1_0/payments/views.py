@@ -307,11 +307,18 @@ class PaymentPwdViewSet(APIBaseViewSet):
         promo_code = validated_data.get("promo_code")
         plan_alias = validated_data.get("plan_alias")
         currency = validated_data.get("currency", CURRENCY_USD)
+        email = validated_data.get("email")
+        try:
+            user = self.user_service.retrieve_by_email(email=email)
+        except UserDoesNotExistException:
+            user = None
+
         # Calc payment
         result = self.payment_service.calc_lifetime_payment_public(
             plan_alias=plan_alias,
             currency=currency,
-            promo_code=promo_code
+            promo_code=promo_code,
+            user=user
         )
         return Response(status=status.HTTP_200_OK, data=result)
 
