@@ -1,4 +1,5 @@
 from django.conf import settings
+from jwt import ExpiredSignatureError
 
 from locker_server.core.exceptions.user_exception import UserAuthFailedException
 from locker_server.shared.authentications.app import AppGeneralAuthentication
@@ -16,4 +17,6 @@ class TokenAuthentication(AppGeneralAuthentication):
             )
             return device_access_token.device.user, device_access_token
         except UserAuthFailedException:
+            return None
+        except ExpiredSignatureError:
             return None

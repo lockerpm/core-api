@@ -5,8 +5,12 @@ from locker_server.api_orm.abstracts.enterprises.enterprises import AbstractEnte
 from locker_server.shared.utils.app import now, random_n_digit
 
 
+def image_upload_path(instance, filename):
+    return settings.MEDIA_ROOT + '/avatars/{0}/{1}'.format(instance.id, filename)
+
+
 class EnterpriseORM(AbstractEnterpriseORM):
-    avatar = models.ImageField(null=True, default=None, upload_to=settings.ENTERPRISE_AVATAR_URL)
+    avatar = models.ImageField(null=True, default=None, upload_to=image_upload_path)
 
     class Meta(AbstractEnterpriseORM.Meta):
         swappable = 'LS_ENTERPRISE_MODEL'
