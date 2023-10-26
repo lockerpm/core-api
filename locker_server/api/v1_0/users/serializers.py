@@ -179,3 +179,9 @@ class UserDeviceSerializer(serializers.Serializer):
 
 class PreloginSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
+
+
+class UserResetPasswordSerializer(serializers.Serializer):
+    token = serializers.CharField()
+    new_password = serializers.CharField(max_length=256)
+    new_key = serializers.CharField(required=False)

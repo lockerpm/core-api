@@ -5,7 +5,6 @@ ID_FACTOR2_ENABLED = "user_two_factor_enabled"
 ID_FACTOR2_DISABLED = "user_two_factor_disabled"
 ID_FACTOR2_DISABLED_SUCCESSFULLY = "user_two_factor_disabled_successfully"
 
-
 # --------------------------- Password Manager ---------------------------------------- #
 PWD_WELCOME = "welcome"
 
@@ -90,3 +89,5 @@ PWD_EDUCATION_PACK_STUDENT_CONFIRMATION = "education_pack_student_email_confirma
 PWD_EDUCATION_PACK_TEACHER_CONFIRMATION = "education_pack_teacher_email_confirmation"
 
 PWD_ASKING_FEEDBACK = "asking_for_feedback_after_subscription"
+
+PWD_ENTERPRISE_ACCOUNT_ADDED = "enterprise_account_added"

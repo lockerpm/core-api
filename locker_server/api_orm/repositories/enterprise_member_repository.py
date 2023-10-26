@@ -174,7 +174,7 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
         ).select_related('user').select_related('role').select_related('domain')
         return [
             ModelParser.enterprise_parser().parse_enterprise_member(
-                enterprise_members_orm=enterprise_member_orm
+                enterprise_member_orm=enterprise_member_orm
             )
             for enterprise_member_orm in enterprise_members_orm
         ]
@@ -223,6 +223,15 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
         try:
             enterprise_member_orm = EnterpriseMemberORM.objects.get(
                 enterprise_id=enterprise_id, user_id=user_id
+            )
+            return ModelParser.enterprise_parser().parse_enterprise_member(enterprise_member_orm=enterprise_member_orm)
+        except EnterpriseMemberORM.DoesNotExist:
+            return None
+
+    def get_enterprise_member_by_token(self, token: str) -> Optional[EnterpriseMember]:
+        try:
+            enterprise_member_orm = EnterpriseMemberORM.objects.get(
+                token_invitation=token
             )
             return ModelParser.enterprise_parser().parse_enterprise_member(enterprise_member_orm=enterprise_member_orm)
         except EnterpriseMemberORM.DoesNotExist:

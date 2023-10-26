@@ -4,7 +4,6 @@ import os
 from locker_server.shared.background.i_background import BackgroundThread, background_exception_wrapper
 from locker_server.shared.utils.factory import factory
 
-
 NOTIFICATION_ROOT_PATH = os.path.dirname(os.path.realpath(__file__))
 
 SENDING_SERVICE_MAIL = "mail_service"
@@ -34,7 +33,7 @@ class NotificationSender:
     @background_exception_wrapper
     def real_send(self, **kwargs):
         for service in self._services:
-            module_name = 'lscore.shared.external_services.user_notification.sender_services.' + service
+            module_name = 'locker_server.shared.external_services.user_notification.sender_services.' + service
             if service == SENDING_SERVICE_MAIL:
                 mail_config = self._get_mail_config()
                 if mail_config:
