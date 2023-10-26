@@ -36,7 +36,7 @@ class EnterprisePwdViewSet(APIBaseViewSet):
             self.serializer_class = DetailEnterpriseSerializer
         elif self.action in ["update"]:
             self.serializer_class = UpdateEnterpriseSerializer
-        elif self.action == "upload_avatar":
+        elif self.action == "avatar":
             self.serializer_class = UploadAvatarEnterpriseSerializer
         return super().get_serializer_class()
 
