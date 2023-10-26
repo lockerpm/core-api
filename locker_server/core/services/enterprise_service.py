@@ -1,4 +1,6 @@
-from typing import List, Optional, NoReturn
+from typing import List, Optional, NoReturn, Dict, Tuple
+
+import jwt
 
 from locker_server.core.entities.enterprise.domain.domain import Domain
 from locker_server.core.entities.enterprise.enterprise import Enterprise
@@ -20,9 +22,14 @@ from locker_server.core.repositories.enterprise_domain_repository import Enterpr
 from locker_server.core.repositories.enterprise_member_repository import EnterpriseMemberRepository
 from locker_server.core.repositories.enterprise_policy_repository import EnterprisePolicyRepository
 from locker_server.core.repositories.enterprise_repository import EnterpriseRepository
-from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_PRIMARY_ADMIN, E_MEMBER_STATUS_CONFIRMED
+from locker_server.core.repositories.user_repository import UserRepository
+from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_PRIMARY_ADMIN, E_MEMBER_STATUS_CONFIRMED, \
+    E_MEMBER_STATUS_INVITED
 from locker_server.shared.constants.policy import LIST_POLICY_TYPE, POLICY_TYPE_PASSWORD_REQUIREMENT, \
     POLICY_TYPE_MASTER_PASSWORD_REQUIREMENT, POLICY_TYPE_BLOCK_FAILED_LOGIN, POLICY_TYPE_PASSWORDLESS, POLICY_TYPE_2FA
+from locker_server.shared.constants.token import TOKEN_EXPIRED_TIME_INVITE_MEMBER, TOKEN_TYPE_RESET_PASSWORD, \
+    TOKEN_PREFIX
+from locker_server.shared.utils.app import now
 
 
 class EnterpriseService:
@@ -31,6 +38,7 @@ class EnterpriseService:
     """
 
     def __init__(self, enterprise_repository: EnterpriseRepository,
+                 user_repository: UserRepository,
                  enterprise_member_repository: EnterpriseMemberRepository,
                  enterprise_policy_repository: EnterprisePolicyRepository,
                  enterprise_billing_contact_repository: EnterpriseBillingContactRepository,
@@ -38,6 +46,7 @@ class EnterpriseService:
                  country_repository: CountryRepository,
                  ):
         self.enterprise_repository = enterprise_repository
+        self.user_repository = user_repository
         self.enterprise_member_repository = enterprise_member_repository
         self.enterprise_policy_repository = enterprise_policy_repository
         self.enterprise_billing_contact_repository = enterprise_billing_contact_repository
@@ -242,3 +251,68 @@ class EnterpriseService:
         if not avatar_url:
             raise FileNotFoundError
         return avatar_url
+
+    def add_multiple_member(self, secret: str, current_enterprise: Enterprise, members_data: [Dict]) -> Tuple:
+        emails_param = [member.get("email") for member in members_data]
+        existed_members = self.enterprise_member_repository.list_enterprise_members_by_emails(
+            emails_param=emails_param
+        )
+
+        existed_email_members = [member.email for member in existed_members]
+
+        added_members = []
+        non_added_members = []
+        added_emails = []
+        members_create_data = []
+
+        for member_data in members_data:
+            member_email = member_data.get("email")
+            if member_email in existed_email_members:
+                non_added_members.append(member_email)
+                continue
+            if member_email in added_emails:
+                non_added_members.append(member_email)
+                continue
+
+            # create new user
+            user, is_created = self.user_repository.retrieve_or_create_by_email(
+                email=member_email
+            )
+            member_create_data = {
+                "enterprise_id": current_enterprise.enterprise_id,
+                "role_id": member_data.get("role"),
+                "email": member_email,
+                "status": E_MEMBER_STATUS_INVITED,
+                "user_id": user.user_id,
+                "token_invitation": self.create_invitation_token(
+                    secret=secret,
+                    email=member_email,
+                    user_id=user.user_id
+                ),
+                "user_name": user.full_name or user.username or user.email,
+                "user_language": user.language
+            }
+
+            added_emails.append(member_email)
+            members_create_data.append(member_create_data)
+            added_members.append(member_create_data)
+
+        self.enterprise_member_repository.create_multiple_member(members_create_data=members_create_data)
+
+        return added_members, non_added_members
+
+    @staticmethod
+    def create_invitation_token(user_id: int, email: str, secret: str, scope: str = None) -> str:
+        created_time = now()
+        expired_time = created_time + TOKEN_EXPIRED_TIME_INVITE_MEMBER * 3600
+        payload = {
+            "scope": scope,
+            "email": email,
+            "user_id": user_id,
+            "created_time": created_time,
+            "expired_time": expired_time,
+            "token_type": TOKEN_TYPE_RESET_PASSWORD
+        }
+        token_value = jwt.encode(payload, secret, algorithm="HS256")
+        token_value = TOKEN_PREFIX + token_value
+        return token_value

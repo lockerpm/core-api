@@ -63,6 +63,7 @@ urlpatterns += [
     url(r'^users/invitations/(?P<pk>[a-z0-9\-]+)$', views.UserPwdViewSet.as_view({'put': 'invitation_update'})),
     url(r'^users/check_exist$', views.UserPwdViewSet.as_view({'get': 'check_exist'})),
     url(r'^users/prelogin$', views.UserPwdViewSet.as_view({'post': 'prelogin'})),
+    url(r'^users/reset_password$', views.UserPwdViewSet.as_view({'post': 'reset_password'})),
 
 ]
 

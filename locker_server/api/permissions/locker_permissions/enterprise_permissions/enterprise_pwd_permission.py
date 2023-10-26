@@ -22,7 +22,7 @@ class EnterprisePwdPermission(APIPermission):
         member = self.get_enterprise_member(user=request.user, obj=obj)
         role = member.role
         role_name = role.name
-        if view.action in ["dashboard", "update", "destroy", "avatar"]:
+        if view.action in ["dashboard", "update", "destroy", "avatar", "add_members"]:
             return role_name in [E_MEMBER_ROLE_PRIMARY_ADMIN, E_MEMBER_ROLE_ADMIN]
         return member
 

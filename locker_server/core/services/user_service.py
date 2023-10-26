@@ -1,9 +1,11 @@
 from datetime import datetime
 from typing import Optional, List, Dict, NoReturn, Union
 
+import jwt
 from django.conf import settings
 
 from locker_server.core.entities.enterprise.enterprise import Enterprise
+from locker_server.core.entities.enterprise.member.enterprise_member import EnterpriseMember
 from locker_server.core.entities.user.device import Device
 from locker_server.core.entities.user.user import User
 from locker_server.core.entities.user_plan.pm_user_plan import PMUserPlan
@@ -29,6 +31,8 @@ from locker_server.shared.constants.account import LOGIN_METHOD_PASSWORD
 from locker_server.shared.constants.enterprise_members import *
 from locker_server.shared.constants.event import EVENT_USER_LOGIN_FAILED, EVENT_USER_LOGIN, EVENT_USER_BLOCK_LOGIN
 from locker_server.shared.constants.members import PM_MEMBER_STATUS_INVITED, PM_MEMBER_STATUS_ACCEPTED
+from locker_server.shared.constants.token import TOKEN_EXPIRED_TIME_INVITE_MEMBER, TOKEN_TYPE_RESET_PASSWORD, \
+    TOKEN_PREFIX
 from locker_server.shared.constants.transactions import *
 from locker_server.shared.constants.user_notification import NOTIFY_CHANGE_MASTER_PASSWORD, NOTIFY_SHARING
 from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
@@ -624,3 +628,37 @@ class UserService:
 
     def check_exist(self) -> bool:
         return self.user_repository.check_exist()
+
+    def check_reset_password_token(self, token_value: str, secret: str) -> Optional[EnterpriseMember]:
+        payload = self.auth_repository.decode_token(
+            value=token_value,
+            secret=secret
+        )
+        token_type = payload.get("token_type")
+        if token_type != TOKEN_TYPE_RESET_PASSWORD:
+            return None
+        current_time = now()
+        expired_time = payload.get("expired_time")
+        if expired_time <= current_time:
+            return None
+        member = self.enterprise_member_repository.get_enterprise_member_by_token(
+            token=token_value
+        )
+        if not member:
+            return None
+        if member.user and member.user.user_id == payload.get("user_id"):
+            return member
+        return None
+
+    def reset_password_by_token(self, secret: str, token_value: str, new_password: str, new_key: str = None):
+        member = self.check_reset_password_token(
+            token_value=token_value,
+            secret=secret
+        )
+        if not member:
+            raise UserResetPasswordTokenInvalidException
+        self.user_repository.change_master_password(
+            user=member.user,
+            new_master_password_hash=new_password,
+            key=new_key
+        )

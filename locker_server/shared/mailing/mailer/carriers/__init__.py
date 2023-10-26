@@ -1,5 +1,5 @@
-from lscore.shared.mailing.mailer.carriers.sendgrid import SendGrid
-from lscore.shared.mailing.mailer.carriers.smtp import SMTP
+from locker_server.shared.mailing.mailer.carriers.sendgrid import SendGrid
+from locker_server.shared.mailing.mailer.carriers.smtp import SMTP
 
 
 def get_carrier(carrier_type: str, **kwargs):

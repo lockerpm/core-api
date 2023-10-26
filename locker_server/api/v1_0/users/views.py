@@ -20,7 +20,8 @@ from locker_server.core.exceptions.team_member_exception import TeamMemberDoesNo
 from locker_server.core.exceptions.user_exception import UserDoesNotExistException, \
     UserAuthBlockingEnterprisePolicyException, UserAuthFailedException, UserAuthBlockedEnterprisePolicyException, \
     UserIsLockedByEnterpriseException, UserEnterprisePlanExpiredException, UserBelongEnterpriseException, \
-    User2FARequireException, UserAuthFailedPasswordlessRequiredException, UserCreationDeniedException
+    User2FARequireException, UserAuthFailedPasswordlessRequiredException, UserCreationDeniedException, \
+    UserResetPasswordTokenInvalidException
 from locker_server.settings import locker_server_settings
 from locker_server.shared.constants.account import *
 from locker_server.shared.error_responses.error import refer_error, gen_error
@@ -36,7 +37,7 @@ from locker_server.shared.utils.network import get_ip_by_request, detect_device
 from .serializers import UserMeSerializer, UserUpdateMeSerializer, UserRegisterSerializer, UserSessionSerializer, \
     DeviceFcmSerializer, UserChangePasswordSerializer, UserNewPasswordSerializer, UserCheckPasswordSerializer, \
     UserMasterPasswordHashSerializer, UpdateOnboardingProcessSerializer, UserPwdInvitationSerializer, \
-    UserDeviceSerializer, PreloginSerializer
+    UserDeviceSerializer, PreloginSerializer, UserResetPasswordSerializer
 
 
 class UserPwdViewSet(APIBaseViewSet):
@@ -75,6 +76,8 @@ class UserPwdViewSet(APIBaseViewSet):
             self.serializer_class = UserDeviceSerializer
         elif self.action == "prelogin":
             self.serializer_class = PreloginSerializer
+        elif self.action == "reset_password":
+            self.serializer_class = UserResetPasswordSerializer
         return super().get_serializer_class()
 
     @action(methods=["post"], detail=False)
@@ -644,3 +647,19 @@ class UserPwdViewSet(APIBaseViewSet):
             )
         except UserDoesNotExistException:
             raise ValidationError(detail={"email": ["User with email does not exist"]})
+
+    @action(methods=["post"], detail=False)
+    def reset_password(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        try:
+            self.user_service.reset_password_by_token(
+                token_value=validated_data.get("token"),
+                new_password=validated_data.get("new_password"),
+                new_key=validated_data.get("new_key"),
+                secret=settings.SECRET_KEY
+            )
+        except UserResetPasswordTokenInvalidException:
+            raise ValidationError(detail=[{"token": "The reset password token is invalid"}])
+        return Response(status=status.HTTP_204_NO_CONTENT)

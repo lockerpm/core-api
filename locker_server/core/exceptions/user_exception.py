@@ -37,6 +37,12 @@ class UserCreationDeniedException(UserException):
     """
 
 
+class UserResetPasswordTokenInvalidException(UserException):
+    """
+    The reset password token expired
+    """
+
+
 class UserAuthBlockingEnterprisePolicyException(UserAuthFailedException):
     def __init__(self, wait, message="Login locked due to the enterprise's policy"):
         super().__init__(message)

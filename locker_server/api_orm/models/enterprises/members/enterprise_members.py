@@ -36,7 +36,10 @@ class EnterpriseMemberORM(AbstractEnterpriseMemberORM):
                 status=data.get("status", E_MEMBER_STATUS_INVITED),
                 is_primary=data.get("is_primary", False),
                 is_default=data.get("is_default", False),
-                access_time=data.get("access_time") or now()
+                access_time=data.get("access_time") or now(),
+                email=data.get("email", None),
+                token_invitation=data.get("token_invitation", None),
+
             )
             enterprises_orm.append(enterprise_orm)
         new_members_obj = cls.objects.bulk_create(enterprises_orm, ignore_conflicts=True, batch_size=100)
