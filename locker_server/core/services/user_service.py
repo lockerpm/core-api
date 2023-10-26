@@ -662,3 +662,7 @@ class UserService:
             new_master_password_hash=new_password,
             key=new_key
         )
+        # Delete token
+        self.enterprise_member_repository.update_enterprise_member(**{
+            "token_invitation": ""
+        })
