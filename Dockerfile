@@ -16,6 +16,10 @@ EXPOSE 8000
 
 COPY . /app
 
+RUN mkdir media
+
+RUN chown -R cystack: media
+
 USER cystack
 
 ENV PROD_ENV prod
