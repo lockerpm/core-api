@@ -183,6 +183,11 @@ def get_enterprise_policy_model():
     return apps.get_model(locker_server_settings.LS_ENTERPRISE_POLICY_MODEL)
 
 
+def get_enterprise_avatar_model():
+    """ Return the EnterpriseAvatar model that is active in this LockerServer """
+    return apps.get_model(locker_server_settings.LS_ENTERPRISE_AVATAR_MODEL)
+
+
 def get_quick_share_model():
     """ Return the QuickShare model that is active in this LockerServer """
     return apps.get_model(locker_server_settings.LS_QUICK_SHARE_MODEL)

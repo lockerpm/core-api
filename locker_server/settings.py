@@ -92,7 +92,6 @@ LS_FACTOR2_METHOD_MODEL = getattr(settings, "LS_FACTOR2_METHOD_MODEL", "api_orm.
 # -------- Configuration Models ----------- #
 LS_SSO_CONFIGURATION_MODEL = getattr(settings, "LS_SSO_CONFIGURATION_MODEL", "api_orm.SSOConfigurationORM")
 
-
 DEFAULT_PLAN = getattr(settings, "DEFAULT_PLAN", "pm_free")
 
 DEFAULTS = {

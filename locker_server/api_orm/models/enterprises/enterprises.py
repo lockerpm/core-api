@@ -1,8 +1,17 @@
+from django.conf import settings
+from django.db import models
+
 from locker_server.api_orm.abstracts.enterprises.enterprises import AbstractEnterpriseORM
 from locker_server.shared.utils.app import now, random_n_digit
 
 
+def image_upload_path(instance, filename):
+    return settings.MEDIA_ROOT + '/avatars/{0}/{1}'.format(instance.id, filename)
+
+
 class EnterpriseORM(AbstractEnterpriseORM):
+    avatar = models.ImageField(null=True, default=None, upload_to=image_upload_path)
+
     class Meta(AbstractEnterpriseORM.Meta):
         swappable = 'LS_ENTERPRISE_MODEL'
         db_table = 'e_enterprises'
@@ -35,4 +44,3 @@ class EnterpriseORM(AbstractEnterpriseORM):
         new_enterprise_orm.enterprise_members.model.create_multiple(new_enterprise_orm, *members)
 
         return new_enterprise_orm
-

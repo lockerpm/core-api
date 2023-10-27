@@ -10,6 +10,9 @@ src/.idea/
 *.log
 *.env
 
+# Media
+media/
+
 # User-specific stuff:
 .idea/**/workspace.xml
 .idea/**/tasks.xml

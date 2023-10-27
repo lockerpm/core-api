@@ -1,4 +1,6 @@
+import os
 from datetime import timedelta, datetime
+from typing import Dict
 
 from django.conf import settings
 from rest_framework import status
@@ -9,6 +11,7 @@ from rest_framework.exceptions import NotFound, ValidationError
 from locker_server.api.api_base_view import APIBaseViewSet
 from locker_server.api.permissions.locker_permissions.enterprise_permissions.enterprise_pwd_permission import \
     EnterprisePwdPermission
+from locker_server.core.entities.enterprise.enterprise import Enterprise
 from locker_server.core.exceptions.country_exception import CountryDoesNotExistException
 from locker_server.core.exceptions.enterprise_exception import EnterpriseDoesNotExistException
 from locker_server.core.exceptions.enterprise_member_exception import EnterpriseMemberDoesNotExistException, \
@@ -20,6 +23,8 @@ from locker_server.shared.constants.transactions import TRIAL_TEAM_PLAN
 from locker_server.shared.error_responses.error import gen_error
 from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
 from locker_server.shared.external_services.locker_background.constants import BG_EVENT
+from locker_server.shared.external_services.user_notification.list_jobs import PWD_ENTERPRISE_ACCOUNT_ADDED
+from locker_server.shared.external_services.user_notification.notification_sender import NotificationSender
 from locker_server.shared.utils.app import now
 from .serializers import *
 
@@ -36,6 +41,8 @@ class EnterprisePwdViewSet(APIBaseViewSet):
             self.serializer_class = DetailEnterpriseSerializer
         elif self.action in ["update"]:
             self.serializer_class = UpdateEnterpriseSerializer
+        elif self.action == "avatar":
+            self.serializer_class = UploadAvatarEnterpriseSerializer
         return super().get_serializer_class()
 
     def get_object(self):
@@ -210,6 +217,80 @@ class EnterprisePwdViewSet(APIBaseViewSet):
             "unverified_domain": unverified_domain_count
         })
 
+    @action(methods=['post', "get"], detail=True)
+    def avatar(self, request, *args, **kwargs):
+        if request.method == "POST":
+            enterprise = self.get_object()
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            validated_data = serializer.validated_data
+            avatar = validated_data.get("avatar")
+            try:
+                new_avatar_url = self.enterprise_service.update_enterprise_avatar(
+                    enterprise_id=enterprise.enterprise_id, avatar=avatar
+                )
+
+                return Response(status=status.HTTP_200_OK, data={"avatar": request.build_absolute_uri(new_avatar_url)})
+
+            except FileNotFoundError:
+                return Response(status=status.HTTP_200_OK, data={"avatar": None})
+            except EnterpriseDoesNotExistException:
+                raise NotFound
+        elif request.method == "GET":
+            enterprise = self.get_object()
+            try:
+                avatar_url = self.enterprise_service.get_enterprise_avatar(enterprise_id=enterprise.enterprise_id)
+                return Response(status=status.HTTP_200_OK, data={"avatar": request.build_absolute_uri(avatar_url)})
+            except ValueError:
+                return Response(status=status.HTTP_200_OK, data={"avatar": None})
+            except FileNotFoundError:
+                return Response(status=status.HTTP_200_OK, data={"avatar": None})
+            except EnterpriseDoesNotExistException:
+                raise NotFound
+
+    @action(methods=['post'], detail=True)
+    def add_members(self, request, *args, **kwargs):
+        enterprise = self.get_object()
+        members = request.data.get("members")
+        if not isinstance(members, list):
+            raise ValidationError(detail={"members": ["Members are not valid. This field must be an array"]})
+
+        added_members, non_added_members = self.enterprise_service.add_multiple_member(
+            current_enterprise=enterprise,
+            members_data=members,
+            secret=settings.SECRET_KEY
+        )
+        self.send_invitation_email(
+            current_enterprise=enterprise,
+            enterprise_members=added_members
+        )
+        return Response(
+            status=status.HTTP_200_OK,
+            data={
+                "enterprise_id": enterprise.enterprise_id,
+                "enterprise_name": enterprise.name,
+                "members": added_members,
+                "non_added_members": non_added_members
+            }
+        )
+
+    def send_invitation_email(self, current_enterprise: Enterprise, enterprise_members: [Dict]):
+
+        for enterprise_member in enterprise_members:
+            user_id = enterprise_member.get("user_id")
+            email = enterprise_member.get("email")
+            user_name = enterprise_member.get("user_name")
+            user_language = enterprise_member.get("user_language")
+            token = enterprise_member.get("token_invitation")
+            NotificationSender(
+                job=PWD_ENTERPRISE_ACCOUNT_ADDED, background=True
+            ).send(**{
+                "destinations": [{"email": email, "name": user_name, "language": user_language}],
+                "user_email": email,
+                "login_url": self.get_login_url(token_value=token),
+                "enterprise_name": current_enterprise.name
+            })
+
     def _statistic_login_by_time(self, enterprise_id, user_ids, from_param, to_param):
         start_date = datetime.fromtimestamp(from_param)
         end_date = datetime.fromtimestamp(to_param)
@@ -279,3 +360,13 @@ class EnterprisePwdViewSet(APIBaseViewSet):
                 pass
 
         return enterprises_data
+
+    @staticmethod
+    def get_login_url(token_value: str):
+        env = os.getenv("PROD_ENV", "dev")
+        if env == "dev":
+            login_url = os.getenv("INVITATION_LOGIN_URL_DEV", "")
+        else:
+            login_url = os.getenv("INVITATION_LOGIN_URL", "")
+        login_url += f"?token={token_value}"
+        return login_url

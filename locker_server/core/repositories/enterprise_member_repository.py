@@ -45,6 +45,10 @@ class EnterpriseMemberRepository(ABC):
         pass
 
     @abstractmethod
+    def get_enterprise_member_by_token(self, token: str) -> Optional[EnterpriseMember]:
+        pass
+
+    @abstractmethod
     def lock_login_account_belong_enterprise(self, user_id: int) -> bool:
         pass
 

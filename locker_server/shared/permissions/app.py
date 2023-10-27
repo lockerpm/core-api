@@ -26,7 +26,10 @@ class AppBasePermission(BasePermission):
 
     @staticmethod
     def is_super_admin(request):
-        return request.user and request.user.is_supper_admin
+        try:
+            return request.user and request.user.is_supper_admin
+        except AttributeError:
+            return False
 
     @staticmethod
     def _decode_token(token_value):

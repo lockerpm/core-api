@@ -57,3 +57,6 @@ daphne==3.0.2
 # Mailer
 sendgrid==6.9.7
 Jinja2==3.1.2
+
+# Image
+Pillow==10.0.1

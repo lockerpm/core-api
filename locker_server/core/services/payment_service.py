@@ -113,7 +113,8 @@ class PaymentService:
         result["plan"] = new_plan.to_json()
         return result
 
-    def calc_lifetime_payment_public(self, plan_alias: str, currency: str = CURRENCY_USD, promo_code: str = None):
+    def calc_lifetime_payment_public(self, plan_alias: str, currency: str = CURRENCY_USD, promo_code: str = None,
+                                     user=None):
         new_plan = self.plan_repository.get_plan_by_alias(alias=plan_alias)
         if not new_plan:
             raise PlanDoesNotExistException
@@ -121,6 +122,7 @@ class PaymentService:
             new_plan=new_plan,
             currency=currency,
             promo_code=promo_code,
+            user=user
         )
         result["plan"] = new_plan.to_json()
         return result

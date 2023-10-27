@@ -381,10 +381,15 @@ class UserPlanORMRepository(UserPlanRepository):
         }
         return result
 
-    def calc_lifetime_payment_public(self, new_plan: PMPlan, currency: str = CURRENCY_USD, promo_code: str = None):
+    def calc_lifetime_payment_public(self, new_plan: PMPlan, currency: str = CURRENCY_USD, promo_code: str = None,
+                                     user: User = None):
         current_time = now()
         # Get new plan price
         new_plan_price = new_plan.get_price(currency=currency)
+        if user:
+            current_plan = self.get_user_plan(user_id=user.user_id)
+            if current_plan.pm_plan.alias == PLAN_TYPE_PM_LIFETIME and new_plan.alias == PLAN_TYPE_PM_LIFETIME_FAMILY:
+                new_plan_price = new_plan_price - current_plan.pm_plan.get_price(currency=currency)
         # Calc discount
         error_promo = None
         promo_code_orm = None
