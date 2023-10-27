@@ -3,7 +3,7 @@ from .resource_service import ResourceService
 from .auth_service import AuthService
 from .user_service import UserService
 from .device_service import DeviceService
-
+from .backup_credential_service import BackupCredentialService
 from .family_service import FamilyService
 
 from .emergency_access_service import EmergencyAccessService
