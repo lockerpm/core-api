@@ -1,6 +1,7 @@
 from .auth_repository import AuthORMRepository
 from .user_repository import UserORMRepository
 from .education_email_repository import EducationEmailORMRepository
+from .backup_credential_repository import BackupCredentialORMRepository
 
 from .plan_repository import PlanORMRepository
 from .user_plan_repository import UserPlanORMRepository

@@ -226,3 +226,8 @@ def get_factor2_method_model():
 def get_sso_configuration_model():
     """ Return the SSOConfiguration model that is active in this LockerServer"""
     return apps.get_model(locker_server_settings.LS_SSO_CONFIGURATION_MODEL)
+
+
+def get_backup_credential_model():
+    """ Return the BackupCredential model that is active in this LockerServer"""
+    return apps.get_model(locker_server_settings.LS_BACKUP_CREDENTIAL_MODEL)
