@@ -65,7 +65,8 @@ urlpatterns += [
     url(r'^users/prelogin$', views.UserPwdViewSet.as_view({'post': 'prelogin'})),
     url(r'^users/reset_password$', views.UserPwdViewSet.as_view({'post': 'reset_password'})),
     url(r'^users/backup_credentials$', views.BackupCredentialPwdViewSet.as_view({'get': 'list', 'post': 'create'})),
-    url(r'^users/backup_credentials/(?P<pk>[0-9\-]+)$', views.BackupCredentialPwdViewSet.as_view({'get': 'retrieve'})),
+    url(r'^users/backup_credentials/(?P<pk>[a-zA-Z0-9\-]+)$',
+        views.BackupCredentialPwdViewSet.as_view({'get': 'retrieve', 'delete': "destroy"})),
 
 ]
 
