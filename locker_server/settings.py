@@ -24,6 +24,7 @@ LS_RELEASE_MODEL = getattr(settings, "LS_RELEASE_MODEL", "api_orm.ReleaseORM")
 LS_USER_MODEL = getattr(settings, "LS_USER_MODEL", "api_orm.UserORM")
 LS_DEVICE_MODEL = getattr(settings, "LS_DEVICE_MODEL", "api_orm.DeviceORM")
 LS_DEVICE_ACCESS_TOKEN_MODEL = getattr(settings, "LS_DEVICE_ACCESS_TOKEN_MODEL", "api_orm.DeviceAccessTokenORM")
+LS_BACKUP_CREDENTIAL_MODEL = getattr(settings, "LS_BACKUP_CREDENTIAL_MODEL", "api_orm.BackupCredentialORM")
 
 # ---------- Plan Type - Payment Models ---------- #
 LS_PLAN_TYPE_MODEL = getattr(settings, "LS_PLAN_TYPE_MODEL", "api_orm.PlanTypeORM")
@@ -100,6 +101,7 @@ DEFAULTS = {
     "LS_USER_MODEL": LS_USER_MODEL,
     "LS_DEVICE_MODEL": LS_DEVICE_MODEL,
     "LS_DEVICE_ACCESS_TOKEN_MODEL": LS_DEVICE_ACCESS_TOKEN_MODEL,
+    "LS_BACKUP_CREDENTIAL_MODEL": LS_BACKUP_CREDENTIAL_MODEL,
 
     "LS_PLAN_TYPE_MODEL": LS_PLAN_TYPE_MODEL,
     "LS_PLAN_MODEL": LS_PLAN_MODEL,

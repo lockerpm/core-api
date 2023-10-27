@@ -389,7 +389,7 @@ class UserPlanORMRepository(UserPlanRepository):
         if user:
             current_plan = self.get_user_plan(user_id=user.user_id)
             if current_plan.pm_plan.alias == PLAN_TYPE_PM_LIFETIME and new_plan.alias == PLAN_TYPE_PM_LIFETIME_FAMILY:
-                new_plan_price = new_plan_price - current_plan.pm_plan.get_price(currency=currency)
+                new_plan_price = round(new_plan_price - current_plan.pm_plan.get_price(currency=currency), 0)
         # Calc discount
         error_promo = None
         promo_code_orm = None

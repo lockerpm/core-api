@@ -1,5 +1,6 @@
 from locker_server.api_orm.models import *
 from locker_server.api_orm.models.users.education_emails import EducationEmailORM
+from locker_server.core.entities.user.backup_credential import BackupCredential
 from locker_server.core.entities.user.device import Device
 from locker_server.core.entities.user.device_access_token import DeviceAccessToken
 from locker_server.core.entities.user.education_email import EducationEmail
@@ -116,4 +117,19 @@ class UserParser:
             verification_token=education_email_orm.verification_token,
             promo_code=education_email_orm.promo_code,
             user=cls.parse_user(user_orm=education_email_orm.user)
+        )
+
+    @classmethod
+    def parse_backup_credential(cls, backup_credential_orm: BackupCredentialORM) -> BackupCredential:
+        return BackupCredential(
+            backup_credential_id=backup_credential_orm.id,
+            creation_date=backup_credential_orm.creation_date,
+            master_password=backup_credential_orm.master_password,
+            master_password_hint=backup_credential_orm.master_password_hint,
+            key=backup_credential_orm.key,
+            public_key=backup_credential_orm.public_key,
+            private_key=backup_credential_orm.private_key,
+            fd_credential_id=backup_credential_orm.fd_credential_id,
+            fd_random=backup_credential_orm.fd_random,
+            user=cls.parse_user(user_orm=backup_credential_orm.user)
         )

@@ -9,7 +9,6 @@ from locker_server.api.v1_0.folders.views import FolderPwdViewSet
 from locker_server.api.v1_0.import_data.views import ImportDataPwdViewSet
 from locker_server.api.v1_0.payments.views import PaymentPwdViewSet
 
-
 from locker_server.api.v1_0.tools.views import ToolPwdViewSet
 
 from locker_server.api.v1_0.emergency_access.views import EmergencyAccessPwdViewSet
@@ -21,4 +20,4 @@ from locker_server.api.v1_0.referrals.views import ReferralPwdViewSet
 from locker_server.api.v1_0.passwordless.views import PasswordlessPwdViewSet
 
 from locker_server.api.v1_0.exclude_domains.views import ExcludeDomainPwdViewSet
-
+from locker_server.api.v1_0.backup_credentials.views import BackupCredentialPwdViewSet

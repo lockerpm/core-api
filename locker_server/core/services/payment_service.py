@@ -350,13 +350,11 @@ class PaymentService:
             "card": card,
         }
         promo_code_value = promo_code_obj.code if promo_code_obj else None
-        calc_payment = self.user_plan_repository.calc_update_price(
-            current_plan=current_plan,
+        calc_payment = self.user_plan_repository.calc_lifetime_payment_public(
             new_plan=plan_obj,
-            new_duration=DURATION_MONTHLY,
             currency=CURRENCY_USD,
             promo_code=promo_code_value,
-            allow_trial=False
+            user=current_plan.user
         )
         immediate_payment = calc_payment.get("immediate_payment")
         # Start payment here

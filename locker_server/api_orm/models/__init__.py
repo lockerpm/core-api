@@ -4,6 +4,7 @@ from locker_server.api_orm.models.users.user_score import UserScoreORM
 from locker_server.api_orm.models.users.devices import DeviceORM
 from locker_server.api_orm.models.users.device_access_tokens import DeviceAccessTokenORM
 from locker_server.api_orm.models.users.education_emails import EducationEmailORM
+from locker_server.api_orm.models.users.backup_credentials import BackupCredentialORM
 
 # ------------------------- Factor 2 ---------------------------- #
 from locker_server.api_orm.models.factor2.factor2_method import Factor2MethodORM
