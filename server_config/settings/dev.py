@@ -227,6 +227,8 @@ try:
     LS_NOTIFICATION_MODEL = "api_orm.NotificationORM"
     LS_FACTOR2_METHOD_MODEL = "api_orm.Factor2MethodORM"
     LS_SSO_CONFIGURATION_MODEL = "api_orm.SSOConfigurationORM"
+    LS_BACKUP_CREDENTIAL_MODEL = "api_orm.BackupCredentialORM"
+
     DEFAULT_PLAN = os.getenv("DEFAULT_PLAN", "pm_free")
     LOCKER_SERVER_SETTINGS = {
         "API_REPOSITORY_CLASS": "locker_server.containers.defaults.repository.RepositoryFactory",

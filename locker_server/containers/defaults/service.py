@@ -255,3 +255,9 @@ class ServiceFactory(containers.DeclarativeContainer):
         emergency_access_repository=RepositoryFactory.emergency_access_repository,
         payment_repository=RepositoryFactory.payment_repository,
     )
+    backup_credential_service = providers.Factory(
+        BackupCredentialService,
+        user_repository=RepositoryFactory.user_repository,
+        backup_credential_repository=RepositoryFactory.backup_credential_repository,
+
+    )

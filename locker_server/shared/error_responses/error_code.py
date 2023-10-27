@@ -1,4 +1,3 @@
-
 # ------------------------------ General code ----------------------------------- #
 APP_CODE = [
     {
@@ -32,7 +31,6 @@ APP_CODE = [
         "vi_message": "Service temporarily unavailable, try again later."
     }
 ]
-
 
 # ------------------------------ User error code ----------------------------------- #
 APP_CODE += [
@@ -100,7 +98,6 @@ APP_CODE += [
     }
 ]
 
-
 # ----------------------------- Team error code ----------------------------------#
 APP_CODE += [
     {
@@ -136,7 +133,6 @@ APP_CODE += [
 
 ]
 
-
 # ----------------------------- PM Folder error code ----------------------------------#
 APP_CODE += [
     {
@@ -145,7 +141,6 @@ APP_CODE += [
         "vi_message": "Bạn không thể xóa thư mực mặc định của teams"
     },
 ]
-
 
 # ---------------------------- Cipher ------------------------------------------- #
 APP_CODE += [
@@ -165,7 +160,6 @@ APP_CODE += [
         "vi_message": "Giới hạn số lượng item đã đạt giới hạn. Vui lòng kiểm tra thùng rác"
     }
 ]
-
 
 # ------------------------------ TRANSACTION --------------------------------#
 APP_CODE += [
@@ -259,7 +253,6 @@ APP_CODE += [
     }
 ]
 
-
 # ------------------------------- RELAY ------------------------------------- #
 APP_CODE += [
     {
@@ -274,13 +267,21 @@ APP_CODE += [
     },
 ]
 
-
 # ------------------------------- Quick Share ------------------------------------- #
 APP_CODE += [
     {
         "code": "9000",
         "message": "The quick share is not valid because the email is not valid or the code is not valid",
         "vi_message": "Số lượng địa chỉ relay đã đạt tối đa"
+    }
+]
+
+# ------------------------------- Backup Credential ------------------------------------- #
+APP_CODE += [
+    {
+        "code": "10000",
+        "message": "The number of backup credential is reached",
+        "vi_message": "Số lượng backup password đã đạt tối đa"
     }
 ]
 
