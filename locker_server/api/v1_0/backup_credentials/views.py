@@ -32,7 +32,7 @@ class BackupCredentialPwdViewSet(APIBaseViewSet):
     def get_queryset(self):
         user = self.request.user
         backup_credentials = self.backup_credential_service.list_backup_credentials(**{
-            "user_id": 1
+            "user_id": user.user_id
         })
         return backup_credentials
 
@@ -79,3 +79,13 @@ class BackupCredentialPwdViewSet(APIBaseViewSet):
                 "id": new_backup_credential.backup_credential_id
             }
         )
+
+    def destroy(self, request, *args, **kwargs):
+        backup_credential = self.get_object()
+        try:
+            self.backup_credential_service.delete_backup_credential(
+                backup_credential_id=backup_credential.backup_credential_id
+            )
+        except BackupCredentialDoesNotExistException:
+            raise NotFound
+        return Response(status=status.HTTP_204_NO_CONTENT)

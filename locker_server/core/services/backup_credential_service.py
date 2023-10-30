@@ -50,3 +50,11 @@ class BackupCredentialService:
         return self.backup_credential_repository.create_backup_credential(
             backup_credential_create_data=backup_credential_create_data
         )
+
+    def delete_backup_credential(self, backup_credential_id: str) -> bool:
+        deleted_backup_credential = self.backup_credential_repository.delete_backup_credential(
+            backup_credential_id=backup_credential_id
+        )
+        if not deleted_backup_credential:
+            raise BackupCredentialDoesNotExistException
+        return deleted_backup_credential

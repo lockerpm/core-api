@@ -22,7 +22,7 @@ def execute_wrapper(*args, **kwargs):
 
             logging.config.dictConfig(logging_config)
             logger = logging.getLogger('slack_service')
-            logger.error(**{"message": "[DATABASE] error, try restart query"})
+            logger.warning("[DATABASE] Deadlock found, try restart query")
             time.sleep(0.2)
 
 

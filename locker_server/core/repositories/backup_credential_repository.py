@@ -28,5 +28,5 @@ class BackupCredentialRepository(ABC):
 
     # ------------------------ Delete BackupCredential resource --------------------- #
     @abstractmethod
-    def destroy_backup_credential(self, backup_credential_id: str):
+    def delete_backup_credential(self, backup_credential_id: str) -> bool:
         pass

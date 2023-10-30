@@ -2,10 +2,10 @@ from locker_server.core.entities.user.user import User
 
 
 class BackupCredential(object):
-    def __init__(self, backup_credential_id: int, user: User,
+    def __init__(self, backup_credential_id: str, user: User,
                  master_password: str = None, master_password_hint: str = "", key: str = None,
                  public_key: str = None, private_key: str = None, creation_date: float = 0,
-                 fd_credential_id: str = None, fd_random: str = None,
+                 fd_credential_id: str = None, fd_random: str = None, kdf: int = 0, kdf_iterations: int = 0,
                  ):
         self._backup_credential_id = backup_credential_id
         self._creation_date = creation_date
@@ -16,6 +16,8 @@ class BackupCredential(object):
         self._private_key = private_key
         self._fd_credential_id = fd_credential_id
         self._fd_random = fd_random
+        self._kdf_iterations = kdf_iterations
+        self._kdf = kdf
         self._user = user
 
     @property
@@ -57,3 +59,11 @@ class BackupCredential(object):
     @property
     def user(self):
         return self._user
+
+    @property
+    def kdf_iterations(self):
+        return self._kdf_iterations
+
+    @property
+    def kdf(self):
+        return self._kdf
