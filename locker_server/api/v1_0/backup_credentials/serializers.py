@@ -10,8 +10,10 @@ class ListBackupCredentialSerializer(serializers.Serializer):
             "master_password_hint": instance.master_password_hint,
             "creation_date": instance.creation_date,
             "key": instance.key,
-            "public_key": instance.public_key,
-            "private_key": instance.private_key,
+            "keys": {
+                "public_key": instance.public_key,
+                "private_key": instance.private_key,
+            },
             "fd_credential_id": instance.fd_credential_id,
             "fd_random": instance.fd_random,
         }
