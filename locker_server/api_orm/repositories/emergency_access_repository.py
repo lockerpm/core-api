@@ -96,7 +96,7 @@ class EmergencyAccessORMRepository(EmergencyAccessRepository):
         emergency_access_orm.status = EMERGENCY_ACCESS_STATUS_CONFIRMED
         emergency_access_orm.key_encrypted = key_encrypted
         emergency_access_orm.save()
-        bump_account_revision_date(user=emergency_access.grantee)
+        bump_account_revision_date(user=emergency_access_orm.grantee)
 
         emergency_access.email = None
         emergency_access.status = EMERGENCY_ACCESS_STATUS_CONFIRMED
