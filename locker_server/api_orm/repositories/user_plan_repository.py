@@ -386,10 +386,11 @@ class UserPlanORMRepository(UserPlanRepository):
         current_time = now()
         # Get new plan price
         new_plan_price = new_plan.get_price(currency=currency)
+        old_plan_discount = 0
         if user:
             current_plan = self.get_user_plan(user_id=user.user_id)
             if current_plan.pm_plan.alias == PLAN_TYPE_PM_LIFETIME and new_plan.alias == PLAN_TYPE_PM_LIFETIME_FAMILY:
-                new_plan_price = round(new_plan_price - current_plan.pm_plan.get_price(currency=currency), 0)
+                old_plan_discount = round(current_plan.pm_plan.get_price(currency=currency), 0)
         # Calc discount
         error_promo = None
         promo_code_orm = None
@@ -409,6 +410,7 @@ class UserPlanORMRepository(UserPlanRepository):
         # Discount and immediate payment
         total_amount = max(total_amount, 0)
         discount = promo_code_orm.get_discount(total_amount) if promo_code_orm else 0.0
+        discount = discount + old_plan_discount
         immediate_amount = max(round(total_amount - discount, 2), 0)
 
         result = {
