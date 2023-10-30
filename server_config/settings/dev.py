@@ -41,8 +41,6 @@ try:
     CHANNEL_REDIS_LOCATION = os.getenv("CHANNEL_REDIS_LOCATION")
     default_channel_host = {
         'address': CHANNEL_REDIS_LOCATION,
-        'connection_class': CustomSSLConnection,
-        'ssl_context': ssl_context,
     }
     CHANNEL_LAYERS = {
         'default': {

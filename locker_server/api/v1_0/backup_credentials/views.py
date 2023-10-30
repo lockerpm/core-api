@@ -64,9 +64,11 @@ class BackupCredentialPwdViewSet(APIBaseViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
+        keys = validated_data.get("keys", {})
         try:
             new_backup_credential = self.backup_credential_service.create_backup_credential(
                 current_user=user,
+                keys=keys,
                 backup_credential_create_data=validated_data
             )
         except UserDoesNotExistException:
