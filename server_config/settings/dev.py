@@ -38,9 +38,11 @@ try:
     # Channel layers
     ssl_context = ssl.SSLContext()
     ssl_context.check_hostname = False
+    ssl_context.verify_mode = ssl.VerifyMode(ssl.CERT_NONE)
     CHANNEL_REDIS_LOCATION = os.getenv("CHANNEL_REDIS_LOCATION")
     default_channel_host = {
         'address': CHANNEL_REDIS_LOCATION,
+        "ssl": ssl_context,
     }
     CHANNEL_LAYERS = {
         'default': {
