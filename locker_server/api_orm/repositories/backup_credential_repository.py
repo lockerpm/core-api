@@ -57,5 +57,12 @@ class BackupCredentialORMRepository(BackupCredentialRepository):
     # ------------------------ Update BackupCredential resource --------------------- #
 
     # ------------------------ Delete BackupCredential resource --------------------- #
-    def destroy_backup_credential(self, backup_credential_id: str):
-        pass
+    def delete_backup_credential(self, backup_credential_id: str) -> bool:
+        try:
+            backup_credential_orm = BackupCredentialORM.objects.get(
+                id=backup_credential_id
+            )
+        except BackupCredentialORM.DoesNotExist:
+            return False
+        backup_credential_orm.delete()
+        return True

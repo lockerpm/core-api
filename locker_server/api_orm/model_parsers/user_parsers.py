@@ -131,5 +131,7 @@ class UserParser:
             private_key=backup_credential_orm.private_key,
             fd_credential_id=backup_credential_orm.fd_credential_id,
             fd_random=backup_credential_orm.fd_random,
+            kdf_iterations=backup_credential_orm.kdf_iterations,
+            kdf=backup_credential_orm.kdf,
             user=cls.parse_user(user_orm=backup_credential_orm.user)
         )
