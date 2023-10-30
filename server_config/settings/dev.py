@@ -36,19 +36,24 @@ try:
     TEST_DOMAINS = ["dev.cystack.org"]
 
     # Channel layers
-    ssl_context = ssl.SSLContext()
-    ssl_context.check_hostname = False
-    ssl_context.verify_mode = ssl.VerifyMode(ssl.CERT_NONE)
     CHANNEL_REDIS_LOCATION = os.getenv("CHANNEL_REDIS_LOCATION")
     default_channel_host = {
         'address': CHANNEL_REDIS_LOCATION,
-        "ssl": ssl_context,
     }
+    if CHANNEL_REDIS_LOCATION and CHANNEL_REDIS_LOCATION.startswith("rediss://"):
+        ssl_context = ssl.SSLContext()
+        ssl_context.check_hostname = False
+        default_channel_host.update({
+            "ssl": ssl_context
+        })
+
     CHANNEL_LAYERS = {
         'default': {
             'BACKEND': 'channels_redis.core.RedisChannelLayer',
             'CONFIG': {
+                # "hosts": [(os.getenv("CHANNEL_REDIS_LOCATION"))],
                 "hosts": (default_channel_host,),
+                "expiry": 2959200  # 3 days
             },
         }
     }
