@@ -321,7 +321,7 @@ class UserPwdViewSet(APIBaseViewSet):
         login_method = validated_data.get("login_method", user.login_method)
 
         try:
-            decoded_token = self.auth_service.decode_token(request.auth, secret=settings.SECRET_KEY)
+            decoded_token = self.auth_service.decode_token(request.auth.access_token, secret=settings.SECRET_KEY)
             sso_token_id = decoded_token.get("sso_token_id") if decoded_token else None
             result = self.user_service.change_master_password(
                 user=user, key=key, master_password_hash=master_password_hash,
