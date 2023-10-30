@@ -35,7 +35,8 @@ class BackupCredentialService:
             raise BackupCredentialDoesNotExistException
         return backup_credential
 
-    def create_backup_credential(self, current_user: User, backup_credential_create_data: Dict) -> BackupCredential:
+    def create_backup_credential(self, current_user: User, keys: Dict,
+                                 backup_credential_create_data: Dict) -> BackupCredential:
         user = self.user_repository.get_user_by_id(user_id=current_user.user_id)
         if not user:
             raise UserDoesNotExistException
@@ -45,7 +46,9 @@ class BackupCredentialService:
         if user_backup_credential_num >= BACKUP_CREDENTIAL_MAX:
             raise BackupCredentialMaximumReachedException
         backup_credential_create_data.update({
-            "user_id": user.user_id
+            "user_id": user.user_id,
+            "public_key": keys.get("public_key"),
+            "private_key": keys.get("encrypted_private_key"),
         })
         return self.backup_credential_repository.create_backup_credential(
             backup_credential_create_data=backup_credential_create_data
