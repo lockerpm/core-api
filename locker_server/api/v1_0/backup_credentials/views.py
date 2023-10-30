@@ -32,7 +32,7 @@ class BackupCredentialPwdViewSet(APIBaseViewSet):
     def get_queryset(self):
         user = self.request.user
         backup_credentials = self.backup_credential_service.list_backup_credentials(**{
-            "user_id": 1
+            "user_id": user.user_id
         })
         return backup_credentials
 

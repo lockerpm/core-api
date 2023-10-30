@@ -7,7 +7,6 @@ class ListBackupCredentialSerializer(serializers.Serializer):
     def to_representation(self, instance: BackupCredential):
         data = {
             "id": instance.backup_credential_id,
-            "master_password": instance.master_password,
             "master_password_hint": instance.master_password_hint,
             "creation_date": instance.creation_date,
             "key": instance.key,
