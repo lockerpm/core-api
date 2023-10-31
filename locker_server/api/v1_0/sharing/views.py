@@ -152,7 +152,8 @@ class SharingPwdViewSet(APIBaseViewSet):
         result = self.sharing_service.update_sharing_invitation(
             sharing_invitation=sharing_invitation, status=invitation_status, user_fullname=user_fullname
         )
-        self._notify_invitation_update(user=user, data=result)
+        if settings.SELF_HOSTED:
+            self._notify_invitation_update(user=user, data=result)
         return Response(status=status.HTTP_200_OK, data=result)
 
     @staticmethod
