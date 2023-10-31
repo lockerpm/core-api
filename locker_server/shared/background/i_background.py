@@ -23,7 +23,8 @@ def background_exception_wrapper(func):
             return result
         except Exception as e:
             tb = traceback.format_exc()
-            CyLog.error(**{"message": f"{func.__name__} error: {tb}"})
+            CyLog.error(**{"message": f"[!] Background func {func.__name__} error: {tb}\n"
+                                      f"The arguments: {args} - {kwargs}"})
         finally:
             connection.close()
     return wrap
