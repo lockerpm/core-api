@@ -81,4 +81,4 @@ class Enterprise(object):
 
     @property
     def avatar(self):
-        return get_avatar(email=self.enterprise_id)
+        return self._avatar or get_avatar(email=self.enterprise_id)
