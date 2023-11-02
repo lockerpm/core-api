@@ -41,8 +41,6 @@ class EnterprisePwdViewSet(APIBaseViewSet):
             self.serializer_class = DetailEnterpriseSerializer
         elif self.action in ["update"]:
             self.serializer_class = UpdateEnterpriseSerializer
-        elif self.action == "avatar":
-            self.serializer_class = UploadAvatarEnterpriseSerializer
         return super().get_serializer_class()
 
     def get_object(self):
@@ -219,23 +217,12 @@ class EnterprisePwdViewSet(APIBaseViewSet):
 
     @action(methods=['post', "get"], detail=True)
     def avatar(self, request, *args, **kwargs):
-        if request.method == "POST":
-            enterprise = self.get_object()
-            serializer = self.get_serializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            validated_data = serializer.validated_data
-            avatar = validated_data.get("avatar")
-            try:
-                new_avatar_url = self.enterprise_service.update_enterprise_avatar(
-                    enterprise_id=enterprise.enterprise_id, avatar=avatar
-                )
-                return Response(status=status.HTTP_200_OK, data={"avatar": new_avatar_url})
-            except EnterpriseDoesNotExistException:
-                raise NotFound
-        elif request.method == "GET":
-            enterprise = self.get_object()
+        enterprise = self.get_object()
+        try:
             avatar_url = self.enterprise_service.get_enterprise_avatar(enterprise_id=enterprise.enterprise_id)
-            return Response(status=status.HTTP_200_OK, data={"avatar": avatar_url})
+        except EnterpriseDoesNotExistException:
+            raise NotFound
+        return Response(status=status.HTTP_200_OK, data={"avatar": avatar_url})
 
     @action(methods=['post'], detail=True)
     def add_members(self, request, *args, **kwargs):

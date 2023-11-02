@@ -17,6 +17,7 @@ class ListEnterpriseSerializer(serializers.Serializer):
             "enterprise_phone": instance.enterprise_phone,
             "enterprise_country": instance.enterprise_country,
             "enterprise_postal_code": instance.enterprise_postal_code,
+            "avatar": instance.avatar
         }
         return data
 
