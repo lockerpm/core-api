@@ -118,9 +118,9 @@ class EnterprisePwdViewSet(APIBaseViewSet):
             "enterprise_ids": [enterprise.enterprise_id], "acting_user_id": user.user_id, "user_id": user.user_id,
             "type": EVENT_ENTERPRISE_UPDATED, "ip_address": ip
         })
-        updated_enterprise = self.normalize_enterprise([updated_enterprise])[0]
-        serializer = DetailEnterpriseSerializer(updated_enterprise, many=False)
-        return Response(status=status.HTTP_200_OK, data=serializer.data)
+        enterprise_data = DetailEnterpriseSerializer(updated_enterprise, many=False).data
+        normalize_data = self.normalize_enterprise([enterprise_data], user=request.user)[0]
+        return Response(status=status.HTTP_200_OK, data=normalize_data)
 
     def destroy(self, request, *args, **kwargs):
         enterprise = self.get_object()
@@ -229,24 +229,13 @@ class EnterprisePwdViewSet(APIBaseViewSet):
                 new_avatar_url = self.enterprise_service.update_enterprise_avatar(
                     enterprise_id=enterprise.enterprise_id, avatar=avatar
                 )
-
-                return Response(status=status.HTTP_200_OK, data={"avatar": request.build_absolute_uri(new_avatar_url)})
-
-            except FileNotFoundError:
-                return Response(status=status.HTTP_200_OK, data={"avatar": None})
+                return Response(status=status.HTTP_200_OK, data={"avatar": new_avatar_url})
             except EnterpriseDoesNotExistException:
                 raise NotFound
         elif request.method == "GET":
             enterprise = self.get_object()
-            try:
-                avatar_url = self.enterprise_service.get_enterprise_avatar(enterprise_id=enterprise.enterprise_id)
-                return Response(status=status.HTTP_200_OK, data={"avatar": request.build_absolute_uri(avatar_url)})
-            except ValueError:
-                return Response(status=status.HTTP_200_OK, data={"avatar": None})
-            except FileNotFoundError:
-                return Response(status=status.HTTP_200_OK, data={"avatar": None})
-            except EnterpriseDoesNotExistException:
-                raise NotFound
+            avatar_url = self.enterprise_service.get_enterprise_avatar(enterprise_id=enterprise.enterprise_id)
+            return Response(status=status.HTTP_200_OK, data={"avatar": avatar_url})
 
     @action(methods=['post'], detail=True)
     def add_members(self, request, *args, **kwargs):
