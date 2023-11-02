@@ -131,20 +131,10 @@ class EnterpriseORMRepository(EnterpriseRepository):
             "init_seats_expired_time",
             enterprise_orm.init_seats_expired_time
         )
-        enterprise_orm.avatar = enterprise_update_data.get("avatar", enterprise_orm.avatar)
         enterprise_orm.revision_date = now()
 
         enterprise_orm.save()
         return ModelParser.enterprise_parser().parse_enterprise(enterprise_orm=enterprise_orm)
-
-    def update_enterprise_avatar(self, enterprise_id: str, avatar) -> Optional[str]:
-        try:
-            enterprise_orm = EnterpriseORM.objects.get(id=enterprise_id)
-            enterprise_orm.avatar = avatar
-            enterprise_orm.save()
-            return enterprise_orm.avatar
-        except EnterpriseORM.DoesNotExist:
-            return None
 
     # ------------------------ Delete Enterprise resource --------------------- #
     def delete_completely(self, enterprise: Enterprise):

@@ -37,10 +37,6 @@ class EnterpriseRepository(ABC):
     def update_enterprise(self, enterprise_id: str, enterprise_update_data) -> Optional[Enterprise]:
         pass
 
-    @abstractmethod
-    def update_enterprise_avatar(self, enterprise_id: str, avatar) -> Optional[str]:
-        pass
-
     # ------------------------ Delete EnterpriseMember resource --------------------- #
     @abstractmethod
     def delete_completely(self, enterprise: Enterprise):

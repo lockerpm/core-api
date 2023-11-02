@@ -1,3 +1,6 @@
+from locker_server.shared.utils.avatar import get_avatar
+
+
 class Enterprise(object):
     def __init__(self, enterprise_id: str, name: str, description: str = '', creation_date: float = None,
                  revision_date: float = None, locked: bool = False, enterprise_name: str = "",
@@ -78,4 +81,4 @@ class Enterprise(object):
 
     @property
     def avatar(self):
-        return self._avatar
+        return get_avatar(email=self.enterprise_id)

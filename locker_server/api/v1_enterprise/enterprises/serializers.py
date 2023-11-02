@@ -39,8 +39,4 @@ class UpdateEnterpriseSerializer(serializers.Serializer):
     enterprise_phone = serializers.CharField(max_length=128, required=False, allow_blank=True)
     enterprise_country = serializers.CharField(max_length=128, required=False, allow_blank=True)
     enterprise_postal_code = serializers.CharField(max_length=16, required=False, allow_blank=True)
-    avatar = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
 
-
-class UploadAvatarEnterpriseSerializer(serializers.Serializer):
-    avatar = serializers.CharField(max_length=255, allow_null=True, allow_blank=True)
