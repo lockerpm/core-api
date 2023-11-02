@@ -84,9 +84,7 @@ class EnterpriseORMRepository(EnterpriseRepository):
         try:
             enterprise_orm = EnterpriseORM.objects.get(id=enterprise_id)
             avatar = enterprise_orm.avatar
-            if avatar:
-                return avatar.url
-            return None
+            return avatar
         except EnterpriseORM.DoesNotExist:
             return None
 
@@ -133,6 +131,7 @@ class EnterpriseORMRepository(EnterpriseRepository):
             "init_seats_expired_time",
             enterprise_orm.init_seats_expired_time
         )
+        enterprise_orm.avatar = enterprise_update_data.get("avatar", enterprise_orm.avatar)
         enterprise_orm.revision_date = now()
 
         enterprise_orm.save()
@@ -141,17 +140,9 @@ class EnterpriseORMRepository(EnterpriseRepository):
     def update_enterprise_avatar(self, enterprise_id: str, avatar) -> Optional[str]:
         try:
             enterprise_orm = EnterpriseORM.objects.get(id=enterprise_id)
-            old_avatar = enterprise_orm.avatar
-            if old_avatar is not None:
-                try:
-                    os.remove(old_avatar.path)
-                except FileNotFoundError:
-                    pass
-                except ValueError:
-                    pass
             enterprise_orm.avatar = avatar
             enterprise_orm.save()
-            return enterprise_orm.avatar.url
+            return enterprise_orm.avatar
         except EnterpriseORM.DoesNotExist:
             return None
 

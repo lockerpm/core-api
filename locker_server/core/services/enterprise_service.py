@@ -235,21 +235,12 @@ class EnterpriseService:
             enterprise_id=enterprise_id,
             avatar=avatar
         )
-        if not avatar_url:
-            raise FileNotFoundError
         return avatar_url
 
     def get_enterprise_avatar(self, enterprise_id: str) -> str:
-        enterprise = self.enterprise_repository.get_enterprise_by_id(
-            enterprise_id=enterprise_id
-        )
-        if not enterprise:
-            raise EnterpriseDoesNotExistException
         avatar_url = self.enterprise_repository.get_enterprise_avatar_url_by_id(
             enterprise_id=enterprise_id,
         )
-        if not avatar_url:
-            raise FileNotFoundError
         return avatar_url
 
     def add_multiple_member(self, secret: str, current_enterprise: Enterprise, members_data: [Dict]) -> Tuple:

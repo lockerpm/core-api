@@ -35,6 +35,7 @@ class EnterpriseParser:
             enterprise_postal_code=enterprise_orm.enterprise_postal_code,
             init_seats=enterprise_orm.init_seats,
             init_seats_expired_time=enterprise_orm.init_seats_expired_time,
+            avatar=enterprise_orm.avatar
         )
 
     @classmethod

@@ -3,7 +3,7 @@ class Enterprise(object):
                  revision_date: float = None, locked: bool = False, enterprise_name: str = "",
                  enterprise_address1: str = "", enterprise_address2: str = "", enterprise_phone: str = "",
                  enterprise_country: str = None, enterprise_postal_code: str = "", init_seats: int = None,
-                 init_seats_expired_time: float = None):
+                 init_seats_expired_time: float = None, avatar: str = None):
         self._enterprise_id = enterprise_id
         self._name = name
         self._description = description
@@ -18,6 +18,7 @@ class Enterprise(object):
         self._enterprise_postal_code = enterprise_postal_code
         self._init_seats = init_seats
         self._init_seats_expired_time = init_seats_expired_time
+        self._avatar = avatar
 
     @property
     def enterprise_id(self):
@@ -74,3 +75,7 @@ class Enterprise(object):
     @property
     def init_seats_expired_time(self):
         return self._init_seats_expired_time
+
+    @property
+    def avatar(self):
+        return self._avatar

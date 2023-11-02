@@ -10,7 +10,7 @@ def image_upload_path(instance, filename):
 
 
 class EnterpriseORM(AbstractEnterpriseORM):
-    avatar = models.ImageField(null=True, default=None, upload_to=image_upload_path)
+    avatar = models.CharField(null=True, default=None, max_length=255)
 
     class Meta(AbstractEnterpriseORM.Meta):
         swappable = 'LS_ENTERPRISE_MODEL'
