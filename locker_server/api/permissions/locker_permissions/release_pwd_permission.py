@@ -7,7 +7,7 @@ class ReleasePwdPermission(APIPermission):
     def has_permission(self, request, view):
         if view.action in ["current_version"]:
             return True
-        elif view.action in ["new", "current"]:
+        elif view.action in ["new", "current", "list"]:
             return self.is_management_command(request)
         return self.is_auth(request) and request.user.activated
 
