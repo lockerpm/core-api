@@ -6,7 +6,7 @@ from locker_server.api.api_base_view import APIBaseViewSet
 from locker_server.api.permissions.locker_permissions.release_pwd_permission import ReleasePwdPermission
 from locker_server.shared.constants.device_type import CLIENT_ID_DESKTOP
 from locker_server.shared.constants.release import RELEASE_ENVIRONMENT_PROD
-from .serializers import NewReleaseSerializer, NextReleaseSerializer
+from .serializers import NewReleaseSerializer, NextReleaseSerializer, ListReleaseSerializer
 
 
 class ReleasePwdViewSet(APIBaseViewSet):
@@ -16,9 +16,27 @@ class ReleasePwdViewSet(APIBaseViewSet):
     def get_serializer_class(self):
         if self.action == "new":
             self.serializer_class = NewReleaseSerializer
+        elif self.action == "list":
+            self.serializer_class = ListReleaseSerializer
         elif self.action == "current":
             self.serializer_class = NextReleaseSerializer
         return super().get_serializer_class()
+
+    def get_queryset(self):
+        releases = self.release_service.list_releases(**{
+            "client_id": self.request.query_params.get("client_id"),
+            "environment": self.request.query_params.get("environment")
+        })
+        return releases
+
+    def list(self, request, *args, **kwargs):
+        paging_param = self.request.query_params.get("paging", "0")
+        page_size_param = self.check_int_param(self.request.query_params.get("size", 50))
+        if paging_param == "0":
+            self.pagination_class = None
+        else:
+            self.pagination_class.page_size = page_size_param if page_size_param else 50
+        return super().list(request, *args, **kwargs)
 
     @action(methods=["get", "post"], detail=False)
     def current(self, request, *args, **kwargs):

@@ -14,3 +14,13 @@ class NewReleaseSerializer(serializers.Serializer):
 class NextReleaseSerializer(serializers.Serializer):
     client_id = serializers.ChoiceField(choices=[CLIENT_ID_BROWSER, CLIENT_ID_DESKTOP], default=CLIENT_ID_DESKTOP)
     environment = serializers.ChoiceField(choices=LIST_RELEASE_ENVIRONMENT, default=RELEASE_ENVIRONMENT_PROD)
+
+
+class ListReleaseSerializer(serializers.Serializer):
+    def to_representation(self, instance):
+        data = {
+            "version": instance.version,
+            "environment": instance.environment,
+            "checksum": instance.get_checksum()
+        }
+        return data
