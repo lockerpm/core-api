@@ -472,7 +472,7 @@ class UserService:
         exclude_sso_token_ids = None
         client = None
         if login_method:
-            exclude_sso_token_ids = [current_sso_token_id] if current_sso_token_id else None
+            exclude_sso_token_ids = [current_sso_token_id] if current_sso_token_id else []
             exclude_device_access_token = self.device_access_token_repository.get_first_device_access_token_by_sso_ids(
                 user_id=user.user_id, sso_token_ids=exclude_sso_token_ids
             )
