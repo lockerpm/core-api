@@ -493,7 +493,7 @@ class UserService:
         except TypeError:
             return False
 
-    def revoke_all_sessions(self, user: User, exclude_sso_token_ids: List[str]):
+    def revoke_all_sessions(self, user: User, exclude_sso_token_ids: List[str] = None):
         self.user_repository.revoke_all_sessions(user=user, exclude_sso_token_ids=exclude_sso_token_ids)
 
     def delete_locker_user(self, user: User):
