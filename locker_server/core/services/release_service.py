@@ -55,7 +55,7 @@ class ReleaseService:
             environment=environment
         )
 
-    def create_next_release(self, client_id: str, environment: str) -> Optional[Release]:
+    def create_next_release(self, client_id: str, environment: str, checksum: list = None) -> Optional[Release]:
         latest_release = self.get_latest_release(
             client_id=client_id,
             environment=environment
@@ -68,7 +68,8 @@ class ReleaseService:
                 "major": latest_release.major,
                 "minor": next_minor,
                 "client_id": client_id,
-                "environment": environment
+                "environment": environment,
+                "checksum": checksum
             }
             return self.create_release(release_create_data=release_create_data)
         if not latest_release.build_number:
@@ -78,7 +79,8 @@ class ReleaseService:
                 "minor": latest_release.minor,
                 "patch": next_patch,
                 "client_id": client_id,
-                "environment": environment
+                "environment": environment,
+                "checksum": checksum
             }
             return self.create_release(release_create_data=release_create_data)
         next_build_number = int(latest_release.build_number) + 1
@@ -88,6 +90,7 @@ class ReleaseService:
             "patch": latest_release.patch,
             "build_number": next_build_number,
             "client_id": client_id,
-            "environment": environment
+            "environment": environment,
+            "checksum": checksum
         }
         return self.create_release(release_create_data=release_create_data)

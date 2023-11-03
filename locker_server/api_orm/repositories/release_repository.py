@@ -13,6 +13,16 @@ class ReleaseORMRepository(ReleaseRepository):
     # ------------------------ List Release resource ------------------- #
     def list_releases(self, **filters) -> List[Release]:
         releases_orm = ReleaseORM.objects.all().order_by('-id')
+        client_id_param = filters.get("client_id")
+        environment_param = filters.get("environment")
+        if client_id_param is not None:
+            releases_orm = releases_orm.filter(
+                client_id=client_id_param
+            )
+        if environment_param:
+            releases_orm = releases_orm.filter(
+                environment=environment_param
+            )
         return [
             ModelParser.release_parser().parse_release(release_orm=release_orm)
             for release_orm in releases_orm
