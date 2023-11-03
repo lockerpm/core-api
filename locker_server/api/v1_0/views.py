@@ -21,3 +21,8 @@ from locker_server.api.v1_0.passwordless.views import PasswordlessPwdViewSet
 
 from locker_server.api.v1_0.exclude_domains.views import ExcludeDomainPwdViewSet
 from locker_server.api.v1_0.backup_credentials.views import BackupCredentialPwdViewSet
+
+from locker_server.api.v1_0.releases.views import ReleasePwdViewSet
+from locker_server.api.v1_0.form_submissions.affiliate_submissions.views import AffiliateSubmissionPwdViewSet
+from locker_server.api.v1_0.management_commands.views import ManagementCommandPwdViewSet
+from locker_server.api.v1_0.user_rewards.views import UserRewardMissionPwdViewSet

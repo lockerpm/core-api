@@ -15,5 +15,6 @@ class ReleaseParser:
             description_en=release_orm.description_en,
             description_vi=release_orm.description_vi,
             client_id=release_orm.client_id,
-            environment=release_orm.environment
+            environment=release_orm.environment,
+            checksum=release_orm.checksum,
         )

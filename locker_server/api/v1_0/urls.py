@@ -221,3 +221,49 @@ urlpatterns += [
     url(r'^family/members$', views.FamilyPwdViewSet.as_view({'get': 'member_list', 'post': 'member_create'})),
     url(r'^family/members/(?P<member_id>[0-9]+)$', views.FamilyPwdViewSet.as_view({'delete': 'member_destroy'})),
 ]
+
+# -------------------------------- Releases  ------------------------------------- #
+urlpatterns += [
+    url(r'^releases/current$', views.ReleasePwdViewSet.as_view({'get': 'current', 'post': 'current'})),
+    url(r'^releases/current_version$', views.ReleasePwdViewSet.as_view({'get': 'current_version'})),
+    url(r'^releases/new$', views.ReleasePwdViewSet.as_view({'post': 'new'}))
+]
+
+# --------------------------------- Form submission ---------------------------- #
+urlpatterns += [
+    url(r'^affiliate_submissions$', views.AffiliateSubmissionPwdViewSet.as_view({'post': 'create'})),
+]
+
+# ----------------------------------- Admin --------------------------------- #
+urlpatterns += [
+    url(r'^admin/payments/invoices$', views.PaymentPwdViewSet.as_view({'get': 'list'})),
+    url(r'^admin/payments/invoices/(?P<pk>[A-Z0-9]+)$', views.PaymentPwdViewSet.as_view({'put': 'set_invoice_status'})),
+
+    url(r'^admin/users/ids$', views.UserPwdViewSet.as_view({'get': 'list_user_ids'})),
+    url(r'^admin/users$', views.UserPwdViewSet.as_view({'get': 'list_users'})),
+    url(r'^admin/users/dashboard$', views.UserPwdViewSet.as_view({'get': 'dashboard'})),
+    url(r'^admin/users/(?P<pk>[0-9]+)$', views.UserPwdViewSet.as_view({'get': 'retrieve', 'delete': 'destroy'})),
+    url(r'^admin/users/(?P<pk>[0-9]+)/invoices$', views.PaymentPwdViewSet.as_view({'get': 'user_invoices'})),
+    url(r'^admin/users/(?P<pk>[0-9]+)/plan$', views.PaymentPwdViewSet.as_view({'post': 'admin_upgrade_plan'})),
+
+    url(r'^admin/affiliate_submissions$', views.AffiliateSubmissionPwdViewSet.as_view({'get': 'list'})),
+    url(r'^admin/affiliate_submissions/(?P<pk>[0-9]+)$',
+        views.AffiliateSubmissionPwdViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'})),
+
+]
+
+# ------------------------------- Management Command ----------------------------- #
+urlpatterns += [
+    url(r'^managements/commands/(?P<pk>[a-z_]+)$', views.ManagementCommandPwdViewSet.as_view({'post': 'commands'})),
+    url(r'^managements/statistics/users$', views.ManagementCommandPwdViewSet.as_view({'get': 'users'})),
+]
+
+# ----------------------------------- User Reward missions ----------------- ------------ #
+urlpatterns += [
+    url(r'^reward/claim$', views.UserRewardMissionPwdViewSet.as_view({'get': 'claim'})),
+    url(r'^reward/claim/promo_codes$',
+        views.UserRewardMissionPwdViewSet.as_view({'get': 'list_promo_codes', 'post': 'claim_promo_code'})),
+    url(r'^reward/missions$', views.UserRewardMissionPwdViewSet.as_view({'get': 'list'})),
+    url(r'^reward/missions/(?P<pk>[a-z0-9_]+)/completed$',
+        views.UserRewardMissionPwdViewSet.as_view({'post': 'completed'})),
+]

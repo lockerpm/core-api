@@ -32,7 +32,8 @@ class ReleasePwdViewSet(APIBaseViewSet):
             version = latest_release.version if latest_release else "1.0.0"
             data = {
                 "version": version,
-                "environment": environment
+                "environment": environment,
+                "checksum": latest_release.get_checksum()
             }
             return Response(status=status.HTTP_200_OK, data=data)
 
@@ -42,12 +43,18 @@ class ReleasePwdViewSet(APIBaseViewSet):
             validated_data = serializer.validated_data
             client_id = validated_data.get("client_id")
             environment = validated_data.get("environment")
-            next_release = self.release_service.generate_next_release(client_id=client_id, environment=environment)
+            next_release = self.release_service.generate_next_release(
+                client_id=client_id,
+                environment=environment,
+            )
             if not next_release:
-                return Response(status=status.HTTP_200_OK, data={"version": "1.0.0", "environment": environment})
+                return Response(
+                    status=status.HTTP_200_OK,
+                    data={"version": "1.0.0", "environment": environment}
+                )
             return Response(status=status.HTTP_200_OK, data={
                 "version": next_release.version,
-                "environment": next_release.environment
+                "environment": next_release.environment,
             })
 
     @action(methods=["post"], detail=False)
@@ -58,7 +65,7 @@ class ReleasePwdViewSet(APIBaseViewSet):
         success_build = validated_data.get("build")
         client_id = validated_data.get("client_id")
         environment = validated_data.get("environment")
-
+        checksum = validated_data.get("checksum")
         if not success_build:
             data = {
                 "build": success_build,
@@ -66,14 +73,19 @@ class ReleasePwdViewSet(APIBaseViewSet):
                 "environment": environment
             }
             return Response(status=status.HTTP_200_OK, data=data)
-        next_release = self.release_service.create_next_release(client_id=client_id, environment=environment)
+        next_release = self.release_service.create_next_release(
+            client_id=client_id,
+            environment=environment,
+            checksum=checksum
+        )
         if not next_release:
             version = "1.0.0"
         else:
             version = next_release.version
         data = {
             "version": version,
-            "environment": environment
+            "environment": environment,
+            "checksum": next_release.get_checksum() if next_release else None
         }
         return Response(status=status.HTTP_200_OK, data=data)
 
@@ -92,6 +104,7 @@ class ReleasePwdViewSet(APIBaseViewSet):
             version = latest_release.version
         data = {
             "version": version,
-            "environment": environment
+            "environment": environment,
+            "checksum": latest_release.get_checksum() if latest_release else None
         }
         return Response(status=status.HTTP_200_OK, data=data)
