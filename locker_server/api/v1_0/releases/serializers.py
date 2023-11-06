@@ -24,3 +24,8 @@ class ListReleaseSerializer(serializers.Serializer):
             "checksum": instance.get_checksum()
         }
         return data
+
+
+class DetailReleaseSerializer(ListReleaseSerializer):
+    def to_representation(self, instance):
+        return super().to_representation(instance=instance)

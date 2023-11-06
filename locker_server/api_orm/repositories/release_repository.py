@@ -30,7 +30,7 @@ class ReleaseORMRepository(ReleaseRepository):
 
         # ------------------------ Get Release resource --------------------- #
 
-    def get_release_by_id(self, release_id: str) -> Optional[Release]:
+    def get_release_by_id(self, release_id: int) -> Optional[Release]:
         try:
             release_orm = ReleaseORM.objects.get(id=release_id)
         except ReleaseORM.DoesNotExist:
@@ -44,6 +44,22 @@ class ReleaseORMRepository(ReleaseRepository):
         if not latest_release_orm:
             return None
         return ModelParser.release_parser().parse_release(release_orm=latest_release_orm)
+
+    def get_release(self, client_id: str, major: str, minor: str, patch: str = None, build_number: str = None):
+        releases_orm = ReleaseORM.objects.filter(
+            client_id=client_id,
+            major=major,
+            minor=minor
+        )
+        if patch is not None:
+            releases_orm = releases_orm.filter(
+                patch=patch
+            )
+        if build_number is not None:
+            releases_orm = releases_orm.filter(
+                build_number=build_number
+            )
+        return ModelParser.release_parser().parse_release(release_orm=releases_orm.first())
 
     # ------------------------ Create Release resource --------------------- #
     def create_release(self, release_create_data) -> Release:
