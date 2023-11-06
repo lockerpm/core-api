@@ -1,3 +1,5 @@
+from typing import Dict
+
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -45,15 +47,47 @@ class ReleasePwdViewSet(APIBaseViewSet):
 
     def list(self, request, *args, **kwargs):
         paging_param = self.request.query_params.get("paging", "0")
+        os_param = self.request.query_params.get("os", None)
         page_size_param = self.check_int_param(self.request.query_params.get("size", 50))
         if paging_param == "0":
             self.pagination_class = None
         else:
             self.pagination_class.page_size = page_size_param if page_size_param else 50
-        return super().list(request, *args, **kwargs)
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer_data = self.get_serializer(page, many=True).data
+            if os_param is not None:
+                serializer_data = [
+                    self.update_checksum_by_os(
+                        release_data=release_data,
+                        os_param=os_param
+                    )
+                    for release_data in serializer_data
+                ]
+            return self.get_paginated_response(serializer_data)
+
+        serializer_data = self.get_serializer(queryset, many=True).data
+        if os_param is not None:
+            serializer_data = [
+                self.update_checksum_by_os(
+                    release_data=release_data,
+                    os_param=os_param
+                )
+                for release_data in serializer_data
+            ]
+        return Response(status=status.HTTP_200_OK, data=serializer_data)
 
     def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
+        instance = self.get_object()
+        serializer_data = self.get_serializer(instance).data
+        os_param = self.request.query_params.get("os", None)
+        if os_param is not None:
+            serializer_data = self.update_checksum_by_os(
+                release_data=serializer_data,
+                os_param=os_param
+            )
+        return Response(status=status.HTTP_200_OK, data=serializer_data)
 
     @action(methods=["get", "post"], detail=False)
     def current(self, request, *args, **kwargs):
@@ -143,3 +177,18 @@ class ReleasePwdViewSet(APIBaseViewSet):
             "checksum": latest_release.get_checksum() if latest_release else None
         }
         return Response(status=status.HTTP_200_OK, data=data)
+
+    @staticmethod
+    def update_checksum_by_os(release_data: Dict, os_param: str) -> Dict:
+        normalize_data = release_data.copy()
+        os_checksum = None
+        checksum_list = normalize_data.get("checksum")
+        if isinstance(checksum_list, list):
+            for checksum in checksum_list:
+                if checksum.get("os").strip().lower() == os_param.strip().lower():
+                    os_checksum = checksum
+                    break
+            normalize_data.update({
+                "checksum": os_checksum
+            })
+        return normalize_data
