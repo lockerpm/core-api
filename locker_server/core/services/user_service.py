@@ -166,8 +166,12 @@ class UserService:
         current_plan = self.get_current_plan(user=user)
         # Upgrade user to default plan
         if default_plan is not None and default_plan != PLAN_TYPE_PM_FREE:
+            start_period = current_plan.start_period
+            if start_period is None:
+                start_period = 0
+            end_period = settings.DEFAULT_PLAN_TIME + start_period
             current_plan = self.update_plan(
-                user_id=user_id, plan_type_alias=default_plan, duration=current_plan.duration,
+                user_id=user_id, plan_type_alias=default_plan, duration=current_plan.duration, end_period=end_period
             )
         # Upgrade trial plan
         trial_plan = kwargs.get("trial_plan")

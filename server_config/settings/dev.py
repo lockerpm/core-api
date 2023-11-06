@@ -235,6 +235,8 @@ try:
     LS_BACKUP_CREDENTIAL_MODEL = "api_orm.BackupCredentialORM"
 
     DEFAULT_PLAN = os.getenv("DEFAULT_PLAN", "pm_free")
+    DEFAULT_PLAN_TIME = os.getenv("DEFAULT_PLAN_TIME", 3 * 365 * 86488)
+
     LOCKER_SERVER_SETTINGS = {
         "API_REPOSITORY_CLASS": "locker_server.containers.defaults.repository.RepositoryFactory",
         "API_SERVICE_CLASS": "locker_server.containers.defaults.service.ServiceFactory",

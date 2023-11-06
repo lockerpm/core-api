@@ -94,6 +94,7 @@ LS_FACTOR2_METHOD_MODEL = getattr(settings, "LS_FACTOR2_METHOD_MODEL", "api_orm.
 LS_SSO_CONFIGURATION_MODEL = getattr(settings, "LS_SSO_CONFIGURATION_MODEL", "api_orm.SSOConfigurationORM")
 
 DEFAULT_PLAN = getattr(settings, "DEFAULT_PLAN", "pm_free")
+DEFAULT_PLAN_TIME = getattr(settings, "DEFAULT_PLAN_TIME", 3 * 365 * 86400)
 
 DEFAULTS = {
     "LS_RELEASE_MODEL": LS_RELEASE_MODEL,
@@ -163,7 +164,7 @@ DEFAULTS = {
     "MAXMIND_API_KEY": None,
     "INIT_MAXMIND_DB": "1",
     "DEFAULT_PLAN": DEFAULT_PLAN,
-
+    "DEFAULT_PLAN_TIME": DEFAULT_PLAN_TIME,
 }
 
 # List of settings that cannot be empty
