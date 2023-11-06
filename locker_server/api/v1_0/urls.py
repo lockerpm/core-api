@@ -145,17 +145,16 @@ urlpatterns += [
 
 ]
 
-# # ------------------------------ Quick Shares --------------------------------- #
-# urlpatterns += [
-#     url(r'^quick_shares$', views.QuickSharePwdViewSet.as_view({'get': 'list', 'post': 'create'})),
-#     url(r'^quick_shares/(?P<pk>[0-9a-z-]+)$',
-#         views.QuickSharePwdViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'})),
-#     url(r'^quick_shares/(?P<pk>[0-9A-Z]+)/public$', views.QuickSharePwdViewSet.as_view({'post': 'public'})),
-#     url(r'^quick_shares/(?P<pk>[0-9A-Z]+)/access$',
-#         views.QuickSharePwdViewSet.as_view({'get': 'access', 'post': 'access'})),
-#     url(r'^quick_shares/(?P<pk>[0-9A-Z]+)/otp$', views.QuickSharePwdViewSet.as_view({'post': 'otp'})),
-# ]
-
+# ------------------------------ Quick Shares --------------------------------- #
+urlpatterns += [
+    url(r'^quick_shares$', views.QuickSharePwdViewSet.as_view({'get': 'list', 'post': 'create'})),
+    url(r'^quick_shares/(?P<pk>[0-9a-z-]+)$',
+        views.QuickSharePwdViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'})),
+    url(r'^quick_shares/(?P<pk>[0-9A-Z]+)/public$', views.QuickSharePwdViewSet.as_view({'post': 'public'})),
+    url(r'^quick_shares/(?P<pk>[0-9A-Z]+)/access$',
+        views.QuickSharePwdViewSet.as_view({'get': 'access', 'post': 'access'})),
+    url(r'^quick_shares/(?P<pk>[0-9A-Z]+)/otp$', views.QuickSharePwdViewSet.as_view({'post': 'otp'})),
+]
 
 # -------------------------------- Folders ------------------------------- #
 urlpatterns += [
