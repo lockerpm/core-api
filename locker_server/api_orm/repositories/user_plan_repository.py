@@ -37,7 +37,10 @@ ModelParser = get_model_parser()
 class UserPlanORMRepository(UserPlanRepository):
     @staticmethod
     def _get_current_plan_orm(user_id: int) -> PMUserPlanORM:
-        user_orm = UserORM.objects.get(user_id=user_id)
+        try:
+            user_orm = UserORM.objects.get(user_id=user_id)
+        except ValueError:
+            user_orm = UserORM.objects.get(email=user_id)
         try:
             user_plan_orm = user_orm.pm_user_plan
         except (ValueError, AttributeError):
