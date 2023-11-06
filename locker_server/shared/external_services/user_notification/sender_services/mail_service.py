@@ -9,7 +9,6 @@ def get_destinations(user_ids):
     _UserORM = get_user_model()
 
     users = _UserORM.objects.filter(user_id__in=user_ids).exclude().annotate(
-        email=F('username'),
         language=Value('en', output_field=CharField())
     ).values('email', 'name', 'language')
     return list(users)
