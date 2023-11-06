@@ -10,7 +10,7 @@ from locker_server.core.repositories.promo_code_repository import PromoCodeRepos
 from locker_server.core.repositories.user_repository import UserRepository
 from locker_server.core.repositories.user_reward_mission_repository import UserRewardMissionRepository
 from locker_server.shared.constants.missions import REWARD_TYPE_PROMO_CODE, USER_MISSION_STATUS_REWARD_SENT
-from locker_server.shared.constants.transactions import PROMO_PERCENTAGE, MISSION_REWARD_PROMO_PREFIX
+from locker_server.shared.constants.transactions import PROMO_PERCENTAGE, MISSION_REWARD_PROMO_PREFIX, DURATION_YEARLY
 from locker_server.shared.utils.app import random_n_digit, now
 
 
@@ -89,7 +89,8 @@ class UserRewardMissionService:
             "number_code": 1,
             "description_en": "Locker PromoCode Reward",
             "description_vi": "Locker PromoCode Reward",
-            "only_user_id": user_id
+            "only_user_id": user_id,
+            "only_period": DURATION_YEARLY
         }
         new_promo_code = self.promo_code_repository.create_promo_code(
             promo_code_create_data=promo_code_create_data
