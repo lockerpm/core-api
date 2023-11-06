@@ -60,3 +60,7 @@ Jinja2==3.1.2
 
 # Image
 Pillow==10.0.1
+
+# GeoIP
+geoip2==4.7.0
+
