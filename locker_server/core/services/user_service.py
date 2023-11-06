@@ -171,7 +171,7 @@ class UserService:
                 start_period = now()
             end_period = default_plan_time + start_period
             current_plan = self.update_plan(
-                user_id=user_id, plan_type_alias=default_plan, duration=current_plan.duration,
+                user_id=user.user_id, plan_type_alias=default_plan, duration=current_plan.duration,
                 **{
                     "start_period": start_period,
                     "end_period": end_period
