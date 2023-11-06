@@ -1,3 +1,4 @@
+from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import status
@@ -35,6 +36,8 @@ class ReleasePwdViewSet(APIBaseViewSet):
         release = self.release_service.get_release_by_id(
             release_id=self.kwargs.get("pk")
         )
+        if release is None:
+            raise NotFound
         return release
 
     def list(self, request, *args, **kwargs):

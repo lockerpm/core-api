@@ -15,6 +15,12 @@ class ReleaseService:
     def list_releases(self, **filters) -> List[Release]:
         return self.release_repository.list_releases(**filters)
 
+    def get_release_by_id(self, release_id: int) -> Optional[Release]:
+        release = self.release_repository.get_release_by_id(
+            release_id=release_id
+        )
+        return release
+
     def get_latest_release(self, client_id: str, environment: str) -> Optional[Release]:
         latest_release = self.release_repository.get_latest_release(
             client_id=client_id,

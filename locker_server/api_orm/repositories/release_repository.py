@@ -30,7 +30,7 @@ class ReleaseORMRepository(ReleaseRepository):
 
         # ------------------------ Get Release resource --------------------- #
 
-    def get_release_by_id(self, release_id: str) -> Optional[Release]:
+    def get_release_by_id(self, release_id: int) -> Optional[Release]:
         try:
             release_orm = ReleaseORM.objects.get(id=release_id)
         except ReleaseORM.DoesNotExist:

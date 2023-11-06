@@ -13,7 +13,7 @@ class ReleaseRepository(ABC):
 
     # ------------------------ Get Release resource --------------------- #
     @abstractmethod
-    def get_release_by_id(self, release_id: str) -> Optional[Release]:
+    def get_release_by_id(self, release_id: int) -> Optional[Release]:
         pass
 
     @abstractmethod
