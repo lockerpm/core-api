@@ -136,7 +136,7 @@ class UserService:
         return self.user_repository.get_from_cystack_id(user_id=user_id)
 
     def register_user(self, user_id: Union[str, int], master_password_hash: str, key: str, keys,
-                      default_plan=PLAN_TYPE_PM_FREE,
+                      default_plan=PLAN_TYPE_PM_FREE, default_plan_time=3 * 365 * 86400,
                       **kwargs):
         if not self.allow_create_user(default_plan=default_plan):
             raise UserCreationDeniedException
@@ -168,10 +168,14 @@ class UserService:
         if default_plan is not None and default_plan != PLAN_TYPE_PM_FREE:
             start_period = current_plan.start_period
             if start_period is None:
-                start_period = 0
-            end_period = settings.DEFAULT_PLAN_TIME + start_period
+                start_period = now()
+            end_period = default_plan_time + start_period
             current_plan = self.update_plan(
-                user_id=user_id, plan_type_alias=default_plan, duration=current_plan.duration, end_period=end_period
+                user_id=user_id, plan_type_alias=default_plan, duration=current_plan.duration,
+                **{
+                    "start_period": start_period,
+                    "end_period": end_period
+                }
             )
         # Upgrade trial plan
         trial_plan = kwargs.get("trial_plan")
