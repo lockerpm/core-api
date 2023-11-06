@@ -18,7 +18,8 @@ urlpatterns += [
 # ----------------------------------- Resources ----------------------------- #
 urlpatterns += [
     url(r'^resources/plans$', LONG_TIME_CACHE(views.ResourcePwdViewSet.as_view({'get': 'plans'}))),
-    url(r'^resources/enterprise/plans$', LONG_TIME_CACHE(views.ResourcePwdViewSet.as_view({'get': 'enterprise_plans'}))),
+    url(r'^resources/enterprise/plans$',
+        LONG_TIME_CACHE(views.ResourcePwdViewSet.as_view({'get': 'enterprise_plans'}))),
     url(r'^resources/mail_providers$', views.ResourcePwdViewSet.as_view({'get': 'mail_providers'})),
 ]
 
@@ -225,7 +226,8 @@ urlpatterns += [
 # -------------------------------- Releases  ------------------------------------- #
 urlpatterns += [
     url(r'^releases$', views.ReleasePwdViewSet.as_view({'get': 'list'})),
-    url(r'^releases/(?P<pk>[0-9]+)$', views.ReleasePwdViewSet.as_view({'get': 'retrieve'})),
+    url(r'^releases/(?P<client_id>[0-9a-zA-Z_-]+)/(?P<version>[0-9.]+)$',
+        views.ReleasePwdViewSet.as_view({'get': 'retrieve'})),
     url(r'^releases/current$', views.ReleasePwdViewSet.as_view({'get': 'current', 'post': 'current'})),
     url(r'^releases/current_version$', views.ReleasePwdViewSet.as_view({'get': 'current_version'})),
     url(r'^releases/new$', views.ReleasePwdViewSet.as_view({'post': 'new'}))

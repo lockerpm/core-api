@@ -5,7 +5,7 @@ from locker_server.api.permissions.app import APIPermission
 
 class ReleasePwdPermission(APIPermission):
     def has_permission(self, request, view):
-        if view.action in ["current_version", "list"]:
+        if view.action in ["current_version", "list", "retrieve"]:
             return True
         elif view.action in ["new", "current"]:
             return self.is_management_command(request)

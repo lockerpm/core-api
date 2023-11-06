@@ -19,7 +19,7 @@ class ReleasePwdViewSet(APIBaseViewSet):
             self.serializer_class = NewReleaseSerializer
         elif self.action == "list":
             self.serializer_class = ListReleaseSerializer
-        elif self.action == "detail":
+        elif self.action == "retrieve":
             self.serializer_class = DetailReleaseSerializer
         elif self.action == "current":
             self.serializer_class = NextReleaseSerializer
@@ -33,8 +33,11 @@ class ReleasePwdViewSet(APIBaseViewSet):
         return releases
 
     def get_object(self):
-        release = self.release_service.get_release_by_id(
-            release_id=self.kwargs.get("pk")
+        client_id = self.kwargs.get("client_id")
+        version = self.kwargs.get("version")
+        release = self.release_service.get_release(
+            client_id=client_id,
+            version=version
         )
         if release is None:
             raise NotFound

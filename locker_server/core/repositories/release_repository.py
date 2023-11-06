@@ -17,6 +17,10 @@ class ReleaseRepository(ABC):
         pass
 
     @abstractmethod
+    def get_release(self, client_id: str, major: str, minor: str, patch: str = None, build_number: str = None):
+        pass
+
+    @abstractmethod
     def get_latest_release(self, client_id: str, environment: str) -> Optional[Release]:
         pass
 

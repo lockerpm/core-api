@@ -21,6 +21,32 @@ class ReleaseService:
         )
         return release
 
+    def get_release(self, client_id: str, version: str) -> Optional[Release]:
+        ver = version.split(".")
+        try:
+            major = ver[0]
+        except IndexError:
+            major = "0"
+        try:
+            minor = ver[1]
+        except IndexError:
+            minor = "0"
+        try:
+            patch = ver[2]
+        except IndexError:
+            patch = None
+        try:
+            build_number = ver[3]
+        except IndexError:
+            build_number = None
+        return self.release_repository.get_release(
+            client_id=client_id,
+            major=major,
+            minor=minor,
+            patch=patch,
+            build_number=build_number
+        )
+
     def get_latest_release(self, client_id: str, environment: str) -> Optional[Release]:
         latest_release = self.release_repository.get_latest_release(
             client_id=client_id,
