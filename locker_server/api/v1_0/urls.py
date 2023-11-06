@@ -225,6 +225,7 @@ urlpatterns += [
 # -------------------------------- Releases  ------------------------------------- #
 urlpatterns += [
     url(r'^releases$', views.ReleasePwdViewSet.as_view({'get': 'list'})),
+    url(r'^releases/(?P<pk>[0-9]+)$', views.ReleasePwdViewSet.as_view({'get': 'retrieve'})),
     url(r'^releases/current$', views.ReleasePwdViewSet.as_view({'get': 'current', 'post': 'current'})),
     url(r'^releases/current_version$', views.ReleasePwdViewSet.as_view({'get': 'current_version'})),
     url(r'^releases/new$', views.ReleasePwdViewSet.as_view({'post': 'new'}))

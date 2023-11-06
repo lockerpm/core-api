@@ -19,8 +19,14 @@ class NextReleaseSerializer(serializers.Serializer):
 class ListReleaseSerializer(serializers.Serializer):
     def to_representation(self, instance):
         data = {
+            "id": instance.release_id,
             "version": instance.version,
             "environment": instance.environment,
             "checksum": instance.get_checksum()
         }
         return data
+
+
+class DetailReleaseSerializer(ListReleaseSerializer):
+    def to_representation(self, instance):
+        return super().to_representation(instance=instance)
