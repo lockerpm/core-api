@@ -227,7 +227,7 @@ urlpatterns += [
 urlpatterns += [
     url(r'^releases$', views.ReleasePwdViewSet.as_view({'get': 'list'})),
     url(r'^releases/(?P<client_id>[0-9a-zA-Z_-]+)/(?P<version>[0-9.]+)$',
-        views.ReleasePwdViewSet.as_view({'get': 'retrieve'})),
+        LONG_TIME_CACHE(views.ReleasePwdViewSet.as_view({'get': 'retrieve'}))),
     url(r'^releases/current$', views.ReleasePwdViewSet.as_view({'get': 'current', 'post': 'current'})),
     url(r'^releases/current_version$', views.ReleasePwdViewSet.as_view({'get': 'current_version'})),
     url(r'^releases/new$', views.ReleasePwdViewSet.as_view({'post': 'new'}))
