@@ -96,6 +96,7 @@ class UserPwdViewSet(APIBaseViewSet):
                 key=key,
                 keys=keys,
                 default_plan=locker_server_settings.DEFAULT_PLAN,
+                default_plan_time=locker_server_settings.DEFAULT_PLAN_TIME,
                 **{
                     "full_name": validated_data.get("full_name") or validated_data.get("email"),
                     "kdf": validated_data.get("kdf", 0),
