@@ -369,7 +369,7 @@ class EmergencyAccessPwdViewSet(APIBaseViewSet):
             mail_user_ids = result.get("mail_user_ids", [])
             notification_user_ids = result.get("notification_user_ids", [])
             notify_data = {
-                "request": emergency_access.type,
+                "request": emergency_access.emergency_access_type,
                 "approve_after": emergency_access.wait_time_days,
                 "grantee_email": grantee_user.email,
                 "grantee_name": grantee_user.full_name,
