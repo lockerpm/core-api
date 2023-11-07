@@ -7,7 +7,7 @@ def get_destinations(user_ids):
 
     _UserORM = get_user_model()
 
-    users = _UserORM.objects.filter(user_id__in=user_ids).exclude().values('email', 'name', 'language')
+    users = _UserORM.objects.filter(user_id__in=user_ids).exclude().values('email', 'language')
     return list(users)
 
 
