@@ -3,14 +3,11 @@ from locker_server.shared.mailing.mailer import send_email
 
 
 def get_destinations(user_ids):
-    from django.db.models import F, Value, CharField
     from locker_server.api_orm.models.wrapper import get_user_model
 
     _UserORM = get_user_model()
 
-    users = _UserORM.objects.filter(user_id__in=user_ids).exclude().annotate(
-        language=Value('en', output_field=CharField())
-    ).values('email', 'name', 'language')
+    users = _UserORM.objects.filter(user_id__in=user_ids).exclude().values('email', 'name', 'language')
     return list(users)
 
 
