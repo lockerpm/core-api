@@ -1,3 +1,5 @@
+from django.db.models import F
+
 from locker_server.shared.external_services.user_notification.sender_services import SenderService
 from locker_server.shared.mailing.mailer import send_email
 
@@ -7,7 +9,9 @@ def get_destinations(user_ids):
 
     _UserORM = get_user_model()
 
-    users = _UserORM.objects.filter(user_id__in=user_ids).exclude().values('email', 'language')
+    users = _UserORM.objects.filter(user_id__in=user_ids).exclude().annotate(
+        name=F('full_name')
+    ).values('email', 'name', 'language')
     return list(users)
 
 
