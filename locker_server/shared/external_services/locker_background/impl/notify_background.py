@@ -345,7 +345,7 @@ class NotifyBackground(LockerBackground):
             return
         try:
             job = kwargs.get("job")
-            NotificationSender(job=job, background=False).send(**kwargs)
+            NotificationSender(job=job, services=services, background=False).send(**kwargs)
         except Exception:
             self.log_error(func_name="notify_sending")
         finally:
