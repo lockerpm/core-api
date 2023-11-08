@@ -28,7 +28,9 @@ class AdminMailConfigurationViewSet(APIBaseViewSet):
         return super().get_serializer_class()
 
     def get_object(self):
-        return self.mail_configuration_service.get_mail_configuration()
+        mail_configuration = self.mail_configuration_service.get_mail_configuration()
+        self.check_object_permissions(request=self.request, obj=mail_configuration)
+        return mail_configuration
 
     @action(methods=["get"], detail=False)
     def mail_configuration(self, request, *args, **kwargs):
@@ -85,4 +87,3 @@ class AdminMailConfigurationViewSet(APIBaseViewSet):
         #     "method": org_mail_config.mail_provider.name if org_mail_config else None
         # })
         return Response(status=status.HTTP_200_OK, data={"success": True})
-
