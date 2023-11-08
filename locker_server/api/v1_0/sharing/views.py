@@ -258,7 +258,7 @@ class SharingPwdViewSet(APIBaseViewSet):
                 exist_username.append(username)
                 user_obj = users_dict.get(username)
                 if user_obj:
-                    member["user_id"] = user_obj.id
+                    member["user_id"] = user_obj.user_id
                     member["email"] = user_obj.email
                     sharing_members.append(member)
                 else:
