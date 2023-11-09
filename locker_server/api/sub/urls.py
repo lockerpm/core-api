@@ -37,7 +37,7 @@ urlpatterns += [
 urlpatterns += [
     url(r'^notifications$', views.NotificationViewSet.as_view({'get': 'list'})),
     url(r'^notifications/read_all$', views.NotificationViewSet.as_view({'get': 'read_all'})),
-    url(r'^notifications/(?P<id>[0-9a-z]+)$', views.NotificationViewSet.as_view({'get': 'retrieve', 'put': 'update'})),
+    url(r'^notifications/(?P<id>[0-9a-z-]+)$', views.NotificationViewSet.as_view({'get': 'retrieve', 'put': 'update'})),
 ]
 
 """ SSO Configuration """
