@@ -36,10 +36,11 @@ class NotificationSender:
             module_name = 'locker_server.shared.external_services.user_notification.sender_services.' + service
             if service == SENDING_SERVICE_MAIL:
                 mail_config = self._get_mail_config()
-                if mail_config:
-                    self._config.update({
-                        "config": {"mail": mail_config.to_json()}
-                    })
+                if not mail_config:
+                    continue
+                self._config.update({
+                    "config": {"mail": mail_config.to_json()}
+                })
             sender_service_cls = factory(module_name, self._job, self._config)
             if not sender_service_cls:
                 continue
