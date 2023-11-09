@@ -73,7 +73,7 @@ class PwdSyncConsumer(AppGeneralWebsocketConsumer):
     async def event_sync(self, event):
         event_data = event["data"]
         event_data_event = event_data["event"]
-        event_data_type = event_data["type"]
+        event_data_type = event_data.get("type", "")
         if event_data_type.startswith("member"):
             event_data_event = "members"
         elif event_data_type.startswith("emergency"):
