@@ -98,7 +98,7 @@ class EmergencyAccessPwdViewSet(APIBaseViewSet):
     def send_invite_notification(owner, grantee_user):
         BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
             func_name="notify_sending", **{
-                "user": grantee_user,
+                "user_ids": [grantee_user.user_id],
                 "job": PWD_JOIN_EMERGENCY_ACCESS,
                 "services": [SENDING_SERVICE_WEB_NOTIFICATION],
                 "grantor_email": owner.email,
@@ -189,14 +189,14 @@ class EmergencyAccessPwdViewSet(APIBaseViewSet):
         try:
             new_emergency_access, mail_user_ids, \
                 notification_user_ids = self.emergency_access_service.invite_emergency_access(
-                    grantor=grantor,
-                    emergency_access_type=validated_data.get("type"),
-                    wait_time_days=validated_data.get("wait_time_days"),
-                    grantee_id=validated_data.get("grantee_id"),
-                    email=validated_data.get("email"),
-                    key=validated_data.get("key"),
-                    grantor_fullname=grantor.full_name or self.request.data.get("grantor_fullname")
-                )
+                grantor=grantor,
+                emergency_access_type=validated_data.get("type"),
+                wait_time_days=validated_data.get("wait_time_days"),
+                grantee_id=validated_data.get("grantee_id"),
+                email=validated_data.get("email"),
+                key=validated_data.get("key"),
+                grantor_fullname=grantor.full_name or self.request.data.get("grantor_fullname")
+            )
         except UserDoesNotExistException:
             raise ValidationError(detail={'email': ["Grantee email does not exist"]})
         except EmergencyAccessGranteeExistedException:

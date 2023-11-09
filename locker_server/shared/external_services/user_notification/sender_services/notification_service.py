@@ -7,7 +7,7 @@ class NotificationService(SenderService):
     def send(self, **kwargs):
         notification = self._config["sender"].get("web")
         kwargs["notification"] = notification
-        user_ids = kwargs.get("user_ids", None)
+        user_ids = kwargs.get("user_ids", [])
         notification = kwargs.get("notification")
         kwargs = self.__get_web_notification_kwargs(**kwargs)
 
