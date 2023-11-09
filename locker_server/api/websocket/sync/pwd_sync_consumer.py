@@ -85,4 +85,4 @@ class PwdSyncConsumer(AppGeneralWebsocketConsumer):
             "type": event_data_type,
             "data": event_data.get("data", {})
         }
-        await self.send(text_data=json.dumps(content))
+        await self.send(text_data=str(content))
