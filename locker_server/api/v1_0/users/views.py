@@ -618,7 +618,7 @@ class UserPwdViewSet(APIBaseViewSet):
         return Response(status=status.HTTP_200_OK, data={"sso_token_ids": sso_token_ids})
 
     @action(methods=["get"], detail=False)
-    def check_exist(self, request, *args, **kwargs):
+    def exist(self, request, *args, **kwargs):
         exist = self.user_service.check_exist()
         return Response(status=status.HTTP_200_OK, data={"exist": exist})
 
