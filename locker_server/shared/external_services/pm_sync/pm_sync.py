@@ -57,7 +57,8 @@ class PwdSync:
                     WebSocketSender.send_message(
                         group_name=WS_PWD_SYNC_GROUP_NAME.format(user_id),
                         message={
-                            "event": self.event,
+                            "event": "sync",
+                            "type": self.event,
                             "data": data
                         }
                     )
