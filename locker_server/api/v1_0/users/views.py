@@ -90,12 +90,6 @@ class UserPwdViewSet(APIBaseViewSet):
         key = validated_data.get("key")
         keys = validated_data.get("keys", {})
         master_password_hash = validated_data.get("master_password_hash")
-        if settings.SELF_HOSTED:
-            allow_create = self.user_service.allow_create_user(
-                default_plan=PLAN_TYPE_PM_ENTERPRISE
-            )
-            if not allow_create:
-                raise ValidationError(detail={"email": ["Please contact to your administrator to create new account"]})
         try:
             self.user_service.register_user(
                 user_id=validated_data.get("email"),
