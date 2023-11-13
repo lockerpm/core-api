@@ -24,6 +24,7 @@ from locker_server.core.exceptions.user_exception import UserDoesNotExistExcepti
     UserResetPasswordTokenInvalidException
 from locker_server.settings import locker_server_settings
 from locker_server.shared.constants.account import *
+from locker_server.shared.constants.transactions import PLAN_TYPE_PM_ENTERPRISE
 from locker_server.shared.error_responses.error import refer_error, gen_error
 from locker_server.api.v1_0.ciphers.serializers import VaultItemSerializer, UpdateVaultItemSerializer
 from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
@@ -89,6 +90,12 @@ class UserPwdViewSet(APIBaseViewSet):
         key = validated_data.get("key")
         keys = validated_data.get("keys", {})
         master_password_hash = validated_data.get("master_password_hash")
+        if settings.SELF_HOSTED:
+            allow_create = self.user_service.allow_create_user(
+                default_plan=PLAN_TYPE_PM_ENTERPRISE
+            )
+            if not allow_create:
+                raise ValidationError(detail={"email": ["Please contact to your administrator to create new account"]})
         try:
             self.user_service.register_user(
                 user_id=validated_data.get("email"),
