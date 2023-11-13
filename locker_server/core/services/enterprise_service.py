@@ -259,8 +259,15 @@ class EnterpriseService:
             user, is_created = self.user_repository.retrieve_or_create_by_email(
                 email=member_email
             )
+            keys = member_data.get("keys")
             user_new_creation_data = {
                 "master_password_hash": member_data.get("master_password_hash"),
+                "kdf": member_data.get("kdf", 0),
+                "kdf_iterations": member_data.get("kdf_iterations", 100000),
+                "key": member_data.get("key"),
+                "public_key": keys.get("public_key"),
+                "private_key": keys.get("encrypted_private_key"),
+                "master_password_hint": member_data.get("master_password_hint", ""),
             }
             user = self.user_repository.update_user(user_id=user.user_id, user_update_data=user_new_creation_data)
             member_create_data = {
