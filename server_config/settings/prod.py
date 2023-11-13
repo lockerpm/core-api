@@ -47,6 +47,3 @@ if DEV_WEB_ORIGIN:
             f"http://{dev_web_origin}",
             f"https://{dev_web_origin}",
         ]
-
-
-print("CORS_ALLOWED_ORIGINS:::", CORS_ALLOWED_ORIGINS)
