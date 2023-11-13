@@ -259,6 +259,10 @@ class EnterpriseService:
             user, is_created = self.user_repository.retrieve_or_create_by_email(
                 email=member_email
             )
+            user_new_creation_data = {
+                "master_password_hash": member_data.get("master_password_hash"),
+            }
+            user = self.user_repository.update_user(user_id=user.user_id, user_update_data=user_new_creation_data)
             member_create_data = {
                 "enterprise_id": current_enterprise.enterprise_id,
                 "role_id": member_data.get("role"),

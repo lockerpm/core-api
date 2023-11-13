@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from locker_server.shared.constants.enterprise_members import ENTERPRISE_LIST_ROLE, E_MEMBER_ROLE_MEMBER
+
 
 class ListEnterpriseSerializer(serializers.Serializer):
     def to_representation(self, instance):
@@ -40,3 +42,14 @@ class UpdateEnterpriseSerializer(serializers.Serializer):
     enterprise_country = serializers.CharField(max_length=128, required=False, allow_blank=True)
     enterprise_postal_code = serializers.CharField(max_length=16, required=False, allow_blank=True)
 
+
+class CreateMemberSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    role = serializers.ChoiceField(choices=ENTERPRISE_LIST_ROLE, default=E_MEMBER_ROLE_MEMBER)
+    master_password_hash = serializers.CharField(allow_blank=False)
+
+
+class CreateMultipleMemberSerializer(serializers.Serializer):
+    members = serializers.ListSerializer(
+        child=CreateMemberSerializer()
+    )
