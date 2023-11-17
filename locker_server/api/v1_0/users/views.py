@@ -635,6 +635,7 @@ class UserPwdViewSet(APIBaseViewSet):
             )
             login_method = user.login_method
             require_passwordless = self.user_service.is_require_passwordless(user_id=user.user_id)
+            default_plan = self.user_service.get_current_plan(user=user)
             return Response(
                 status=status.HTTP_200_OK,
                 data={
@@ -644,7 +645,8 @@ class UserPwdViewSet(APIBaseViewSet):
                     "activated": user.activated,
                     "set_up_passwordless": True if user.fd_credential_id else False,
                     "login_method": login_method,
-                    "require_passwordless": require_passwordless
+                    "require_passwordless": require_passwordless,
+                    "default_plan": default_plan.pm_plan.alias
                 }
             )
         except UserDoesNotExistException:
