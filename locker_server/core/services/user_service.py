@@ -445,7 +445,8 @@ class UserService:
             "kdf": user.kdf,
             "kdf_iterations": user.kdf_iterations,
             "not_sync": not_sync_sso_token_ids,
-            "has_no_master_pw_item": not self.user_repository.has_master_pw_item(user_id=user.user_id)
+            "has_no_master_pw_item": not self.user_repository.has_master_pw_item(user_id=user.user_id),
+            "is_super_admin": user.is_supper_admin
         }
         # Create event login successfully
         if user_enterprise_ids:
