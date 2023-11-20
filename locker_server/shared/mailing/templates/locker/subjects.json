@@ -119,6 +119,10 @@
     "en": "Your shared item has been accepted",
     "vi": "Người nhận đã chấp nhận mục chia sẻ của bạn"
   },
+   "share_item_left": {
+    "en": "{{ user_leave }} has left the item you share",
+    "vi": "{{ user_leave }} đã rời khỏi mục chia sẻ của bạn"
+  },
   "share_item_rejected": {
     "en": "Your shared item has been rejected",
     "vi": "Người nhận đã từ chối mục chia sẻ của bạn"
