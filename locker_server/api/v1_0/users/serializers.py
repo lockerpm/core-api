@@ -46,7 +46,15 @@ class UserUpdateMeSerializer(serializers.Serializer):
     timeout_action = serializers.ChoiceField(choices=["lock", "logOut"], required=False)
     scores = UserScoreUpdateSerializer(allow_null=True, required=False, many=False)
     language = serializers.ChoiceField(choices=[LANG_ENGLISH, LANG_VIETNAM], required=False)
-    full_name = serializers.CharField(required=False, max_length=512, allow_blank=False)
+    name = serializers.CharField(required=False, max_length=512, allow_blank=False)
+
+    def to_internal_value(self, data):
+        name = data.get("name")
+        if name:
+            data.update({
+                "full_name": name
+            })
+        return data
 
 
 class EncryptedPairKey(serializers.Serializer):
