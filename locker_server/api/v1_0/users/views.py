@@ -49,6 +49,12 @@ class UserPwdViewSet(APIBaseViewSet):
     def get_throttles(self):
         return super().get_throttles()
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        if self.action in ["me"]:
+            context["is_passwordless_func"] = self.user_service.is_require_passwordless
+        return context
+
     def get_serializer_class(self):
         if self.action == "me":
             if self.request.method == "GET":
