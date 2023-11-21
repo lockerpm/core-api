@@ -17,7 +17,8 @@ class UserMeSerializer(serializers.Serializer):
             "is_pwd_manager": instance.activated,
             "pwd_user_id": str(instance.user_id),
             "language": instance.language,
-            "is_passwordless": self.context.get("is_passwordless_func")(instance.user_id)
+            "is_passwordless": self.context.get("is_passwordless_func")(instance.user_id),
+            "avatar": instance.get_avatar()
 
         }
         show_key_param = self.context["request"].query_params.get("show_key", "0")
