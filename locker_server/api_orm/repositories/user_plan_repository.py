@@ -289,7 +289,9 @@ class UserPlanORMRepository(UserPlanRepository):
         promo_description_en = None
         promo_description_vi = None
         if promo_code is not None and promo_code != "":
-            promo_code_orm = PromoCodeORM.check_valid(value=promo_code, current_user=current_plan_orm.user)
+            promo_code_orm = PromoCodeORM.check_valid(
+                value=promo_code, current_user=current_plan_orm.user, new_duration=new_duration, new_plan=new_plan.alias
+            )
             if not promo_code_orm:
                 error_promo = {"promo_code": ["This coupon is expired or incorrect"]}
             else:
