@@ -20,6 +20,11 @@ class Factor2MethodORMRepository(Factor2MethodRepository):
         factor2_methods_orm = Factor2MethodORM.objects.filter(
             user_id=user_id
         ).select_related("user")
+        is_activate_param = filter_params.get("is_activate")
+        if is_activate_param is not None:
+            factor2_methods_orm = factor2_methods_orm.filter(
+                is_activate=is_activate_param
+            )
         return [
             ModelParser.factor2_parser().parse_factor2_method(factor2_method_orm=factor2_method_orm)
             for factor2_method_orm in factor2_methods_orm

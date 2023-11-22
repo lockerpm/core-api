@@ -33,6 +33,12 @@ class Factor2Service:
         self.auth_repository = auth_repository
         self.factor2_method_repository = factor2_method_repository
 
+    def list_user_factor2_methods(self, user_id: int, **filters) -> List[Factor2Method]:
+        return self.factor2_method_repository.list_user_factor2_methods(
+            user_id=user_id,
+            **filters
+        )
+
     def auth_otp_mail(self, email: str, raw_password: str, device_info: Dict, ip_address: str):
         user = self.user_repository.get_user_by_email(
             email=email
