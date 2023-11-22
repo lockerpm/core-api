@@ -21,7 +21,7 @@ from locker_server.core.exceptions.user_exception import UserDoesNotExistExcepti
     UserAuthBlockingEnterprisePolicyException, UserAuthFailedException, UserAuthBlockedEnterprisePolicyException, \
     UserIsLockedByEnterpriseException, UserEnterprisePlanExpiredException, UserBelongEnterpriseException, \
     User2FARequireException, UserAuthFailedPasswordlessRequiredException, UserCreationDeniedException, \
-    UserResetPasswordTokenInvalidException
+    UserResetPasswordTokenInvalidException, UserFactor2IsNotActiveException, UserFactor2IsNotValidException
 from locker_server.settings import locker_server_settings
 from locker_server.shared.constants.account import *
 from locker_server.shared.constants.transactions import PLAN_TYPE_PM_ENTERPRISE
@@ -38,7 +38,7 @@ from locker_server.shared.utils.network import get_ip_by_request, detect_device
 from .serializers import UserMeSerializer, UserUpdateMeSerializer, UserRegisterSerializer, UserSessionSerializer, \
     DeviceFcmSerializer, UserChangePasswordSerializer, UserNewPasswordSerializer, UserCheckPasswordSerializer, \
     UserMasterPasswordHashSerializer, UpdateOnboardingProcessSerializer, UserPwdInvitationSerializer, \
-    UserDeviceSerializer, PreloginSerializer, UserResetPasswordSerializer
+    UserDeviceSerializer, PreloginSerializer, UserResetPasswordSerializer, UserSessionByOtpSerializer
 
 
 class UserPwdViewSet(APIBaseViewSet):
@@ -65,6 +65,8 @@ class UserPwdViewSet(APIBaseViewSet):
             self.serializer_class = UserRegisterSerializer
         elif self.action == "session":
             self.serializer_class = UserSessionSerializer
+        elif self.action == "session_by_otp":
+            self.serializer_class = UserSessionByOtpSerializer
         elif self.action == "fcm_id":
             self.serializer_class = DeviceFcmSerializer
         elif self.action == "password":
@@ -247,6 +249,66 @@ class UserPwdViewSet(APIBaseViewSet):
             raise ValidationError({"non_field_errors": [gen_error("1011")]})
         except User2FARequireException:
             raise ValidationError({"non_field_errors": [gen_error("1012")]})
+
+    @action(methods=["post"], detail=False)
+    def session_by_otp(self, request, *args, **kwargs):
+        ip = self.get_ip()
+        ua_string = self.get_client_agent()
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        client_id = validated_data.get("client_id")
+        device_identifier = validated_data.get("device_identifier")
+        device_name = validated_data.get("device_name")
+        device_type = validated_data.get("device_type")
+        email = validated_data.get("email")
+        password = validated_data.get("password")
+        method = validated_data.get("method")
+        otp_code = validated_data.get("otp")
+        try:
+            user = self.user_service.retrieve_by_email(email=email)
+        except UserDoesNotExistException:
+            raise ValidationError(detail={"email": ["The email is not valid"]})
+        is_factor2 = user.is_factor2
+
+        try:
+            result = self.user_service.user_session_by_otp(
+                user=user, password=password, client_id=client_id, device_identifier=device_identifier,
+                device_name=device_name, device_type=device_type,
+                is_factor2=is_factor2,
+                token_auth_value=self.request.auth,
+                secret=settings.SECRET_KEY,
+                ip=ip,
+                ua=ua_string,
+                method=method,
+                otp_code=otp_code
+            )
+            return Response(status=status.HTTP_200_OK, data=result)
+        except UserAuthBlockingEnterprisePolicyException as e:
+            error_detail = refer_error(gen_error("1008"))
+            error_detail["wait"] = e.wait
+            return Response(status=status.HTTP_400_BAD_REQUEST, data=error_detail)
+        except UserAuthBlockedEnterprisePolicyException as e:
+            raise ValidationError(detail={
+                "password": ["Password is not correct"],
+                "failed_login_owner_email": e.failed_login_owner_email,
+                "owner": e.owner,
+                "lock_time": e.lock_time,
+                "unlock_time": e.unlock_time,
+                "ip": e.ip
+            })
+        except UserAuthFailedException:
+            raise ValidationError(detail={"password": ["Password is not correct"]})
+        except UserIsLockedByEnterpriseException:
+            raise ValidationError({"non_field_errors": [gen_error("1009")]})
+        except UserEnterprisePlanExpiredException:
+            raise ValidationError({"non_field_errors": [gen_error("1010")]})
+        except UserBelongEnterpriseException:
+            raise ValidationError({"non_field_errors": [gen_error("1011")]})
+        except UserFactor2IsNotActiveException:
+            raise ValidationError(detail={"method": [f"Authentication {method} is disable"]})
+        except UserFactor2IsNotValidException:
+            raise ValidationError(detail={"otp": ["The otp code is not valid"]})
 
     @action(methods=["post"], detail=False)
     def fcm_id(self, request, *args, **kwargs):
