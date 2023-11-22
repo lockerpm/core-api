@@ -147,6 +147,7 @@ class Factor2Service:
 
     def update_factor2(self, user_id: int, method: str, user_otp: str, device) -> User:
         user = self.user_repository.get_user_by_id(user_id=user_id)
+        old_factor2 = user.is_factor2
         if not user:
             raise UserDoesNotExistException
         if method not in LIST_FA2_METHOD:
@@ -218,6 +219,8 @@ class Factor2Service:
             is_factor2 = True
         else:
             is_factor2 = False
+        if is_factor2 != old_factor2:
+            self.user_repository.revoke_all_sessions(user=user)
         user = self.user_repository.update_user_factor2(user_id=user_id, is_factor2=is_factor2)
         return user
 
