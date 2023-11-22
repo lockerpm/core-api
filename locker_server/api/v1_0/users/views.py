@@ -216,16 +216,21 @@ class UserPwdViewSet(APIBaseViewSet):
             raise ValidationError(detail={"email": ["The email is not valid"]})
         is_factor2 = user.is_factor2
         if is_factor2:
-            active_factor2_methods = self.factor2_service.list_user_factor2_methods(
-                user_id=user.user_id,
-                **{
-                    "is_activate": True
-                }
-            )
-            active_methods = [factor2.method for factor2 in active_factor2_methods]
-            active_methods = list(set(active_methods))
-            active_methods_data = [{"method": method, "is_active": True} for method in active_methods]
-            return Response(status=status.HTTP_200_OK, data={'is_factor2': True, 'methods': active_methods_data})
+            try:
+                device_existed = self.device_service.get_device_by_identifier(
+                    user_id=user.user_id, device_identifier=device_identifier
+                )
+            except DeviceDoesNotExistException:
+                active_factor2_methods = self.factor2_service.list_user_factor2_methods(
+                    user_id=user.user_id,
+                    **{
+                        "is_activate": True
+                    }
+                )
+                active_methods = [factor2.method for factor2 in active_factor2_methods]
+                active_methods = list(set(active_methods))
+                active_methods_data = [{"method": method, "is_active": True} for method in active_methods]
+                return Response(status=status.HTTP_200_OK, data={'is_factor2': True, 'methods': active_methods_data})
         try:
             result = self.user_service.user_session(
                 user=user, password=password, client_id=client_id, device_identifier=device_identifier,
