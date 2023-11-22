@@ -207,12 +207,12 @@ class Factor2Service:
             else:
                 raise Factor2CodeInvalidException
         if smart_otp.is_activate or mail_otp.is_activate:
-            self.user_repository.update_user_factor2(is_factor2=True)
+            self.user_repository.update_user_factor2(user_id=user_id, is_factor2=True)
             self.user_repository.revoke_all_sessions(user=user, exclude_sso_token_ids=[device.sso_token_id])
             is_factor2 = True
         else:
             is_factor2 = False
-        self.user_repository.update_user_factor2(user_id=user_id, is_factor2=is_factor2)
+        user = self.user_repository.update_user_factor2(user_id=user_id, is_factor2=is_factor2)
         return user
 
     def create_mail_activate_code(self, user_id: int, method: str) -> Factor2Method:
