@@ -35,6 +35,7 @@ class QueriesDebugMiddleware(object):
         view_name = self._get_view_name(request)
         if response.status_code in [200, 201, 204]:
             total_time = 0
+            settings.DEBUG = True
             for query in connection.queries:
                 query_time = query.get('time')
                 if query_time is None:
@@ -45,7 +46,6 @@ class QueriesDebugMiddleware(object):
                 total_time += float(query_time)
 
             total_response_time = time.time() - request.start_time
-            settings.DEBUG = True
             logger.debug('%s: %s queries run, total %s seconds' % (
                 view_name, len(connection.queries), round(total_response_time, 4)
             ))
