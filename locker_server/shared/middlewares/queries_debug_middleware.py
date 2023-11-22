@@ -1,6 +1,7 @@
 import time
 import logging
 
+from django.conf import settings
 from django.db import connection
 
 
@@ -44,9 +45,11 @@ class QueriesDebugMiddleware(object):
                 total_time += float(query_time)
 
             total_response_time = time.time() - request.start_time
+            settings.DEBUG = True
             logger.debug('%s: %s queries run, total %s seconds' % (
                 view_name, len(connection.queries), round(total_response_time, 4)
             ))
+            settings.DEBUG = False
         return response
 
     def _get_view_name(self, request):
