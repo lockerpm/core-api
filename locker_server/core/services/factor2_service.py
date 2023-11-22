@@ -92,7 +92,7 @@ class Factor2Service:
         factor2_methods = self.factor2_method_repository.list_user_factor2_methods(
             user_id=user.user_id
         )
-        if len(factor2_methods) < len(LIST_FA2_METHOD):
+        if factor2_methods is None or len(factor2_methods) < len(LIST_FA2_METHOD):
             factor2_methods = self.create_default_user_factor2(user_id=user_id)
         smart_otp = None
         mail_otp = None

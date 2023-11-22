@@ -15,7 +15,7 @@ from locker_server.api.permissions.locker_permissions.factor2_pwd_permission imp
 
 class Factor2ViewSet(APIBaseViewSet):
     http_method_names = ["head", "options", "get", "post"]
-    permission_classes = (Factor2PwdPermission)
+    permission_classes = (Factor2PwdPermission,)
 
     def check_captcha_permission(self):
         # TODO: Check the captcha

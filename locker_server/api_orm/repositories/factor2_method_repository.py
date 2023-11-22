@@ -14,7 +14,13 @@ ModelParser = get_model_parser()
 class Factor2MethodORMRepository(Factor2MethodRepository):
     # ------------------------ List Factor2Method resource ------------------- #
     def list_user_factor2_methods(self, user_id: int, **filter_params) -> List[Factor2Method]:
-        pass
+        factor2_methods_orm = Factor2MethodORM.objects.filter(
+            user_id=user_id
+        ).select_related("user")
+        return [
+            ModelParser.factor2_parser().parse_factor2_method(factor2_method_orm=factor2_method_orm)
+            for factor2_method_orm in factor2_methods_orm
+        ]
 
     # ------------------------ Get Factor2Method resource --------------------- #
     def get_factor2_method_by_id(self, factor2_method_id: str) -> Optional[Factor2Method]:
@@ -29,7 +35,8 @@ class Factor2MethodORMRepository(Factor2MethodRepository):
 
     # ------------------------ Create Factor2Method resource --------------------- #
     def create_factor2_method(self, factor2_method_create_data: Dict) -> Factor2Method:
-        pass
+        factor2_method_orm = Factor2MethodORM.retrieve_or_create(**factor2_method_create_data)
+        return ModelParser.factor2_parser().parse_factor2_method(factor2_method_orm=factor2_method_orm)
 
     def create_activate_code_by_method(self, user_id: int, method: str, new_code: bool) -> Factor2Method:
         factor2_method_orm = Factor2MethodORM.retrieve_or_create(
