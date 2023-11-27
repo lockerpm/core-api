@@ -149,7 +149,8 @@ class UserService:
             user = self.retrieve_or_create_by_id(user_id=user_id)
         else:
             user = self.retrieve_or_create_by_email(email=user_id)
-        is_supper_admin = True if default_plan == PLAN_TYPE_PM_ENTERPRISE else False
+        is_super_admin = True if default_plan == PLAN_TYPE_PM_ENTERPRISE else False
+        is_password_changed = True if default_plan == PLAN_TYPE_PM_ENTERPRISE else False
         master_password_score = kwargs.get("score") or kwargs.get("master_password_score") or user.master_password_score
         user_new_creation_data = {
             "kdf": kwargs.get("kdf", 0),
@@ -165,7 +166,8 @@ class UserService:
             "activated_date": now(),
             "revision_date": now(),
             "delete_account_date": None,
-            "is_supper_admin": is_supper_admin,
+            "is_super_admin": is_super_admin,
+            "is_password_changed": is_password_changed,
             "full_name": kwargs.get("full_name") or user_id,
         }
         user = self.user_repository.update_user(user_id=user.user_id, user_update_data=user_new_creation_data)
@@ -451,7 +453,7 @@ class UserService:
             "kdf_iterations": user.kdf_iterations,
             "not_sync": not_sync_sso_token_ids,
             "has_no_master_pw_item": not self.user_repository.has_master_pw_item(user_id=user.user_id),
-            "is_super_admin": user.is_supper_admin
+            "is_super_admin": user.is_super_admin
         }
         # Create event login successfully
         if user_enterprise_ids:
@@ -842,7 +844,7 @@ class UserService:
             "kdf_iterations": user.kdf_iterations,
             "not_sync": not_sync_sso_token_ids,
             "has_no_master_pw_item": not self.user_repository.has_master_pw_item(user_id=user.user_id),
-            "is_super_admin": user.is_supper_admin
+            "is_super_admin": user.is_super_admin
         }
         # Create event login successfully
         if user_enterprise_ids:
