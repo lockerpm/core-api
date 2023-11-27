@@ -727,6 +727,7 @@ class UserPwdViewSet(APIBaseViewSet):
                     "name": user.full_name or user.username,
                     "avatar": user.get_avatar(),
                     "activated": user.activated,
+                    "sync_all_platforms": user.sync_all_platforms,
                     "set_up_passwordless": True if user.fd_credential_id else False,
                     "login_method": login_method,
                     "require_passwordless": require_passwordless,
