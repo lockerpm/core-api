@@ -427,8 +427,9 @@ class UserORMRepository(UserRepository):
 
         user_orm.is_leaked = user_update_data.get("is_leaked", user_orm.is_leaked)
 
-        user_orm.is_supper_admin = user_update_data.get("is_supper_admin", False)
-        
+        user_orm.is_super_admin = user_update_data.get("is_super_admin", False)
+        user_orm.sync_all_platforms = user_update_data.get("sync_all_platforms", user_orm.sync_all_platforms)
+
         if user_update_data.get("master_password_hash"):
             user_orm.set_master_password(raw_password=user_update_data.get("master_password_hash"))
 
