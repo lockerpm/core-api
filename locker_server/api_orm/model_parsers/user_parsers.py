@@ -50,7 +50,8 @@ class UserParser:
             is_factor2=user_orm.is_factor2,
             base32_secret_factor2=user_orm.base32_secret_factor2,
             is_super_admin=user_orm.is_super_admin,
-            sync_all_platforms=user_orm.sync_all_platforms
+            sync_all_platforms=user_orm.sync_all_platforms,
+            is_password_changed=user_orm.is_password_changed
         )
 
     @classmethod

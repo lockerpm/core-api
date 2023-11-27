@@ -150,6 +150,7 @@ class UserService:
         else:
             user = self.retrieve_or_create_by_email(email=user_id)
         is_super_admin = True if default_plan == PLAN_TYPE_PM_ENTERPRISE else False
+        is_password_changed = True if default_plan == PLAN_TYPE_PM_ENTERPRISE else False
         master_password_score = kwargs.get("score") or kwargs.get("master_password_score") or user.master_password_score
         user_new_creation_data = {
             "kdf": kwargs.get("kdf", 0),
@@ -166,6 +167,7 @@ class UserService:
             "revision_date": now(),
             "delete_account_date": None,
             "is_super_admin": is_super_admin,
+            "is_password_changed": is_password_changed,
             "full_name": kwargs.get("full_name") or user_id,
         }
         user = self.user_repository.update_user(user_id=user.user_id, user_update_data=user_new_creation_data)

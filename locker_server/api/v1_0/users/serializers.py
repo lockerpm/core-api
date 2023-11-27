@@ -20,6 +20,7 @@ class UserMeSerializer(serializers.Serializer):
             "language": instance.language,
             "is_passwordless": self.context.get("is_passwordless_func")(instance.user_id),
             "sync_all_platforms": instance.sync_all_platforms,
+            "is_password_changed": instance.is_password_changed,
             "avatar": instance.get_avatar()
 
         }

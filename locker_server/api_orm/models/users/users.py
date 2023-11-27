@@ -23,6 +23,7 @@ class UserORM(AbstractUserORM):
 
     is_super_admin = models.BooleanField(default=False)
     sync_all_platforms = models.BooleanField(default=False)
+    is_password_changed = models.BooleanField(default=False)
 
     class Meta(AbstractUserORM.Meta):
         swappable = 'LS_USER_MODEL'
@@ -33,11 +34,13 @@ class UserORM(AbstractUserORM):
         email = kwargs.get("email")
         full_name = kwargs.get("full_name") or email
         is_super_admin = kwargs.get("is_super_admin", False)
+        is_password_changed = kwargs.get("is_password_changed", False)
         creation_date = kwargs.get("creation_date") or now()
         creation_date = now() if not creation_date else creation_date
         user, is_created = cls.objects.get_or_create(email=email, defaults={
             "email": email, "full_name": full_name, "creation_date": creation_date,
-            "is_super_admin": is_super_admin
+            "is_super_admin": is_super_admin,
+            "is_password_changed": is_password_changed
         })
         if is_created is True:
             from locker_server.api_orm.models.user_plans.pm_user_plan import PMUserPlanORM
