@@ -34,6 +34,6 @@ class CreateBackupCredentialSerializer(serializers.Serializer):
     master_password_hash = serializers.CharField(allow_blank=False)
     master_password_hint = serializers.CharField(required=False, allow_blank=True, max_length=128)
     key = serializers.CharField(required=False, allow_null=True, allow_blank=True)
-    keys = EncryptedPairKey(many=False)
+    keys = EncryptedPairKey(required=False, many=False)
     fd_credential_id = serializers.CharField(max_length=255, required=False, allow_blank=True, allow_null=True)
     fd_random = serializers.CharField(max_length=128, required=False, allow_blank=True, allow_null=True)
