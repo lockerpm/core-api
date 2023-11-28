@@ -15,7 +15,8 @@ from locker_server.api_orm.utils.revision_date import bump_account_revision_date
 from locker_server.core.entities.user.user import User
 from locker_server.core.repositories.user_repository import UserRepository
 from locker_server.shared.caching.sync_cache import delete_sync_cache_data
-from locker_server.shared.constants.account import ACCOUNT_TYPE_ENTERPRISE, ACCOUNT_TYPE_PERSONAL
+from locker_server.shared.constants.account import ACCOUNT_TYPE_ENTERPRISE, ACCOUNT_TYPE_PERSONAL, \
+    LOGIN_METHOD_PASSWORD, LOGIN_METHOD_PASSWORDLESS
 from locker_server.shared.constants.ciphers import *
 from locker_server.shared.constants.enterprise_members import E_MEMBER_STATUS_CONFIRMED, E_MEMBER_ROLE_PRIMARY_ADMIN, \
     E_MEMBER_ROLE_ADMIN
@@ -206,6 +207,15 @@ class UserORMRepository(UserRepository):
             policy_orm = enterprise_orm.policies.filter(policy_type=POLICY_TYPE_PASSWORDLESS, enabled=True).first()
             if policy_orm:
                 e_passwordless_policy = policy_orm.policy_passwordless.only_allow_passwordless
+        else:
+            try:
+                user_orm = UserORM.objects.get(user_id=user_id)
+                if user_orm.login_method == LOGIN_METHOD_PASSWORDLESS:
+                    e_passwordless_policy = True
+                else:
+                    e_passwordless_policy = False
+            except UserORM.DoesNotExist:
+                pass
         return e_passwordless_policy
 
     def is_block_by_2fa_policy(self, user_id: int, is_factor2: bool) -> bool:
