@@ -436,17 +436,19 @@ class UserService:
                     device_ids=old_devices_ids
                 )
                 self.device_access_token_repository.remove_devices_access_tokens(device_ids=old_devices_ids)
-
-        # Set last login
-        device_obj = self.device_repository.set_last_login(device_id=device_obj.device_id, last_login=now())
-        # Retrieve or create new access token
-        access_token = self.device_access_token_repository.fetch_device_access_token(
-            device=device_obj, renewal=True, sso_token_id=sso_token_id
-        )
+        # Get current credential_backup
         if isinstance(check_master_password, BackupCredential):
             credential_backup = check_master_password
         else:
             credential_backup = None
+        # Set last login
+        device_obj = self.device_repository.set_last_login(device_id=device_obj.device_id, last_login=now())
+        # Retrieve or create new access token
+        access_token = self.device_access_token_repository.fetch_device_access_token(
+            device=device_obj, renewal=True, sso_token_id=sso_token_id,
+            credential_key=user.key if credential_backup is None else credential_backup.key
+        )
+
         result = {
             "refresh_token": device_obj.refresh_token,
             "access_token": access_token.access_token,
@@ -832,16 +834,19 @@ class UserService:
                 )
                 self.device_access_token_repository.remove_devices_access_tokens(device_ids=old_devices_ids)
 
-        # Set last login
-        device_obj = self.device_repository.set_last_login(device_id=device_obj.device_id, last_login=now())
-        # Retrieve or create new access token
-        access_token = self.device_access_token_repository.fetch_device_access_token(
-            device=device_obj, renewal=True, sso_token_id=sso_token_id
-        )
+        # Get current credential_backup
         if isinstance(check_master_password, BackupCredential):
             credential_backup = check_master_password
         else:
             credential_backup = None
+        # Set last login
+        device_obj = self.device_repository.set_last_login(device_id=device_obj.device_id, last_login=now())
+        # Retrieve or create new access token
+        access_token = self.device_access_token_repository.fetch_device_access_token(
+            device=device_obj, renewal=True, sso_token_id=sso_token_id,
+            credential_key=user.key if credential_backup is None else credential_backup.key
+        )
+
         result = {
             "refresh_token": device_obj.refresh_token,
             "access_token": access_token.access_token,
