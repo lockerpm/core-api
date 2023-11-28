@@ -454,7 +454,8 @@ class UserPwdViewSet(APIBaseViewSet):
         if settings.SELF_HOSTED:
             device_access_token = request.auth
             new_device_access_token = self.device_service.fetch_device_access_token(
-                device=device_access_token.device, renewal=True, sso_token_id=True
+                device=device_access_token.device, renewal=True, sso_token_id=True,
+                credential_key=user.key
             )
             access_token = new_device_access_token.access_token
 
