@@ -34,14 +34,14 @@ class PasswordlessPwdViewSet(APIBaseViewSet):
                     user = self.user_service.retrieve_by_email(email=email)
                 except UserDoesNotExistException:
                     raise NotFound
-                user_backup_credentials = self.backup_credential_service.list_backup_credentials(**{
-                    "user_id": user.user_id
+            user_backup_credentials = self.backup_credential_service.list_backup_credentials(**{
+                "user_id": user.user_id
+            })
+            for backup_credential in user_backup_credentials:
+                user_backup_credentials_data.append({
+                    "credential_id": backup_credential.fd_credential_id,
+                    "random": backup_credential.fd_random
                 })
-                for backup_credential in user_backup_credentials:
-                    user_backup_credentials_data.append({
-                        "credential_id": backup_credential.fd_credential_id,
-                        "random": backup_credential.fd_random
-                    })
             return Response(status=status.HTTP_200_OK, data={
                 "credential_id": user.fd_credential_id,
                 "random": user.fd_random,
