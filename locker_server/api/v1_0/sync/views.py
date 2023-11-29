@@ -77,12 +77,6 @@ class SyncPwdViewSet(APIBaseViewSet):
         page_size_param = self.check_int_param(self.request.query_params.get("size", 50))
         page_param = self.check_int_param(self.request.query_params.get("page", 1))
 
-        # Get sync data from cache
-        cache_key = self.user_service.get_sync_cache_key(user_id=user.user_id, page=page_param, size=page_size_param)
-        response_cache_data = cache.get(cache_key)
-        if response_cache_data:
-            return Response(status=status.HTTP_200_OK, data=response_cache_data)
-
         policies = self.enterprise_service.list_policies_by_user(user_id=user.user_id)
 
         # Check team policies
@@ -131,6 +125,13 @@ class SyncPwdViewSet(APIBaseViewSet):
             "key": self.get_credential_key()
         })
         sync_data = camel_snake_data(sync_data, snake_to_camel=True)
+        # Get sync data from cache
+        cache_key = self.user_service.get_sync_cache_key(user_id=user.user_id, page=page_param, size=page_size_param)
+        response_cache_data = cache.get(cache_key)
+        if response_cache_data:
+            cache.set(cache_key, sync_data, SYNC_CACHE_TIMEOUT)
+            return Response(status=status.HTTP_200_OK, data=response_cache_data)
+
         cache.set(cache_key, sync_data, SYNC_CACHE_TIMEOUT)
         return Response(status=status.HTTP_200_OK, data=sync_data)
 
