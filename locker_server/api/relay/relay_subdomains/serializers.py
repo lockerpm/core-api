@@ -4,7 +4,7 @@ from rest_framework import serializers
 class ListRelaySubdomainsSerializer(serializers.Serializer):
     def to_representation(self, instance):
         data = {
-            "id": instance.id,
+            "id": instance.relay_address_id,
             "subdomain": instance.subdomain,
             "created_time": instance.created_time,
             "num_alias": instance.num_alias,
