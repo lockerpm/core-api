@@ -170,7 +170,7 @@ class RelayHookViewSet(APIBaseViewSet):
             })
 
         relay_address = self.get_relay_address(email=relay_address_param)
-        if not relay_address:
+        if not relay_address or not relay_address.user:
             CyLog.debug(**{"message": "Can not get plan of address destination: {}".format(relay_address_param)})
             raise NotFound
         is_premium = self.allow_relay_premium(user=relay_address.user)
