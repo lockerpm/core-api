@@ -44,7 +44,7 @@ class RelayHookViewSet(APIBaseViewSet):
             raise PermissionDenied
 
     def allow_relay_premium(self, user) -> bool:
-        user = self.request.user
+        user = user
         current_plan = self.user_service.get_current_plan(user=user)
         plan = current_plan.pm_plan
         is_active_enterprise_member = self.user_service.is_active_enterprise_member(user_id=user.user_id)
