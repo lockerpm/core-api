@@ -18,7 +18,7 @@ class User(object):
                  onboarding_process: str = DEFAULT_ONBOARDING_PROCESS, saas_source: str = None,
                  email: str = None, full_name: str = None, language: str = LANG_ENGLISH,
                  is_factor2: bool = False, base32_secret_factor2: str = "", is_super_admin: bool = False,
-                 sync_all_platforms: bool = False, is_password_changed: bool = True):
+                 sync_all_platforms: bool = False, is_password_changed: bool = True, fd_name: str = None):
         self._user_id = user_id
         self._internal_id = internal_id
         self._creation_date = creation_date
@@ -48,6 +48,7 @@ class User(object):
         self._login_method = login_method
         self._fd_credential_id = fd_credential_id
         self._fd_random = fd_random
+        self._fd_name = fd_name
         self._onboarding_process = onboarding_process
         self._saas_source = saas_source
         self._email = email
@@ -221,6 +222,10 @@ class User(object):
     @property
     def is_password_changed(self):
         return self._is_password_changed
+
+    @property
+    def fd_name(self):
+        return self._fd_name
 
     def get_avatar(self):
         return get_avatar(self.email)

@@ -471,13 +471,14 @@ class UserORMRepository(UserRepository):
         user_orm.save()
         return ModelParser.user_parser().parse_user(user_orm=user_orm)
 
-    def update_passwordless_cred(self, user_id: int, fd_credential_id: str, fd_random: str) -> User:
+    def update_passwordless_cred(self, user_id: int, fd_credential_id: str, fd_random: str, fd_name: str) -> User:
         try:
             user_orm = UserORM.objects.get(user_id=user_id)
         except UserORM.DoesNotExist:
             return None
         user_orm.fd_credential_id = fd_credential_id
         user_orm.fd_random = fd_random
+        user_orm.fd_name = fd_name
         user_orm.save()
         return ModelParser.user_parser().parse_user(user_orm=user_orm)
 
