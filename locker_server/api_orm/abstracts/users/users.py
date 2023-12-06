@@ -42,6 +42,8 @@ class AbstractUserORM(models.Model):
     fd_credential_id = models.CharField(max_length=255, null=True)
     fd_random = models.CharField(max_length=128, null=True)
     fd_name = models.CharField(null=True, max_length=255, default=None)
+    fd_creation_date = models.FloatField(null=True)
+    fd_last_use_date = models.FloatField(null=True)
 
     # Onboarding process
     onboarding_process = models.TextField(max_length=512, blank=True, default=DEFAULT_ONBOARDING_PROCESS)

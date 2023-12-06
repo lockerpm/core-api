@@ -5,6 +5,7 @@ from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_user_model, get_backup_credential_model
 from locker_server.core.entities.user.user import User
 from locker_server.core.repositories.auth_repository import AuthRepository
+from locker_server.shared.constants.account import LOGIN_METHOD_PASSWORDLESS
 from locker_server.shared.constants.token import *
 from locker_server.shared.utils.app import now
 
@@ -46,4 +47,8 @@ class AuthORMRepository(AuthRepository):
                         backup_credential_orm=backup_credential_orm
                     )
             return False
+        # Update last use passwordless
+        if user_orm.login_method == LOGIN_METHOD_PASSWORDLESS:
+            user_orm.fd_last_use_date = now()
+        user_orm.save()
         return valid

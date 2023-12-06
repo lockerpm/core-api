@@ -46,6 +46,8 @@ class PasswordlessPwdViewSet(APIBaseViewSet):
                 "credential_id": user.fd_credential_id,
                 "random": user.fd_random,
                 "name": user.fd_name,
+                "creation_date": user.fd_creation_date,
+                "last_use_date": user.fd_last_use_date,
                 "backup_keys": user_backup_credentials_data
             })
 

@@ -479,6 +479,8 @@ class UserORMRepository(UserRepository):
         user_orm.fd_credential_id = fd_credential_id
         user_orm.fd_random = fd_random
         user_orm.fd_name = fd_name
+        user_orm.fd_creation_date = now()
+        user_orm.fd_last_use_date = None
         user_orm.save()
         return ModelParser.user_parser().parse_user(user_orm=user_orm)
 
