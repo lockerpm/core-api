@@ -42,6 +42,7 @@ class UserParser:
             login_method=user_orm.login_method,
             fd_credential_id=user_orm.fd_credential_id,
             fd_random=user_orm.fd_random,
+            fd_name=user_orm.fd_name,
             onboarding_process=user_orm.get_onboarding_process(),
             saas_source=user_orm.saas_source,
             email=user_orm.email,

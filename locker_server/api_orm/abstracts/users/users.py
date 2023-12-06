@@ -41,6 +41,7 @@ class AbstractUserORM(models.Model):
     login_method = models.CharField(max_length=32, default=LOGIN_METHOD_PASSWORD)
     fd_credential_id = models.CharField(max_length=255, null=True)
     fd_random = models.CharField(max_length=128, null=True)
+    fd_name = models.CharField(null=True, max_length=255, default=None)
 
     # Onboarding process
     onboarding_process = models.TextField(max_length=512, blank=True, default=DEFAULT_ONBOARDING_PROCESS)
