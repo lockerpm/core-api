@@ -123,7 +123,7 @@ class RelayHookViewSet(APIBaseViewSet):
             raise NotFound
         return Response(status=status.HTTP_200_OK, data={"user_id": relay_address.user.user_id})
 
-    @action(methods=["post"], detail=False)
+    @action(methods=["get", "post"], detail=False)
     def reply(self, request, *args, **kwargs):
         self.check_auth_token()
         if request.method == "GET":

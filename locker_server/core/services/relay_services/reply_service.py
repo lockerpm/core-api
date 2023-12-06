@@ -21,7 +21,7 @@ class ReplyService:
         return reply
 
     def create_reply(self, lookup: str, encrypted_metadata: str) -> Reply:
-        existed_reply = self.get_reply_by_lookup(lookup=lookup)
+        existed_reply = self.reply_repository.get_reply_by_lookup(lookup=lookup)
         if existed_reply:
             raise ReplyLookupExistedException
         new_reply = self.reply_repository.create_reply(**{
