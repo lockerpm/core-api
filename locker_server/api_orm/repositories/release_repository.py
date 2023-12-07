@@ -15,6 +15,7 @@ class ReleaseORMRepository(ReleaseRepository):
         releases_orm = ReleaseORM.objects.all().order_by('-id')
         client_id_param = filters.get("client_id")
         environment_param = filters.get("environment")
+        platform_param = filters.get("platform")
         if client_id_param is not None:
             releases_orm = releases_orm.filter(
                 client_id=client_id_param
@@ -23,6 +24,8 @@ class ReleaseORMRepository(ReleaseRepository):
             releases_orm = releases_orm.filter(
                 environment=environment_param
             )
+        if platform_param is not None:
+            releases_orm = releases_orm.filter(platform=platform_param)
         return [
             ModelParser.release_parser().parse_release(release_orm=release_orm)
             for release_orm in releases_orm
@@ -37,9 +40,9 @@ class ReleaseORMRepository(ReleaseRepository):
             return None
         return ModelParser.release_parser().parse_release(release_orm=release_orm)
 
-    def get_latest_release(self, client_id: str, environment: str) -> Optional[Release]:
+    def get_latest_release(self, client_id: str, environment: str, platform: str = None) -> Optional[Release]:
         latest_release_orm = ReleaseORM.objects.filter(
-            client_id=client_id, environment=environment
+            client_id=client_id, environment=environment, platform=platform
         ).order_by('-id').first()
         if not latest_release_orm:
             return None
