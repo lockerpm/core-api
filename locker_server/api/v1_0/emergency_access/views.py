@@ -480,12 +480,14 @@ class EmergencyAccessPwdViewSet(APIBaseViewSet):
         validated_data = serializer.validated_data
         key = validated_data.get("key")
         new_master_password_hash = validated_data.get("new_master_password_hash")
+        login_method = validated_data.get("login_method")
 
         try:
             result = self.emergency_access_service.password_emergency_access(
                 emergency_access=emergency_access,
                 new_master_password_hash=new_master_password_hash,
-                key=key
+                key=key,
+                login_method=login_method
             )
         except EmergencyAccessDoesNotExistException:
             raise NotFound
