@@ -1,5 +1,3 @@
-import json
-
 from rest_framework import serializers
 
 
@@ -15,10 +13,10 @@ class ListUserRewardMissionSerializer(serializers.Serializer):
             extra_requirements = mission.get_extra_requirements()
             data.update({
                 "mission": {
-                    "id": "",
-                    "title": "",
-                    "created_time": "",
-                    "mission_type": "",
+                    "id": mission.mission_id,
+                    "title": mission.title,
+                    "created_time": mission.created_time,
+                    "mission_type": mission.mission_type,
                     "description": {
                         "en": mission.description_en,
                         "vi": mission.description_vi
