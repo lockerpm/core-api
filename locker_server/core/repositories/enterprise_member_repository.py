@@ -28,6 +28,10 @@ class EnterpriseMemberRepository(ABC):
         pass
 
     @abstractmethod
+    def list_enterprise_member_emails_by_user_emails(self, emails_param: [str]) -> List:
+        pass
+
+    @abstractmethod
     def count_enterprise_members(self, **filters) -> int:
         pass
 

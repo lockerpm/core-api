@@ -179,6 +179,12 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
             for enterprise_member_orm in enterprise_members_orm
         ]
 
+    def list_enterprise_member_emails_by_user_emails(self, emails_param: [str]) -> List:
+        enterprise_members_orm = EnterpriseMemberORM.objects.filter(
+            user__email__in=emails_param
+        )
+        return list(enterprise_members_orm.values_list('user__email', flat=True))
+
     def count_enterprise_members(self, **filters) -> int:
         enterprise_id_param = filters.get("enterprise_id")
         status_param = filters.get("status")

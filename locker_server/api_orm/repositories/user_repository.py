@@ -432,6 +432,7 @@ class UserORMRepository(UserRepository):
 
         user_orm.full_name = user_update_data.get("full_name", user_orm.full_name)
         user_orm.language = user_update_data.get("language", user_orm.language)
+        user_orm.email = user_update_data.get("email", user_orm.email)
 
         user_orm.base32_secret_factor2 = user_update_data.get("base32_secret_factor2", user_orm.base32_secret_factor2)
 

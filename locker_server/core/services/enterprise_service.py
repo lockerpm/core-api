@@ -235,12 +235,9 @@ class EnterpriseService:
 
     def add_multiple_member(self, secret: str, current_enterprise: Enterprise, members_data: [Dict]) -> Tuple:
         emails_param = [member.get("email") for member in members_data]
-        existed_members = self.enterprise_member_repository.list_enterprise_members_by_emails(
+        existed_email_members = self.enterprise_member_repository.list_enterprise_member_emails_by_user_emails(
             emails_param=emails_param
         )
-
-        existed_email_members = [member.email for member in existed_members]
-
         added_members = []
         non_added_members = []
         added_emails = []
@@ -268,13 +265,14 @@ class EnterpriseService:
                 "public_key": keys.get("public_key"),
                 "private_key": keys.get("encrypted_private_key"),
                 "master_password_hint": member_data.get("master_password_hint", ""),
+                "activated": True,
+                "activated_date": now()
             }
             user = self.user_repository.update_user(user_id=user.user_id, user_update_data=user_new_creation_data)
             member_create_data = {
                 "enterprise_id": current_enterprise.enterprise_id,
                 "role_id": member_data.get("role"),
-                "email": member_email,
-                "status": E_MEMBER_STATUS_INVITED,
+                "status": E_MEMBER_STATUS_CONFIRMED,
                 "user_id": user.user_id,
                 "token_invitation": self.create_invitation_token(
                     secret=secret,
