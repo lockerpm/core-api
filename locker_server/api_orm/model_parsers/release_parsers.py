@@ -17,4 +17,5 @@ class ReleaseParser:
             client_id=release_orm.client_id,
             environment=release_orm.environment,
             checksum=release_orm.checksum,
+            platform=release_orm.platform,
         )
