@@ -80,7 +80,7 @@ class BillingContactViewSet(APIBaseViewSet):
         billing_contact = self.get_object()
         try:
             self.enterprise_billing_contact_service.delete_enterprise_billing_contact_by_id(
-                billing_contact_id=billing_contact.enterprise_billing_contact_id
+                enterprise_billing_contact_id=billing_contact.enterprise_billing_contact_id
             )
         except EnterpriseBillingContactDoesNotExistException:
             raise NotFound
