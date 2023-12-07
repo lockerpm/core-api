@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from locker_server.shared.constants.account import LOGIN_METHOD_PASSWORD, LOGIN_METHOD_PASSWORDLESS
 from locker_server.shared.constants.emergency_access import EMERGENCY_ACCESS_TYPE_VIEW, EMERGENCY_ACCESS_TYPE_TAKEOVER
 
 
@@ -71,6 +72,7 @@ class InviteEmergencyAccessSerializer(serializers.Serializer):
 class PasswordEmergencyAccessSerializer(serializers.Serializer):
     key = serializers.CharField()
     new_master_password_hash = serializers.CharField()
+    login_method = serializers.ChoiceField(choices=[LOGIN_METHOD_PASSWORD, LOGIN_METHOD_PASSWORDLESS])
 
 
 class ViewOrgSerializer(serializers.Serializer):

@@ -100,7 +100,7 @@ class EmergencyAccessService:
         }
 
     def invite_emergency_access(self, grantor: User, emergency_access_type: str, wait_time_days: int, key: str = None,
-                                grantee_id: int = None,  email: str = None,
+                                grantee_id: int = None, email: str = None,
                                 grantor_fullname: str = None) -> Optional[EmergencyAccess]:
         grantor_fullname = grantor_fullname or grantor.full_name
         if grantee_id:
@@ -108,13 +108,13 @@ class EmergencyAccessService:
             if not grantee:
                 raise UserDoesNotExistException
             if self.emergency_access_repository.check_emergency_existed(
-                grantor_id=grantor.user_id, emergency_access_type=emergency_access_type, grantee_id=grantee_id
+                    grantor_id=grantor.user_id, emergency_access_type=emergency_access_type, grantee_id=grantee_id
             ) is True:
                 raise EmergencyAccessGranteeExistedException
 
         else:
             if self.emergency_access_repository.check_emergency_existed(
-                grantor_id=grantor.user_id, emergency_access_type=emergency_access_type, email=email
+                    grantor_id=grantor.user_id, emergency_access_type=emergency_access_type, email=email
             ) is True:
                 raise EmergencyAccessEmailExistedException
 
@@ -348,13 +348,15 @@ class EmergencyAccessService:
         }
         return result
 
-    def password_emergency_access(self, emergency_access: EmergencyAccess, key: str, new_master_password_hash: str):
+    def password_emergency_access(self, emergency_access: EmergencyAccess, key: str, new_master_password_hash: str,
+                                  login_method: str):
         if emergency_access.emergency_access_type != EMERGENCY_ACCESS_TYPE_TAKEOVER or \
                 emergency_access.status != EMERGENCY_ACCESS_STATUS_RECOVERY_APPROVED:
             raise EmergencyAccessDoesNotExistException
         grantor = emergency_access.grantor
         self.user_repository.change_master_password(
-            user=grantor, new_master_password_hash=new_master_password_hash, key=key
+            user=grantor, new_master_password_hash=new_master_password_hash, key=key,
+            login_method=login_method
         )
         self.user_repository.revoke_all_sessions(user=grantor)
         # Remove grantor from all teams unless user is owner
