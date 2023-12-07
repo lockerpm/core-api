@@ -15,6 +15,7 @@ class AbstractReleaseORM(models.Model):
     client_id = models.CharField(max_length=128)
     environment = models.CharField(max_length=128, default="prod")
     checksum = models.TextField(null=True, default=None)
+    platform = models.CharField(max_length=32, db_index=True, null=True, default=None)
 
     class Meta:
         abstract = True
@@ -30,7 +31,8 @@ class AbstractReleaseORM(models.Model):
             description_en=data.get("description_en", ""),
             client_id=data.get("client_id"),
             environment=data.get("environment", "prod"),
-            checksum=data.get("checksum", )
+            checksum=data.get("checksum"),
+            platform=data.get("platform")
         )
         new_release.save()
         return new_release
