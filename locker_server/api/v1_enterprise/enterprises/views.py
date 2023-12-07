@@ -281,6 +281,14 @@ class EnterprisePwdViewSet(APIBaseViewSet):
             })
 
     def _statistic_login_by_time(self, enterprise_id, user_ids, from_param, to_param):
+        if from_param is None:
+            if to_param is None:
+                from_param = now() - 7 * 86400
+                to_param = now()
+            else:
+                from_param = to_param - 7 * 86400
+        if to_param is None:
+            to_param = now()
         start_date = datetime.fromtimestamp(from_param)
         end_date = datetime.fromtimestamp(to_param)
         durations_list = []
