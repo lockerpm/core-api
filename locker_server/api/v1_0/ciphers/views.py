@@ -279,7 +279,7 @@ class CipherPwdViewSet(APIBaseViewSet):
             user_ids=[user.user_id],
             team=cipher.team,
             add_all=True
-        ).send(data={"id": cipher.id})
+        ).send(data={"id": cipher.cipher_id})
         data = SyncCipherSerializer(cipher, many=False, context={"user": request.user}).data
         return Response(status=status.HTTP_200_OK, data=camel_snake_data(data, snake_to_camel=True))
 
