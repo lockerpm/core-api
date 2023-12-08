@@ -33,6 +33,10 @@ class UserRewardMission(object):
     def status(self):
         return self._status
 
+    @status.setter
+    def status(self, status_value):
+        self._status = status_value
+
     @property
     def is_claimed(self):
         return self._is_claimed
