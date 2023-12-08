@@ -29,9 +29,9 @@ class EnterprisePolicyORM(AbstractEnterprisePolicyORM):
         return new_policy
 
     @classmethod
-    def retrieve_or_create(cls, enterprise, policy_type: str, **kwargs):
-        policy, is_created = cls.objects.get_or_create(enterprise=enterprise, policy_type=policy_type, defaults={
-            "enterprise": enterprise, "policy_type": policy_type
+    def retrieve_or_create(cls, enterprise_id, policy_type: str, **kwargs):
+        policy, is_created = cls.objects.get_or_create(enterprise_id=enterprise_id, policy_type=policy_type, defaults={
+            "enterprise_id": enterprise_id, "policy_type": policy_type
         })
         if is_created is True:
             policy.create_detail(policy_type, **kwargs)
