@@ -442,7 +442,7 @@ class SharingORMRepository(SharingRepository):
                 #     # TODO: Check the member is in group or not. If the member group doesnt exist, create member group
                 #     continue
                 member_data = {
-                    "user_id": member_user_orm.user_id,
+                    "user_id": member_user_orm.user_id if member_user_orm else None,
                     "email": email,
                     "role": member.get("role"),
                     "key": member.get("key"),

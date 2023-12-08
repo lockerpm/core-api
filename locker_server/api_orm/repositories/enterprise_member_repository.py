@@ -251,7 +251,7 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
     def is_active_enterprise_member(self, user_id: int) -> bool:
         return EnterpriseMemberORM.objects.filter(
             user_id=user_id, status=E_MEMBER_STATUS_CONFIRMED, is_activated=True, enterprise__locked=False
-        )
+        ).exists()
 
     def is_in_enterprise(self, user_id: int, enterprise_locked: bool = None) -> bool:
         if enterprise_locked is not None:

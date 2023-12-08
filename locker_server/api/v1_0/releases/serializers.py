@@ -1,20 +1,27 @@
 from rest_framework import serializers
 
-from locker_server.shared.constants.release import LIST_RELEASE_ENVIRONMENT, RELEASE_ENVIRONMENT_PROD, \
-    LIST_RELEASE_PLATFORM
-from locker_server.shared.constants.device_type import CLIENT_ID_BROWSER, CLIENT_ID_DESKTOP
+from locker_server.shared.constants.release import *
+from locker_server.shared.constants.device_type import *
 
 
 class NewReleaseSerializer(serializers.Serializer):
     build = serializers.BooleanField()
-    client_id = serializers.ChoiceField(choices=[CLIENT_ID_BROWSER, CLIENT_ID_DESKTOP], default=CLIENT_ID_DESKTOP)
+    client_id = serializers.ChoiceField(
+        choices=[CLIENT_ID_BROWSER, CLIENT_ID_DESKTOP, CLIENT_ID_CLI,
+                 CLIENT_ID_SDK_PYTHON, CLIENT_ID_SDK_NODEJS, CLIENT_ID_SDK_DOTNET],
+        default=CLIENT_ID_DESKTOP
+    )
     environment = serializers.ChoiceField(choices=LIST_RELEASE_ENVIRONMENT, default=RELEASE_ENVIRONMENT_PROD)
     checksum = serializers.ListSerializer(child=serializers.DictField(), required=False)
     platform = serializers.ChoiceField(choices=LIST_RELEASE_PLATFORM, allow_null=True, default=None, required=False)
 
 
 class NextReleaseSerializer(serializers.Serializer):
-    client_id = serializers.ChoiceField(choices=[CLIENT_ID_BROWSER, CLIENT_ID_DESKTOP], default=CLIENT_ID_DESKTOP)
+    client_id = serializers.ChoiceField(
+        choices=[CLIENT_ID_BROWSER, CLIENT_ID_DESKTOP, CLIENT_ID_CLI,
+                 CLIENT_ID_SDK_PYTHON, CLIENT_ID_SDK_NODEJS, CLIENT_ID_SDK_DOTNET],
+        default=CLIENT_ID_DESKTOP
+    )
     environment = serializers.ChoiceField(choices=LIST_RELEASE_ENVIRONMENT, default=RELEASE_ENVIRONMENT_PROD)
     platform = serializers.ChoiceField(choices=LIST_RELEASE_PLATFORM, allow_null=True, default=None, required=False)
 
