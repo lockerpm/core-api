@@ -17,7 +17,11 @@ class NewReleaseSerializer(serializers.Serializer):
 
 
 class NextReleaseSerializer(serializers.Serializer):
-    client_id = serializers.ChoiceField(choices=[CLIENT_ID_BROWSER, CLIENT_ID_DESKTOP], default=CLIENT_ID_DESKTOP)
+    client_id = serializers.ChoiceField(
+        choices=[CLIENT_ID_BROWSER, CLIENT_ID_DESKTOP, CLIENT_ID_CLI,
+                 CLIENT_ID_SDK_PYTHON, CLIENT_ID_SDK_NODEJS, CLIENT_ID_SDK_DOTNET],
+        default=CLIENT_ID_DESKTOP
+    )
     environment = serializers.ChoiceField(choices=LIST_RELEASE_ENVIRONMENT, default=RELEASE_ENVIRONMENT_PROD)
     platform = serializers.ChoiceField(choices=LIST_RELEASE_PLATFORM, allow_null=True, default=None, required=False)
 
