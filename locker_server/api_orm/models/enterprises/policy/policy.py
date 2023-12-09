@@ -37,19 +37,6 @@ class EnterprisePolicyORM(AbstractEnterprisePolicyORM):
             policy.create_detail(policy_type, **kwargs)
         return policy
 
-    def create_detail(self, policy_type: str, **kwargs):
-        if policy_type == POLICY_TYPE_PASSWORD_REQUIREMENT:
-            from locker_server.core.entities.enterprise.policy.policy_password import PolicyPassword
-            PolicyPassword.create(self, **kwargs)
-        elif policy_type == POLICY_TYPE_MASTER_PASSWORD_REQUIREMENT:
-            PolicyMasterPassword.create(self, **kwargs)
-        elif policy_type == POLICY_TYPE_BLOCK_FAILED_LOGIN:
-            PolicyFailedLogin.create(self, **kwargs)
-        elif policy_type == POLICY_TYPE_PASSWORDLESS:
-            PolicyPasswordless.create(self, **kwargs)
-        elif policy_type == POLICY_TYPE_2FA:
-            Policy2FA.create(self, **kwargs)
-
     def get_config_obj(self):
         policy_type = self.policy_type
         if policy_type == POLICY_TYPE_PASSWORD_REQUIREMENT:
