@@ -56,7 +56,10 @@ class EnterpriseORMRepository(EnterpriseRepository):
         ).order_by('-creation_date')
         is_activated_param = filter_params.get("is_activated")
         if is_activated_param is not None:
-            enterprises_orm = enterprises_orm.filter(enterprise_members__is_activated=is_activated_param)
+            enterprises_orm = enterprises_orm.filter(
+                enterprise_members__user_id=user_id,
+                enterprise_members__is_activated=is_activated_param
+            )
         return [ModelParser.enterprise_parser().parse_enterprise(enterprise_orm=enterprise_orm)
                 for enterprise_orm in enterprises_orm]
 
