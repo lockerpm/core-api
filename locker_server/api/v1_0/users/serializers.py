@@ -22,7 +22,8 @@ class UserMeSerializer(serializers.Serializer):
             "sync_all_platforms": instance.sync_all_platforms,
             "is_password_changed": instance.is_password_changed,
             "login_method": instance.login_method,
-            "avatar": instance.get_avatar()
+            "avatar": instance.get_avatar(),
+            "is_super_admin": instance.is_super_admin
 
         }
         show_key_param = self.context["request"].query_params.get("show_key", "0")
