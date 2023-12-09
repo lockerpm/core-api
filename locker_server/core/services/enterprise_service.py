@@ -93,11 +93,6 @@ class EnterpriseService:
         )
         if len(policies) < len(LIST_POLICY_TYPE):
             policies = self.create_default_enterprise_policies(enterprise_id=enterprise_id)
-        for policy in policies:
-            policy.config = self.get_policy_config(
-                policy_id=policy.policy_id,
-                policy_type=policy.policy_type
-            )
         return policies
 
     def get_policy_by_type(self, enterprise_id: str, policy_type: str) -> Optional[EnterprisePolicy]:
@@ -165,7 +160,7 @@ class EnterpriseService:
             )
         else:
             config = None
-        return config
+        return config.get_config_json() if config else None
 
     def list_user_enterprises(self, user_id: int, **filters) -> List[Enterprise]:
         return self.enterprise_repository.list_user_enterprises(

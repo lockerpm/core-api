@@ -169,6 +169,7 @@ class EnterprisePolicyORMRepository(EnterprisePolicyRepository):
         policy_type = policy_create_data.get('policy_type')
         new_policy_orm, is_created = EnterprisePolicyORM.objects.get_or_create(
             enterprise_id=enterprise_id,
+            policy_type=policy_type,
             defaults={
                 "enterprise_id": enterprise_id, "policy_type": policy_type
             }
