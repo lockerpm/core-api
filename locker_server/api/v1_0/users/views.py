@@ -732,7 +732,8 @@ class UserPwdViewSet(APIBaseViewSet):
                     "set_up_passwordless": True if user.fd_credential_id else False,
                     "login_method": login_method,
                     "require_passwordless": require_passwordless,
-                    "default_plan": default_plan.pm_plan.alias
+                    "default_plan": default_plan.pm_plan.alias,
+                    "is_password_changed": user.is_password_changed
                 }
             )
         except UserDoesNotExistException:
