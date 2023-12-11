@@ -69,6 +69,7 @@ class CreateMemberSerializer(serializers.Serializer):
     key = serializers.CharField()
     keys = EncryptedPairKey(many=False)
     master_password_hint = serializers.CharField(required=False, allow_blank=True, max_length=128)
+    master_password_score = serializers.FloatField(required=False, allow_null=True, default=0)
 
     def validate(self, data):
         kdf_type = data.get("kdf_type", 0)

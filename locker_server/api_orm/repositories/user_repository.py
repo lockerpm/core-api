@@ -439,11 +439,10 @@ class UserORMRepository(UserRepository):
         user_orm.is_leaked = user_update_data.get("is_leaked", user_orm.is_leaked)
 
         user_orm.is_super_admin = user_update_data.get("is_super_admin", user_orm.is_super_admin)
-        user_orm.is_password_changed = user_update_data.get("is_password_changed", user_orm.is_password_changed)
         user_orm.sync_all_platforms = user_update_data.get("sync_all_platforms", user_orm.sync_all_platforms)
-
         if user_update_data.get("master_password_hash"):
             user_orm.set_master_password(raw_password=user_update_data.get("master_password_hash"))
+        user_orm.is_password_changed = user_update_data.get("is_password_changed", user_orm.is_password_changed)
 
         if scores:
             user_score_orm = self._retrieve_or_create_user_score_orm(user_orm=user_orm)
@@ -493,6 +492,8 @@ class UserORMRepository(UserRepository):
             return None
         user_orm.set_master_password(new_master_password_hash)
         user_orm.key = key or user_orm.key
+        user_orm.is_password_changed = True
+
         user_orm.master_password_hint = new_master_password_hint or user.master_password_hint
         if score:
             user_orm.master_password_score = score
