@@ -24,7 +24,6 @@ class UserMeSerializer(serializers.Serializer):
             "login_method": instance.login_method,
             "avatar": instance.get_avatar(),
             "is_super_admin": instance.is_super_admin,
-            "first_login": True if instance.first_login is None and instance.last_request_login is None else False,
             "is_factor2": instance.is_factor2
 
         }
