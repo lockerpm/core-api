@@ -23,7 +23,9 @@ class UserMeSerializer(serializers.Serializer):
             "is_password_changed": instance.is_password_changed,
             "login_method": instance.login_method,
             "avatar": instance.get_avatar(),
-            "is_super_admin": instance.is_super_admin
+            "is_super_admin": instance.is_super_admin,
+            "first_login": True if instance.first_login is None and instance.last_request_login is None else False,
+            "is_factor2": instance.is_factor2
 
         }
         show_key_param = self.context["request"].query_params.get("show_key", "0")
