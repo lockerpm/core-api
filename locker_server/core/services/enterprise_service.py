@@ -275,9 +275,9 @@ class EnterpriseService:
                     user_id=user.user_id
                 ),
                 "user_name": user.full_name or user.username or user.email,
-                "user_language": user.language
+                "user_language": user.language,
+                "user_email": member_email
             }
-
             added_emails.append(member_email)
             members_create_data.append(member_create_data)
             added_members.append(member_create_data)
