@@ -94,7 +94,9 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
                     Q(user__full_name__icontains=q) | Q(user__email__icontains=q) | Q(email__icontains=q)
                 )
             else:
-                mem_user_ids = list(enterprise_members_orm.values_list('user_id', flat=True))
+                mem_user_ids = list(
+                    enterprise_members_orm.exclude(user_id__isnull=True).values_list('user_id', flat=True)
+                )
                 users_data = UserORM.get_infor_by_user_ids(
                     user_ids=mem_user_ids, **{"q": q_param}
                 )
