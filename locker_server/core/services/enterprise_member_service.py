@@ -347,6 +347,15 @@ class EnterpriseMemberService:
             enterprise_member_id=enterprise_member_id
         )
 
+    def update_member_status_by_user_id(self, user_id: int, status: str):
+        update_data = {
+            "status": status
+        }
+        self.enterprise_member_repository.update_batch_enterprise_members_by_user_ids(
+            user_ids=[user_id],
+            **update_data
+        )
+
     @staticmethod
     def create_invitation_token(secret: str, email: str, enterprise_id: str, scope: str = None) -> str:
         created_time = now()

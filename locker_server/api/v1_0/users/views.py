@@ -24,7 +24,7 @@ from locker_server.core.exceptions.user_exception import UserDoesNotExistExcepti
     UserResetPasswordTokenInvalidException, UserFactor2IsNotActiveException, UserFactor2IsNotValidException
 from locker_server.settings import locker_server_settings
 from locker_server.shared.constants.account import *
-from locker_server.shared.constants.transactions import PLAN_TYPE_PM_ENTERPRISE
+from locker_server.shared.constants.enterprise_members import E_MEMBER_STATUS_ACCESSED
 from locker_server.shared.error_responses.error import refer_error, gen_error
 from locker_server.api.v1_0.ciphers.serializers import VaultItemSerializer, UpdateVaultItemSerializer
 from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
@@ -394,6 +394,7 @@ class UserPwdViewSet(APIBaseViewSet):
     @action(methods=["post"], detail=False)
     def password(self, request, *args, **kwargs):
         user = self.request.user
+        is_password_changed_before = user.is_password_changed
         ip = self.get_ip()
         # self.check_pwd_session_auth(request=request)
         serializer = self.get_serializer(data=request.data)
@@ -492,6 +493,13 @@ class UserPwdViewSet(APIBaseViewSet):
                         "os": os,
                         "browser": browser,
                     }
+                )
+
+            # Update member status if user in enterprise
+            if not is_password_changed_before:
+                self.enterprise_member_service.update_member_status_by_user_id(
+                    user_id=user.user_id,
+                    status=E_MEMBER_STATUS_ACCESSED
                 )
             return Response(status=status.HTTP_200_OK, data={"success": True, "token": access_token})
 

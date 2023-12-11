@@ -703,11 +703,12 @@ class UserService:
             "private_key": keys.get("encrypted_private_key"),
         }
         user = self.user_repository.update_user(user_id=member.user.user_id, user_update_data=user_update_data)
-        # Delete token
+        # Update member: delete invitation token, update status
         self.enterprise_member_repository.update_enterprise_member(
             enterprise_member_id=member.enterprise_member_id,
             enterprise_member_update_data={
-                "token_invitation": ""
+                "token_invitation": "",
+                "status": E_MEMBER_STATUS_ACCESSED,
             }
         )
 

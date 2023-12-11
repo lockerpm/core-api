@@ -24,7 +24,7 @@ from locker_server.core.repositories.enterprise_policy_repository import Enterpr
 from locker_server.core.repositories.enterprise_repository import EnterpriseRepository
 from locker_server.core.repositories.user_repository import UserRepository
 from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_PRIMARY_ADMIN, E_MEMBER_STATUS_CONFIRMED, \
-    E_MEMBER_STATUS_INVITED
+    E_MEMBER_STATUS_INVITED, E_MEMBER_STATUS_CREATED
 from locker_server.shared.constants.policy import LIST_POLICY_TYPE, POLICY_TYPE_PASSWORD_REQUIREMENT, \
     POLICY_TYPE_MASTER_PASSWORD_REQUIREMENT, POLICY_TYPE_BLOCK_FAILED_LOGIN, POLICY_TYPE_PASSWORDLESS, POLICY_TYPE_2FA
 from locker_server.shared.constants.token import TOKEN_EXPIRED_TIME_INVITE_MEMBER, TOKEN_TYPE_RESET_PASSWORD, \
@@ -268,7 +268,7 @@ class EnterpriseService:
             member_create_data = {
                 "enterprise_id": current_enterprise.enterprise_id,
                 "role_id": member_data.get("role"),
-                "status": E_MEMBER_STATUS_CONFIRMED,
+                "status": E_MEMBER_STATUS_CREATED,
                 "user_id": user.user_id,
                 "token_invitation": self.create_invitation_token(
                     secret=secret,
