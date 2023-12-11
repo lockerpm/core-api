@@ -8,6 +8,8 @@ from django.core.exceptions import ValidationError
 # Get gravatar by email
 def get_avatar(email):
     size = 128
+    if email is None:
+        email = ""
     gravatar_url = "https://www.gravatar.com/avatar/" + hashlib.md5(email.lower().encode("utf-8")).hexdigest() + "?"
     gravatar_url += urllib.parse.urlencode({'d': "identicon", 's': str(size)})
 
