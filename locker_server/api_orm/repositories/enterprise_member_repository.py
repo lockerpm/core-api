@@ -87,11 +87,21 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
                 search_by_email = enterprise_members_orm.filter(email__icontains=email_param)
             enterprise_members_orm = (search_by_users | search_by_email | search_by_user).distinct()
 
-        if q_param and settings.SELF_HOSTED:
+        if q_param:
             q = q_param.lower()
-            enterprise_members_orm = enterprise_members_orm.filter(
-                Q(user__full_name__icontains=q) | Q(user__email__icontains=q) | Q(email__icontains=q)
-            )
+            if settings.SELF_HOSTED:
+                enterprise_members_orm = enterprise_members_orm.filter(
+                    Q(user__full_name__icontains=q) | Q(user__email__icontains=q) | Q(email__icontains=q)
+                )
+            else:
+                mem_user_ids = list(enterprise_members_orm.values_list('user_id', flat=True))
+                users_data = UserORM.get_infor_by_user_ids(
+                    user_ids=mem_user_ids, **{"q": q_param}
+                )
+                user_ids = [u.get("id") for u in users_data]
+                enterprise_members_orm = enterprise_members_orm.filter(
+                    Q(user_id__in=user_ids) | Q(email__icontains=q)
+                )
 
         # Filter by status
         if status_param:
