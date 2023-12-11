@@ -260,6 +260,7 @@ class EnterpriseService:
                 "public_key": keys.get("public_key"),
                 "private_key": keys.get("encrypted_private_key"),
                 "master_password_hint": member_data.get("master_password_hint", ""),
+                "master_password_score": member_data.get("master_password_score", 0),
                 "activated": True,
                 "activated_date": now()
             }

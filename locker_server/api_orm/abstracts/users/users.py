@@ -73,7 +73,6 @@ class AbstractUserORM(models.Model):
 
     def set_master_password(self, raw_password):
         self.master_password = make_password(raw_password)
-        self.is_password_changed = True
         self._password = raw_password
 
     def check_master_password(self, raw_password):

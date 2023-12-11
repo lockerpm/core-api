@@ -223,3 +223,4 @@ class UserResetPasswordSerializer(serializers.Serializer):
     token = serializers.CharField()
     new_password = serializers.CharField(max_length=256)
     new_key = serializers.CharField(required=False)
+    keys = EncryptedPairKey(many=False)
