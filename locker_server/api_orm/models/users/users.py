@@ -54,6 +54,26 @@ class UserORM(AbstractUserORM):
             password_validation.password_changed(self._password, self)
             self._password = None
 
+    @classmethod
+    def get_infor_by_user_ids(cls, user_ids, **filter_params):
+        url = f"{settings.GATEWAY_API}/micro_services/users"
+        headers = {'Authorization': settings.GATEWAY_TOKEN}
+        data_send = {"ids": user_ids, "emails": [], "q": filter_params.get("q")}
+        data_send.update(filter_params)
+        res = requester(method="POST", url=url, headers=headers, data_send=data_send, retry=True)
+        if res.status_code == 200:
+            return res.json()
+        return []
+
+    @classmethod
+    def get_user_data_by_user_ids(cls, user_ids, **filter_params):
+        users_data = cls.get_infor_by_user_ids(user_ids=list(set(user_ids)), **filter_params)
+        users_data_dict = dict()
+        for user_data in users_data:
+            users_data_dict[user_data.get("id")] = user_data
+        return users_data_dict
+
+
     def get_from_cystack_id(self):
         """
         Request to API Gateway to get user information

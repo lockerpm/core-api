@@ -267,7 +267,7 @@ class EnterprisePwdViewSet(APIBaseViewSet):
 
         for enterprise_member in enterprise_members:
             user_id = enterprise_member.get("user_id")
-            email = enterprise_member.get("email")
+            email = enterprise_member.get("user_email")
             user_name = enterprise_member.get("user_name")
             user_language = enterprise_member.get("user_language")
             token = enterprise_member.get("token_invitation")

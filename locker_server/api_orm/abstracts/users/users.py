@@ -60,6 +60,14 @@ class AbstractUserORM(models.Model):
     def retrieve_or_create(cls, **kwargs):
         raise NotImplementedError
 
+    @classmethod
+    def get_infor_by_user_ids(cls, user_ids, **filter_params):
+        raise NotImplementedError
+
+    @classmethod
+    def get_user_data_by_user_ids(cls, user_ids, **filter_params):
+        raise NotImplementedError
+
     def get_from_cystack_id(self):
         raise NotImplementedError
 
