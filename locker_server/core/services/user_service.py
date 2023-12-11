@@ -708,7 +708,7 @@ class UserService:
             enterprise_member_id=member.enterprise_member_id,
             enterprise_member_update_data={
                 "token_invitation": "",
-                "status": E_MEMBER_STATUS_ACCESSED,
+                "status": E_MEMBER_STATUS_CONFIRMED,
             }
         )
 
