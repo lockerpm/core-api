@@ -15,7 +15,7 @@ from locker_server.core.entities.enterprise.policy.policy_password import Policy
 from locker_server.core.entities.enterprise.policy.policy_passwordless import PolicyPasswordless
 from locker_server.core.repositories.enterprise_policy_repository import EnterprisePolicyRepository
 from locker_server.shared.constants.enterprise_members import E_MEMBER_STATUS_CONFIRMED
-from locker_server.shared.constants.policy import POLICY_TYPE_BLOCK_FAILED_LOGIN, POLICY_TYPE_2FA
+from locker_server.shared.constants.policy import *
 
 UserORM = get_user_model()
 DomainORM = get_enterprise_domain_model()
@@ -27,6 +27,18 @@ ModelParser = get_model_parser()
 
 
 class EnterprisePolicyORMRepository(EnterprisePolicyRepository):
+    def create_detail(self, policy: EnterprisePolicyORM, policy_type: str, **kwargs):
+        if policy_type == POLICY_TYPE_PASSWORD_REQUIREMENT:
+            PolicyPasswordORM.create(policy, **kwargs)
+        elif policy_type == POLICY_TYPE_MASTER_PASSWORD_REQUIREMENT:
+            PolicyMasterPasswordORM.create(policy, **kwargs)
+        elif policy_type == POLICY_TYPE_BLOCK_FAILED_LOGIN:
+            PolicyFailedLoginORM.create(policy, **kwargs)
+        elif policy_type == POLICY_TYPE_PASSWORDLESS:
+            PolicyPasswordlessORM.create(policy, **kwargs)
+        elif policy_type == POLICY_TYPE_2FA:
+            Policy2FAORM.create(policy, **kwargs)
+
     # ------------------------ List EnterprisePolicy resource ------------------- #
     def list_policies_by_user(self, user_id: int) -> List[EnterprisePolicy]:
         enterprise_ids = list(EnterpriseMemberORM.objects.filter(
@@ -153,7 +165,17 @@ class EnterprisePolicyORMRepository(EnterprisePolicyRepository):
     # ------------------------ Create EnterprisePolicy resource --------------------- #
 
     def create_policy(self, policy_create_data) -> EnterprisePolicy:
-        new_policy_orm = EnterprisePolicyORM.retrieve_or_create(**policy_create_data)
+        enterprise_id = policy_create_data.get('enterprise_id')
+        policy_type = policy_create_data.get('policy_type')
+        new_policy_orm, is_created = EnterprisePolicyORM.objects.get_or_create(
+            enterprise_id=enterprise_id,
+            policy_type=policy_type,
+            defaults={
+                "enterprise_id": enterprise_id, "policy_type": policy_type
+            }
+
+        )
+        self.create_detail(new_policy_orm, **policy_create_data)
         return ModelParser.enterprise_parser().parse_enterprise_policy(enterprise_policy_orm=new_policy_orm)
 
     # ------------------------ Update EnterprisePolicy resource --------------------- #

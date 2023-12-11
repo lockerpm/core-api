@@ -121,7 +121,6 @@ class EnterpriseParser:
             policy_type=enterprise_policy_orm.policy_type,
             enabled=enterprise_policy_orm.enabled
         )
-        enterprise_policy.config = enterprise_policy_orm.get_config_json()
         return enterprise_policy
 
     @classmethod

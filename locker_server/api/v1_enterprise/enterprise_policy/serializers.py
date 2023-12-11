@@ -3,11 +3,10 @@ from rest_framework import serializers
 
 class ListPolicySerializer(serializers.Serializer):
     def to_representation(self, instance):
-        config = instance.get_config_json()
         data = {
             "enabled": instance.enabled,
             "policy_type": instance.policy_type,
-            "config": config
+            "config": self.context.get("get_config_func")(instance.policy_id, instance.policy_type)
         }
         return data
 

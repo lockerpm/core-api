@@ -37,6 +37,12 @@ class PolicyPwdViewSet(APIBaseViewSet):
                 self.serializer_class = Update2FAPolicySerializer
         return super(PolicyPwdViewSet, self).get_serializer_class()
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        if self.action in ["list", "retrieve"]:
+            context["get_config_func"] = self.enterprise_service.get_policy_config
+        return context
+
     def get_queryset(self):
         enterprise = self.get_enterprise()
         try:
@@ -104,4 +110,3 @@ class PolicyPwdViewSet(APIBaseViewSet):
             if not user_id:
                 continue
             self.user_service.delete_sync_cache_data(user_id=user_id)
-
