@@ -468,6 +468,8 @@ class UserORMRepository(UserRepository):
         user_orm.login_failed_attempts = update_data.get("login_failed_attempts", user_orm.login_failed_attempts)
         user_orm.last_request_login = update_data.get("last_request_login", user_orm.last_request_login)
         user_orm.login_block_until = update_data.get("login_block_until", user_orm.login_block_until)
+        if user_orm.first_login is None:
+            user_orm.first_login = now()
         user_orm.save()
         return ModelParser.user_parser().parse_user(user_orm=user_orm)
 
