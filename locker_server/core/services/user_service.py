@@ -492,12 +492,16 @@ class UserService:
 
     def change_master_password(self, user: User, key: str, master_password_hash: str, new_master_password_hash: str,
                                new_master_password_hint: str = None, score: float = None, login_method: str = None,
-                               current_sso_token_id: str = None):
+                               current_sso_token_id: str = None,
+                               require_enterprise_member_status: str = E_MEMBER_STATUS_CONFIRMED):
         if master_password_hash:
             if self.auth_repository.check_master_password(user=user, raw_password=master_password_hash) is False:
                 raise UserAuthFailedException
         if login_method and login_method == LOGIN_METHOD_PASSWORD and \
-                self.is_enterprise_require_passwordless(user_id=user.user_id) is True:
+                self.is_enterprise_require_passwordless(
+                    user_id=user.user_id,
+                    require_enterprise_member_status=require_enterprise_member_status
+                ) is True:
             raise UserAuthFailedPasswordlessRequiredException
         self.user_repository.change_master_password(
             user=user, new_master_password_hash=new_master_password_hash,
