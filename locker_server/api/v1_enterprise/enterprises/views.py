@@ -62,10 +62,16 @@ class EnterprisePwdViewSet(APIBaseViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        user_memberships = self.enterprise_member_service.list_enterprise_members(**{
-            "user_id": user.user_id,
-            "status": E_MEMBER_STATUS_CONFIRMED
-        })
+        filter_params = {
+            "user_id": user.user_id
+        }
+        if not settings.SELF_HOSTED:
+            filter_params.update({
+                "status": E_MEMBER_STATUS_CONFIRMED
+
+            })
+
+        user_memberships = self.enterprise_member_service.list_enterprise_members(**filter_params)
 
         return user_memberships
 
