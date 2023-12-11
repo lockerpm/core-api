@@ -57,7 +57,7 @@ class UserORM(AbstractUserORM):
     @classmethod
     def get_infor_by_user_ids(cls, user_ids, **filter_params):
         url = f"{settings.GATEWAY_API}/micro_services/users"
-        headers = {'Authorization': settings.GATEWAY_TOKEN}
+        headers = {'Authorization': settings.MICRO_SERVICE_USER_AUTH}
         data_send = {"ids": user_ids, "emails": [], "q": filter_params.get("q")}
         data_send.update(filter_params)
         res = requester(method="POST", url=url, headers=headers, data_send=data_send, retry=True)
@@ -72,7 +72,6 @@ class UserORM(AbstractUserORM):
         for user_data in users_data:
             users_data_dict[user_data.get("id")] = user_data
         return users_data_dict
-
 
     def get_from_cystack_id(self):
         """
