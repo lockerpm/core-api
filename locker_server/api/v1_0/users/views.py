@@ -732,7 +732,8 @@ class UserPwdViewSet(APIBaseViewSet):
                     "set_up_passwordless": True if user.fd_credential_id else False,
                     "login_method": login_method,
                     "require_passwordless": require_passwordless,
-                    "default_plan": default_plan.pm_plan.alias
+                    "default_plan": default_plan.pm_plan.alias,
+                    "is_password_changed": user.is_password_changed
                 }
             )
         except UserDoesNotExistException:
@@ -743,11 +744,13 @@ class UserPwdViewSet(APIBaseViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
+        keys = validated_data.get("keys", {})
         try:
             self.user_service.reset_password_by_token(
                 token_value=validated_data.get("token"),
                 new_password=validated_data.get("new_password"),
                 new_key=validated_data.get("new_key"),
+                keys=keys,
                 secret=settings.SECRET_KEY
             )
         except UserResetPasswordTokenInvalidException:

@@ -685,7 +685,8 @@ class UserService:
             return member
         return None
 
-    def reset_password_by_token(self, secret: str, token_value: str, new_password: str, new_key: str = None):
+    def reset_password_by_token(self, secret: str, token_value: str, new_password: str, new_key: str = None,
+                                keys: Dict = {}):
         member = self.check_reset_password_token(
             token_value=token_value,
             secret=secret
@@ -697,10 +698,18 @@ class UserService:
             new_master_password_hash=new_password,
             key=new_key
         )
+        user_update_data = {
+            "public_key": keys.get("public_key"),
+            "private_key": keys.get("encrypted_private_key"),
+        }
+        user = self.user_repository.update_user(user_id=member.user.user_id, user_update_data=user_update_data)
         # Delete token
-        self.enterprise_member_repository.update_enterprise_member(**{
-            "token_invitation": ""
-        })
+        self.enterprise_member_repository.update_enterprise_member(
+            enterprise_member_id=member.enterprise_member_id,
+            enterprise_member_update_data={
+                "token_invitation": ""
+            }
+        )
 
     def user_session_by_otp(self, user: User, password: str, method: str, otp_code: str, client_id: str = None,
                             device_identifier: str = None,
