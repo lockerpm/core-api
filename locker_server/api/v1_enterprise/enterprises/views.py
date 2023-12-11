@@ -276,7 +276,7 @@ class EnterprisePwdViewSet(APIBaseViewSet):
             ).send(**{
                 "destinations": [{"email": email, "name": user_name, "language": user_language}],
                 "user_email": email,
-                "login_url": self.get_login_url(token_value=token),
+                "login_url": self.get_login_url(token_value=token, email=email),
                 "enterprise_name": current_enterprise.name
             })
 
@@ -359,11 +359,11 @@ class EnterprisePwdViewSet(APIBaseViewSet):
         return enterprises_data
 
     @staticmethod
-    def get_login_url(token_value: str):
+    def get_login_url(token_value: str, email: str):
         env = os.getenv("PROD_ENV", "dev")
         if env == "dev":
             login_url = os.getenv("INVITATION_LOGIN_URL_DEV", "")
         else:
             login_url = os.getenv("INVITATION_LOGIN_URL", "")
-        login_url += f"?token={token_value}"
+        login_url += f"?token={token_value}&email={email}"
         return login_url
