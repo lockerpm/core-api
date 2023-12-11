@@ -142,10 +142,21 @@ class UserPwdViewSet(APIBaseViewSet):
             block_by_source = self.user_service.is_blocked_by_source(
                 user=user, utm_source=self.request.query_params.get("utm_source")
             )
+            if settings.SELF_HOSTED:
+                require_passwordless = self.user_service.is_require_passwordless(
+                    user_id=user.user_id,
+                    require_enterprise_member_status=None
+                )
+            else:
+                require_passwordless = self.user_service.is_require_passwordless(
+                    user_id=user.user_id,
+                )
             me_data.update({
                 "block_by_source": block_by_source,
                 "pwd_user_type": user_type,
                 "pwd_plan": pm_current_plan.pm_plan.alias,
+                "is_require_passwordless": require_passwordless
+
             })
             return Response(status=status.HTTP_200_OK, data=me_data)
 
@@ -163,7 +174,15 @@ class UserPwdViewSet(APIBaseViewSet):
     def login_method_me(self, request, *args, **kwargs):
         user = self.request.user
         login_method = user.login_method
-        require_passwordless = self.user_service.is_require_passwordless(user_id=user.user_id)
+        if settings.SELF_HOSTED:
+            require_passwordless = self.user_service.is_require_passwordless(
+                user_id=user.user_id,
+                require_enterprise_member_status=None
+            )
+        else:
+            require_passwordless = self.user_service.is_require_passwordless(
+                user_id=user.user_id,
+            )
         return Response(status=status.HTTP_200_OK, data={
             "set_up_passwordless": True if user.fd_credential_id else False,
             "login_method": login_method,
@@ -410,12 +429,17 @@ class UserPwdViewSet(APIBaseViewSet):
         try:
             decoded_token = self.auth_service.decode_token(request.auth.access_token, secret=settings.SECRET_KEY)
             sso_token_id = decoded_token.get("sso_token_id") if decoded_token else None
+            if settings.SELF_HOSTED:
+                require_enterprise_member_status = None
+            else:
+                require_enterprise_member_status = E_MEMBER_STATUS_CONFIRMED
             result = self.user_service.change_master_password(
                 user=user, key=key, master_password_hash=master_password_hash,
                 new_master_password_hash=new_master_password_hash,
                 new_master_password_hint=new_master_password_hint,
                 score=score, login_method=login_method,
-                current_sso_token_id=sso_token_id
+                current_sso_token_id=sso_token_id,
+                require_enterprise_member_status=require_enterprise_member_status
             )
         except UserAuthFailedPasswordlessRequiredException:
             raise ValidationError(detail={"login_method": ["Your enterprise requires passwordless method"]})
@@ -727,7 +751,15 @@ class UserPwdViewSet(APIBaseViewSet):
                 email=email
             )
             login_method = user.login_method
-            require_passwordless = self.user_service.is_require_passwordless(user_id=user.user_id)
+            if settings.SELF_HOSTED:
+                require_passwordless = self.user_service.is_require_passwordless(
+                    user_id=user.user_id,
+                    require_enterprise_member_status=None
+                )
+            else:
+                require_passwordless = self.user_service.is_require_passwordless(
+                    user_id=user.user_id,
+                )
             default_plan = self.user_service.get_current_plan(user=user)
             return Response(
                 status=status.HTTP_200_OK,
