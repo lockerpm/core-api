@@ -785,13 +785,17 @@ class UserPwdViewSet(APIBaseViewSet):
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
         keys = validated_data.get("keys", {})
+        full_name = validated_data.get("full_name")
         try:
             self.user_service.reset_password_by_token(
                 token_value=validated_data.get("token"),
                 new_password=validated_data.get("new_password"),
                 new_key=validated_data.get("new_key"),
                 keys=keys,
-                secret=settings.SECRET_KEY
+                secret=settings.SECRET_KEY,
+                **{
+                    "full_name": full_name
+                }
             )
         except UserResetPasswordTokenInvalidException:
             raise ValidationError(detail=[{"token": "The reset password token is invalid"}])
