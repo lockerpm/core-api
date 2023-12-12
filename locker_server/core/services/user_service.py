@@ -691,7 +691,8 @@ class UserService:
             return member
         return None
 
-    def reset_password_by_token(self, secret: str, token_value: str, new_password: str, new_key: str = None,
+    def reset_password_by_token(self, secret: str, token_value: str, new_password: str, login_method: str = None,
+                                new_key: str = None,
                                 keys: Dict = {}, **user_update_data):
         member = self.check_reset_password_token(
             token_value=token_value,
@@ -702,7 +703,8 @@ class UserService:
         self.user_repository.change_master_password(
             user=member.user,
             new_master_password_hash=new_password,
-            key=new_key
+            key=new_key,
+            login_method=login_method
         )
         user_update_data.update({
             "public_key": keys.get("public_key"),
