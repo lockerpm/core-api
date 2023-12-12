@@ -7,8 +7,6 @@ from locker_server.shared.constants.transactions import PLAN_TYPE_PM_LIFETIME, P
     DURATION_MONTHLY
 from locker_server.shared.utils.app import now
 
-PromoCodeTypeORM = locker_server_settings.LS_PROMO_CODE_TYPE_MODEL
-
 
 class PromoCodeORM(AbstractPromoCodeORM):
     is_saas_code = models.BooleanField(default=False)
@@ -48,7 +46,7 @@ class PromoCodeORM(AbstractPromoCodeORM):
         saas_plan = data.get("saas_plan")
         if is_saas_code is True:
             saas_plan = saas_plan or PLAN_TYPE_PM_LIFETIME
-
+        PromoCodeTypeORM = cls._meta.get_field('type').related_model
         new_promo_code = cls(
             created_time=now(), expired_time=expired_time, remaining_times=number_code, code=code,
             value=value, limit_value=limit_value, currency=currency,
@@ -57,7 +55,6 @@ class PromoCodeORM(AbstractPromoCodeORM):
             description_vi=description_vi, description_en=description_en,
             only_user_id=only_user_id,
             only_period=only_period,
-            only_plan=only_plan,
             is_saas_code=is_saas_code, saas_market_id=saas_market_id, saas_plan=saas_plan
         )
         new_promo_code.save()
