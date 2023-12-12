@@ -5,7 +5,7 @@ from django.conf import settings
 # from django.conf import settings
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound, ValidationError, AuthenticationFailed
+from rest_framework.exceptions import NotFound, ValidationError, AuthenticationFailed, PermissionDenied
 from rest_framework.response import Response
 
 from locker_server.api.api_base_view import APIBaseViewSet
@@ -38,7 +38,8 @@ from locker_server.shared.utils.network import get_ip_by_request, detect_device
 from .serializers import UserMeSerializer, UserUpdateMeSerializer, UserRegisterSerializer, UserSessionSerializer, \
     DeviceFcmSerializer, UserChangePasswordSerializer, UserNewPasswordSerializer, UserCheckPasswordSerializer, \
     UserMasterPasswordHashSerializer, UpdateOnboardingProcessSerializer, UserPwdInvitationSerializer, \
-    UserDeviceSerializer, PreloginSerializer, UserResetPasswordSerializer, UserSessionByOtpSerializer
+    UserDeviceSerializer, PreloginSerializer, UserResetPasswordSerializer, UserSessionByOtpSerializer, \
+    UserAccessTokenSerializer
 
 
 class UserPwdViewSet(APIBaseViewSet):
@@ -87,6 +88,8 @@ class UserPwdViewSet(APIBaseViewSet):
             self.serializer_class = PreloginSerializer
         elif self.action == "reset_password":
             self.serializer_class = UserResetPasswordSerializer
+        elif self.action == "access_token":
+            self.serializer_class = UserAccessTokenSerializer
         return super().get_serializer_class()
 
     @action(methods=["post"], detail=False)
@@ -800,3 +803,33 @@ class UserPwdViewSet(APIBaseViewSet):
         except UserResetPasswordTokenInvalidException:
             raise ValidationError(detail=[{"token": "The reset password token is invalid"}])
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(methods=["post"], detail=False)
+    def access_token(self, request, *args, **kwargs):
+        if not settings.SELF_HOSTED:
+            raise PermissionDenied
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        ip = self.get_ip()
+        ua_string = self.get_client_agent()
+        client_id = validated_data.get("client_id")
+        device_identifier = validated_data.get("device_identifier")
+        device_name = validated_data.get("device_name")
+        device_type = validated_data.get("device_type")
+        try:
+            access_token = self.user_service.gen_access_token_by_reset_password_token(
+                token_value=validated_data.get("token"),
+                secret=settings.SECRET_KEY,
+                ip=ip,
+                ua=ua_string,
+                client_id=client_id,
+                device_identifier=device_identifier,
+                device_name=device_name,
+                device_type=device_type
+            )
+        except UserResetPasswordTokenInvalidException:
+            raise ValidationError(detail=[{"token": "The reset password token is invalid"}])
+        return Response(status=status.HTTP_200_OK, data={
+            "access_token": access_token
+        })
