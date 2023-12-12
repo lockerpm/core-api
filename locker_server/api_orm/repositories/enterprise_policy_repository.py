@@ -88,8 +88,8 @@ class EnterprisePolicyORMRepository(EnterprisePolicyRepository):
         return ModelParser.enterprise_parser().parse_policy_failed_login(policy_orm.policy_failed_login)
 
     def get_enterprise_2fa_policy(self, enterprise_id: str) -> Optional[Policy2FA]:
-        policy_2fa_orm = EnterprisePolicyORM.objects.filter(
-            enterprise_id=enterprise_id, policy_type=POLICY_TYPE_2FA, enabled=True
+        policy_2fa_orm = Policy2FAORM.objects.filter(
+            policy__enterprise_id=enterprise_id, policy__policy_type=POLICY_TYPE_2FA, policy__enabled=True
         ).first()
         return ModelParser.enterprise_parser().parse_policy_2fa(policy_2fa_orm=policy_2fa_orm) \
             if policy_2fa_orm else None
