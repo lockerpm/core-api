@@ -225,3 +225,11 @@ class UserResetPasswordSerializer(serializers.Serializer):
     new_key = serializers.CharField(required=False)
     keys = EncryptedPairKey(many=False)
     full_name = serializers.CharField(required=False, allow_blank=False)
+
+
+class UserAccessTokenSerializer(serializers.Serializer):
+    token = serializers.CharField()
+    client_id = serializers.ChoiceField(choices=LIST_CLIENT_ID)
+    device_identifier = serializers.CharField()
+    device_name = serializers.CharField(required=False, allow_blank=True)
+    device_type = serializers.IntegerField(required=False)

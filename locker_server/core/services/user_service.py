@@ -673,6 +673,8 @@ class UserService:
             value=token_value,
             secret=secret
         )
+        if not payload:
+            return None
         token_type = payload.get("token_type")
         if token_type != TOKEN_TYPE_RESET_PASSWORD:
             return None
@@ -715,6 +717,49 @@ class UserService:
                 "status": E_MEMBER_STATUS_CONFIRMED,
             }
         )
+
+    def gen_access_token_by_reset_password_token(self, token_value: str, secret: str, client_id: str = None,
+                                                 device_identifier: str = None,
+                                                 device_name: str = None, device_type: str = None, ip: str = None,
+                                                 ua: str = None
+                                                 ):
+        member = self.check_reset_password_token(
+            token_value=token_value,
+            secret=secret
+        )
+        if not member:
+            raise UserResetPasswordTokenInvalidException
+        user = member.user
+        device_info = detect_device(ua_string=ua)
+        device_obj = self.device_repository.retrieve_or_create(user_id=user.user_id, **{
+            "client_id": client_id,
+            "device_name": device_name,
+            "device_type": device_type,
+            "device_identifier": device_identifier,
+            "os": device_info.get("os"),
+            "browser": device_info.get("browser"),
+            "scope": "api offline_access",
+            "token_type": "Bearer",
+            "refresh_token": secure_random_string(length=64, lower=False)
+        })
+
+        # Retrieve or create new access token
+        access_token = self.device_access_token_repository.fetch_device_access_token(
+            device=device_obj, renewal=True,
+            credential_key=user.key
+        )
+
+        result = {
+            "refresh_token": device_obj.refresh_token,
+            "access_token": access_token.access_token,
+            "token_type": device_obj.token_type,
+            "public_key": user.public_key,
+            "private_key": user.private_key,
+            "key": user.key,
+            "kdf": user.kdf,
+            "is_super_admin": user.is_super_admin
+        }
+        return result
 
     def user_session_by_otp(self, user: User, password: str, method: str, otp_code: str, client_id: str = None,
                             device_identifier: str = None,
