@@ -225,6 +225,7 @@ class UserResetPasswordSerializer(serializers.Serializer):
     new_key = serializers.CharField(required=False)
     keys = EncryptedPairKey(many=False)
     full_name = serializers.CharField(required=False, allow_blank=False)
+    login_method = serializers.ChoiceField(choices=[LOGIN_METHOD_PASSWORD, LOGIN_METHOD_PASSWORDLESS])
 
 
 class UserAccessTokenSerializer(serializers.Serializer):
