@@ -293,6 +293,9 @@ class UserPwdViewSet(APIBaseViewSet):
         except UserBelongEnterpriseException:
             raise ValidationError({"non_field_errors": [gen_error("1011")]})
         except User2FARequireException:
+            if not user.is_factor2:
+                user_factor2_info = self.factor2_service.get_factor2(user_id=user.user_id)
+                return Response(status=status.HTTP_200_OK, data=user_factor2_info)
             raise ValidationError({"non_field_errors": [gen_error("1012")]})
 
     @action(methods=["post"], detail=False)
