@@ -46,18 +46,3 @@ class EnterpriseMemberORM(AbstractEnterpriseMemberORM):
             enterprises_orm.append(enterprise_orm)
         new_members_obj = cls.objects.bulk_create(enterprises_orm, ignore_conflicts=True, batch_size=100)
         return len(new_members_obj)
-
-    @classmethod
-    def create_multiple(cls, enterprise, *members: [Dict]):
-        for member in members:
-            try:
-                cls.create(
-                    enterprise=enterprise,
-                    user_id=member["user_id"],
-                    role_id=member["role_id"],
-                    is_primary=member.get("is_primary", False),
-                    is_default=member.get("is_default", False),
-                    status=member.get("status", E_MEMBER_STATUS_INVITED)
-                )
-            except:
-                continue
