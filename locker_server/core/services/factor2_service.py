@@ -16,7 +16,7 @@ from locker_server.shared.constants.factor2 import FA2_METHOD_MAIL_OTP, LIST_FA2
 from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
 from locker_server.shared.external_services.locker_background.constants import BG_NOTIFY
 from locker_server.shared.external_services.user_notification.list_jobs import ID_FACTOR2_MAIL_LOGIN, \
-    ID_FACTOR2_ENABLED_SUCCESSFULLY, ID_FACTOR2_DISABLED, ID_FACTOR2_ENABLED, ID_FACTOR2_DISABLED_SUCCESSFULLY
+    ID_FACTOR2_ENABLED_SUCCESSFULLY, ID_FACTOR2_DISABLED_SUCCESSFULLY
 from locker_server.shared.utils.app import get_ip_location, now
 
 
@@ -246,12 +246,12 @@ class Factor2Service:
         }
 
         if mail_otp.is_activate is True:
-            mail_data.update({"job": ID_FACTOR2_DISABLED})
+            mail_data.update({"job": ID_FACTOR2_DISABLED_SUCCESSFULLY})
             BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
                 func_name="notify_sending", **mail_data
             )
         else:
-            mail_data.update({"job": ID_FACTOR2_ENABLED})
+            mail_data.update({"job": ID_FACTOR2_ENABLED_SUCCESSFULLY})
             BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
                 func_name="notify_sending", **mail_data
             )
