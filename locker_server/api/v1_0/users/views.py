@@ -301,7 +301,7 @@ class UserPwdViewSet(APIBaseViewSet):
                     ua=ua_string
                 )
                 user_factor2_info.update({
-                    "access_token": access_token
+                    "token": access_token
                 })
                 return Response(status=status.HTTP_200_OK, data=user_factor2_info)
             raise ValidationError({"non_field_errors": [gen_error("1012")]})
