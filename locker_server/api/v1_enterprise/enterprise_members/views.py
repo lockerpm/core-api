@@ -8,7 +8,8 @@ from rest_framework.exceptions import NotFound, ValidationError, PermissionDenie
 from locker_server.core.entities.enterprise.enterprise import Enterprise
 from locker_server.core.exceptions.enterprise_exception import EnterpriseDoesNotExistException
 from locker_server.core.exceptions.enterprise_member_exception import EnterpriseMemberDoesNotExistException, \
-    EnterpriseMemberUpdatedFailedException, EnterpriseMemberInvitationUpdatedFailedException
+    EnterpriseMemberUpdatedFailedException, EnterpriseMemberInvitationUpdatedFailedException, \
+    EnterpriseMemberPrimaryDoesNotExistException
 from locker_server.core.exceptions.payment_exception import PaymentMethodNotSupportException
 from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_PRIMARY_ADMIN, E_MEMBER_ROLE_ADMIN, \
     E_MEMBER_STATUS_REQUESTED
@@ -276,17 +277,19 @@ class MemberPwdViewSet(APIBaseViewSet):
             raise PermissionDenied
         try:
             self.enterprise_member_service.delete_enterprise_member(
-                enterprise_member_id=enterprise_member.enterprise_member_id)
+                enterprise_member_id=enterprise_member.enterprise_member_id
+            )
         except EnterpriseMemberDoesNotExistException:
             raise NotFound
         try:
-            primary_user = self.enterprise_service.get_primary_member(enterprise_id=enterprise.enterprise_id).user
+            primary_member = self.enterprise_service.get_primary_member(enterprise_id=enterprise.enterprise_id)
+            primary_user = primary_member.user
             current_plan = self.user_service.get_current_plan(user=primary_user)
             PaymentMethodFactory.get_method(
                 user_plan=current_plan, scope=settings.SCOPE_PWD_MANAGER,
                 payment_method=PAYMENT_METHOD_CARD
             ).update_quantity_subscription(amount=-1)
-        except (PaymentMethodNotSupportException, ObjectDoesNotExist):
+        except (PaymentMethodNotSupportException, ObjectDoesNotExist, EnterpriseMemberPrimaryDoesNotExistException):
             pass
 
         # Log activity delete member here
