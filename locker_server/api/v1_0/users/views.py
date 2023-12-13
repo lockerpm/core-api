@@ -295,6 +295,14 @@ class UserPwdViewSet(APIBaseViewSet):
         except User2FARequireException:
             if not user.is_factor2:
                 user_factor2_info = self.factor2_service.get_factor2(user_id=user.user_id)
+                access_token = self.user_service.gen_access_token(
+                    user=user, client_id=client_id, device_identifier=device_identifier,
+                    device_name=device_name, device_type=device_type,
+                    ua=ua_string
+                )
+                user_factor2_info.update({
+                    "access_token": access_token
+                })
                 return Response(status=status.HTTP_200_OK, data=user_factor2_info)
             raise ValidationError({"non_field_errors": [gen_error("1012")]})
 

@@ -946,3 +946,30 @@ class UserService:
         return self.user_repository.is_require_2fa(
             user_id=user_id, require_enterprise_member_status=require_enterprise_member_status
         )
+
+    def gen_access_token(self, user: User, client_id: str = None, device_identifier: str = None,
+                         device_name: str = None, device_type: int = None,
+                         ua: str = None) -> str:
+
+        sso_token_id = None
+
+        device_info = detect_device(ua_string=ua)
+        device_obj = self.device_repository.retrieve_or_create(user_id=user.user_id, **{
+            "client_id": client_id,
+            "device_name": device_name,
+            "device_type": device_type,
+            "device_identifier": device_identifier,
+            "os": device_info.get("os"),
+            "browser": device_info.get("browser"),
+            "scope": "api offline_access",
+            "token_type": "Bearer",
+            "refresh_token": secure_random_string(length=64, lower=False)
+        })
+        # Set last login
+        device_obj = self.device_repository.set_last_login(device_id=device_obj.device_id, last_login=now())
+        # Retrieve or create new access token
+        access_token = self.device_access_token_repository.fetch_device_access_token(
+            device=device_obj, renewal=True, sso_token_id=sso_token_id,
+            credential_key=user.key
+        )
+        return access_token.access_token
