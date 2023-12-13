@@ -940,3 +940,9 @@ class UserService:
             })
 
         return result
+
+    def is_require_2fa(self, user_id: int,
+                       require_enterprise_member_status: str = E_MEMBER_STATUS_CONFIRMED) -> bool:
+        return self.user_repository.is_require_2fa(
+            user_id=user_id, require_enterprise_member_status=require_enterprise_member_status
+        )

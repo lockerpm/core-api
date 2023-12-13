@@ -58,6 +58,10 @@ class UserRepository(ABC):
         pass
 
     @abstractmethod
+    def is_require_2fa(self, user_id: int, require_enterprise_member_status: str = E_MEMBER_STATUS_CONFIRMED) -> bool:
+        pass
+
+    @abstractmethod
     def is_block_by_2fa_policy(self, user_id: int, is_factor2: bool) -> bool:
         pass
 
