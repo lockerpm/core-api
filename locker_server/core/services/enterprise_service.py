@@ -213,7 +213,8 @@ class EnterpriseService:
                 "user_id": primary_user.user_id,
                 "role_id": E_MEMBER_ROLE_PRIMARY_ADMIN,
                 "status": E_MEMBER_STATUS_CONFIRMED,
-                "is_primary": True
+                "is_primary": True,
+                "is_default": True
             }]
         })
         return self.enterprise_repository.create_enterprise(

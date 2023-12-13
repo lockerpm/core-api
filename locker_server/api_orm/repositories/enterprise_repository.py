@@ -6,7 +6,8 @@ from locker_server.api_orm.models.wrapper import get_user_model, get_enterprise_
     get_enterprise_member_model, get_enterprise_group_member_model, get_enterprise_model, get_event_model
 from locker_server.core.entities.enterprise.enterprise import Enterprise
 from locker_server.core.repositories.enterprise_repository import EnterpriseRepository
-from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_MEMBER, E_MEMBER_STATUS_CONFIRMED
+from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_MEMBER, E_MEMBER_STATUS_CONFIRMED, \
+    E_MEMBER_STATUS_INVITED
 from locker_server.shared.utils.app import now
 
 UserORM = get_user_model()
@@ -93,7 +94,22 @@ class EnterpriseORMRepository(EnterpriseRepository):
 
     # ------------------------ Create Enterprise resource --------------------- #
     def create_enterprise(self, enterprise_create_data: Dict) -> Enterprise:
+        members_data = enterprise_create_data.pop("members", [])
         new_enterprise_orm = EnterpriseORM.create(**enterprise_create_data)
+        # Create team members
+        new_members_orm = []
+        for member_data in members_data:
+            new_members_orm.append(EnterpriseMemberORM(
+                enterprise_id=new_enterprise_orm.id,
+                role_id=member_data.get("role_id", E_MEMBER_ROLE_MEMBER),
+                user_id=member_data.get('user_id'),
+                status=member_data.get("status", E_MEMBER_STATUS_INVITED),
+                is_primary=member_data.get("is_primary", False),
+                is_default=member_data.get("is_default", False),
+                email=member_data.get("email", None),
+                token_invitation=member_data.get("token_invitation", None),
+            ))
+        EnterpriseMemberORM.objects.bulk_create(new_members_orm, ignore_conflicts=True)
         return ModelParser.enterprise_parser().parse_enterprise(enterprise_orm=new_enterprise_orm)
 
     # ------------------------ Update Enterprise resource --------------------- #
