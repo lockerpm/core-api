@@ -150,16 +150,23 @@ class UserPwdViewSet(APIBaseViewSet):
                     user_id=user.user_id,
                     require_enterprise_member_status=None
                 )
+                require_2fa = self.user_service.is_require_2fa(
+                    user_id=user.user_id,
+                    require_enterprise_member_status=None
+                )
             else:
                 require_passwordless = self.user_service.is_require_passwordless(
+                    user_id=user.user_id,
+                )
+                require_2fa = self.user_service.is_require_2fa(
                     user_id=user.user_id,
                 )
             me_data.update({
                 "block_by_source": block_by_source,
                 "pwd_user_type": user_type,
                 "pwd_plan": pm_current_plan.pm_plan.alias,
-                "is_require_passwordless": require_passwordless
-
+                "is_require_passwordless": require_passwordless,
+                "is_require_2fa": require_2fa,
             })
             return Response(status=status.HTTP_200_OK, data=me_data)
 
@@ -759,8 +766,15 @@ class UserPwdViewSet(APIBaseViewSet):
                     user_id=user.user_id,
                     require_enterprise_member_status=None
                 )
+                require_2fa = self.user_service.is_require_2fa(
+                    user_id=user.user_id,
+                    require_enterprise_member_status=None
+                )
             else:
                 require_passwordless = self.user_service.is_require_passwordless(
+                    user_id=user.user_id,
+                )
+                require_2fa = self.user_service.is_require_2fa(
                     user_id=user.user_id,
                 )
             default_plan = self.user_service.get_current_plan(user=user)
@@ -776,7 +790,8 @@ class UserPwdViewSet(APIBaseViewSet):
                     "login_method": login_method,
                     "require_passwordless": require_passwordless,
                     "default_plan": default_plan.pm_plan.alias,
-                    "is_password_changed": user.is_password_changed
+                    "is_password_changed": user.is_password_changed,
+                    "require_2fa": require_2fa
                 }
             )
         except UserDoesNotExistException:
