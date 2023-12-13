@@ -233,8 +233,8 @@ class UserORMRepository(UserRepository):
             policy_orm = enterprise_orm.policies.filter(policy_type=POLICY_TYPE_2FA, enabled=True).first()
             if policy_orm:
                 only_admin = policy_orm.policy_2fa.only_admin
-                if only_admin is True and e_member_orm.role.name in [E_MEMBER_ROLE_ADMIN,
-                                                                     E_MEMBER_ROLE_PRIMARY_ADMIN]:
+                if only_admin is False or (only_admin and e_member_orm.role.name in [E_MEMBER_ROLE_ADMIN,
+                                                                                     E_MEMBER_ROLE_PRIMARY_ADMIN]):
                     e_2fa_policy = True
         else:
             try:
