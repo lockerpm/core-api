@@ -207,15 +207,6 @@ class UserORMRepository(UserRepository):
             policy_orm = enterprise_orm.policies.filter(policy_type=POLICY_TYPE_PASSWORDLESS, enabled=True).first()
             if policy_orm:
                 e_passwordless_policy = policy_orm.policy_passwordless.only_allow_passwordless
-        else:
-            try:
-                user_orm = UserORM.objects.get(user_id=user_id)
-                if user_orm.login_method == LOGIN_METHOD_PASSWORDLESS:
-                    e_passwordless_policy = True
-                else:
-                    e_passwordless_policy = False
-            except UserORM.DoesNotExist:
-                pass
         return e_passwordless_policy
 
     def is_require_2fa(self, user_id: int, is_factor2: bool,
