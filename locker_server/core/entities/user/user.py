@@ -210,6 +210,10 @@ class User(object):
     def is_factor2(self):
         return self._is_factor2
 
+    @is_factor2.setter
+    def is_factor2(self, is_factor2_value):
+        self._is_factor2 = is_factor2_value
+
     @property
     def base32_secret_factor2(self):
         return self._base32_secret_factor2
