@@ -23,8 +23,6 @@ class UserMeSerializer(serializers.Serializer):
             "login_method": instance.login_method,
             "avatar": instance.get_avatar(),
             "is_super_admin": instance.is_super_admin,
-            "is_factor2": instance.is_factor2
-
         }
         show_key_param = self.context["request"].query_params.get("show_key", "0")
         if show_key_param == "1":

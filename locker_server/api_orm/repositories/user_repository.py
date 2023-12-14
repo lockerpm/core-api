@@ -218,7 +218,10 @@ class UserORMRepository(UserRepository):
                 pass
         return e_passwordless_policy
 
-    def is_require_2fa(self, user_id: int, require_enterprise_member_status: str = E_MEMBER_STATUS_CONFIRMED) -> bool:
+    def is_require_2fa(self, user_id: int, is_factor2: bool,
+                       require_enterprise_member_status: str = E_MEMBER_STATUS_CONFIRMED) -> bool:
+        if is_factor2 is True:
+            return True
         if require_enterprise_member_status:
             e_member_orm = EnterpriseMemberORM.objects.filter(
                 user_id=user_id, status=require_enterprise_member_status, enterprise__locked=False
@@ -236,12 +239,6 @@ class UserORMRepository(UserRepository):
                 if only_admin is False or (only_admin and e_member_orm.role.name in [E_MEMBER_ROLE_ADMIN,
                                                                                      E_MEMBER_ROLE_PRIMARY_ADMIN]):
                     e_2fa_policy = True
-        else:
-            try:
-                user_orm = UserORM.objects.get(user_id=user_id)
-                e_2fa_policy = user_orm.is_factor2
-            except UserORM.DoesNotExist:
-                pass
         return e_2fa_policy
 
     def is_block_by_2fa_policy(self, user_id: int, is_factor2: bool) -> bool:
