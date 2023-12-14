@@ -256,7 +256,15 @@
     "vi": "Tài khoản của bạn đã tắt tính năng xác thực 2 bước"
   },
   "user_two_factor_enabled_successfully": {
-    "en": "Two-factor authentication is now enabled on your account\n",
+    "en": "Two-factor authentication is now enabled on your account",
     "vi": "Tài khoản của bạn đã bật tính năng xác thực 2 bước"
+  },
+  "user_two_factor_disabled": {
+    "en": "Disable two-factor authentication on your account",
+    "vi": "Tắt tính năng xác thực 2 bước"
+  },
+  "user_two_factor_enabled": {
+    "en": "Enable two-factor authentication on your account",
+    "vi": "Bật tính năng xác thực 2 bước"
   }
 }
