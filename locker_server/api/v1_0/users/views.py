@@ -152,7 +152,6 @@ class UserPwdViewSet(APIBaseViewSet):
                 )
                 require_2fa = self.user_service.is_require_2fa(
                     user_id=user.user_id,
-                    is_factor2=user.is_factor2,
                     require_enterprise_member_status=None
                 )
             else:
@@ -161,7 +160,6 @@ class UserPwdViewSet(APIBaseViewSet):
                 )
                 require_2fa = self.user_service.is_require_2fa(
                     user_id=user.user_id,
-                    is_factor2=user.is_factor2,
                 )
             me_data.update({
                 "block_by_source": block_by_source,
@@ -781,7 +779,6 @@ class UserPwdViewSet(APIBaseViewSet):
                 )
                 require_2fa = self.user_service.is_require_2fa(
                     user_id=user.user_id,
-                    is_factor2=user.is_factor2,
                     require_enterprise_member_status=None
                 )
             else:
@@ -790,7 +787,6 @@ class UserPwdViewSet(APIBaseViewSet):
                 )
                 require_2fa = self.user_service.is_require_2fa(
                     user_id=user.user_id,
-                    is_factor2=user.is_factor2
                 )
             default_plan = self.user_service.get_current_plan(user=user)
             return Response(
