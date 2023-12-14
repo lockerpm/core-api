@@ -2,6 +2,8 @@
 ID_FACTOR2_MAIL_LOGIN = "user_two_factor"
 ID_FACTOR2_ENABLED_SUCCESSFULLY = "user_two_factor_enabled_successfully"
 ID_FACTOR2_DISABLED_SUCCESSFULLY = "user_two_factor_disabled_successfully"
+ID_FACTOR2_ENABLED = "user_two_factor_enabled"
+ID_FACTOR2_DISABLED = "user_two_factor_disabled"
 
 # --------------------------- Password Manager ---------------------------------------- #
 PWD_WELCOME = "welcome"
