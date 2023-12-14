@@ -209,10 +209,8 @@ class UserORMRepository(UserRepository):
                 e_passwordless_policy = policy_orm.policy_passwordless.only_allow_passwordless
         return e_passwordless_policy
 
-    def is_require_2fa(self, user_id: int, is_factor2: bool,
+    def is_require_2fa(self, user_id: int,
                        require_enterprise_member_status: str = E_MEMBER_STATUS_CONFIRMED) -> bool:
-        if is_factor2 is True:
-            return True
         if require_enterprise_member_status:
             e_member_orm = EnterpriseMemberORM.objects.filter(
                 user_id=user_id, status=require_enterprise_member_status, enterprise__locked=False
