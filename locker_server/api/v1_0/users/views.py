@@ -181,7 +181,15 @@ class UserPwdViewSet(APIBaseViewSet):
             return Response(status=status.HTTP_200_OK, data={"success": True})
 
     @action(methods=["get"], detail=False)
-    def login_method_me(self, request, *args, **kwargs):
+    def block_policy_me(self, request, *args, **kwargs):
+        """
+        set_up_passwordless: True if user has set pwl
+        is_factor2: True if user have enabled 2fa
+        login_method: current login method of user
+        require_passwordless: True if enterprise require passwordless
+        require_2fa: True if enterprise require 2fa
+
+        """
         user = self.request.user
         login_method = user.login_method
         if settings.SELF_HOSTED:
@@ -189,14 +197,23 @@ class UserPwdViewSet(APIBaseViewSet):
                 user_id=user.user_id,
                 require_enterprise_member_status=None
             )
+            require_2fa = self.user_service.is_require_2fa(
+                user_id=user.user_id,
+                require_enterprise_member_status=None
+            )
         else:
             require_passwordless = self.user_service.is_require_passwordless(
                 user_id=user.user_id,
             )
+            require_2fa = self.user_service.is_require_2fa(
+                user_id=user
+            )
         return Response(status=status.HTTP_200_OK, data={
             "set_up_passwordless": True if user.fd_credential_id else False,
             "login_method": login_method,
-            "require_passwordless": require_passwordless
+            "is_factor2": user.is_factor2,
+            "require_passwordless": require_passwordless,
+            "require_2fa": require_2fa
         })
 
     @action(methods=["get"], detail=False)
