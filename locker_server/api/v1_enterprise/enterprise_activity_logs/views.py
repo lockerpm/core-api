@@ -45,6 +45,8 @@ class ActivityLogPwdViewSet(APIBaseViewSet):
                 enterprise_id=enterprise.enterprise_id
             )
         except EnterpriseMemberPrimaryDoesNotExistException:
+            if self.request.user and self.request.user.is_super_admin:
+                return enterprise
             raise NotFound
         current_plan = self.user_service.get_current_plan(user=primary_member.user)
         plan = current_plan.pm_plan
