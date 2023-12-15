@@ -780,6 +780,15 @@ class UserPwdViewSet(APIBaseViewSet):
 
     @action(methods=["post"], detail=False)
     def prelogin(self, request, *args, **kwargs):
+        """
+        Return:
+            set_up_passwordless: True if user have set pwl
+            login_method: current login method of user
+            is_factor2: True if user enable 2fa
+            require_2fa: True if enterprise require 2fa
+            require_passwordless: True if enterprise require passwordless
+            is_password_changed: True if user have already changed password
+        """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
@@ -819,7 +828,8 @@ class UserPwdViewSet(APIBaseViewSet):
                     "require_passwordless": require_passwordless,
                     "default_plan": default_plan.pm_plan.alias,
                     "is_password_changed": user.is_password_changed,
-                    "require_2fa": require_2fa
+                    "require_2fa": require_2fa,
+                    "is_factor2": user.is_factor2
                 }
             )
         except UserDoesNotExistException:
