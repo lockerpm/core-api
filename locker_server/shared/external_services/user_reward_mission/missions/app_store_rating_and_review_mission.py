@@ -20,7 +20,7 @@ class AppStoreRatingAndReviewMission(Mission):
     def check_mission_completion(self, input_data: Dict):
         user_identifier = input_data.get("user_identifier")
         app_id = "1586927301"
-        url = f"https://api.appstoreconnect.apple.com/v1/apps/{app_id}/customerReviews"
+        url = f"https://api.appstoreconnect.apple.com/v1/apps/{app_id}/customerReviews?sort=-createdDate"
         headers = {
             "Authorization": f"Bearer {self._generate_jwt_token(app_id=app_id)}"
         }
