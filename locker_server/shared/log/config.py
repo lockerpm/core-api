@@ -87,5 +87,9 @@ logging_config = {
             'level': 'DEBUG',
             'handlers': ['rq_console'],
         },
+        'daphne': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
     }
 }
