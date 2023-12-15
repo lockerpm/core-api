@@ -4,11 +4,11 @@ from server_config.settings.dev import *
 DEBUG = False
 if not SERVER_ORIGIN:
     ALLOWED_HOSTS = [
-        "localhost", "127.0.0.1", "locker-api"
+        "localhost", "127.0.0.1"
     ]
 else:
     ALLOWED_HOSTS = [
-        SERVER_ORIGIN, "locker-api"
+        SERVER_ORIGIN
     ]
 
 
