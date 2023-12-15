@@ -308,14 +308,14 @@ class UserService:
     def user_session(self, user: User, password: str, client_id: str = None, device_identifier: str = None,
                      device_name: str = None, device_type: int = None, is_factor2: bool = False,
                      token_auth_value: str = None, secret: str = None,
-                     ip: str = None, ua: str = None):
+                     ip: str = None, ua: str = None, require_enterprise_member_status: str = E_MEMBER_STATUS_CONFIRMED):
         # Check login block
         if user.login_block_until and user.login_block_until > now():
             wait = user.login_block_until - now()
             raise UserAuthBlockingEnterprisePolicyException(wait=wait)
 
         user_enterprises = self.enterprise_repository.list_user_enterprises(
-            user_id=user.user_id, **{"status": E_MEMBER_STATUS_CONFIRMED}
+            user_id=user.user_id, **{"status": require_enterprise_member_status}
         )
         user_enterprise_ids = [enterprise.enterprise_id for enterprise in user_enterprises]
         check_master_password = self.auth_repository.check_master_password(user=user, raw_password=password)

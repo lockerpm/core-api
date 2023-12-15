@@ -261,6 +261,11 @@ class UserPwdViewSet(APIBaseViewSet):
         except UserDoesNotExistException:
             raise ValidationError(detail={"email": ["The email is not valid"]})
         is_factor2 = user.is_factor2
+        if settings.SELF_HOSTED:
+            require_enterprise_member_status = None
+        else:
+            require_enterprise_member_status = E_MEMBER_STATUS_CONFIRMED
+
         if is_factor2:
             try:
                 device_existed = self.device_service.get_device_by_identifier(
@@ -285,7 +290,8 @@ class UserPwdViewSet(APIBaseViewSet):
                 token_auth_value=self.request.auth,
                 secret=settings.SECRET_KEY,
                 ip=ip,
-                ua=ua_string
+                ua=ua_string,
+                require_enterprise_member_status=require_enterprise_member_status
             )
             return Response(status=status.HTTP_200_OK, data=result)
         except UserAuthBlockingEnterprisePolicyException as e:
@@ -799,21 +805,17 @@ class UserPwdViewSet(APIBaseViewSet):
             )
             login_method = user.login_method
             if settings.SELF_HOSTED:
-                require_passwordless = self.user_service.is_require_passwordless(
-                    user_id=user.user_id,
-                    require_enterprise_member_status=None
-                )
-                require_2fa = self.user_service.is_require_2fa(
-                    user_id=user.user_id,
-                    require_enterprise_member_status=None
-                )
+                require_enterprise_member_status = None
             else:
-                require_passwordless = self.user_service.is_require_passwordless(
-                    user_id=user.user_id,
-                )
-                require_2fa = self.user_service.is_require_2fa(
-                    user_id=user.user_id,
-                )
+                require_enterprise_member_status = E_MEMBER_STATUS_CONFIRMED
+            require_passwordless = self.user_service.is_require_passwordless(
+                user_id=user.user_id,
+                require_enterprise_member_status=require_enterprise_member_status
+            )
+            require_2fa = self.user_service.is_require_2fa(
+                user_id=user.user_id,
+                require_enterprise_member_status=require_enterprise_member_status
+            )
             default_plan = self.user_service.get_current_plan(user=user)
             return Response(
                 status=status.HTTP_200_OK,

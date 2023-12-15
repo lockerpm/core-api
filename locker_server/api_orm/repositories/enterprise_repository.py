@@ -50,11 +50,15 @@ class EnterpriseORMRepository(EnterpriseRepository):
         ]
 
     def list_user_enterprises(self, user_id: int, **filter_params) -> List[Enterprise]:
-        status_param = filter_params.get("status", E_MEMBER_STATUS_CONFIRMED)
-
-        enterprises_orm = EnterpriseORM.objects.filter(
-            enterprise_members__user_id=user_id, enterprise_members__status=status_param
-        ).order_by('-creation_date')
+        status_param = filter_params.get("status")
+        if status_param is not None:
+            enterprises_orm = EnterpriseORM.objects.filter(
+                enterprise_members__user_id=user_id, enterprise_members__status=status_param
+            ).order_by('-creation_date')
+        else:
+            enterprises_orm = EnterpriseORM.objects.filter(
+                enterprise_members__user_id=user_id
+            ).order_by('-creation_date')
         is_activated_param = filter_params.get("is_activated")
         if is_activated_param is not None:
             enterprises_orm = enterprises_orm.filter(
