@@ -78,7 +78,7 @@ class EnterpriseORMRepository(EnterpriseRepository):
             enterprises_orm = enterprises_orm.filter(enterprise_members__status=status_param)
         if is_activated_param is not None:
             enterprises_orm = enterprises_orm.filter(enterprise_members__is_activated=is_activated_param)
-        return list(enterprises_orm.values_list('id', flat=True))
+        return list(set(enterprises_orm.values_list('id', flat=True)))
 
     # ------------------------ Get Enterprise resource --------------------- #
     def get_enterprise_by_id(self, enterprise_id: str) -> Optional[Enterprise]:
