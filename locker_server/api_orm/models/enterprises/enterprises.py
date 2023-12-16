@@ -19,6 +19,7 @@ class EnterpriseORM(AbstractEnterpriseORM):
     @classmethod
     def create(cls, **data):
         name = data.get("name")
+        enterprise_name = data.get("enterprise_name")
         description = data.get("description", "")
         creation_date = data.get("creation_date", now())
         enterprise_id = data.get("id")
@@ -30,7 +31,7 @@ class EnterpriseORM(AbstractEnterpriseORM):
                     break
         new_enterprise_orm = cls(
             id=enterprise_id, name=name, description=description, creation_date=creation_date,
-            enterprise_name=name,
+            enterprise_name=enterprise_name,
             enterprise_address1=data.get("enterprise_address1") or "",
             enterprise_address2=data.get("enterprise_address2") or "",
             enterprise_phone=data.get("enterprise_phone") or "",
