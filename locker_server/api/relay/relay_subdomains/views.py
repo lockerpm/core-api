@@ -157,7 +157,7 @@ class RelaySubdomainViewSet(APIBaseViewSet):
             use_relay_subdomain = validated_data.get("use_relay_subdomain")
             try:
                 updated_user = self.user_service.update_user(
-                    user_id=user.userid,
+                    user_id=user.user_id,
                     user_update_data={
                         'user_relay_subdomain': use_relay_subdomain
                     }
