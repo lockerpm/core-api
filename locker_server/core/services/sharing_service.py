@@ -602,7 +602,7 @@ class SharingService:
             data={
                 "event": FCM_TYPE_NEW_SHARE_AFTER_OWNER_CONFIRMED,
                 "data": {
-                    "id": member.team_id,
+                    "id": member.team_member_id,
                     "share_type": shared_type_name,
                     "pwd_user_ids": [member.user.user_id],
                 }
