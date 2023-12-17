@@ -22,6 +22,11 @@ class DetailRelaySubdomainSerializer(ListRelaySubdomainsSerializer):
 class CreateRelaySubdomainSerializer(serializers.Serializer):
     subdomain = serializers.CharField(max_length=64, min_length=3)
 
+    def validate(self, data):
+        subdomain = data.get("subdomain").strip()
+        data["subdomain"] = subdomain
+        return data
+
 
 class UpdateRelaySubdomainSerializer(CreateRelaySubdomainSerializer):
     """"""
