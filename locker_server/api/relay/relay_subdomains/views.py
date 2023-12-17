@@ -82,7 +82,7 @@ class RelaySubdomainViewSet(APIBaseViewSet):
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data or {}
         try:
-            new_relay_subdomain = self.relay_subdomain_service.create_atomic_relay_subdomain(
+            new_relay_subdomain = self.relay_subdomain_service.create_relay_subdomain(
                 user_id=user.user_id,
                 relay_subdomain_create_data=validated_data
             )
