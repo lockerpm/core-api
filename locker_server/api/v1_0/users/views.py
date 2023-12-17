@@ -890,3 +890,23 @@ class UserPwdViewSet(APIBaseViewSet):
         return Response(status=status.HTTP_200_OK, data={
             "access_token": access_token
         })
+
+    @action(methods=["get"], detail=False)
+    def login_method_me(self, request, *args, **kwargs):
+        user = self.request.user
+        login_method = user.login_method
+        if settings.SELF_HOSTED:
+            require_passwordless = self.user_service.is_require_passwordless(
+                user_id=user.user_id,
+                require_enterprise_member_status=None
+            )
+        else:
+            require_passwordless = self.user_service.is_require_passwordless(
+                user_id=user.user_id,
+                require_enterprise_member_status=E_MEMBER_STATUS_CONFIRMED
+            )
+        return Response(status=status.HTTP_200_OK, data={
+            "set_up_passwordless": True if user.fd_credential_id else False,
+            "login_method": login_method,
+            "require_passwordless": require_passwordless
+        })

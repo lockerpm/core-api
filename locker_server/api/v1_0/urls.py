@@ -44,6 +44,7 @@ urlpatterns += [
     url(r'^users/me/onboarding_process$',
         views.UserPwdViewSet.as_view({'get': 'onboarding_process', 'put': 'onboarding_process'})),
     url(r'^users/me/block_by_2fa$', views.UserPwdViewSet.as_view({'get': 'block_by_2fa_policy'})),
+    url(r'^users/me/login_method$', views.UserPwdViewSet.as_view({'get': 'login_method_me'})),
     url(r'^users/me/block_policy$', views.UserPwdViewSet.as_view({'get': 'block_policy_me'})),
     url(r'^users/me/passwordless_require$', views.UserPwdViewSet.as_view({'get': 'passwordless_require'})),
     url(r'^users/me/violation$', views.UserPwdViewSet.as_view({'get': 'violation_me'})),
