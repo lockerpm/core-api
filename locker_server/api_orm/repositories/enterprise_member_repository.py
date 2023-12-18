@@ -371,10 +371,18 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
         )
 
     # ------------------------ Delete EnterpriseMember resource --------------------- #
-    def delete_enterprise_member(self, enterprise_member_id: str) -> bool:
+    def delete_enterprise_member(self, enterprise_member_id: str, completely: bool = False) -> bool:
         try:
             enterprise_member_orm = EnterpriseMemberORM.objects.get(id=enterprise_member_id)
         except EnterpriseMemberORM.DoesNotExist:
             return False
+        user_id = enterprise_member_orm.user_id
         enterprise_member_orm.delete()
+        if completely is True:
+            # Delete user account
+            try:
+                user_orm = UserORM.objects.get(user_id=user_id)
+                user_orm.delete()
+            except UserORM.DoesNotExist:
+                pass
         return True

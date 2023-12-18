@@ -221,9 +221,10 @@ class EnterpriseMemberService:
             raise EnterpriseMemberDoesNotExistException
         return change_status, change_role, updated_enterprise_member
 
-    def delete_enterprise_member(self, enterprise_member_id: str) -> NoReturn:
+    def delete_enterprise_member(self, enterprise_member_id: str, completely: bool = False) -> NoReturn:
         deleted_enterprise_member = self.enterprise_member_repository.delete_enterprise_member(
-            enterprise_member_id=enterprise_member_id
+            enterprise_member_id=enterprise_member_id,
+            completely=completely
         )
         if not deleted_enterprise_member:
             raise EnterpriseMemberDoesNotExistException

@@ -97,5 +97,5 @@ class EnterpriseMemberRepository(ABC):
 
     # ------------------------ Delete EnterpriseMember resource --------------------- #
     @abstractmethod
-    def delete_enterprise_member(self, enterprise_member_id: str) -> bool:
+    def delete_enterprise_member(self, enterprise_member_id: str, completely: bool = False) -> bool:
         pass

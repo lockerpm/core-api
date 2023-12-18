@@ -275,9 +275,13 @@ class MemberPwdViewSet(APIBaseViewSet):
         if ((enterprise_member.user and enterprise_member.user.user_id == user.user_id)
                 or enterprise_member.role.name == E_MEMBER_ROLE_PRIMARY_ADMIN):
             raise PermissionDenied
+        completely = False
+        if settings.SELF_HOSTED:
+            completely = True
         try:
             self.enterprise_member_service.delete_enterprise_member(
-                enterprise_member_id=enterprise_member.enterprise_member_id
+                enterprise_member_id=enterprise_member.enterprise_member_id,
+                completely=completely
             )
         except EnterpriseMemberDoesNotExistException:
             raise NotFound
