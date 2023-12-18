@@ -1,5 +1,5 @@
-# The valid review must be in 2 days
-MAX_REVIEW_DURATION_TIME = 2 * 24 * 3600
+# The valid review must be in 10 days
+MAX_REVIEW_DURATION_TIME = 10 * 24 * 3600
 
 
 class Mission:
