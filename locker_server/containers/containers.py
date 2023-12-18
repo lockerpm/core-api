@@ -60,4 +60,6 @@ mail_configuration_service = ServiceFactory.mail_configuration_service()
 
 sso_configuration_service = ServiceFactory.sso_configuration_service()
 
+app_info_service = ServiceFactory.app_info_service()
+
 cron_task_service = ServiceFactory.cron_task_service()

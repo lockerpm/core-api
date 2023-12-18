@@ -262,3 +262,7 @@ class ServiceFactory(containers.DeclarativeContainer):
         backup_credential_repository=RepositoryFactory.backup_credential_repository,
 
     )
+    app_info_service = providers.Factory(
+        AppInfoService,
+        app_info_repository=RepositoryFactory.app_info_repository
+    )

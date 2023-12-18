@@ -60,3 +60,4 @@ from .mail_provider_repository import MailProviderORMRepository
 from .mail_configuration_repository import MailConfigurationORMRepository
 
 from .sso_configuration_repository import SSOConfigurationORMRepository
+from .app_info_repository import AppInfoORMRepository

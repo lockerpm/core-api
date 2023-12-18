@@ -31,6 +31,17 @@ class ResourcePwdViewSet(ResourceV1PwdViewSet):
             server_type = "enterprise"
         else:
             server_type = "personal"
-        return Response(status=status.HTTP_200_OK, data={
+        app_info = self.app_info_service.get_app_info()
+        data = {
             "server_type": server_type
-        })
+        }
+        if app_info is None:
+            data.update({
+                "logo": None, "name": None
+            })
+        else:
+            data.update({
+                "logo": self.request.build_absolute_uri(app_info.logo) if app_info.logo else None,
+                "name": app_info.name
+            })
+        return Response(status=status.HTTP_200_OK, data=data)
