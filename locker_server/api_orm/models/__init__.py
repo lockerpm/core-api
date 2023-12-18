@@ -100,3 +100,4 @@ from locker_server.api_orm.models.configurations.mail_providers import MailProvi
 from locker_server.api_orm.models.configurations.mail_configurations import MailConfigurationORM
 from locker_server.api_orm.models.configurations.sso_providers import SSOProviderORM
 from locker_server.api_orm.models.configurations.sso_configurations import SSOConfigurationORM
+from locker_server.api_orm.models.configurations.app_info import AppInfoORM

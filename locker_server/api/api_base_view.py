@@ -57,6 +57,8 @@ class APIBaseViewSet(AppGeneralViewSet):
 
     sso_configuration_service = sso_configuration_service
 
+    app_info_service = app_info_service
+
     def get_throttles(self):
         if self.request.user and not isinstance(self.request.user, AnonymousUser):
             self.throttle_scope = 'user_authenticated'

@@ -51,3 +51,5 @@ from .mail_configuration_service import MailConfigurationService
 from .sso_configuration_service import SSOConfigurationService
 
 from .cron_task_service import CronTaskService
+
+from .app_info_service import AppInfoService

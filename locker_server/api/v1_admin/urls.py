@@ -26,3 +26,12 @@ urlpatterns += [
         'get': 'sso_configuration', 'put': 'update_sso_configuration', 'delete': 'destroy_sso_configuration'
     }))
 ]
+# ------------------------------- App Info ----------------------------- #
+urlpatterns += [
+    url(r'^app_info$', views.AdminAppInfoViewSet.as_view({
+        'get': 'app_info', 'put': 'update_app_info',
+    })),
+    url(r'^app_info/logo$', views.AdminAppInfoViewSet.as_view({
+        'get': 'app_info_logo', 'put': 'app_info_logo',
+    })),
+]
