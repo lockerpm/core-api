@@ -23,8 +23,6 @@ class RelaySubdomainORM(AbstractRelaySubdomainORM):
             domain_id=domain_id,
             created_time=data.get("created_time", now()),
             is_deleted=is_deleted,
-            block_spam=data.get("block_spam", False),
-            description=data.get("description"),
         )
         relay_subdomain_orm.save()
         return relay_subdomain_orm
