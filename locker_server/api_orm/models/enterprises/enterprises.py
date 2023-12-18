@@ -19,7 +19,7 @@ class EnterpriseORM(AbstractEnterpriseORM):
     @classmethod
     def create(cls, **data):
         name = data.get("name")
-        enterprise_name = data.get("enterprise_name", "My Enterprise")
+        enterprise_name = data.get("enterprise_name") or "My Enterprise"
         description = data.get("description", "")
         creation_date = data.get("creation_date", now())
         enterprise_id = data.get("id")
