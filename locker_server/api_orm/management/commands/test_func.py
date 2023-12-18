@@ -6,9 +6,11 @@ from locker_server.api_orm.models.wrapper import *
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        users = get_user_model().objects.count()
-        enterprises = get_enterprise_model().objects.count()
-        first_enterprise = get_enterprise_model().objects.first()
-        members = first_enterprise.enterprise_members.count()
-        print("Count:::", users)
-        print("Enterprise:::", enterprises, members)
+
+        from locker_server.shared.constants.missions import USER_MISSION_STATUS_REWARD_SENT, USER_MISSION_STATUS_COMPLETED
+        answer = "f0bs"
+        is_claimed = UserRewardMissionORM.objects.filter(
+            status__in=[USER_MISSION_STATUS_REWARD_SENT, USER_MISSION_STATUS_COMPLETED],
+            answer=answer
+        ).exists()
+        print(is_claimed)

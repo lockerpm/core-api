@@ -112,15 +112,20 @@ class UserRewardMissionPwdViewSet(APIBaseViewSet):
             answer = validated_data
 
         mission_type = user_reward_mission.mission.mission_type
+        mission_id = user_reward_mission.mission.mission_id
         extra_requirements = user_reward_mission.mission.get_extra_requirements()
-        module_name = f'locker_server.shared.external_services.user_reward_mission.missions.' \
-                      f'{user_reward_mission.mission.mission_id}_mission'
+        module_name = f'locker_server.shared.external_services.user_reward_mission.missions.{mission_id}_mission'
         mission_factory = factory(module_name, mission_type, extra_requirements)
         if not mission_factory:
             return Response(status=status.HTTP_200_OK, data={"claim": False})
         input_data = {"user": user, "user_identifier": user_identifier}
         mission_check = mission_factory.check_mission_completion(input_data)
         answer = json.dumps(answer)
+
+        if mission_check is True and \
+                self.user_reward_mission_service.is_answer_claimed(answer=answer, mission_id=mission_id) is True:
+            mission_check = False
+
         if not mission_check:
             user_reward_mission.status = USER_MISSION_STATUS_UNDER_VERIFICATION
             self.user_reward_mission_service.update_user_reward_mission(
