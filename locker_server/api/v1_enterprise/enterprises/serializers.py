@@ -16,7 +16,7 @@ class ListEnterpriseSerializer(serializers.Serializer):
             "creation_date": enterprise.creation_date,
             "revision_date": enterprise.revision_date,
             "locked": enterprise.locked,
-            "avatar": enterprise.avatar,
+            "avatar": self.context.get('get_avatar_func')(enterprise.avatar),
             "role": instance.role.name
         }
         return data
@@ -32,7 +32,7 @@ class DetailEnterpriseSerializer(serializers.Serializer):
             "creation_date": instance.creation_date,
             "revision_date": instance.revision_date,
             "locked": instance.locked,
-            "avatar": instance.avatar,
+            "avatar": self.context.get('get_avatar_func')(instance.avatar),
             "enterprise_name": instance.enterprise_name,
             "enterprise_address1": instance.enterprise_name,
             "enterprise_address2": instance.enterprise_name,
@@ -88,3 +88,7 @@ class CreateMultipleMemberSerializer(serializers.Serializer):
     members = serializers.ListSerializer(
         child=CreateMemberSerializer()
     )
+
+
+class UpdateEnterpriseAvatarSerializer(serializers.Serializer):
+    avatar = serializers.ImageField()

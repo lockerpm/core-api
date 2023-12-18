@@ -24,7 +24,7 @@ class EnterpriseRepository(ABC):
         pass
 
     @abstractmethod
-    def get_enterprise_avatar_url_by_id(self, enterprise_id: str) -> Optional[str]:
+    def get_enterprise_avatar(self, enterprise_id: str) -> Optional[str]:
         pass
 
     # ------------------------ Create Enterprise resource --------------------- #
@@ -35,6 +35,10 @@ class EnterpriseRepository(ABC):
     # ------------------------ Update Enterprise resource --------------------- #
     @abstractmethod
     def update_enterprise(self, enterprise_id: str, enterprise_update_data) -> Optional[Enterprise]:
+        pass
+
+    @abstractmethod
+    def update_enterprise_avatar(self, enterprise_id: str, avatar) -> str:
         pass
 
     # ------------------------ Delete EnterpriseMember resource --------------------- #

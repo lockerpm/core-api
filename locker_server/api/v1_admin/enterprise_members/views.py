@@ -137,9 +137,14 @@ class AdminEnterpriseMemberViewSet(APIBaseViewSet):
         # Not allow delete themselves
         if enterprise_member.user and enterprise_member.user.user_id == user.user_id:
             raise PermissionDenied
+        completely = False
+        if settings.SELF_HOSTED:
+            completely = True
         try:
             self.enterprise_member_service.delete_enterprise_member(
-                enterprise_member_id=enterprise_member.enterprise_member_id)
+                enterprise_member_id=enterprise_member.enterprise_member_id,
+                completely=completely
+            )
         except EnterpriseMemberDoesNotExistException:
             raise NotFound
         try:
