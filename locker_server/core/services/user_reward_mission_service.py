@@ -146,3 +146,6 @@ class UserRewardMissionService:
         if not updated_user_reward_mission:
             raise UserRewardMissionDoesNotExistException
         return updated_user_reward_mission
+
+    def is_answer_claimed(self, answer, mission_id: str) -> bool:
+        return self.user_reward_mission_repository.is_answer_claimed(answer=answer, mission_id=mission_id)

@@ -25,6 +25,10 @@ class UserRewardMissionRepository(ABC):
     def get_user_available_promo_code_value(self, user_id: int) -> int:
         pass
 
+    @abstractmethod
+    def is_answer_claimed(self, answer: str, mission_id: str) -> bool:
+        pass
+
     # ------------------------ Create UserRewardMission resource --------------------- #
     @abstractmethod
     def create_user_reward_mission(self, user_reward_mission_create_data) -> Optional[UserRewardMission]:

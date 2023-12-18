@@ -6,7 +6,8 @@ from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_user_reward_mission_model
 from locker_server.core.entities.user_reward.user_reward_mission import UserRewardMission
 from locker_server.core.repositories.user_reward_mission_repository import UserRewardMissionRepository
-from locker_server.shared.constants.missions import USER_MISSION_STATUS_REWARD_SENT, REWARD_TYPE_PROMO_CODE
+from locker_server.shared.constants.missions import USER_MISSION_STATUS_REWARD_SENT, REWARD_TYPE_PROMO_CODE, \
+    USER_MISSION_STATUS_COMPLETED
 
 UserRewardMissionORM = get_user_reward_mission_model()
 ModelParser = get_model_parser()
@@ -55,6 +56,13 @@ class UserRewardMissionORMRepository(UserRewardMissionRepository):
             status=USER_MISSION_STATUS_REWARD_SENT
         ).aggregate(Sum('mission__reward_value')).get("mission__reward_value__sum") or 0
         return user_available_promo_code_value
+
+    def is_answer_claimed(self, answer: str, mission_id: str) -> bool:
+        return UserRewardMissionORM.objects.filter(
+            status__in=[USER_MISSION_STATUS_REWARD_SENT, USER_MISSION_STATUS_COMPLETED],
+            mission_id=mission_id,
+            answer=answer
+        ).exists()
 
     # ------------------------ Create UserRewardMission resource --------------------- #
     def create_user_reward_mission(self, user_reward_mission_create_data) -> Optional[UserRewardMission]:
