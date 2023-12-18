@@ -88,11 +88,11 @@ class EnterpriseORMRepository(EnterpriseRepository):
             return None
         return ModelParser.enterprise_parser().parse_enterprise(enterprise_orm=enterprise_orm)
 
-    def get_enterprise_avatar_url_by_id(self, enterprise_id: str) -> Optional[str]:
+    def get_enterprise_avatar(self, enterprise_id: str) -> Optional[str]:
         try:
             enterprise_orm = EnterpriseORM.objects.get(id=enterprise_id)
-            avatar = enterprise_orm.avatar
-            return avatar
+            avatar_url = enterprise_orm.avatar.url
+            return avatar_url
         except EnterpriseORM.DoesNotExist:
             return None
 
@@ -158,6 +158,21 @@ class EnterpriseORMRepository(EnterpriseRepository):
 
         enterprise_orm.save()
         return ModelParser.enterprise_parser().parse_enterprise(enterprise_orm=enterprise_orm)
+
+    def update_enterprise_avatar(self, enterprise_id: str, avatar) -> str:
+        try:
+            enterprise_orm = EnterpriseORM.objects.get(id=enterprise_id)
+            old_avatar = enterprise_orm.avatar
+            if old_avatar is not None:
+                try:
+                    os.remove(old_avatar.path)
+                except (FileNotFoundError, ValueError):
+                    pass
+            enterprise_orm.avatar = avatar
+            enterprise_orm.save()
+            return enterprise_orm.avatar.url
+        except EnterpriseORM.DoesNotExist:
+            return None
 
     # ------------------------ Delete Enterprise resource --------------------- #
     def delete_completely(self, enterprise: Enterprise):

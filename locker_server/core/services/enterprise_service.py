@@ -223,12 +223,17 @@ class EnterpriseService:
         )
 
     def get_enterprise_avatar(self, enterprise_id: str) -> str:
-        enterprise = self.enterprise_repository.get_enterprise_by_id(
+        avatar_url = self.enterprise_repository.get_enterprise_avatar(
             enterprise_id=enterprise_id,
         )
-        if not enterprise:
-            raise EnterpriseDoesNotExistException
-        return enterprise.avatar
+        return avatar_url
+
+    def update_enterprise_avatar(self, enterprise_id: str, avatar) -> str:
+        avatar_url = self.enterprise_repository.update_enterprise_avatar(
+            enterprise_id=enterprise_id,
+            avatar=avatar
+        )
+        return avatar_url
 
     def add_multiple_member(self, secret: str, current_enterprise: Enterprise, members_data: [Dict]) -> Tuple:
         emails_param = [member.get("email") for member in members_data]

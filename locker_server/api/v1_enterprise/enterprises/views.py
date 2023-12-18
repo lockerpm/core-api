@@ -45,7 +45,15 @@ class EnterprisePwdViewSet(APIBaseViewSet):
             self.serializer_class = UpdateEnterpriseSerializer
         elif self.action == "add_members":
             self.serializer_class = CreateMultipleMemberSerializer
+        elif self.action == "avatar":
+            if self.request.method == "PUT":
+                self.serializer_class = UpdateEnterpriseAvatarSerializer
         return super().get_serializer_class()
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['get_avatar_func'] = self.get_avatar_url
+        return context
 
     def get_object(self):
         try:
@@ -165,29 +173,29 @@ class EnterprisePwdViewSet(APIBaseViewSet):
         leaked_account_count = 0
         being_blocked_login = []
         for member in members:
-            status = member.status
+            member_status = member.status
             is_activated = member.is_activated
             master_password_score = member.user.master_password_score if member.user else 0
-            if status == E_MEMBER_STATUS_CONFIRMED:
+            if member_status == E_MEMBER_STATUS_CONFIRMED:
                 e_members_status_confirmed_count += 1
                 if member.user:
                     confirmed_user_ids.append(member.user.user_id)
-            elif status == E_MEMBER_STATUS_REQUESTED:
+            elif member_status == E_MEMBER_STATUS_REQUESTED:
                 e_member_status_requested_count += 1
-            elif status == E_MEMBER_STATUS_INVITED:
+            elif member_status == E_MEMBER_STATUS_INVITED:
                 e_member_status_invited_count += 1
             # Count activated member
-            if status == E_MEMBER_STATUS_CONFIRMED and is_activated:
+            if member_status == E_MEMBER_STATUS_CONFIRMED and is_activated:
                 members_activated_count += 1
             # Master Password statistic
-            if status == E_MEMBER_STATUS_CONFIRMED and master_password_score <= 1:
+            if member_status == E_MEMBER_STATUS_CONFIRMED and master_password_score <= 1:
                 weak_master_password_count += 1
             # Leak statistic
-            if status == E_MEMBER_STATUS_CONFIRMED and member.user and member.user.is_leaked is True:
+            if member_status == E_MEMBER_STATUS_CONFIRMED and member.user and member.user.is_leaked is True:
                 leaked_account_count += 1
 
             # Failed login
-            if status == E_MEMBER_STATUS_CONFIRMED and member.user and member.user.login_block_until and member.user.login_block_until >= now():
+            if member_status == E_MEMBER_STATUS_CONFIRMED and member.user and member.user.login_block_until and member.user.login_block_until >= now():
                 being_blocked_login.append({
                     "id": member.enterprise_member_id,
                     "user_id": member.user.user_id,
@@ -207,7 +215,7 @@ class EnterprisePwdViewSet(APIBaseViewSet):
             enterprise_id=enterprise.enterprise_id
         )
 
-        return Response(status=200, data={
+        return Response(status=status.HTTP_200_OK, data={
             "members": {
                 "total": len(members),
                 "status": members_status_statistic,
@@ -227,14 +235,32 @@ class EnterprisePwdViewSet(APIBaseViewSet):
             "unverified_domain": unverified_domain_count
         })
 
-    @action(methods=['post', "get"], detail=True)
+    @action(methods=['get', "put"], detail=True)
     def avatar(self, request, *args, **kwargs):
         enterprise = self.get_object()
-        try:
+        if request.method == "GET":
             avatar_url = self.enterprise_service.get_enterprise_avatar(enterprise_id=enterprise.enterprise_id)
-        except EnterpriseDoesNotExistException:
-            raise NotFound
-        return Response(status=status.HTTP_200_OK, data={"avatar": avatar_url})
+            return Response(
+                status=status.HTTP_200_OK,
+                data={"avatar": request.build_absolute_uri(avatar_url) if avatar_url is not None else avatar_url}
+            )
+        elif request.method == "PUT":
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            validated_data = serializer.validated_data
+            avatar = validated_data.get("avatar")
+            new_avatar_url = self.enterprise_service.update_enterprise_avatar(
+                enterprise_id=enterprise.enterprise_id,
+                avatar=avatar
+            )
+
+            return Response(
+                status=status.HTTP_200_OK,
+                data={
+                    "avatar": request.build_absolute_uri(
+                        new_avatar_url) if new_avatar_url is not None else new_avatar_url
+                }
+            )
 
     @action(methods=['post'], detail=True)
     def add_members(self, request, *args, **kwargs):
@@ -373,3 +399,8 @@ class EnterprisePwdViewSet(APIBaseViewSet):
             login_url = os.getenv("INVITATION_LOGIN_URL", "")
         login_url += f"?token={token_value}&email={email}"
         return login_url
+
+    def get_avatar_url(self, avatar_url: str):
+        if avatar_url is not None:
+            return self.request.build_absolute_uri(avatar_url)
+        return None

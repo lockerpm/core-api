@@ -20,6 +20,12 @@ from locker_server.core.entities.enterprise.policy.policy_passwordless import Po
 class EnterpriseParser:
     @classmethod
     def parse_enterprise(cls, enterprise_orm: EnterpriseORM) -> Enterprise:
+        avatar_file = enterprise_orm.avatar
+        try:
+            avatar_url = avatar_file.url
+        except:
+            avatar_url = None
+
         return Enterprise(
             enterprise_id=enterprise_orm.id,
             name=enterprise_orm.name,
@@ -35,7 +41,7 @@ class EnterpriseParser:
             enterprise_postal_code=enterprise_orm.enterprise_postal_code,
             init_seats=enterprise_orm.init_seats,
             init_seats_expired_time=enterprise_orm.init_seats_expired_time,
-            avatar=enterprise_orm.avatar
+            avatar=avatar_url
         )
 
     @classmethod
