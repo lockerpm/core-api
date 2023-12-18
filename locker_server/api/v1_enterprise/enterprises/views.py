@@ -235,7 +235,7 @@ class EnterprisePwdViewSet(APIBaseViewSet):
             "unverified_domain": unverified_domain_count
         })
 
-    @action(methods=['get', "put"], detail=True)
+    @action(methods=['get'], detail=True)
     def avatar(self, request, *args, **kwargs):
         enterprise = self.get_object()
         if request.method == "GET":
