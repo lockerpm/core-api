@@ -353,30 +353,34 @@ class MemberPwdViewSet(APIBaseViewSet):
                 raise NotFound
             except EnterpriseMemberUpdatedFailedException:
                 raise PermissionDenied
-            primary_user = self.enterprise_service.get_primary_member(enterprise_id=enterprise.enterprise_id).user
-            current_plan = self.user_service.get_current_plan(user=primary_user)
-            # Remove this member from all groups
             if activated is False:
                 self.enterprise_member_service.delete_group_members_by_member_id(
                     enterprise_member_id=enterprise_member.enterprise_member_id
                 )
-            #  Update billing here - Check the user is a new activated user in billing period
-            if activated is True and self.is_billing_members_added(enterprise_member=updated_enterprise_member):
-                try:
-                    PaymentMethodFactory.get_method(
-                        user_plan=current_plan, scope=settings.SCOPE_PWD_MANAGER,
-                        payment_method=PAYMENT_METHOD_CARD
-                    ).update_quantity_subscription(amount=1)
-                except (PaymentMethodNotSupportException, ObjectDoesNotExist):
-                    pass
-            if activated is False and self.is_billing_members_removed(enterprise_member=enterprise_member):
-                try:
-                    PaymentMethodFactory.get_method(
-                        user_plan=current_plan, scope=settings.SCOPE_PWD_MANAGER,
-                        payment_method=PAYMENT_METHOD_CARD
-                    ).update_quantity_subscription(amount=-1)
-                except (PaymentMethodNotSupportException, ObjectDoesNotExist):
-                    pass
+            try:
+                primary_user = self.enterprise_service.get_primary_member(enterprise_id=enterprise.enterprise_id).user
+                current_plan = self.user_service.get_current_plan(user=primary_user)
+                # Remove this member from all groups
+
+                #  Update billing here - Check the user is a new activated user in billing period
+                if activated is True and self.is_billing_members_added(enterprise_member=updated_enterprise_member):
+                    try:
+                        PaymentMethodFactory.get_method(
+                            user_plan=current_plan, scope=settings.SCOPE_PWD_MANAGER,
+                            payment_method=PAYMENT_METHOD_CARD
+                        ).update_quantity_subscription(amount=1)
+                    except (PaymentMethodNotSupportException, ObjectDoesNotExist):
+                        pass
+                if activated is False and self.is_billing_members_removed(enterprise_member=enterprise_member):
+                    try:
+                        PaymentMethodFactory.get_method(
+                            user_plan=current_plan, scope=settings.SCOPE_PWD_MANAGER,
+                            payment_method=PAYMENT_METHOD_CARD
+                        ).update_quantity_subscription(amount=-1)
+                    except (PaymentMethodNotSupportException, ObjectDoesNotExist):
+                        pass
+            except EnterpriseMemberPrimaryDoesNotExistException:
+                pass
             BackgroundFactory.get_background(bg_name=BG_EVENT).run(
                 func_name="create_by_enterprise_ids",
                 **{
