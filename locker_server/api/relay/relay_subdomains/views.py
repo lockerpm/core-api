@@ -60,7 +60,7 @@ class RelaySubdomainViewSet(APIBaseViewSet):
         current_plan = self.user_service.get_current_plan(user=user)
         plan = current_plan.pm_plan
         is_active_enterprise_member = self.user_service.is_active_enterprise_member(user_id=user.user_id)
-        # return plan.relay_premium or is_active_enterprise_member
+        return plan.relay_premium or is_active_enterprise_member
 
     def list(self, request, *args, **kwargs):
         paging_param = self.request.query_params.get("paging", "1")
