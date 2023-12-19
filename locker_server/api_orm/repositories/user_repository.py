@@ -498,6 +498,15 @@ class UserORMRepository(UserRepository):
         user_orm.save()
         return ModelParser.user_parser().parse_user(user_orm=user_orm)
 
+    def update_use_relay_subdomain(self, user_id: int, use_relay_subdomain: bool):
+        try:
+            user_orm = UserORM.objects.get(user_id=user_id)
+        except UserORM.DoesNotExist:
+            return None
+        user_orm.use_relay_subdomain = use_relay_subdomain
+        user_orm.save()
+        return ModelParser.user_parser().parse_user(user_orm=user_orm)
+
     def change_master_password(self, user: User, new_master_password_hash: str, new_master_password_hint: str = None,
                                key: str = None, score=None, login_method: str = None):
         try:

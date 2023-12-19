@@ -117,6 +117,10 @@ class UserRepository(ABC):
         pass
 
     @abstractmethod
+    def update_use_relay_subdomain(self, user_id: int, use_relay_subdomain: bool):
+        pass
+
+    @abstractmethod
     def change_master_password(self, user: User, new_master_password_hash: str, new_master_password_hint: str = None,
                                key: str = None, score=None, login_method: str = None):
         pass

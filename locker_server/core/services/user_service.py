@@ -115,6 +115,15 @@ class UserService:
             fd_name=fd_name
         )
 
+    def update_use_relay_subdomain(self, user_id: int, use_relay_subdomain: bool):
+        updated_user = self.user_repository.update_use_relay_subdomain(
+            user_id=user_id,
+            use_relay_subdomain=use_relay_subdomain
+        )
+        if not updated_user:
+            raise UserDoesNotExistException
+        return updated_user
+
     def retrieve_by_id(self, user_id: int) -> User:
         user = self.user_repository.get_user_by_id(user_id=user_id)
         if not user:
