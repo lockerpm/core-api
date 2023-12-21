@@ -43,6 +43,7 @@ class UserParser:
             fd_credential_id=user_orm.fd_credential_id,
             fd_random=user_orm.fd_random,
             fd_name=user_orm.fd_name,
+            fd_type=user_orm.fd_type,
             fd_creation_date=user_orm.fd_creation_date,
             fd_last_use_date=user_orm.fd_last_use_date,
             onboarding_process=user_orm.get_onboarding_process(),
@@ -140,5 +141,6 @@ class UserParser:
             kdf=backup_credential_orm.kdf,
             user=cls.parse_user(user_orm=backup_credential_orm.user),
             name=backup_credential_orm.name,
+            type=backup_credential_orm.type,
             last_use_date=backup_credential_orm.last_use_date
         )

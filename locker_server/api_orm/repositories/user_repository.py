@@ -17,6 +17,7 @@ from locker_server.core.repositories.user_repository import UserRepository
 from locker_server.shared.caching.sync_cache import delete_sync_cache_data
 from locker_server.shared.constants.account import ACCOUNT_TYPE_ENTERPRISE, ACCOUNT_TYPE_PERSONAL, \
     LOGIN_METHOD_PASSWORD, LOGIN_METHOD_PASSWORDLESS
+from locker_server.shared.constants.backup_credential import CREDENTIAL_TYPE_HMAC
 from locker_server.shared.constants.ciphers import *
 from locker_server.shared.constants.enterprise_members import E_MEMBER_STATUS_CONFIRMED, E_MEMBER_ROLE_PRIMARY_ADMIN, \
     E_MEMBER_ROLE_ADMIN
@@ -485,7 +486,8 @@ class UserORMRepository(UserRepository):
         user_orm.save()
         return ModelParser.user_parser().parse_user(user_orm=user_orm)
 
-    def update_passwordless_cred(self, user_id: int, fd_credential_id: str, fd_random: str, fd_name: str) -> User:
+    def update_passwordless_cred(self, user_id: int, fd_credential_id: str, fd_random: str, fd_name: str,
+                                 fd_type: str = None) -> User:
         try:
             user_orm = UserORM.objects.get(user_id=user_id)
         except UserORM.DoesNotExist:
@@ -494,6 +496,8 @@ class UserORMRepository(UserRepository):
         user_orm.fd_random = fd_random
         user_orm.fd_name = fd_name
         user_orm.fd_creation_date = now()
+        if fd_type is not None:
+            user_orm.fd_type = fd_type
         user_orm.fd_last_use_date = None
         user_orm.save()
         return ModelParser.user_parser().parse_user(user_orm=user_orm)

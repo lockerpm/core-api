@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from locker_server.core.entities.user.backup_credential import BackupCredential
+from locker_server.shared.constants.backup_credential import LIST_CREDENTIAL_TYPE
 
 
 class ListBackupCredentialSerializer(serializers.Serializer):
@@ -13,6 +14,7 @@ class ListBackupCredentialSerializer(serializers.Serializer):
             "fd_credential_id": instance.fd_credential_id,
             "fd_random": instance.fd_random,
             "name": instance.name,
+            "type": instance.type,
             "last_use_date": instance.last_use_date
         }
         return data
@@ -30,3 +32,4 @@ class CreateBackupCredentialSerializer(serializers.Serializer):
     fd_credential_id = serializers.CharField(max_length=255, required=False, allow_blank=True, allow_null=True)
     fd_random = serializers.CharField(max_length=128, required=False, allow_blank=True, allow_null=True)
     name = serializers.CharField(max_length=255, required=False, allow_blank=False)
+    type = serializers.ChoiceField(choices=LIST_CREDENTIAL_TYPE, required=False)

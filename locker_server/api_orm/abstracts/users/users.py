@@ -5,6 +5,7 @@ from django.contrib.auth.hashers import check_password, make_password
 from django.db import models
 
 from locker_server.shared.constants.account import *
+from locker_server.shared.constants.backup_credential import CREDENTIAL_TYPE_HMAC
 
 
 class AbstractUserORM(models.Model):
@@ -42,6 +43,7 @@ class AbstractUserORM(models.Model):
     fd_credential_id = models.CharField(max_length=255, null=True)
     fd_random = models.CharField(max_length=128, null=True)
     fd_name = models.CharField(null=True, max_length=255, default=None)
+    fd_type = models.CharField(null=True, max_length=128, default=CREDENTIAL_TYPE_HMAC)
     fd_creation_date = models.FloatField(null=True)
     fd_last_use_date = models.FloatField(null=True)
 
