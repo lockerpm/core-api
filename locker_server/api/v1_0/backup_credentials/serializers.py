@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from locker_server.core.entities.user.backup_credential import BackupCredential
-from locker_server.shared.constants.backup_credential import LIST_CREDENTIAL_TYPE
+from locker_server.shared.constants.backup_credential import LIST_CREDENTIAL_TYPE, CREDENTIAL_TYPE_HMAC
 
 
 class ListBackupCredentialSerializer(serializers.Serializer):
@@ -32,4 +32,4 @@ class CreateBackupCredentialSerializer(serializers.Serializer):
     fd_credential_id = serializers.CharField(max_length=255, required=False, allow_blank=True, allow_null=True)
     fd_random = serializers.CharField(max_length=128, required=False, allow_blank=True, allow_null=True)
     name = serializers.CharField(max_length=255, required=False, allow_blank=False)
-    type = serializers.ChoiceField(choices=LIST_CREDENTIAL_TYPE, required=False)
+    type = serializers.ChoiceField(choices=LIST_CREDENTIAL_TYPE, required=False, default=CREDENTIAL_TYPE_HMAC)
