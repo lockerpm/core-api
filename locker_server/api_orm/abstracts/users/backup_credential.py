@@ -5,6 +5,7 @@ from django.db import models
 
 from locker_server.settings import locker_server_settings
 from locker_server.shared.constants.account import DEFAULT_KDF_ITERATIONS
+from locker_server.shared.constants.backup_credential import CREDENTIAL_TYPE_HMAC
 
 
 class AbstractBackupCredentialORM(models.Model):
@@ -24,6 +25,7 @@ class AbstractBackupCredentialORM(models.Model):
 
     # Security keys info
     name = models.CharField(max_length=128, null=True, default=None)
+    type = models.CharField(max_length=128, null=True, default=CREDENTIAL_TYPE_HMAC)
     user = models.ForeignKey(locker_server_settings.LS_USER_MODEL, on_delete=models.CASCADE,
                              related_name="user_backup_credentials")
 

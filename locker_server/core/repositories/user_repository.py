@@ -2,6 +2,7 @@ from typing import Union, Dict, Optional, Tuple, List
 from abc import ABC, abstractmethod
 
 from locker_server.core.entities.user.user import User
+from locker_server.shared.constants.backup_credential import CREDENTIAL_TYPE_HMAC
 from locker_server.shared.constants.enterprise_members import E_MEMBER_STATUS_CONFIRMED
 
 
@@ -113,7 +114,9 @@ class UserRepository(ABC):
         pass
 
     @abstractmethod
-    def update_passwordless_cred(self, user_id: int, fd_credential_id: str, fd_random: str, fd_name: str) -> User:
+    def update_passwordless_cred(self,
+                                 user_id: int, fd_credential_id: str, fd_random: str, fd_name: str,
+                                 fd_type: str = None) -> User:
         pass
 
     @abstractmethod

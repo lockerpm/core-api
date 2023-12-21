@@ -19,7 +19,7 @@ class User(object):
                  email: str = None, full_name: str = None, language: str = LANG_ENGLISH,
                  is_factor2: bool = False, base32_secret_factor2: str = "", is_super_admin: bool = False,
                  sync_all_platforms: bool = False, is_password_changed: bool = True, fd_name: str = None,
-                 fd_creation_date: float = None, fd_last_use_date: float = None):
+                 fd_creation_date: float = None, fd_last_use_date: float = None, fd_type: str = None):
         self._user_id = user_id
         self._internal_id = internal_id
         self._creation_date = creation_date
@@ -50,6 +50,7 @@ class User(object):
         self._fd_credential_id = fd_credential_id
         self._fd_random = fd_random
         self._fd_name = fd_name
+        self._fd_type = fd_type
         self._fd_creation_date = fd_creation_date
         self._fd_last_use_date = fd_last_use_date
         self._onboarding_process = onboarding_process
@@ -233,6 +234,10 @@ class User(object):
     @property
     def fd_name(self):
         return self._fd_name
+
+    @property
+    def fd_type(self):
+        return self._fd_type
 
     @property
     def fd_creation_date(self):

@@ -8,7 +8,7 @@ class BackupCredential(object):
                  master_password: str = None, master_password_hint: str = "", key: str = None,
                  public_key: str = None, private_key: str = None, creation_date: float = 0,
                  fd_credential_id: str = None, fd_random: str = None, kdf: int = 0, kdf_iterations: int = 0,
-                 name: str = None, last_use_date: float = None
+                 name: str = None, last_use_date: float = None, type: str = None
                  ):
         self._backup_credential_id = backup_credential_id
         self._creation_date = creation_date
@@ -23,6 +23,7 @@ class BackupCredential(object):
         self._kdf = kdf
         self._user = user
         self._name = name
+        self._type = type
         self._last_use_date = last_use_date
 
     @property
@@ -76,6 +77,10 @@ class BackupCredential(object):
     @property
     def name(self):
         return self._name
+
+    @property
+    def type(self):
+        return self._type
 
     @property
     def last_use_date(self):
