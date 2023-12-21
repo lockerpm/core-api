@@ -122,7 +122,7 @@ class UserRewardMissionPwdViewSet(APIBaseViewSet):
         mission_check = mission_factory.check_mission_completion(input_data)
         answer = json.dumps(answer)
 
-        if mission_check is True and \
+        if answer and user_identifier and mission_check is True and \
                 self.user_reward_mission_service.is_answer_claimed(answer=answer, mission_id=mission_id) is True:
             mission_check = False
 
