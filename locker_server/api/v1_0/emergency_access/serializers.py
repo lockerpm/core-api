@@ -72,7 +72,7 @@ class InviteEmergencyAccessSerializer(serializers.Serializer):
 class PasswordEmergencyAccessSerializer(serializers.Serializer):
     key = serializers.CharField()
     new_master_password_hash = serializers.CharField()
-    login_method = serializers.ChoiceField(choices=[LOGIN_METHOD_PASSWORD, LOGIN_METHOD_PASSWORDLESS])
+    login_method = serializers.ChoiceField(choices=[LOGIN_METHOD_PASSWORD, LOGIN_METHOD_PASSWORDLESS], required=False)
 
 
 class ViewOrgSerializer(serializers.Serializer):
