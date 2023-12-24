@@ -16,6 +16,8 @@ class CapterraRatingAndReviewMission(Mission):
         self.reward_value = 5
 
     def check_mission_completion(self, input_data: Dict):
+        # Remove capterra mission
+        return False
         user_identifier = input_data.get("user_identifier")
         product_id = "265084"
         url = f"https://www.capterra.com/spotlight/rest/reviews?apiVersion=2&productId={product_id}&from=0&sort=lastestReview&size=50"
