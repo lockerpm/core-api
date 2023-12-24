@@ -9,6 +9,7 @@ from locker_server.core.exceptions.factor2_method_exception import Factor2CodeIn
     Factor2MethodInvalidException
 from locker_server.core.exceptions.user_exception import UserDoesNotExistException, UserPasswordInvalidException
 from locker_server.core.repositories.auth_repository import AuthRepository
+from locker_server.core.repositories.device_factor2_repository import DeviceFactor2Repository
 
 from locker_server.core.repositories.factor2_method_repository import Factor2MethodRepository
 from locker_server.core.repositories.user_repository import UserRepository
@@ -27,11 +28,13 @@ class Factor2Service:
 
     def __init__(self, user_repository: UserRepository,
                  auth_repository: AuthRepository,
-                 factor2_method_repository: Factor2MethodRepository
+                 factor2_method_repository: Factor2MethodRepository,
+                 device_factor2_repository: DeviceFactor2Repository
                  ):
         self.user_repository = user_repository
         self.auth_repository = auth_repository
         self.factor2_method_repository = factor2_method_repository
+        self.device_factor2_repository = device_factor2_repository
 
     def list_user_factor2_methods(self, user_id: int, **filters) -> List[Factor2Method]:
         return self.factor2_method_repository.list_user_factor2_methods(
@@ -147,9 +150,9 @@ class Factor2Service:
 
     def update_factor2(self, user_id: int, method: str, user_otp: str, device) -> User:
         user = self.user_repository.get_user_by_id(user_id=user_id)
-        old_factor2 = user.is_factor2
         if not user:
             raise UserDoesNotExistException
+        old_factor2 = user.is_factor2
         if method not in LIST_FA2_METHOD:
             raise Factor2MethodInvalidException
         smart_otp = self.factor2_method_repository.get_factor2_method_by_method(
@@ -221,6 +224,11 @@ class Factor2Service:
             is_factor2 = False
         if is_factor2 != old_factor2:
             self.user_repository.revoke_all_sessions(user=user)
+            # Remove all device factor2 white list of user
+            self.device_factor2_repository.delete_device_factor2_by_user_id(
+                user_id=user.user_id
+            )
+
         user = self.user_repository.update_user_factor2(user_id=user_id, is_factor2=is_factor2)
         return user
 

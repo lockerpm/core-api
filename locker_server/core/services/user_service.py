@@ -16,6 +16,7 @@ from locker_server.core.exceptions.user_exception import *
 from locker_server.core.repositories.auth_repository import AuthRepository
 from locker_server.core.repositories.cipher_repository import CipherRepository
 from locker_server.core.repositories.device_access_token_repository import DeviceAccessTokenRepository
+from locker_server.core.repositories.device_factor2_repository import DeviceFactor2Repository
 from locker_server.core.repositories.device_repository import DeviceRepository
 from locker_server.core.repositories.enterprise_member_repository import EnterpriseMemberRepository
 from locker_server.core.repositories.enterprise_policy_repository import EnterprisePolicyRepository
@@ -64,7 +65,8 @@ class UserService:
                  enterprise_member_repository: EnterpriseMemberRepository,
                  enterprise_policy_repository: EnterprisePolicyRepository,
                  notification_setting_repository: NotificationSettingRepository,
-                 factor2_method_repository: Factor2MethodRepository
+                 factor2_method_repository: Factor2MethodRepository,
+                 device_factor2_repository: DeviceFactor2Repository
                  ):
         self.user_repository = user_repository
         self.auth_repository = auth_repository
@@ -81,6 +83,7 @@ class UserService:
         self.enterprise_policy_repository = enterprise_policy_repository
         self.notification_setting_repository = notification_setting_repository
         self.factor2_method_repository = factor2_method_repository
+        self.device_factor2_repository = device_factor2_repository
 
     def get_current_plan(self, user: User) -> PMUserPlan:
         return self.user_plan_repository.get_user_plan(user_id=user.user_id)
@@ -778,7 +781,7 @@ class UserService:
                             device_identifier: str = None,
                             device_name: str = None, device_type: int = None, is_factor2: bool = False,
                             token_auth_value: str = None, secret: str = None,
-                            ip: str = None, ua: str = None):
+                            ip: str = None, ua: str = None, save_device: bool = False):
         # Check login block
         if user.login_block_until and user.login_block_until > now():
             wait = user.login_block_until - now()
@@ -929,6 +932,15 @@ class UserService:
             device=device_obj, renewal=True, sso_token_id=sso_token_id,
             credential_key=user.key if credential_backup is None else credential_backup.key
         )
+        if save_device:
+            # Save device to device factor2 white list
+            device_factor2_create_data = {
+                "device_id": device_existed.device_id,
+                "factor2_method_id": factor2_method.factor2_method_id
+            }
+            self.device_factor2_repository.create_device_factor2(
+                device_factor2_create_data=device_factor2_create_data
+            )
 
         result = {
             "refresh_token": device_obj.refresh_token,

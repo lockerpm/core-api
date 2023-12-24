@@ -22,10 +22,10 @@ class DeviceFactor2ORM(models.Model):
         db_table = 'cs_device_factor2'
 
     @classmethod
-    def create(cls, factor2_method, device_id):
+    def create(cls, factor2_method_id, device_id):
         new_device_factor2 = cls(
             device_id=device_id,
-            factor2_method=factor2_method,
+            factor2_method_id=factor2_method_id,
             expired_time=now() + FA2_EXPIRED_TIME * 86400,
         )
         new_device_factor2.save()
