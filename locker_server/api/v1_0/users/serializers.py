@@ -121,6 +121,7 @@ class UserSessionByOtpSerializer(serializers.Serializer):
     device_type = serializers.IntegerField(required=False)
     otp = serializers.CharField(required=True)
     method = serializers.ChoiceField(choices=LIST_FA2_METHOD)
+    save_device = serializers.BooleanField(default=False)
 
     def validate(self, data):
         device_type = data.get("device_type")

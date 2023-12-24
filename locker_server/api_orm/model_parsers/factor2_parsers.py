@@ -25,5 +25,5 @@ class Factor2Parser:
             device_factor2_id=device_factor2_orm.id,
             expired_time=device_factor2_orm.expired_time,
             factor2_method=cls.parse_factor2_method(factor2_method_orm=device_factor2_orm.factor2_method),
-            device=user_parser.parse_device(device_factor2_orm=device_factor2_orm.device),
+            device=user_parser.parse_device(device_orm=device_factor2_orm.device),
         )

@@ -6,7 +6,7 @@ import requests
 
 from locker_server.containers.containers import device_service
 from locker_server.shared.constants.device_type import *
-from locker_server.shared.constants.missions import REWARD_TYPE_PREMIUM
+from locker_server.shared.constants.missions import REWARD_TYPE_PREMIUM, REWARD_TYPE_PROMO_CODE
 from locker_server.shared.external_services.user_reward_mission.mission import Mission, MAX_REVIEW_DURATION_TIME
 from locker_server.shared.log.cylog import CyLog
 from locker_server.shared.utils.app import now
@@ -15,8 +15,8 @@ from locker_server.shared.utils.app import now
 class ExtensionInstallationAndReviewMission(Mission):
     def __init__(self, mission_type: str, extra_requirements=None):
         super().__init__(mission_type=mission_type, extra_requirements=extra_requirements)
-        self.reward_type = REWARD_TYPE_PREMIUM
-        self.reward_value = 30 * 86400       # 1 month
+        self.reward_type = REWARD_TYPE_PROMO_CODE
+        self.reward_value = 5
 
     def check_mission_completion(self, input_data: Dict):
         user = input_data.get("user")
@@ -28,7 +28,7 @@ class ExtensionInstallationAndReviewMission(Mission):
         extension_devices = [d.device_type for d in extension_devices_obj]
         extension_devices = list(set(extension_devices))
 
-        if len(extension_devices) < 2:
+        if len(extension_devices) < 1:
             return False
         map_extension_type_check = {
             DEVICE_TYPE_EXTENSION_CHROME: {
@@ -65,7 +65,7 @@ class ExtensionInstallationAndReviewMission(Mission):
             )
             if checker(user_identifier_el.get("user_identifier")) is True:
                 review_count += 1
-        return True if review_count >= 2 else False
+        return True if review_count >= 1 else False
 
     @staticmethod
     def check_chrome_extension(user_identifier):

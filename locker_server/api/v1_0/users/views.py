@@ -13,7 +13,8 @@ from locker_server.api.permissions.locker_permissions.user_pwd_permission import
 from locker_server.core.exceptions.cipher_exception import FolderDoesNotExistException, CipherMaximumReachedException
 from locker_server.core.exceptions.collection_exception import CollectionDoesNotExistException, \
     CollectionCannotRemoveException, CollectionCannotAddException
-from locker_server.core.exceptions.device_exception import DeviceDoesNotExistException
+from locker_server.core.exceptions.device_exception import DeviceDoesNotExistException, \
+    DeviceFactor2DoesNotExistException
 from locker_server.core.exceptions.team_exception import TeamDoesNotExistException, TeamLockedException
 from locker_server.core.exceptions.team_member_exception import TeamMemberDoesNotExistException, \
     OnlyAllowOwnerUpdateException
@@ -268,10 +269,11 @@ class UserPwdViewSet(APIBaseViewSet):
 
         if is_factor2:
             try:
-                device_existed = self.device_service.get_device_by_identifier(
+                # check device in white list
+                device_existed = self.device_service.get_device_factor2_by_device_identifier(
                     user_id=user.user_id, device_identifier=device_identifier
                 )
-            except DeviceDoesNotExistException:
+            except (DeviceDoesNotExistException, DeviceFactor2DoesNotExistException):
                 active_factor2_methods = self.factor2_service.list_user_factor2_methods(
                     user_id=user.user_id,
                     **{
@@ -344,6 +346,7 @@ class UserPwdViewSet(APIBaseViewSet):
         password = validated_data.get("password")
         method = validated_data.get("method")
         otp_code = validated_data.get("otp")
+        save_device = validated_data.get("save_device", False)
         try:
             user = self.user_service.retrieve_by_email(email=email)
         except UserDoesNotExistException:
@@ -360,7 +363,8 @@ class UserPwdViewSet(APIBaseViewSet):
                 ip=ip,
                 ua=ua_string,
                 method=method,
-                otp_code=otp_code
+                otp_code=otp_code,
+                save_device=save_device
             )
             return Response(status=status.HTTP_200_OK, data=result)
         except UserAuthBlockingEnterprisePolicyException as e:

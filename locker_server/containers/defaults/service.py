@@ -40,11 +40,13 @@ class ServiceFactory(containers.DeclarativeContainer):
         enterprise_policy_repository=RepositoryFactory.enterprise_policy_repository,
         notification_setting_repository=RepositoryFactory.notification_setting_repository,
         factor2_method_repository=RepositoryFactory.factor2_method_repository,
+        device_factor2_repository=RepositoryFactory.device_factor2_repository
     )
     device_service = providers.Factory(
         DeviceService,
         device_repository=RepositoryFactory.device_repository,
         device_access_token_repository=RepositoryFactory.device_access_token_repository,
+        device_factor2_repository=RepositoryFactory.device_factor2_repository
     )
     family_service = providers.Factory(
         FamilyService,
@@ -225,7 +227,8 @@ class ServiceFactory(containers.DeclarativeContainer):
         Factor2Service,
         user_repository=RepositoryFactory.user_repository,
         auth_repository=RepositoryFactory.auth_repository,
-        factor2_method_repository=RepositoryFactory.factor2_method_repository
+        factor2_method_repository=RepositoryFactory.factor2_method_repository,
+        device_factor2_repository=RepositoryFactory.device_factor2_repository
     )
 
     notification_service = providers.Factory(

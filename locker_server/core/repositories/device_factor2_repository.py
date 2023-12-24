@@ -19,6 +19,10 @@ class DeviceFactor2Repository(ABC):
     def get_device_factor2_by_method(self, user_id: int, method: str) -> DeviceFactor2:
         pass
 
+    @abstractmethod
+    def get_device_factor2_by_device_id(self, device_id: int) -> Optional[DeviceFactor2]:
+        pass
+
     # ------------------------ Create DeviceFactor2 resource --------------------- #
     @abstractmethod
     def create_device_factor2(self, device_factor2_create_data: Dict) -> DeviceFactor2:
@@ -27,3 +31,6 @@ class DeviceFactor2Repository(ABC):
     # ------------------------ Update DeviceFactor2 resource --------------------- #
 
     # ------------------------ Delete DeviceFactor2 resource --------------------- #
+    @abstractmethod
+    def delete_device_factor2_by_user_id(self, user_id: int):
+        pass
