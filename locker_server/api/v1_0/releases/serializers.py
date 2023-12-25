@@ -12,7 +12,7 @@ class NewReleaseSerializer(serializers.Serializer):
         default=CLIENT_ID_DESKTOP
     )
     environment = serializers.ChoiceField(choices=LIST_RELEASE_ENVIRONMENT, default=RELEASE_ENVIRONMENT_PROD)
-    checksum = serializers.ListSerializer(child=serializers.DictField(), required=False)
+    checksum = serializers.DictField(required=False, allow_null=True)
     platform = serializers.ChoiceField(choices=LIST_RELEASE_PLATFORM, allow_null=True, default=None, required=False)
 
 
