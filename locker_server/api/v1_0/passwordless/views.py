@@ -42,7 +42,9 @@ class PasswordlessPwdViewSet(APIBaseViewSet):
                     "credential_id": backup_credential.fd_credential_id,
                     "random": backup_credential.fd_random,
                     "name": backup_credential.name,
-                    "type": backup_credential.type
+                    "type": backup_credential.type,
+                    "creation_date": backup_credential.creation_date,
+                    "last_use_date": backup_credential.last_use_date,
                 })
             return Response(status=status.HTTP_200_OK, data={
                 "credential_id": user.fd_credential_id,
