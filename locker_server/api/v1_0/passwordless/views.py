@@ -62,7 +62,7 @@ class PasswordlessPwdViewSet(APIBaseViewSet):
             credential_id = validated_data.get("credential_id")
             name = validated_data.get("name")
             fd_type = validated_data.get("type")
-            credential_random = random.randbytes(16).hex()
+            credential_random = validated_data.get("random") or random.randbytes(16).hex()
             user = self.user_service.update_passwordless_cred(
                 user=user, fd_credential_id=credential_id, fd_random=credential_random,
                 fd_name=name,
