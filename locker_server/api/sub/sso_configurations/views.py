@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -27,7 +28,8 @@ class SSOConfigurationViewSet(APIBaseViewSet):
         validated_data = serializer.validated_data
         user_data = self.sso_configuration_service.get_user_by_code(
             sso_identifier=validated_data.get("sso_identifier"),
-            code=validated_data.get("code")
+            code=validated_data.get("code"),
+            redirect_uri=validated_data.get("redirect_uri") or f"{settings.LOCKER_WEB_URL}/sign-in"
         )
         return Response(status=status.HTTP_200_OK, data={"user": user_data})
 

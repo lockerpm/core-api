@@ -7,15 +7,21 @@ def update_record(apps, schema_editor):
     MissionORM = apps.get_model('api_orm', 'MissionORM')
 
     # Update capterra mission
-    capterra_mission_orm = MissionORM.objects.get(id="capterra_rating_and_review")
-    capterra_mission_orm.available = False
-    capterra_mission_orm.save()
+    try:
+        capterra_mission_orm = MissionORM.objects.get(id="capterra_rating_and_review")
+        capterra_mission_orm.available = False
+        capterra_mission_orm.save()
+    except MissionORM.DoesNotExist:
+        pass
 
     # Update extension mission
-    extension_mission_orm = MissionORM.objects.get(id="extension_installation_and_review")
-    extension_mission_orm.reward_type = "promo_code"
-    extension_mission_orm.reward_value = 5
-    extension_mission_orm.save()
+    try:
+        extension_mission_orm = MissionORM.objects.get(id="extension_installation_and_review")
+        extension_mission_orm.reward_type = "promo_code"
+        extension_mission_orm.reward_value = 5
+        extension_mission_orm.save()
+    except MissionORM.DoesNotExist:
+        pass
 
 
 class Migration(migrations.Migration):

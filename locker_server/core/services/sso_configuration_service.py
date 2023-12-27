@@ -51,39 +51,47 @@ class SSOConfigurationService:
     def destroy_sso_configuration(self):
         return self.sso_configuration_repository.destroy_sso_configuration()
 
-    def get_user_by_code(self, sso_identifier: str, code: str):
+    def get_user_by_code(self, sso_identifier: str, code: str, redirect_uri: str = None):
         if sso_identifier:
             sso_configuration = self.sso_configuration_repository.get_sso_configuration_by_identifier(
                 identifier=sso_identifier
             )
-            if not sso_identifier:
-                return {}
-        sso_configuration = self.get_first()
-        if not sso_identifier:
+        else:
+            sso_configuration = self.get_first()
+        if not sso_configuration:
             return {}
         sso_provider_id = sso_configuration.sso_provider.sso_provider_id
         if sso_provider_id == SSO_PROVIDER_OAUTH2:
             token_endpoint = sso_configuration.sso_provider_options.get("token_endpoint")
             userinfo_endpoint = sso_configuration.sso_provider_options.get("userinfo_endpoint")
             try:
-                res = requester(method="GET", url=token_endpoint)
+                headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+                token_data = {
+                    "grant_type": "authorization_code",
+                    "redirect_uri": sso_configuration.sso_provider_options.get("redirect_uri") or redirect_uri,
+                    "client_id": sso_configuration.sso_provider_options.get("client_id"),
+                    "client_secret": sso_configuration.sso_provider_options.get("client_secret"),
+                    "code": code
+                }
+                res = requests.post(url=token_endpoint, headers=headers, data=token_data)
+
+                # res = requester(method="GET", url=token_endpoint)
                 if res.status_code == 200:
-                    id_token = res.json().get("id_token")
+                    access_token = res.json().get("access_token")
                     token_type = res.json().get("token_type")
                 else:
                     return {}
-                user_res_header = {'Authorization': f"{token_type} {id_token}"}
+                user_res_header = {'Authorization': f"{token_type} {access_token}"}
                 user_res = requester(method="GET", url=userinfo_endpoint, headers=user_res_header)
                 if user_res.status_code == 200:
                     try:
                         user_info = user_res.json()
                         return user_info
                     except json.JSONDecodeError:
-                        CyLog.error(
-                            **{
-                                "message": f"[!] User.get_from_sso_configuration JSON Decode error: {sso_configuration.identifier} {res.text}"
-                            }
-                        )
+                        CyLog.error(**{
+                            "message": f"[!] User.get_from_sso_configuration JSON Decode error: "
+                                       f"{sso_configuration.identifier} {res.text}"
+                        })
                         return {}
             except (requests.RequestException, requests.ConnectTimeout):
                 return {}
