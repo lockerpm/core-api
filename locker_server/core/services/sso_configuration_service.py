@@ -1,4 +1,5 @@
 import json
+import traceback
 from typing import Optional, List
 
 import requests
@@ -74,7 +75,7 @@ class SSOConfigurationService:
                     "client_secret": sso_options.get("client_secret"),
                     "code": code
                 }
-                res = requests.post(url=token_endpoint, headers=headers, data=token_data)
+                res = requests.post(url=token_endpoint, headers=headers, data=token_data, timeout=10)
 
                 # res = requester(method="GET", url=token_endpoint)
                 if res.status_code == 200:
@@ -83,7 +84,7 @@ class SSOConfigurationService:
                 else:
                     return {}
                 user_res_header = {'Authorization': f"{token_type} {access_token}"}
-                user_res = requester(method="GET", url=userinfo_endpoint, headers=user_res_header)
+                user_res = requester(method="GET", url=userinfo_endpoint, headers=user_res_header, timeout=5)
                 if user_res.status_code == 200:
                     try:
                         user_info = user_res.json()
@@ -99,6 +100,8 @@ class SSOConfigurationService:
                     return user_data
 
             except (requests.RequestException, requests.ConnectTimeout):
+                tb = traceback.format_exc()
+                CyLog.debug(**{"message": f"[!] Get user timeout:::\n{tb}"})
                 return {}
         return {}
 
