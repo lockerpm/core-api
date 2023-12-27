@@ -62,15 +62,16 @@ class SSOConfigurationService:
             return {}
         sso_provider_id = sso_configuration.sso_provider.sso_provider_id
         if sso_provider_id == SSO_PROVIDER_OAUTH2:
-            token_endpoint = sso_configuration.sso_provider_options.get("token_endpoint")
-            userinfo_endpoint = sso_configuration.sso_provider_options.get("userinfo_endpoint")
+            sso_options = sso_configuration.sso_provider_options
+            token_endpoint = sso_options.get("token_endpoint")
+            userinfo_endpoint = sso_options.get("userinfo_endpoint")
             try:
                 headers = {'Content-Type': 'application/x-www-form-urlencoded'}
                 token_data = {
                     "grant_type": "authorization_code",
-                    "redirect_uri": sso_configuration.sso_provider_options.get("redirect_uri") or redirect_uri,
-                    "client_id": sso_configuration.sso_provider_options.get("client_id"),
-                    "client_secret": sso_configuration.sso_provider_options.get("client_secret"),
+                    "redirect_uri": sso_options.get("redirect_uri") or redirect_uri,
+                    "client_id": sso_options.get("client_id"),
+                    "client_secret": sso_options.get("client_secret"),
                     "code": code
                 }
                 res = requests.post(url=token_endpoint, headers=headers, data=token_data)
@@ -86,13 +87,17 @@ class SSOConfigurationService:
                 if user_res.status_code == 200:
                     try:
                         user_info = user_res.json()
-                        return user_info
                     except json.JSONDecodeError:
                         CyLog.error(**{
                             "message": f"[!] User.get_from_sso_configuration JSON Decode error: "
                                        f"{sso_configuration.identifier} {res.text}"
                         })
                         return {}
+                    user_data = user_info.copy()
+                    user_data["name"] = user_info.get(sso_options.get("name_claim_types") or "name")
+                    user_data["email"] = user_info.get(sso_options.get("email_claim_types") or "email")
+                    return user_data
+
             except (requests.RequestException, requests.ConnectTimeout):
                 return {}
         return {}
