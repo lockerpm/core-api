@@ -24,4 +24,5 @@ class DetailSSOConfigurationSerializer(serializers.Serializer):
 
 class RetrieveUserSerializer(serializers.Serializer):
     sso_identifier = serializers.CharField(max_length=255, required=False, allow_blank=True)
+    redirect_uri = serializers.CharField(max_length=255, required=False, allow_blank=True)
     code = serializers.CharField(required=True, allow_blank=False)
