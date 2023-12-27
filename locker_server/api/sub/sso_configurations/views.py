@@ -31,7 +31,7 @@ class SSOConfigurationViewSet(APIBaseViewSet):
             code=validated_data.get("code"),
             redirect_uri=validated_data.get("redirect_uri") or f"{settings.LOCKER_WEB_URL}/sign-in"
         )
-        return Response(status=status.HTTP_200_OK, data={"user": user_data})
+        return Response(status=status.HTTP_200_OK, data=user_data)
 
     @action(methods=["get"], detail=False)
     def check_exists(self, request, *args, **kwargs):
