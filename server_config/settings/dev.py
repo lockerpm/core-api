@@ -297,6 +297,10 @@ try:
     # Notion table
     NOTION_MARKETING_TABLE_ID = os.getenv("NOTION_MARKETING_TABLE_ID")
 
+    # Requests Proxy
+    REQUESTS_PROXY_SCHEMA = os.getenv("REQUESTS_PROXY_SCHEMA") or "http"
+    REQUESTS_PROXY = os.getenv("REQUESTS_PROXY")
+
     # Redis queue
     RQ_QUEUES = {
         'default': {

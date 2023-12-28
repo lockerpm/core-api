@@ -26,10 +26,14 @@ class SSOConfigurationViewSet(APIBaseViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
+        proxy = {
+            settings.REQUESTS_PROXY_SCHEMA: settings.REQUESTS_PROXY
+        } if settings.REQUESTS_PROXY else None
         user_data = self.sso_configuration_service.get_user_by_code(
             sso_identifier=validated_data.get("sso_identifier"),
             code=validated_data.get("code"),
-            redirect_uri=validated_data.get("redirect_uri") or f"{settings.LOCKER_WEB_URL}/sign-in"
+            redirect_uri=validated_data.get("redirect_uri") or f"{settings.LOCKER_WEB_URL}/sign-in",
+            proxies=proxy
         )
         return Response(status=status.HTTP_200_OK, data=user_data)
 

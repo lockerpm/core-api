@@ -52,7 +52,7 @@ class SSOConfigurationService:
     def destroy_sso_configuration(self):
         return self.sso_configuration_repository.destroy_sso_configuration()
 
-    def get_user_by_code(self, sso_identifier: str, code: str, redirect_uri: str = None):
+    def get_user_by_code(self, sso_identifier: str, code: str, redirect_uri: str = None, proxies=None):
         if sso_identifier:
             sso_configuration = self.sso_configuration_repository.get_sso_configuration_by_identifier(
                 identifier=sso_identifier
@@ -75,7 +75,11 @@ class SSOConfigurationService:
                     "client_secret": sso_options.get("client_secret"),
                     "code": code
                 }
-                res = requests.post(url=token_endpoint, headers=headers, data=token_data, timeout=10)
+                res = requester(
+                    method="POST", url=token_endpoint, headers=headers, data_send=token_data, is_json=False, timeout=10,
+                    proxies=proxies
+                )
+                # res = requests.post(url=token_endpoint, headers=headers, data=token_data, timeout=10)
 
                 # res = requester(method="GET", url=token_endpoint)
                 if res.status_code == 200:
@@ -84,7 +88,9 @@ class SSOConfigurationService:
                 else:
                     return {}
                 user_res_header = {'Authorization': f"{token_type} {access_token}"}
-                user_res = requester(method="GET", url=userinfo_endpoint, headers=user_res_header, timeout=5)
+                user_res = requester(
+                    method="GET", url=userinfo_endpoint, headers=user_res_header, timeout=5, proxies=proxies
+                )
                 if user_res.status_code == 200:
                     try:
                         user_info = user_res.json()
