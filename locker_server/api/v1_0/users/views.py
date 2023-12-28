@@ -914,6 +914,23 @@ class UserPwdViewSet(APIBaseViewSet):
             "require_passwordless": require_passwordless
         })
 
+    @action(methods=["get"], detail=False)
+    def dashboard(self, request, *args, **kwargs):
+        current_time = now()
+        register_from_param = self.check_int_param(
+            self.request.query_params.get("register_from")) or current_time - 90 * 86400
+        register_to_param = self.check_int_param(self.request.query_params.get("register_to")) or current_time
+        duration_param = self.request.query_params.get("duration") or "monthly"
+        device_type_param = self.request.query_params.get("device_type") or ""
+        dashboard_result = self.user_service.statistic_dashboard(**{
+            "register_from": register_from_param,
+            "register_to": register_to_param,
+            "duration": duration_param,
+            "device_type": device_type_param
+
+        })
+        return Response(status=status.HTTP_200_OK, data=dashboard_result)
+
     def get_sso_token_id(self):
         decoded_token = self.auth_service.decode_token(self.request.auth.access_token, secret=settings.SECRET_KEY)
         sso_token_id = decoded_token.get("sso_token_id") if decoded_token else None
