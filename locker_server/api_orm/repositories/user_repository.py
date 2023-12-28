@@ -1,9 +1,11 @@
+from datetime import timedelta, datetime
 from typing import Union, Dict, Optional, Tuple, List
 
 import requests
 import stripe
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Subquery, OuterRef, Count, Case, When, IntegerField, Value, Q, Sum, CharField, F, Min
+from django.db.models.expressions import RawSQL
 from django.forms import FloatField
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
@@ -44,6 +46,38 @@ ModelParser = get_model_parser()
 
 
 class UserORMRepository(UserRepository):
+    @staticmethod
+    def _generate_duration_init_data(start, end, duration="monthly"):
+        durations_list = []
+        for i in range((end - start).days + 1):
+            date = start + timedelta(days=i)
+            if duration == "daily":
+                d = "{}-{:02}-{:02}".format(date.year, date.month, date.day)
+            elif duration == "weekly":
+                d = date.isocalendar()[:2]  # e.g. (2022, 24)
+                d = "{}-{:02}".format(*d)
+            else:
+                d = "{}-{:02}".format(date.year, date.month)
+            durations_list.append(d)
+        duration_init = dict()
+        for d in sorted(set(durations_list), reverse=True):
+            duration_init[d] = None
+
+        # # Get annotation query
+        if duration == "daily":
+            query = "CONCAT(YEAR(FROM_UNIXTIME(creation_date)), '-', " \
+                    "LPAD(MONTH(FROM_UNIXTIME(creation_date)), 2, '0'), '-', " \
+                    "LPAD(DAY(FROM_UNIXTIME(creation_date)), 2, '0') )"
+        elif duration == "weekly":
+            query = "CONCAT(YEAR(FROM_UNIXTIME(creation_date)), '-', LPAD(WEEK(FROM_UNIXTIME(creation_date)), 2, '0'))"
+        else:
+            query = "CONCAT(YEAR(FROM_UNIXTIME(creation_date)), '-', LPAD(MONTH(FROM_UNIXTIME(creation_date)), 2, '0'))"
+
+        return {
+            "duration_init": duration_init,
+            "query": query
+        }
+
     # ------------------------ List User resource ------------------- #
     def list_users(self, **filters) -> List[User]:
         users_orm = UserORM.objects.all()
@@ -397,6 +431,75 @@ class UserORMRepository(UserRepository):
 
     def check_exist(self) -> bool:
         return UserORM.objects.filter().exists()
+
+    def statistic_dashboard(self, **filters) -> Dict:
+        users_orm = UserORM.objects.all().order_by('-creation_date')
+        register_from_param = filters.get("register_from")
+        register_to_param = filters.get("register_to")
+        device_type_param = filters.get("device_type") or ""
+        duration_param = filters.get("duration")
+        if register_to_param is None:
+            register_to_param = now()
+        if register_from_param is None:
+            if users_orm.first():
+                register_from_param = users_orm.first().creation_date
+            else:
+                register_from_param = now() - 365 * 86400
+        if register_from_param:
+            users_orm = users_orm.filter(creation_date__gte=register_from_param)
+        if register_to_param:
+            users_orm = users_orm.filter(creation_date__lte=register_to_param)
+        device_users_orm = users_orm.annotate(
+            web_device_count=Count(
+                Case(When(user_devices__client_id='web', then=1), output_field=IntegerField())
+            ),
+            mobile_device_count=Count(
+                Case(When(user_devices__client_id='mobile', then=1), output_field=IntegerField())
+            ),
+            ios_device_count=Count(
+                Case(When(user_devices__device_type=1, then=1), output_field=IntegerField())
+            ),
+            android_device_count=Count(
+                Case(When(user_devices__device_type=0, then=1), output_field=IntegerField())
+            ),
+            extension_device_count=Count(
+                Case(When(user_devices__client_id='browser', then=1), output_field=IntegerField())
+            ),
+        )
+        if device_type_param == "mobile":
+            device_users_orm = device_users_orm.filter(mobile_device_count__gt=0)
+        if device_type_param == "android":
+            device_users_orm = device_users_orm.filter(android_device_count__gt=0)
+        if device_type_param == "ios":
+            device_users_orm = device_users_orm.filter(ios_device_count__gt=0)
+        if device_type_param == "web":
+            device_users_orm = device_users_orm.filter(web_device_count__gt=0)
+        if device_type_param == "browser":
+            device_users_orm = device_users_orm.filter(extension_device_count__gt=0)
+        device_users_orm = users_orm.filter(user_id__in=device_users_orm.values_list('user_id', flat=True))
+        duration_init_data = self._generate_duration_init_data(
+            start=datetime.fromtimestamp(register_from_param),
+            end=datetime.fromtimestamp(register_to_param),
+            duration=duration_param
+        )
+        statistic_device = duration_init_data.get("duration_init") or {}
+        query = duration_init_data.get("query")
+        users_by_duration = device_users_orm.filter(creation_date__gte=register_from_param,
+                                                    creation_date__lte=register_to_param).annotate(
+            duration=RawSQL(query, [], output_field=CharField())
+        ).order_by().values('duration').annotate(count=Count('duration'))
+        for user_by_duration in users_by_duration:
+            duration_string = user_by_duration.get("duration")
+            duration_count = user_by_duration.get("count")
+            if duration_string:
+                statistic_device.update({duration_string: {"count": duration_count}})
+                # data[duration_string] = {"count": duration_count}
+
+        result = {
+            "total_device": device_users_orm.count(),
+            "device": statistic_device
+        }
+        return result
 
     # ------------------------ Create User resource --------------------- #
     def retrieve_or_create_by_id(self, user_id, creation_date=None) -> Tuple[User, bool]:

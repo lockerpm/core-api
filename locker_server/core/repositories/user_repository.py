@@ -95,6 +95,10 @@ class UserRepository(ABC):
     def check_exist(self) -> bool:
         pass
 
+    @abstractmethod
+    def statistic_dashboard(self, **filters) -> Dict:
+        pass
+
     # ------------------------ Create User resource --------------------- #
     @abstractmethod
     def retrieve_or_create_by_id(self, user_id, creation_date=None) -> Tuple[User, bool]:

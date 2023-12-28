@@ -998,3 +998,6 @@ class UserService:
             credential_key=user.key
         )
         return access_token.access_token
+
+    def statistic_dashboard(self, **filters) -> Dict:
+        return self.user_repository.statistic_dashboard(**filters)
