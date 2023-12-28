@@ -1,5 +1,7 @@
 import json
 import os
+import traceback
+
 import urllib3
 import requests
 from django.conf import settings
@@ -8,7 +10,7 @@ import time
 
 
 from locker_server.shared.error_responses.error import refer_error, gen_error
-
+from locker_server.shared.log.cylog import CyLog
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -85,6 +87,9 @@ def requester(method, url, headers=None, data_send=None, is_json=True, retry=Fal
                     res._content = json.dumps(refer_error(gen_error("0009"))).encode('utf-8')
                     return res
             else:
+                tb = traceback.format_exc()
+                CyLog.debug(**{"message": f"[!] Call to {url} by method {method} with config:::"
+                                          f"{data_send} {is_json} {retry} {max_retries} {proxies} timeout:::\n{tb}"})
                 res = Response()
                 res.status_code = 400
                 res._content = json.dumps(refer_error(gen_error("0009"))).encode('utf-8')
