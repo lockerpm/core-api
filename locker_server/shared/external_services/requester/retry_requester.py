@@ -13,7 +13,8 @@ from locker_server.shared.error_responses.error import refer_error, gen_error
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-def requester(method, url, headers=None, data_send=None, retry=False, max_retries=3, timeout=10):
+def requester(method, url, headers=None, data_send=None, is_json=True, retry=False, max_retries=3, timeout=10,
+              proxies=None):
     if data_send is None:
         data_send = dict()
     if headers is None:
@@ -40,11 +41,32 @@ def requester(method, url, headers=None, data_send=None, retry=False, max_retrie
             if method.lower() == "get":
                 res = requests.get(headers=headers, url=url, verify=False, timeout=timeout)
             elif method.lower() == "post":
-                res = requests.post(headers=headers, url=url, json=data_send, verify=False, timeout=timeout)
+                if is_json is True:
+                    res = requests.post(
+                        headers=headers, url=url, json=data_send, verify=False, timeout=timeout, proxies=proxies
+                    )
+                else:
+                    res = requests.post(
+                        headers=headers, url=url, data=data_send, verify=False, timeout=timeout, proxies=proxies
+                    )
             elif method.lower() == "put":
-                res = requests.put(headers=headers, url=url, json=data_send, verify=False, timeout=timeout)
+                if is_json:
+                    res = requests.put(
+                        headers=headers, url=url, json=data_send, verify=False, timeout=timeout, proxies=proxies
+                    )
+                else:
+                    res = requests.put(
+                        headers=headers, url=url, data=data_send, verify=False, timeout=timeout, proxies=proxies
+                    )
             elif method.lower() == "delete":
-                res = requests.delete(headers=headers, url=url, json=data_send, verify=False, timeout=timeout)
+                if is_json is True:
+                    res = requests.delete(
+                        headers=headers, url=url, json=data_send, verify=False, timeout=timeout, proxies=proxies
+                    )
+                else:
+                    res = requests.delete(
+                        headers=headers, url=url, data=data_send, verify=False, timeout=timeout, proxies=proxies
+                    )
             if res is None:
                 res = Response()
                 res.status_code = 400
