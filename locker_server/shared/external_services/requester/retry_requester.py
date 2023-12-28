@@ -41,7 +41,7 @@ def requester(method, url, headers=None, data_send=None, is_json=True, retry=Fal
         try:
             res = None
             if method.lower() == "get":
-                res = requests.get(headers=headers, url=url, verify=False, timeout=timeout)
+                res = requests.get(headers=headers, url=url, verify=False, timeout=timeout, proxies=proxies)
             elif method.lower() == "post":
                 if is_json is True:
                     res = requests.post(
