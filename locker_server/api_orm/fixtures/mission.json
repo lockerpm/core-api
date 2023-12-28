@@ -90,7 +90,7 @@
       "mission_type": "review",
       "order_index": 6,
       "extra_requirements": null,
-      "available": true,
+      "available": false,
       "reward_type": "promo_code",
       "reward_value": 5
     }
