@@ -1,35 +1,12 @@
-<p align="center">
-  <img src="https://s.cystack.net/resource/home/content/06122138/locker-logo.png" alt="Locker" width="50%"/>
-</p>
+![Locker Password Manager](https://raw.githubusercontent.com/lockerpm/.github/main/images/locker2.png)
 
 -------------------
 
-## What is Locker?
-
-Locker Password Manager (also referred to as Locker) is a cross-platform password management solution: Locker can be 
-used as a Web, Mobile, Browser Extension, and Desktop application.
-
-Locker is designed to help Users and Organizations manage their confidential data, especially login credentials 
-including passwords. However, to be able to access and decrypt the data in Locker, users need to memorize **ONLY** one 
-item: their **Master Password**.
-
-## The Developer - CyStack
-
-Locker Password Manager is developed by CyStack, one of the leading cybersecurity companies in Vietnam. 
-CyStack is a member of Vietnam Information Security Association (VNISA) and Vietnam Association of CyberSecurity 
-Product Development. CyStack is a partner providing security solutions and services for many large domestic and 
-international enterprises.
-
-CyStack’s research has been featured at the world’s top security events such as BlackHat USA (USA), 
-BlackHat Asia (Singapore), T2Fi (Finland), XCon - XFocus (China)... CyStack experts have been honored by global 
-corporations such as Microsoft, Dell, Deloitte, D-link...
-
 ## Locker API
 
-The Locker API project contains the APIs, and some services needed for the "backend" of Locker.
-
-This project is written in Python using Django with Django Rest Framework (DRF). The database is MySQL Server.
-
+Locker API is a project that serves as the backend for the Locker Password Manager, an end-to-end encryption software 
+that allows users to securely store and manage their sensitive data and secrets. This repository contains the 
+server-side code and functionalities that enable users to interact with the Locker through API calls.
 
 ## Developer Documentation
 
@@ -145,35 +122,24 @@ CHANNEL_REDIS_LOCATION=redis://:@127.0.0.1:6379/1?ssl_cert_reqs=none
 ```
 
 
+## API Documentation
+For detailed API documentation, refer to the [documentation website](https://docs.locker.io/).
+
+
 ## Whitepaper
 
 [Locker Whitepaper](https://locker.io/whitepaper)
 
-## Deploy
-
-<p align="center">
-  <a href="https://hub.docker.com/u/bitwarden/" target="_blank">
-    <img src="https://i.imgur.com/SZc8JnH.png" alt="docker" />
-  </a>
-</p>
-
-You can deploy Locker API using Docker containers on Windows, macOS and Linux distributions.
-
-
-### Requirements
-
-- [Docker](https://www.docker.com/community-edition#/download)
 
 ## Contribute
 
-Code contributions are welcome! You can commit any pull requests against the `main` branch. 
-Learn more about how to contribute by reading the [Contributing Guidelines](). 
-Check out the [Contributing Documentation]() for how to get started with your first contribution.
+Contributions to the Locker API project are welcome! If you find any issues or want to suggest improvements, please 
+feel free to open an issue or submit a pull request.
 
-We also run a bugbounty program on [WhiteHub](https://whitehub.net/programs/locker). You can submit reports on WhiteHub.
-We will review the report and discuss with you.
+Before contributing, please review the [Contribution Guidelines](https://github.com/lockerpm/.github/blob/main/CONTRIBUTING.md).
 
 
 ## License
 
-[GPLv3](./LICENSE)
+The Locker API Backend is open-source and released under the [GPLv3](./LICENSE) License. Feel free to use, modify, and 
+distribute the code as per the terms of the license.

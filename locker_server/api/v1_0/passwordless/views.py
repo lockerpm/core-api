@@ -42,7 +42,9 @@ class PasswordlessPwdViewSet(APIBaseViewSet):
                     "credential_id": backup_credential.fd_credential_id,
                     "random": backup_credential.fd_random,
                     "name": backup_credential.name,
-                    "type": backup_credential.type
+                    "type": backup_credential.type,
+                    "creation_date": backup_credential.creation_date,
+                    "last_use_date": backup_credential.last_use_date,
                 })
             return Response(status=status.HTTP_200_OK, data={
                 "credential_id": user.fd_credential_id,
@@ -62,7 +64,7 @@ class PasswordlessPwdViewSet(APIBaseViewSet):
             credential_id = validated_data.get("credential_id")
             name = validated_data.get("name")
             fd_type = validated_data.get("type")
-            credential_random = random.randbytes(16).hex()
+            credential_random = validated_data.get("random") or random.randbytes(16).hex()
             user = self.user_service.update_passwordless_cred(
                 user=user, fd_credential_id=credential_id, fd_random=credential_random,
                 fd_name=name,

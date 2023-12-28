@@ -47,36 +47,12 @@ class ReleasePwdViewSet(APIBaseViewSet):
 
     def list(self, request, *args, **kwargs):
         paging_param = self.request.query_params.get("paging", "0")
-        os_param = self.request.query_params.get("os", None)
         page_size_param = self.check_int_param(self.request.query_params.get("size", 50))
         if paging_param == "0":
             self.pagination_class = None
         else:
             self.pagination_class.page_size = page_size_param if page_size_param else 50
-        queryset = self.filter_queryset(self.get_queryset())
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer_data = self.get_serializer(page, many=True).data
-            if os_param is not None:
-                serializer_data = [
-                    self.update_checksum_by_os(
-                        release_data=release_data,
-                        os_param=os_param
-                    )
-                    for release_data in serializer_data
-                ]
-            return self.get_paginated_response(serializer_data)
-
-        serializer_data = self.get_serializer(queryset, many=True).data
-        if os_param is not None:
-            serializer_data = [
-                self.update_checksum_by_os(
-                    release_data=release_data,
-                    os_param=os_param
-                )
-                for release_data in serializer_data
-            ]
-        return Response(status=status.HTTP_200_OK, data=serializer_data)
+        return super().list(request, *args, **kwargs)
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()

@@ -34,10 +34,10 @@ class OAuth2OptionSerializer(serializers.Serializer):
     redirect_behavior = serializers.ChoiceField(choices=LIST_OAUTH2_BEHAVIOR, default=OAUTH2_BEHAVIOR_POST)
     userinfo_endpoint = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     metadata_url = serializers.CharField(required=False, allow_null=True, allow_blank=True)
-    scopes = serializers.CharField(required=False)
+    scopes = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     user_id_claim_types = serializers.CharField(required=False, allow_null=True, allow_blank=True)
-    email_claim_types = serializers.CharField(required=False, allow_null=True, allow_blank=True)
-    name_claim_types = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    email_claim_types = serializers.CharField(required=False, allow_null=True, allow_blank=True, default="email")
+    name_claim_types = serializers.CharField(required=False, allow_null=True, allow_blank=True, default="name")
 
 
 class UpdateSSOConfigurationSerializer(serializers.Serializer):
