@@ -60,6 +60,7 @@ class SSOConfigurationService:
         else:
             sso_configuration = self.get_first()
         if not sso_configuration:
+            CyLog.debug(**{"message": "[!] Not sso configuration"})
             return {}
         sso_provider_id = sso_configuration.sso_provider.sso_provider_id
         if sso_provider_id == SSO_PROVIDER_OAUTH2:
@@ -86,6 +87,7 @@ class SSOConfigurationService:
                     access_token = res.json().get("access_token")
                     token_type = res.json().get("token_type")
                 else:
+                    CyLog.debug(**{"message": f"[!] Get token error:::{res.status_code} - {res.text}"})
                     return {}
                 user_res_header = {'Authorization': f"{token_type} {access_token}"}
                 user_res = requester(
@@ -109,6 +111,7 @@ class SSOConfigurationService:
                 tb = traceback.format_exc()
                 CyLog.debug(**{"message": f"[!] Get user timeout:::\n{tb}"})
                 return {}
+        CyLog.debug(**{"message": f"[!] Not found sso_provider_id"})
         return {}
 
     def get_first(self) -> Optional[SSOConfiguration]:

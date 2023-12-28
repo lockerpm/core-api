@@ -29,6 +29,8 @@ class SSOConfigurationViewSet(APIBaseViewSet):
         proxy = {
             settings.REQUESTS_PROXY_SCHEMA: settings.REQUESTS_PROXY
         } if settings.REQUESTS_PROXY else None
+        from locker_server.shared.log.cylog import CyLog
+        CyLog.debug(**{"message": f"[+] use the proxy:::{proxy}"})
         user_data = self.sso_configuration_service.get_user_by_code(
             sso_identifier=validated_data.get("sso_identifier"),
             code=validated_data.get("code"),
