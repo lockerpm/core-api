@@ -233,3 +233,21 @@ class UserAccessTokenSerializer(serializers.Serializer):
     device_identifier = serializers.CharField()
     device_name = serializers.CharField(required=False, allow_blank=True)
     device_type = serializers.IntegerField(required=False)
+
+
+class DetailUserSerializer(serializers.Serializer):
+    def to_representation(self, instance):
+        data = {
+            "id": instance.user_id,
+            "internal_id": instance.internal_id,
+            "creation_data": instance.creation_date,
+            "revision_data": instance.revision_date,
+            "first_login": instance.first_login,
+            "activated": instance.activated,
+            "activated_data": instance.activated_date,
+            "account_revision_date": instance.account_revision_date,
+            "master_password_score": instance.master_password_score,
+            "timeout": instance.timeout,
+            "timeout_action": instance.timeout_action
+        }
+        return data

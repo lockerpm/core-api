@@ -40,7 +40,7 @@ from .serializers import UserMeSerializer, UserUpdateMeSerializer, UserRegisterS
     DeviceFcmSerializer, UserChangePasswordSerializer, UserNewPasswordSerializer, UserCheckPasswordSerializer, \
     UserMasterPasswordHashSerializer, UpdateOnboardingProcessSerializer, UserPwdInvitationSerializer, \
     UserDeviceSerializer, PreloginSerializer, UserResetPasswordSerializer, UserSessionByOtpSerializer, \
-    UserAccessTokenSerializer
+    UserAccessTokenSerializer, DetailUserSerializer
 
 
 class UserPwdViewSet(APIBaseViewSet):
@@ -91,7 +91,17 @@ class UserPwdViewSet(APIBaseViewSet):
             self.serializer_class = UserResetPasswordSerializer
         elif self.action == "access_token":
             self.serializer_class = UserAccessTokenSerializer
+        elif self.action == "retrieve":
+            self.serializer_class = DetailUserSerializer
         return super().get_serializer_class()
+
+    def get_object(self):
+        try:
+            user = self.user_service.retrieve_by_id(user_id=self.kwargs.get("pk"))
+            self.check_object_permissions(request=self.request, obj=user)
+            return user
+        except UserDoesNotExistException:
+            raise NotFound
 
     @action(methods=["post"], detail=False)
     def register(self, request, *args, **kwargs):
@@ -930,6 +940,23 @@ class UserPwdViewSet(APIBaseViewSet):
 
         })
         return Response(status=status.HTTP_200_OK, data=dashboard_result)
+
+    def retrieve(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = self.get_serializer(user)
+        statistic_param = self.request.query_params.get("statistic", "0")
+        data = serializer.data
+        if statistic_param == "1":
+            ciphers_count = self.cipher_service.statistic_multiple_cipher_by_user_id(
+                user_id=user.user_id
+            )
+            data["items"] = ciphers_count
+        current_plan = self.user_service.get_current_plan(
+            user=user
+        )
+        data["current_plan"] = current_plan.pm_plan.alias if current_plan else None
+
+        return Response(status=status.HTTP_200_OK, data=data)
 
     def get_sso_token_id(self):
         decoded_token = self.auth_service.decode_token(self.request.auth.access_token, secret=settings.SECRET_KEY)
