@@ -80,7 +80,6 @@ class SSOConfigurationService:
                     method="POST", url=token_endpoint, headers=headers, data_send=token_data, is_json=False, timeout=10,
                     proxies=proxies
                 )
-                # res = requests.post(url=token_endpoint, headers=headers, data=token_data, timeout=10)
 
                 # res = requester(method="GET", url=token_endpoint)
                 if res.status_code == 200:
