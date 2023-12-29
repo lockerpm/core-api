@@ -29,7 +29,7 @@ class AffiliateSubmissionPwdViewSet(APIBaseViewSet):
     def get_queryset(self):
         q_param = self.request.query_params.get("q")
         affiliate_submissions = self.affiliate_submission_service.list_affiliate_submissions(**{
-            "q": q_param.lower()
+            "q": q_param
         })
         return affiliate_submissions
 
