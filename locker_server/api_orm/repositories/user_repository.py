@@ -1,8 +1,10 @@
+import json
 from datetime import timedelta, datetime
 from typing import Union, Dict, Optional, Tuple, List
 
 import requests
 import stripe
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Subquery, OuterRef, Count, Case, When, IntegerField, Value, Q, Sum, CharField, F, Min
 from django.db.models.expressions import RawSQL
@@ -78,8 +80,31 @@ class UserORMRepository(UserRepository):
             "query": query
         }
 
-    @staticmethod
-    def list_users_orm(self, **filters) -> List[UserORM]:
+    @classmethod
+    def search_from_cystack_id(cls, **filter_params):
+        q_param = filter_params.get("q")
+        utm_source_param = filter_params.get("utm_source")
+        headers = {'Authorization': settings.MICRO_SERVICE_USER_AUTH}
+        url = "{}/micro_services/users?".format(settings.GATEWAY_API)
+        if q_param:
+            url += "&q={}".format(q_param)
+        if utm_source_param:
+            url += "&utm_source={}".format(utm_source_param)
+        try:
+            res = requester(method="GET", url=url, headers=headers)
+            if res.status_code == 200:
+                try:
+                    return res.json()
+                except json.JSONDecodeError:
+                    CyLog.error(
+                        **{"message": f"[!] User.search_from_cystack_id JSON Decode error: {res.url} {res.text}"})
+                    return {}
+            return {}
+        except (requests.RequestException, requests.ConnectTimeout):
+            return {}
+
+    @classmethod
+    def list_users_orm(cls, **filters) -> List[UserORM]:
         users_orm = UserORM.objects.all().order_by('-creation_date')
         q_param = filters.get("q")
         register_from_param = filters.get("register_from")
@@ -89,7 +114,7 @@ class UserORMRepository(UserRepository):
         user_ids_param = filters.get("user_ids")
         utm_source_param = filters.get("utm_source")
         if q_param or utm_source_param:
-            user_ids = UserORM.search_from_cystack_id(**{"q": q_param, "utm_source": utm_source_param}).get("ids", [])
+            user_ids = cls.search_from_cystack_id(**{"q": q_param, "utm_source": utm_source_param}).get("ids", [])
             users_orm = users_orm.filter(user_id__in=user_ids)
 
         if register_from_param:
