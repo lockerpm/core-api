@@ -251,3 +251,8 @@ class DetailUserSerializer(serializers.Serializer):
             "timeout_action": instance.timeout_action
         }
         return data
+
+
+class ListUserSerializer(DetailUserSerializer):
+    def to_representation(self, instance):
+        return super().to_representation(instance)

@@ -36,6 +36,10 @@ class UserRepository(ABC):
     def list_user_ids_tutorial_reminder(self, duration_unit: int) -> Dict:
         pass
 
+    @abstractmethod
+    def list_users_by_admin(self, **filters) -> [User]:
+        pass
+
     # ------------------------ Get User resource --------------------- #
     @abstractmethod
     def get_user_by_id(self, user_id: int) -> Optional[User]:

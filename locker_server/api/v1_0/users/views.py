@@ -40,7 +40,7 @@ from .serializers import UserMeSerializer, UserUpdateMeSerializer, UserRegisterS
     DeviceFcmSerializer, UserChangePasswordSerializer, UserNewPasswordSerializer, UserCheckPasswordSerializer, \
     UserMasterPasswordHashSerializer, UpdateOnboardingProcessSerializer, UserPwdInvitationSerializer, \
     UserDeviceSerializer, PreloginSerializer, UserResetPasswordSerializer, UserSessionByOtpSerializer, \
-    UserAccessTokenSerializer, DetailUserSerializer
+    UserAccessTokenSerializer, DetailUserSerializer, ListUserSerializer
 
 
 class UserPwdViewSet(APIBaseViewSet):
@@ -93,7 +93,21 @@ class UserPwdViewSet(APIBaseViewSet):
             self.serializer_class = UserAccessTokenSerializer
         elif self.action == "retrieve":
             self.serializer_class = DetailUserSerializer
+        elif self.action == "list_users":
+            self.serializer_class = ListUserSerializer
         return super().get_serializer_class()
+
+    def get_queryset(self):
+        users = self.user_service.list_users_by_admin(**{
+            "register_from": self.check_int_param(self.request.query_params.get("register_from")),
+            "register_to": self.check_int_param(self.request.query_params.get("register_to")),
+            "plan": self.request.query_params.get("plan"),
+            "user_ids": self.request.query_params.get("user_ids"),
+            "utm_source": self.request.query_params.get("utm_source"),
+            "q": self.request.query_params.get("q"),
+            "activated": self.request.query_params.get("activated")
+        })
+        return users
 
     def get_object(self):
         try:
@@ -957,6 +971,36 @@ class UserPwdViewSet(APIBaseViewSet):
         data["current_plan"] = current_plan.pm_plan.alias if current_plan else None
 
         return Response(status=status.HTTP_200_OK, data=data)
+
+    def destroy(self, request, *args, **kwargs):
+        user = self.get_object()
+        current_user = self.request.user
+        if current_user.user_id == user.user_id:
+            raise PermissionDenied
+        self.user_service.delete_locker_user(user=user)
+        return Response(status=status.HTTP_200_OK, data={"success": True})
+
+    @action(methods=["get"], detail=False)
+    def list_user_ids(self, request, *args, **kwargs):
+        users = self.get_queryset()
+        user_ids = [user.user_id for user in users]
+        return Response(status=status.HTTP_200_OK, data={"user_ids": user_ids})
+
+    @action(methods=["get"], detail=False)
+    def list_users(self, request, *args, **kwargs):
+        paging_param = self.request.query_params.get("paging", "1")
+        page_size_param = self.check_int_param(self.request.query_params.get("size", 20))
+        if paging_param == "0":
+            self.pagination_class = None
+        else:
+            self.pagination_class.page_size = page_size_param if page_size_param else 20
+        queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     def get_sso_token_id(self):
         decoded_token = self.auth_service.decode_token(self.request.auth.access_token, secret=settings.SECRET_KEY)

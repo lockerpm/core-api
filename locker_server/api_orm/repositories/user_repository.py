@@ -26,7 +26,7 @@ from locker_server.shared.constants.enterprise_members import E_MEMBER_STATUS_CO
 from locker_server.shared.constants.event import EVENT_USER_BLOCK_LOGIN
 from locker_server.shared.constants.members import MEMBER_ROLE_OWNER
 from locker_server.shared.constants.policy import POLICY_TYPE_PASSWORDLESS, POLICY_TYPE_2FA
-from locker_server.shared.constants.transactions import PAYMENT_STATUS_PAID
+from locker_server.shared.constants.transactions import PAYMENT_STATUS_PAID, PLAN_TYPE_PM_FREE
 from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
 from locker_server.shared.external_services.locker_background.constants import BG_NOTIFY
 from locker_server.shared.external_services.requester.retry_requester import requester
@@ -77,6 +77,38 @@ class UserORMRepository(UserRepository):
             "duration_init": duration_init,
             "query": query
         }
+
+    @staticmethod
+    def list_users_orm(self, **filters) -> List[UserORM]:
+        users_orm = UserORM.objects.all().order_by('-creation_date')
+        q_param = filters.get("q")
+        register_from_param = filters.get("register_from")
+        register_to_param = filters.get("register_to")
+        plan_param = filters.get("plan")
+        activated_param = filters.get("activated")
+        user_ids_param = filters.get("user_ids")
+        utm_source_param = filters.get("utm_source")
+        if q_param or utm_source_param:
+            user_ids = UserORM.search_from_cystack_id(**{"q": q_param, "utm_source": utm_source_param}).get("ids", [])
+            users_orm = users_orm.filter(user_id__in=user_ids)
+
+        if register_from_param:
+            users_orm = users_orm.filter(creation_date__gte=register_from_param)
+        if register_to_param:
+            users_orm = users_orm.filter(creation_date__lte=register_to_param)
+        if plan_param:
+            if plan_param == PLAN_TYPE_PM_FREE:
+                users_orm = users_orm.filter(Q(pm_user_plan__isnull=True) | Q(pm_user_plan__pm_plan__alias=plan_param))
+            else:
+                users_orm = users_orm.filter(pm_user_plan__pm_plan__alias=plan_param)
+        if activated_param:
+            if activated_param == "0":
+                users_orm = users_orm.filter(activated=False)
+            elif activated_param == "1":
+                users_orm = users_orm.filter(activated=True)
+        if user_ids_param:
+            users_orm = users_orm.filter(user_id__in=user_ids_param.split(","))
+        return users_orm
 
     # ------------------------ List User resource ------------------- #
     def list_users(self, **filters) -> List[User]:
@@ -209,6 +241,12 @@ class UserORMRepository(UserRepository):
             "user_ids_13days": list(user_ids_13days),
             "user_ids_20days": list(user_ids_20days),
         }
+
+    def list_users_by_admin(self, **filters) -> [User]:
+        users_orm = self.list_users_orm(**filters)
+        return [
+            ModelParser.user_parser().parse_user(user_orm=user_orm) for user_orm in users_orm
+        ]
 
     # ------------------------ Get User resource --------------------- #
     def get_user_by_id(self, user_id: int) -> Optional[User]:
