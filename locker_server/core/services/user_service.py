@@ -1001,3 +1001,6 @@ class UserService:
 
     def statistic_dashboard(self, **filters) -> Dict:
         return self.user_repository.statistic_dashboard(**filters)
+
+    def list_users_by_admin(self, **filters) -> [User]:
+        return self.user_repository.list_users_by_admin(**filters)

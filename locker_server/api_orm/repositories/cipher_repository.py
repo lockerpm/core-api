@@ -270,7 +270,19 @@ class CipherORMRepository(CipherRepository):
             CIPHER_TYPE_TOTP: ciphers_statistic.filter(type=CIPHER_TYPE_TOTP).count(),
             CIPHER_TYPE_CRYPTO_WALLET: ciphers_statistic.filter(type=CIPHER_TYPE_CRYPTO_WALLET).count(),
         }
+
         return ciphers_statistic_data
+
+    def statistic_multiple_cipher_by_user_id(self, user_id: int, only_personal=False, only_managed_team=False,
+                                             only_edited=False, only_deleted=False,
+                                             exclude_team_ids=None, filter_ids=None, exclude_types=None) -> Dict:
+        ciphers_orm = self._get_multiple_ciphers_orm_by_user(
+            user_id=user_id, only_personal=only_personal, only_managed_team=only_managed_team,
+            only_edited=only_edited, only_deleted=only_deleted,
+            exclude_team_ids=exclude_team_ids, filter_ids=filter_ids, exclude_types=exclude_types
+        ).order_by('-revision_date').values('type').annotate(count=Count('type')).order_by('-count')
+        ciphers_count = {item["type"]: item["count"] for item in list(ciphers_orm)}
+        return ciphers_count
 
     # ------------------------ Create Cipher resource --------------------- #
     def create_cipher(self, cipher_data: Dict) -> Cipher:

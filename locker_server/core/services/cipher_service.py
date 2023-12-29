@@ -262,3 +262,22 @@ class CipherService:
     def import_multiple_ciphers(self, user: User, ciphers: List):
         allow_cipher_type = self.user_plan_repository.get_max_allow_cipher_type(user=user)
         self.cipher_repository.import_multiple_ciphers(user=user, ciphers=ciphers, allow_cipher_type=allow_cipher_type)
+
+    def statistic_created_ciphers(self, user_id: int) -> Dict:
+        return self.cipher_repository.statistic_created_ciphers(
+            user_id=user_id
+        )
+
+    def statistic_multiple_cipher_by_user_id(self, user_id: int, only_personal=False, only_managed_team=False,
+                                             only_edited=False, only_deleted=False,
+                                             exclude_team_ids=None, filter_ids=None, exclude_types=None) -> Dict:
+        return self.cipher_repository.statistic_multiple_cipher_by_user_id(
+            user_id=user_id,
+            only_personal=only_personal,
+            only_managed_team=only_managed_team,
+            only_edited=only_edited,
+            only_deleted=only_deleted,
+            exclude_team_ids=exclude_team_ids,
+            filter_ids=filter_ids,
+            exclude_types=exclude_types
+        )
