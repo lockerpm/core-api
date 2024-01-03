@@ -156,3 +156,7 @@ class UserRepository(ABC):
     @abstractmethod
     def delete_sync_cache_data(self, user_id: int):
         pass
+
+    @abstractmethod
+    def delete_passwordless_cred(self, user_id: int) -> User:
+        pass

@@ -14,14 +14,14 @@ from .serializers import PasswordlessCredentialSerializer
 
 class PasswordlessPwdViewSet(APIBaseViewSet):
     permission_classes = (PasswordlessPwdPermission,)
-    http_method_names = ["head", "options", "get", "post", ]
+    http_method_names = ["head", "options", "get", "post", "delete"]
 
     def get_serializer_class(self):
         if self.action == "credential":
             self.serializer_class = PasswordlessCredentialSerializer
         return super().get_serializer_class()
 
-    @action(methods=["get", "post"], detail=False)
+    @action(methods=["get", "post", "delete"], detail=False)
     def credential(self, request, *args, **kwargs):
         user = self.request.user
         if request.method == "GET":
@@ -75,3 +75,8 @@ class PasswordlessPwdViewSet(APIBaseViewSet):
                 "random": user.fd_random,
                 "type": user.fd_type
             })
+        elif request.method == "DELETE":
+            user = self.user_service.delete_passwordless_cred(
+                user=user
+            )
+            return Response(status=status.HTTP_204_NO_CONTENT)

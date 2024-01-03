@@ -766,3 +766,17 @@ class UserORMRepository(UserRepository):
 
     def delete_sync_cache_data(self, user_id: int):
         delete_sync_cache_data(user_id=user_id)
+
+    def delete_passwordless_cred(self, user_id: int) -> User:
+        try:
+            user_orm = UserORM.objects.get(user_id=user_id)
+        except UserORM.DoesNotExist:
+            return None
+        user_orm.fd_credential_id = None
+        user_orm.fd_random = None
+        user_orm.fd_name = None
+        user_orm.fd_creation_date = None
+        user_orm.fd_type = None
+        user_orm.fd_last_use_date = None
+        user_orm.save()
+        return ModelParser.user_parser().parse_user(user_orm=user_orm)

@@ -120,6 +120,11 @@ class UserService:
             fd_type=fd_type
         )
 
+    def delete_passwordless_cred(self, user: User) -> User:
+        return self.user_repository.delete_passwordless_cred(
+            user_id=user.user_id
+        )
+
     def update_use_relay_subdomain(self, user_id: int, use_relay_subdomain: bool):
         updated_user = self.user_repository.update_use_relay_subdomain(
             user_id=user_id,
