@@ -8,7 +8,7 @@ from rest_framework import status
 from locker_server.api.api_base_view import APIBaseViewSet
 from locker_server.api.permissions.locker_permissions.release_pwd_permission import ReleasePwdPermission
 from locker_server.shared.constants.device_type import CLIENT_ID_DESKTOP
-from locker_server.shared.constants.release import RELEASE_ENVIRONMENT_PROD
+from locker_server.shared.constants.release import RELEASE_ENVIRONMENT_PROD, ORG_CYSTACK
 from .serializers import NewReleaseSerializer, NextReleaseSerializer, ListReleaseSerializer, DetailReleaseSerializer
 
 
@@ -118,7 +118,8 @@ class ReleasePwdViewSet(APIBaseViewSet):
         environment = validated_data.get("environment")
         checksum = validated_data.get("checksum")
         platform = validated_data.get("platform")
-        if not success_build:
+        org = validated_data.get("org", "").lower()
+        if not success_build or org != ORG_CYSTACK:
             data = {
                 "build": success_build,
                 "version": None,

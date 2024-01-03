@@ -6,6 +6,7 @@ from locker_server.shared.constants.device_type import *
 
 class NewReleaseSerializer(serializers.Serializer):
     build = serializers.BooleanField()
+    org = serializers.CharField(required=False, default=ORG_CYSTACK)
     client_id = serializers.ChoiceField(
         choices=[CLIENT_ID_BROWSER, CLIENT_ID_DESKTOP, CLIENT_ID_DESKTOP_SERVICE, CLIENT_ID_CLI,
                  CLIENT_ID_SDK_PYTHON, CLIENT_ID_SDK_NODEJS, CLIENT_ID_SDK_DOTNET],
