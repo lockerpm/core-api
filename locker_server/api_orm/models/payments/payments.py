@@ -26,6 +26,7 @@ class PaymentORM(AbstractPaymentORM):
         duration = data.get("duration", DURATION_MONTHLY)
         status = data.get("status", PAYMENT_STATUS_PENDING)
         currency = data.get('currency')
+        transaction_type = data.get("transaction_type", TRANSACTION_TYPE_PAYMENT)
 
         metadata = data.get("metadata", "")
         enterprise_id = data.get("enterprise_id")
@@ -36,7 +37,7 @@ class PaymentORM(AbstractPaymentORM):
         new_payment_orm = cls(
             user_id=user_id, scope=scope, description=description, duration=duration, created_time=now(), plan=plan,
             payment_method=payment_method, stripe_invoice_id=stripe_invoice_id, mobile_invoice_id=mobile_invoice_id,
-            status=status,
+            status=status, transaction_type=transaction_type,
             currency=currency, metadata=metadata, enterprise_id=enterprise_id
         )
         new_payment_orm.save()

@@ -1,7 +1,7 @@
 from django.conf import settings
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
 
 from locker_server.api.api_base_view import APIBaseViewSet
@@ -10,7 +10,8 @@ from locker_server.core.exceptions.payment_exception import PaymentInvoiceDoesNo
 from locker_server.api.v1_0.payments.serializers import DetailInvoiceSerializer
 from locker_server.core.exceptions.user_exception import UserDoesNotExistException
 from locker_server.shared.constants.transactions import *
-from .serializers import InvoiceWebhookSerializer, PaymentStatusWebhookSerializer, BankingCallbackSerializer
+from .serializers import InvoiceWebhookSerializer, PaymentStatusWebhookSerializer, BankingCallbackSerializer, \
+    PaymentRefundedWebhookSerializer
 
 
 class PaymentViewSet(APIBaseViewSet):
@@ -22,6 +23,8 @@ class PaymentViewSet(APIBaseViewSet):
             self.serializer_class = InvoiceWebhookSerializer
         elif self.action in ["webhook_set_status", "charge_set_status"]:
             self.serializer_class = PaymentStatusWebhookSerializer
+        elif self.action == "webhook_refunded":
+            self.serializer_class = PaymentRefundedWebhookSerializer
         elif self.action == "banking_callback":
             self.serializer_class = BankingCallbackSerializer
         return super().get_serializer_class()
@@ -83,6 +86,43 @@ class PaymentViewSet(APIBaseViewSet):
             locker_web_url=settings.LOCKER_WEB_URL
         )
         return Response(status=200, data=payment_data)
+
+    @action(methods=["post"], detail=False)
+    def webhook_refunded(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        try:
+            result = self.payment_hook_service.webhook_refunded(**validated_data)
+        except PaymentInvoiceDoesNotExistException:
+            raise ValidationError(detail={"stripe_invoice_id": "Not found the stripe invoice id"})
+
+        refund_payment = result.get("refund_payment")
+        payment = result.get("payment")
+        payment_data = result.get("payment_data", {})
+        subtotal = payment.total_price
+        if payment_data.get("enterprise_id") and payment.plan == PLAN_TYPE_PM_ENTERPRISE:
+            enterprise_billing_contacts = self.payment_hook_service.list_enterprise_billing_emails(
+                enterprise_id=payment_data.get("enterprise_id")
+            )
+        else:
+            enterprise_billing_contacts = []
+        return Response(status=status.HTTP_200_OK, data={
+            "success": True,
+            "payment_id": payment.payment_id,
+            "refund_payment_id": refund_payment.payment_id,
+            "order_date": refund_payment.get_created_time_str(),
+            "customer": payment.get_customer_dict(),
+            "total": payment.total_price,
+            "subtotal": subtotal,
+            "amount_refunded": refund_payment.total_price,
+            "currency": refund_payment.currency,
+            "scope": refund_payment.scope,
+            "payment_method": payment.payment_method,
+            "user_id": refund_payment.user.user_id,
+            "payment_data": payment_data,
+            "cc": enterprise_billing_contacts
+        })
 
     @action(methods=["post"], detail=False)
     def webhook_unpaid_subscription(self, request, *args, **kwargs):

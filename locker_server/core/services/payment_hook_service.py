@@ -175,6 +175,54 @@ class PaymentHookService:
             payment_data.update({"reason": failure_reason})
         return payment_data
 
+    def webhook_refunded(self, **hook_data):
+        user_id = hook_data.get("user_id")
+        scope = hook_data.get("scope")
+        description = hook_data.get("description", "")
+        stripe_invoice_id = hook_data.get("stripe_invoice_id")
+        amount_refunded = hook_data.get("amount_refunded")
+        customer_data = hook_data.get("customer")
+
+        payment = self.payment_repository.get_by_stripe_invoice_id(stripe_invoice_id=stripe_invoice_id)
+        if not payment:
+            raise PaymentInvoiceDoesNotExistException
+        user, is_created = self.user_repository.retrieve_or_create_by_id(user_id=user_id)
+        refund_payment_data = {
+            "user_id": user.user_id,
+            "description": description,
+            "plan": payment.plan,
+            "duration": payment.duration,
+            "currency": payment.currency,
+            "mobile_invoice_id": None,
+            "total_price": amount_refunded,
+            "customer": customer_data,
+            "metadata": {"payment": payment.payment_id, "stripe_invoice_id": payment.stripe_invoice_id},
+            "payments_items": [],
+            "transaction_type": TRANSACTION_TYPE_REFUND
+        }
+        refund_payment = self.payment_repository.create_payment(**refund_payment_data)
+
+        pm_user_plan = self.user_plan_repository.get_user_plan(user_id=refund_payment.user.user_id)
+        # Downgrade the user plan
+        if pm_user_plan.pm_plan.alias == payment.plan:
+            self.user_plan_repository.update_plan(
+                user_id=user.user_id, plan_type_alias=PLAN_TYPE_PM_FREE, scope=scope
+            )
+        enterprise = self.user_plan_repository.get_default_enterprise(user_id=payment.user.user_id)
+
+        result = {
+            "refund_payment": refund_payment,
+            "payment": payment,
+            "payment_data": {
+                "enterprise_id": enterprise.enterprise_id if enterprise else None,
+                "enterprise_name": enterprise.name if enterprise else None,
+                "stripe_invoice_id": payment.stripe_invoice_id,
+                "number_members": int(payment.metadata.get("number_members", 1)) or 1,
+                "description": payment.description,
+            }
+        }
+        return result
+
     def webhook_unpaid_subscription(self, user: User) -> User:
         current_plan = self.user_plan_repository.get_user_plan(user_id=user.user_id)
         stripe_subscription = current_plan.get_stripe_subscription()
