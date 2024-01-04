@@ -201,6 +201,7 @@ class PaymentHookService:
             "transaction_type": TRANSACTION_TYPE_REFUND
         }
         refund_payment = self.payment_repository.create_payment(**refund_payment_data)
+        refund_payment = self.payment_repository.set_paid(payment=refund_payment)
 
         pm_user_plan = self.user_plan_repository.get_user_plan(user_id=refund_payment.user.user_id)
         # Downgrade the user plan
@@ -217,7 +218,7 @@ class PaymentHookService:
                 "enterprise_id": enterprise.enterprise_id if enterprise else None,
                 "enterprise_name": enterprise.name if enterprise else None,
                 "stripe_invoice_id": payment.stripe_invoice_id,
-                "number_members": int(payment.metadata.get("number_members", 1)) or 1,
+                "number_members": 1,
                 "description": payment.description,
             }
         }
