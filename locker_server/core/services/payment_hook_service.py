@@ -194,7 +194,7 @@ class PaymentHookService:
             "duration": payment.duration,
             "currency": payment.currency,
             "mobile_invoice_id": None,
-            "total_price": amount_refunded,
+            "total_price": round(float(amount_refunded / 100), 2),
             "customer": customer_data,
             "metadata": {"payment": payment.payment_id, "stripe_invoice_id": payment.stripe_invoice_id},
             "payments_items": [],
