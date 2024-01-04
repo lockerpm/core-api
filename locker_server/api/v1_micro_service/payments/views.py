@@ -100,7 +100,6 @@ class PaymentViewSet(APIBaseViewSet):
         refund_payment = result.get("refund_payment")
         payment = result.get("payment")
         payment_data = result.get("payment_data", {})
-        subtotal = payment.total_price
         if payment_data.get("enterprise_id") and payment.plan == PLAN_TYPE_PM_ENTERPRISE:
             enterprise_billing_contacts = self.payment_hook_service.list_enterprise_billing_emails(
                 enterprise_id=payment_data.get("enterprise_id")
@@ -109,15 +108,15 @@ class PaymentViewSet(APIBaseViewSet):
             enterprise_billing_contacts = []
         return Response(status=status.HTTP_200_OK, data={
             "success": True,
-            "payment_id": payment.payment_id,
-            "refund_payment_id": refund_payment.payment_id,
+            "payment_id": refund_payment.payment_id,
+            "root_payment_id": payment.payment_id,
             "order_date": refund_payment.get_created_time_str(),
             "customer": payment.get_customer_dict(),
             "total": payment.total_price,
-            "subtotal": subtotal,
+            "subtotal": payment.total_price,
             "amount_refunded": refund_payment.total_price,
-            "currency": refund_payment.currency,
-            "scope": refund_payment.scope,
+            "currency": payment.currency,
+            "scope": payment.scope,
             "payment_method": payment.payment_method,
             "user_id": refund_payment.user.user_id,
             "payment_data": payment_data,
