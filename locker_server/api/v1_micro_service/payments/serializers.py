@@ -32,3 +32,11 @@ class BankingCallbackSerializer(serializers.Serializer):
     amount = serializers.FloatField()
     code = serializers.CharField(max_length=128)
 
+
+class PaymentRefundedWebhookSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField()
+    scope = serializers.ChoiceField(choices=[settings.SCOPE_PWD_MANAGER])
+    description = serializers.CharField(allow_blank=True)
+    stripe_invoice_id = serializers.CharField(required=False)
+    paid = serializers.BooleanField(default=True)
+    amount_refunded = serializers.FloatField(required=False)
