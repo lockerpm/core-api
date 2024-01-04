@@ -11,7 +11,7 @@ class PaymentPermission(APIPermission):
         return super(PaymentPermission, self).has_permission(request, view)
 
     def has_object_permission(self, request, view, obj):
-        if view.action in ["webhook_create", "webhook_set_status", "webhook_refunded", 
+        if view.action in ["webhook_create", "webhook_set_status", "webhook_refunded",
                            "webhook_unpaid_subscription", "webhook_cancel_subscription",
                            "banking_callback"]:
             return True
