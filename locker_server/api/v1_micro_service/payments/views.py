@@ -110,7 +110,7 @@ class PaymentViewSet(APIBaseViewSet):
             "success": True,
             "payment_id": refund_payment.payment_id,
             "root_payment_id": payment.payment_id,
-            "order_date": refund_payment.get_created_time_str(),
+            "order_date": refund_payment.get_created_time_str(time_format='%m-%d-%Y'),
             "customer": payment.get_customer_dict(),
             "total": payment.total_price,
             "subtotal": payment.total_price,
