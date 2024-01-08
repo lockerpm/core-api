@@ -69,9 +69,11 @@ class MobilePaymentService:
         })
 
         # Upgrade new plan
+        start_period = metadata.get("start_period") or now()
+        end_period = start_period + TRIAL_PERSONAL_PLAN if is_trial_period else metadata.get("end_period")
         subscription_metadata = {
-            "start_period": metadata.get("start_period"),
-            "end_period": metadata.get("end_period"),
+            "start_period": start_period,
+            "end_period": end_period,
             "promo_code": new_payment.promo_code,
             "family_members": family_members,
         }
