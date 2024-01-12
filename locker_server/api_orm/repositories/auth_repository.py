@@ -21,7 +21,7 @@ class AuthORMRepository(AuthRepository):
         try:
             payload = jwt.decode(value, secret, algorithms=['HS256'])
             return payload
-        except (jwt.InvalidSignatureError, jwt.DecodeError, jwt.InvalidAlgorithmError):
+        except (jwt.InvalidSignatureError, jwt.DecodeError, jwt.InvalidAlgorithmError, jwt.ExpiredSignatureError):
             return None
 
     def get_expired_type(self, token_type_name: str) -> Union[int, float]:
