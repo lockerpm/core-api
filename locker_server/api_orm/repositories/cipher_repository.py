@@ -49,7 +49,7 @@ class CipherORMRepository(CipherRepository):
     @staticmethod
     def _get_multiple_ciphers_orm_by_user(user_id: int, only_personal=False, only_managed_team=False,
                                           only_edited=False, only_deleted=False,
-                                          exclude_team_ids=None, filter_ids=None, exclude_types=None):
+                                          exclude_team_ids=None, filter_ids=None, exclude_types=None, **filters):
         """
         Get list ciphers of user
         :param user_id: (int) The user id
@@ -139,7 +139,7 @@ class CipherORMRepository(CipherRepository):
                 team__team_members__role_id__in=[MEMBER_ROLE_OWNER],
                 team__team_members__user_id=user_id
             )
-        return CipherORM.objects.filter(
+        ciphers_orm = CipherORM.objects.filter(
             id__in=list(
                 personal_ciphers_orm.values_list('id', flat=True)
             ) + list(team_ciphers_orm.values_list('id', flat=True))
@@ -150,6 +150,13 @@ class CipherORMRepository(CipherRepository):
                 output_field=BooleanField()
             )
         ).order_by('-revision_date')  # .prefetch_related('collections_ciphers')
+
+        collection_id_param = filters.get("collection_id")
+        if collection_id_param:
+            ciphers_orm = ciphers_orm.filter(
+                collections_ciphers__collection_id=collection_id_param
+            )
+        return ciphers_orm
 
     # ------------------------ List Cipher resource ------------------- #
     def list_cipher_collection_ids(self, cipher_id: str) -> List[str]:
@@ -237,15 +244,11 @@ class CipherORMRepository(CipherRepository):
         ciphers_orm = self._get_multiple_ciphers_orm_by_user(
             user_id=user_id, only_personal=only_personal, only_managed_team=only_managed_team,
             only_edited=only_edited, only_deleted=only_deleted,
-            exclude_team_ids=exclude_team_ids, filter_ids=filter_ids, exclude_types=exclude_types
+            exclude_team_ids=exclude_team_ids, filter_ids=filter_ids, exclude_types=exclude_types,
+            **ciphers_filter
         ).select_related('user').select_related('created_by').select_related('team').prefetch_related(
             'collections_ciphers'
         )
-        collection_id_param = ciphers_filter.get("collection_id")
-        if collection_id_param:
-            ciphers_orm = ciphers_orm.filter(
-                collections_ciphers__collection_id=collection_id_param
-            )
         total_cipher = ciphers_orm.count()
         not_deleted_ciphers_orm = ciphers_orm.filter(deleted_date__isnull=True)
         not_deleted_ciphers_statistic = not_deleted_ciphers_orm.values('type').annotate(
