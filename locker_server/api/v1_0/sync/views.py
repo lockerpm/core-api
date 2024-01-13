@@ -175,6 +175,9 @@ class SyncPwdViewSet(APIBaseViewSet):
         paging_param = self.request.query_params.get("paging", "0")
         page_size_param = self.check_int_param(self.request.query_params.get("size", 50))
         page_param = self.check_int_param(self.request.query_params.get("page", 1))
+        ciphers_filter = {
+            "collection_id": self.request.query_params.get("collection_id")
+        }
         # Check team policies
         block_team_ids = []
         # for policy in policies:
@@ -188,7 +191,8 @@ class SyncPwdViewSet(APIBaseViewSet):
             exclude_types = [CIPHER_TYPE_MASTER_PASSWORD]
 
         sync_statistic_ciphers = self.cipher_service.sync_and_statistic_ciphers(
-            user_id=user.user_id, exclude_team_ids=block_team_ids, exclude_types=exclude_types
+            user_id=user.user_id, exclude_team_ids=block_team_ids, exclude_types=exclude_types,
+            **ciphers_filter
         )
         ciphers = sync_statistic_ciphers.get("ciphers")
 

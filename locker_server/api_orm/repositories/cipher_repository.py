@@ -232,7 +232,8 @@ class CipherORMRepository(CipherRepository):
 
     def sync_and_statistic_ciphers(self, user_id: int, only_personal=False, only_managed_team=False,
                                    only_edited=False, only_deleted=False,
-                                   exclude_team_ids=None, filter_ids=None, exclude_types=None) -> Dict:
+                                   exclude_team_ids=None, filter_ids=None, exclude_types=None,
+                                   **ciphers_filter) -> Dict:
         ciphers_orm = self._get_multiple_ciphers_orm_by_user(
             user_id=user_id, only_personal=only_personal, only_managed_team=only_managed_team,
             only_edited=only_edited, only_deleted=only_deleted,
@@ -240,6 +241,11 @@ class CipherORMRepository(CipherRepository):
         ).select_related('user').select_related('created_by').select_related('team').prefetch_related(
             'collections_ciphers'
         )
+        collection_id_param = ciphers_filter.get("collection_id")
+        if collection_id_param:
+            ciphers_orm = ciphers_orm.filter(
+                collections_ciphers__collection_id=collection_id_param
+            )
         total_cipher = ciphers_orm.count()
         not_deleted_ciphers_orm = ciphers_orm.filter(deleted_date__isnull=True)
         not_deleted_ciphers_statistic = not_deleted_ciphers_orm.values('type').annotate(
