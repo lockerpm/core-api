@@ -72,6 +72,7 @@ class EnterpriseGroupService:
 
     def update_members(self, enterprise_group: EnterpriseGroup, enterprise_member_ids: List[str]) -> List[str]:
         existed_enterprise_members = self.enterprise_member_repository.list_enterprise_members(**{
+            "enterprise_id": enterprise_group.enterprise.enterprise_id,
             "status": E_MEMBER_STATUS_CONFIRMED,
             "ids": enterprise_member_ids,
             "is_activated": "1"
