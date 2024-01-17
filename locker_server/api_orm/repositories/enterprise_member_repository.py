@@ -48,7 +48,6 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
         sort_param = filters.get("sort")
 
         if enterprise_id_param:
-
             enterprise_members_orm = EnterpriseMemberORM.objects.filter(
                 enterprise_id=enterprise_id_param
             ).select_related('user').select_related('role').select_related('domain')
@@ -57,7 +56,7 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
                 'user'
             ).select_related('role').select_related('domain')
         # Filter by ids
-        if ids_param:
+        if ids_param is not None:
             enterprise_members_orm = enterprise_members_orm.filter(id__in=ids_param)
         if domain_id_param:
             enterprise_members_orm = enterprise_members_orm.filter(domain_id=domain_id_param)
