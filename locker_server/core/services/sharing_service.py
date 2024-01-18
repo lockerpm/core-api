@@ -677,7 +677,7 @@ class SharingService:
             raise TeamGroupDoesNotExistException
 
         primary_member = self.team_member_repository.get_primary_member(team_id=sharing_id)
-        group_members_user_ids = self.team_group_repository.list_group_members_user_ids(group_id=group_id)
+        group_members_user_ids = self.team_group_repository.list_group_members_user_ids(group_id=group.group_id)
 
         PwdSync(event=SYNC_EVENT_MEMBER_UPDATE, user_ids=group_members_user_ids + [primary_member.user.user_id]).send()
         if self.is_folder_sharing(sharing_id=sharing_id) is False:
