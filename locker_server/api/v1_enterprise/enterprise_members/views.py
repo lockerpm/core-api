@@ -456,6 +456,10 @@ class MemberPwdViewSet(APIBaseViewSet):
         if member_status not in ["confirmed", "reject"]:
             raise ValidationError(detail={"status": ["This status is not valid"]})
         try:
+            member = self.enterprise_member_service.get_member_by_id(
+                member_id=kwargs.get("pk")
+            )
+            enterprise = member.enterprise
             updated_member_invitation = self.enterprise_member_service.update_user_invitations(
                 current_user=user,
                 enterprise_member_id=kwargs.get("pk"),
@@ -465,8 +469,6 @@ class MemberPwdViewSet(APIBaseViewSet):
             raise NotFound
         except EnterpriseMemberInvitationUpdatedFailedException:
             raise ValidationError(detail={"status": ["You cannot reject this enterprise"]})
-        enterprise = updated_member_invitation.enterprise
-
         primary_admin_user = self.enterprise_service.get_primary_member(enterprise_id=enterprise.enterprise_id).user
         admin_plan = self.user_service.get_current_plan(primary_admin_user)
         if not primary_admin_user:
