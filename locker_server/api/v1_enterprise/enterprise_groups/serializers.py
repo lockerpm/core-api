@@ -13,14 +13,16 @@ class ListEnterpriseGroupSerializer(serializers.Serializer):
             "name": instance.name,
             "creation_date": instance.creation_date,
             "revision_date": instance.revision_date,
-            "created_by": {
-                "email": instance.created_by.email,
-                "username": instance.created_by.username,
-                "full_name": instance.created_by.full_name,
-                "avatar": instance.created_by.get_avatar()
-            },
             "number_members": number_members
         }
+        created_by = instance.created_by
+        if created_by:
+            data["created_by"] = {
+                "email": created_by.email,
+                "username": created_by.username,
+                "full_name": created_by.full_name,
+                "avatar": created_by.get_avatar()
+            }
         return data
 
 
