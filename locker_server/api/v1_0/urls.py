@@ -85,6 +85,10 @@ urlpatterns += [
     url(r'^notification/settings$', views.NotificationSettingPwdViewSet.as_view({'get': 'list'})),
     url(r'^notification/settings/(?P<category_id>[a-z_]+)$',
         views.NotificationSettingPwdViewSet.as_view({'put': 'update'})),
+    # TODO: Remove them later
+    url(r'^notifcation/settings$', views.NotificationSettingPwdViewSet.as_view({'get': 'list'})),
+    url(r'^notifcation/settings/(?P<category_id>[a-z_]+)$',
+        views.NotificationSettingPwdViewSet.as_view({'put': 'update'})),
 ]
 
 # -------------------------------- Sync ----------------------------------- #
