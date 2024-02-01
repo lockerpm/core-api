@@ -66,16 +66,19 @@ class CipherService:
                 raise TeamLockedException
             data["team"] = team_obj
             if specific_validate_collections_func == "validate_update_collections":
-                data["collectionIds"] = self._validate_update_collections(
+                validate_collection_ids = self._validate_update_collections(
                     team_member=team_member, collection_ids=collection_ids
                 )
             else:
-                data["collectionIds"] = self._validate_collections(
+                validate_collection_ids = self._validate_collections(
                     team_member=team_member, collection_ids=collection_ids
                 )
+            data["collectionIds"] = validate_collection_ids
+            data["collection_ids"] = validate_collection_ids
         else:
             data["organizationId"] = None
             data["collectionIds"] = []
+            data["collection_ids"] = []
             data["team"] = None
         return data
 
