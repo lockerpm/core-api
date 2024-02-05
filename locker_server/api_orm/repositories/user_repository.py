@@ -569,7 +569,8 @@ class UserORMRepository(UserRepository):
         creation_date = now() if not creation_date else float(creation_date)
         user_orm, is_created = UserORM.objects.get_or_create(user_id=user_id, defaults={
             "user_id": user_id,
-            "creation_date": creation_date
+            "creation_date": creation_date,
+            "is_password_changed": False
         })
         return ModelParser.user_parser().parse_user(user_orm=user_orm), is_created
 
@@ -578,7 +579,8 @@ class UserORMRepository(UserRepository):
         user_orm, is_created = UserORM.objects.get_or_create(email=email, defaults={
             "email": email,
             "full_name": email,
-            "creation_date": creation_date
+            "creation_date": creation_date,
+            "is_password_changed": False
         })
         return ModelParser.user_parser().parse_user(user_orm=user_orm), is_created
 
