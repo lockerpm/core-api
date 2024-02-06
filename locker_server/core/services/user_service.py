@@ -935,7 +935,7 @@ class UserService:
         if save_device:
             # Save device to device factor2 white list
             device_factor2_create_data = {
-                "device_id": device_existed.device_id,
+                "device_id": device_obj.device_id,
                 "factor2_method_id": factor2_method.factor2_method_id
             }
             self.device_factor2_repository.create_device_factor2(
