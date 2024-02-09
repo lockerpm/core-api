@@ -11,6 +11,7 @@ from locker_server.core.repositories.user_repository import UserRepository
 from locker_server.shared.constants.transactions import *
 from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
 from locker_server.shared.external_services.locker_background.constants import BG_NOTIFY
+from locker_server.shared.log.cylog import CyLog
 from locker_server.shared.utils.app import now
 
 
@@ -150,6 +151,7 @@ class PaymentHookService:
             "success": True,
             "payment_id": payment.payment_id,
             "order_date": payment.get_created_time_str(),
+            "total": "{}".format(payment.total_price),
             "total_money": "{}".format(payment.total_price),
             "currency": payment.currency,
             "paid": True if payment_status == PAYMENT_STATUS_PAID else False,
@@ -167,6 +169,23 @@ class PaymentHookService:
         })
         if payment_status == PAYMENT_STATUS_PAID:
             self.payment_repository.set_paid(payment=payment)
+
+            if current_plan.pm_plan.alias == PLAN_TYPE_PM_FREE:
+                # Upgrade this plan
+                plan_metadata = payment.metadata
+                plan_metadata.update({"promo_code": payment.promo_code})
+                self.user_plan_repository.update_plan(
+                    user_id=user.user_id, plan_type_alias=payment.plan, duration=payment.duration, scope=payment.scope,
+                    **plan_metadata
+                )
+            else:
+                # TODO: Warning log - We can remove this block later
+                CyLog.warning(**{"message": f"The current plan of userID {user.user_id} is "
+                                            f"{current_plan.pm_plan.alias} "
+                                            f"({current_plan.start_period} - {current_plan.end_period})."
+                                            f"So we warning that the payment #{payment.payment_id} is set as successful"
+                                            f" without upgrading the user plan"})
+
         elif payment_status == PAYMENT_STATUS_PAST_DUE:
             self.payment_repository.set_past_due(payment=payment, failure_reason=failure_reason)
             payment_data.update({"reason": failure_reason})
