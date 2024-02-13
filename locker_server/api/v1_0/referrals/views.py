@@ -38,11 +38,14 @@ class ReferralPwdViewSet(APIBaseViewSet):
 
         # Upgrade current user to Premium
         current_time = now()
-        self.user_service.update_plan(user=user, plan_type_alias=PLAN_TYPE_PM_PREMIUM, **{
-            "start_period": current_time,
-            "end_period": current_time + 30 * 86400,
-            "cancel_at_period_end": True
-        })
+        self.user_service.update_plan(
+            user_id=user.user_id, plan_type_alias=PLAN_TYPE_PM_PREMIUM,
+            **{
+                "start_period": current_time,
+                "end_period": current_time + 30 * 86400,
+                "cancel_at_period_end": True
+            }
+        )
         # Get current plan of the referred user
         if count < REFERRAL_LIMIT:
             referred_user_plan = self.user_service.get_current_plan(
