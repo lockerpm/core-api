@@ -57,6 +57,10 @@ class PaymentRepository(ABC):
     def count_referral_payments(self, referral_user_ids: List[int]) -> int:
         pass
 
+    @abstractmethod
+    def is_first_payment(self, user_id: int, **filter_params) -> bool:
+        pass
+
     # ------------------------ Create Payment resource --------------------- #
     @abstractmethod
     def create_payment(self, **payment_data) -> Optional[Payment]:

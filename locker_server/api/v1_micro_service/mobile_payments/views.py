@@ -72,10 +72,15 @@ class MobilePaymentViewSet(APIBaseViewSet):
         except UserDoesNotExistException:
             raise ValidationError(detail={"user_id": ["User does not exist"]})
 
+        is_first_annual = self.payment_service.is_first_payment(user_id=user_id, **{
+            "plans": [PLAN_TYPE_PM_PREMIUM, PLAN_TYPE_PM_FAMILY],
+            "durations": [DURATION_YEARLY]
+        })
         return Response(status=status.HTTP_200_OK, data={
             "success": True,
             "scope": new_payment.scope,
-            "payment_id": new_payment.payment_id
+            "payment_id": new_payment.payment_id,
+            "is_first_annual": is_first_annual,
         })
 
     @action(methods=["post"], detail=False)
