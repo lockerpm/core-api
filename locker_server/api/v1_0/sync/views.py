@@ -76,6 +76,7 @@ class SyncPwdViewSet(APIBaseViewSet):
         paging_param = self.request.query_params.get("paging", "0")
         page_size_param = self.check_int_param(self.request.query_params.get("size", 50))
         page_param = self.check_int_param(self.request.query_params.get("page", 1))
+        page_param = page_param if page_param is not None else 1
 
         # Get sync data from cache
         cache_key = self.user_service.get_sync_cache_key(user_id=user.user_id, page=page_param, size=page_size_param)
@@ -175,6 +176,7 @@ class SyncPwdViewSet(APIBaseViewSet):
         paging_param = self.request.query_params.get("paging", "0")
         page_size_param = self.check_int_param(self.request.query_params.get("size", 50))
         page_param = self.check_int_param(self.request.query_params.get("page", 1))
+        page_param = page_param if page_param is not None else 1
         ciphers_filter = {
             "collection_id": self.request.query_params.get("collection_id")
         }
