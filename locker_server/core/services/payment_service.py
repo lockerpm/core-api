@@ -699,3 +699,6 @@ class PaymentService:
 
     def update_payment(self, payment: Payment, update_data) -> Payment:
         return self.payment_repository.update_payment(payment=payment, update_data=update_data)
+
+    def is_first_payment(self, user_id: int, **filter_params) -> bool:
+        return self.payment_repository.is_first_payment(user_id=user_id, **filter_params)

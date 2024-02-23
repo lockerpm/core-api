@@ -49,9 +49,14 @@ class PaymentViewSet(APIBaseViewSet):
             )
         else:
             enterprise_billing_contacts = []
+        user_id = new_payment.user.user_id
+        is_first_annual = self.payment_service.is_first_payment(user_id=user_id, **{
+            "plans": [PLAN_TYPE_PM_PREMIUM, PLAN_TYPE_PM_FAMILY],
+            "durations": [DURATION_YEARLY]
+        })
         return Response(status=status.HTTP_200_OK, data={
             "success": True,
-            "user_id": new_payment.user.user_id,
+            "user_id": user_id,
             "status": new_payment.status,
             "paid": True if new_payment.status == PAYMENT_STATUS_PAID else False,
             "scope": new_payment.scope,
@@ -66,6 +71,7 @@ class PaymentViewSet(APIBaseViewSet):
             "customer": new_payment.get_customer_dict(),
             "payment_method": new_payment.payment_method,
             "payment_data": payment_data,
+            "is_first_annual": is_first_annual,
             "cc": enterprise_billing_contacts
         })
 

@@ -171,6 +171,19 @@ class PaymentORMRepository(PaymentRepository):
             status__in=[PAYMENT_STATUS_PAID], user_id__in=referral_user_ids
         ).count()
 
+    def is_first_payment(self, user_id: int, **filter_params) -> bool:
+        exclude_total_0 = filter_params.get("exclude_total_0", True)
+        plans_param = filter_params.get("plans", [])
+        durations = filter_params.get("durations", [])
+        payments = PaymentORM.objects.filter(user_id=user_id)
+        if exclude_total_0 is True:
+            payments = payments.exclude(total_price=0)
+        if plans_param:
+            payments = payments.filter(plan__in=plans_param)
+        if durations:
+            payments = payments.filter(duration__in=durations)
+        return payments.count() == 1
+
     # ------------------------ Create Payment resource --------------------- #
     def create_payment(self, **payment_data) -> Optional[Payment]:
         payment_orm = PaymentORM.create(**payment_data)
