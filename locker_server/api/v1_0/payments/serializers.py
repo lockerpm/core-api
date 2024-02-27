@@ -127,6 +127,15 @@ class UpgradeLifetimePublicSerializer(serializers.Serializer):
     )
 
 
+class UpgradeSubscriptionPublicSerializer(serializers.Serializer):
+    promo_code = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    plan_alias = serializers.ChoiceField(
+        choices=[PLAN_TYPE_PM_PREMIUM, PLAN_TYPE_PM_FAMILY], default=PLAN_TYPE_PM_PREMIUM,
+        required=False
+    )
+    duration = serializers.ChoiceField(choices=LIST_DURATION, default=DURATION_MONTHLY, required=False)
+
+
 class UpgradeEducationPublicSerializer(serializers.Serializer):
     email = serializers.EmailField(max_length=128)
     education_email = serializers.EmailField(max_length=255, required=False, allow_blank=True, allow_null=True)

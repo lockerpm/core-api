@@ -54,7 +54,7 @@ DURATION_MONTHLY = "monthly"
 DURATION_HALF_YEARLY = "half_yearly"
 DURATION_YEARLY = "yearly"
 
-LIST_DURATION = [DURATION_MONTHLY, DURATION_HALF_YEARLY, DURATION_YEARLY]
+LIST_DURATION = [DURATION_MONTHLY, DURATION_YEARLY]
 
 
 # ------------------- Promo code types ------------------------------ #

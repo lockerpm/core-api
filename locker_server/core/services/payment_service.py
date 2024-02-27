@@ -127,6 +127,39 @@ class PaymentService:
         result["plan"] = new_plan.to_json()
         return result
 
+    def calc_subscription_payment_public(self, plan_alias: str, duration: str = DURATION_MONTHLY,
+                                         currency: str = CURRENCY_USD, number_members: int = 1, promo_code: str = None,
+                                         user=None, allow_trial: bool = True):
+        new_plan = self.plan_repository.get_plan_by_alias(alias=plan_alias)
+        if not new_plan:
+            raise PlanDoesNotExistException
+        if new_plan.is_team_plan is False:
+            number_members = 1
+        if user is not None:
+            current_plan = self.user_plan_repository.get_user_plan(user_id=user.user_id)
+            utm_source = self.user_repository.get_from_cystack_id(user_id=user.user_id).get("utm_source")
+            result = self.user_plan_repository.calc_update_price(
+                current_plan=current_plan,
+                new_plan=new_plan,
+                new_duration=duration,
+                new_quantity=number_members,
+                currency=currency,
+                promo_code=promo_code,
+                allow_trial=allow_trial,
+                utm_source=utm_source,
+            )
+        else:
+            result = self.user_plan_repository.calc_payment_public(
+                new_plan=new_plan,
+                new_duration=duration,
+                new_quantity=number_members,
+                currency=currency,
+                promo_code=promo_code,
+                allow_trial=allow_trial,
+            )
+        result["plan"] = new_plan.to_json()
+        return result
+
     def admin_upgrade_plan(self, user_id: int, plan_alias: str, end_period: float = None, scope: str = None):
         new_plan = self.plan_repository.get_plan_by_alias(alias=plan_alias)
         if not new_plan:
