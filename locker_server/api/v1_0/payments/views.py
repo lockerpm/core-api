@@ -23,7 +23,7 @@ from locker_server.shared.utils.app import now
 from .serializers import CalcSerializer, ListInvoiceSerializer, AdminUpgradePlanSerializer, UpgradeTrialSerializer, \
     UpgradeThreePromoSerializer, UpgradeLifetimeSerializer, UpgradeLifetimePublicSerializer, \
     UpgradeEducationPublicSerializer, CancelPlanSerializer, UpgradePlanSerializer, DetailInvoiceSerializer, \
-    CalcLifetimePublicSerializer
+    CalcLifetimePublicSerializer, UpgradeSubscriptionPublicSerializer
 
 
 class PaymentPwdViewSet(APIBaseViewSet):
@@ -54,6 +54,8 @@ class PaymentPwdViewSet(APIBaseViewSet):
             self.serializer_class = UpgradeLifetimePublicSerializer
         elif self.action == "calc_lifetime_public":
             self.serializer_class = CalcLifetimePublicSerializer
+        elif self.action == "upgrade_subscription_public":
+            self.serializer_class = UpgradeSubscriptionPublicSerializer
         elif self.action == "upgrade_education_public":
             self.serializer_class = UpgradeEducationPublicSerializer
         elif self.action == "cancel_plan":
