@@ -174,12 +174,15 @@ class PaymentORMRepository(PaymentRepository):
     def is_first_payment(self, user_id: int, **filter_params) -> bool:
         exclude_total_0 = filter_params.get("exclude_total_0", True)
         plans_param = filter_params.get("plans", [])
-        durations = filter_params.get("durations", [])
+        durations_param = filter_params.get("durations", [])
+        status_param = filter_params.get("status")
         payments = PaymentORM.objects.filter(user_id=user_id)
         if exclude_total_0 is True:
             payments = payments.exclude(total_price=0)
-        if plans_param and durations:
-            payments = payments.filter(plan__in=plans_param, duration__in=durations)
+        if plans_param and durations_param:
+            payments = payments.filter(plan__in=plans_param, duration__in=durations_param)
+        if status_param:
+            payments = payments.filter(status=status_param)
         #     if plans_param:
         #         payments = payments.filter(plan__in=plans_param)
         #     if durations:

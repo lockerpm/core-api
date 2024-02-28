@@ -52,7 +52,8 @@ class PaymentViewSet(APIBaseViewSet):
         user_id = new_payment.user.user_id
         is_first_annual = self.payment_service.is_first_payment(user_id=user_id, **{
             "plans": [PLAN_TYPE_PM_PREMIUM, PLAN_TYPE_PM_FAMILY],
-            "durations": [DURATION_YEARLY]
+            "durations": [DURATION_YEARLY],
+            "status": PAYMENT_STATUS_PAID
         })
         return Response(status=status.HTTP_200_OK, data={
             "success": True,
