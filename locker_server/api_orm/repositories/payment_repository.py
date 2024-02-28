@@ -178,10 +178,12 @@ class PaymentORMRepository(PaymentRepository):
         payments = PaymentORM.objects.filter(user_id=user_id)
         if exclude_total_0 is True:
             payments = payments.exclude(total_price=0)
-        if plans_param:
-            payments = payments.filter(plan__in=plans_param)
-        if durations:
-            payments = payments.filter(duration__in=durations)
+        if plans_param and durations:
+            payments = payments.filter(plan__in=plans_param, duration__in=durations)
+        #     if plans_param:
+        #         payments = payments.filter(plan__in=plans_param)
+        #     if durations:
+        #         payments = payments.filter(duration__in=durations)
         return payments.count() == 1
 
     # ------------------------ Create Payment resource --------------------- #
