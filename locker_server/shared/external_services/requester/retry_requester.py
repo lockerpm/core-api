@@ -1,13 +1,11 @@
 import json
 import os
-import traceback
 
 import urllib3
 import requests
 from django.conf import settings
 from requests import Response
 import time
-
 
 from locker_server.shared.error_responses.error import refer_error, gen_error
 from locker_server.shared.log.cylog import CyLog
@@ -91,3 +89,6 @@ def requester(method, url, headers=None, data_send=None, is_json=True, retry=Fal
                 res.status_code = 400
                 res._content = json.dumps(refer_error(gen_error("0009"))).encode('utf-8')
                 return res
+        except requests.exceptions.ReadTimeout:
+            message = "requests.exceptions.ReadTimeout:\n\turl:`{url}`\n\tdata:{data}".format(url=url, data=data_send)
+            CyLog.warning(**{"message": message})
