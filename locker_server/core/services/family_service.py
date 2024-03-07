@@ -62,7 +62,7 @@ class FamilyService:
         )
         if not family_member:
             raise UserPlanFamilyDoesNotExistException
-        if family_member.user.user_id == user_id:
+        if family_member.user is not None and family_member.user.user_id == user_id:
             raise UserPlanFamilyDoesNotExistException
         # Downgrade the plan of the member user
         family_user_id, family_email = self.user_plan_repository.delete_family_member(family_member_id=family_member_id)
