@@ -593,7 +593,7 @@ class UserService:
             raise TeamMemberDoesNotExistException
         if team_member.status != PM_MEMBER_STATUS_INVITED:
             raise TeamMemberDoesNotExistException
-        if team_member.user.user.activated is False or team_member.team.key is None:
+        if team_member.user.activated is False or team_member.team.key is None:
             raise TeamMemberDoesNotExistException
         if status == "accept":
             team_member = self.team_member_repository.accept_invitation(team_member_id=team_member.team_member_id)
