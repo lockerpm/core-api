@@ -327,9 +327,11 @@ class PaymentORMRepository(PaymentRepository):
     def set_paid(self, payment: Payment) -> Payment:
         payment_orm = self._get_payment_orm(payment_id=payment.payment_id)
         payment_orm.status = PAYMENT_STATUS_PAID
+        payment_orm.failure_reason = None
         payment_orm.save()
         # Set paid
         payment.status = PAYMENT_STATUS_PAID
+        payment.failure_reason = None
         return payment
 
     def set_past_due(self, payment: Payment, failure_reason=None) -> Payment:

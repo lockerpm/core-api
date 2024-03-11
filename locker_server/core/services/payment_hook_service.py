@@ -146,6 +146,7 @@ class PaymentHookService:
     def webhook_set_status(self, payment: Payment, payment_status: str, failure_reason: str = None,
                            locker_web_url: str = None) -> Dict:
         user = payment.user
+        old_status = payment.status
         payment_data = {
             "user_id": user.user_id,
             "success": True,
@@ -168,8 +169,7 @@ class PaymentHookService:
             "url": "{}/invoices/{}".format(locker_web_url, payment.payment_id),
         })
         if payment_status == PAYMENT_STATUS_PAID:
-            self.payment_repository.set_paid(payment=payment)
-
+            payment = self.payment_repository.set_paid(payment=payment)
             if current_plan.pm_plan.alias == PLAN_TYPE_PM_FREE:
                 # Upgrade this plan
                 plan_metadata = payment.metadata
@@ -185,6 +185,12 @@ class PaymentHookService:
                                             f"({current_plan.start_period} - {current_plan.end_period})."
                                             f"So we warning that the payment #{payment.payment_id} is set as successful"
                                             f" without upgrading the user plan"})
+
+            if old_status != payment_status:
+                # Sending invoice mail
+                BackgroundFactory.get_background(bg_name=BG_NOTIFY, background=True).run(
+                    func_name="pay_successfully", **{"payment": payment}
+                )
 
         elif payment_status == PAYMENT_STATUS_PAST_DUE:
             self.payment_repository.set_past_due(payment=payment, failure_reason=failure_reason)
