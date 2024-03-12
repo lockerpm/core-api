@@ -26,6 +26,7 @@ class AbstractPMPlanORM(models.Model):
     limit_identity = models.IntegerField(null=True, default=None)
     limit_payment_card = models.IntegerField(null=True, default=None)
     limit_crypto_asset = models.IntegerField(null=True, default=None)
+    limit_totp = models.IntegerField(null=True, default=None)
     tools_password_reuse = models.BooleanField(default=False)
     tools_master_password_check = models.BooleanField(default=False)
     tools_data_breach = models.BooleanField(default=False)
