@@ -735,3 +735,12 @@ class PaymentService:
 
     def is_first_payment(self, user_id: int, **filter_params) -> bool:
         return self.payment_repository.is_first_payment(user_id=user_id, **filter_params)
+
+    def statistic_income(self, **filters) -> Dict:
+        return self.payment_repository.statistic_income(**filters)
+
+    def statistic_amount(self, **filters) -> Dict:
+        return self.payment_repository.statistic_amount(**filters)
+
+    def statistic(self, **filters) -> List[Dict]:
+        return self.payment_repository.statistic_by_type(**filters)

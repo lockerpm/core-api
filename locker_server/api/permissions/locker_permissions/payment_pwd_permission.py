@@ -7,7 +7,8 @@ class PaymentPwdPermission(APIPermission):
                            "webhook_unpaid_subscription", "webhook_cancel_subscription",
                            "upgrade_trial_enterprise_by_code", "calc_lifetime_public", "calc_subscription_public"]:
             return True
-        elif view.action in ["list", "set_invoice_status", "user_invoices", "admin_upgrade_plan"]:
+        elif view.action in ["list", "set_invoice_status", "user_invoices", "admin_upgrade_plan", "statistic_income",
+                             "statistic_amount"]:
             return self.is_admin(request)
         return self.is_auth(request)
 

@@ -249,7 +249,11 @@ urlpatterns += [
 # ----------------------------------- Admin --------------------------------- #
 urlpatterns += [
     url(r'^admin/payments/invoices$', views.PaymentPwdViewSet.as_view({'get': 'list'})),
-    url(r'^admin/payments/invoices/(?P<pk>[A-Z0-9]+)$', views.PaymentPwdViewSet.as_view({'put': 'set_invoice_status'})),
+    url(r'^admin/payments/statistic/income$', views.PaymentPwdViewSet.as_view({'get': 'statistic_income'})),
+    url(r'^admin/payments/statistic/amount$', views.PaymentPwdViewSet.as_view({'get': 'statistic_amount'})),
+
+    url(r'^admin/payments/invoices/(?P<pk>[A-Z0-9]+)$',
+        views.PaymentPwdViewSet.as_view({'put': 'set_invoice_status', 'get': 'retrieve_invoice'})),
 
     url(r'^admin/users/ids$', views.UserPwdViewSet.as_view({'get': 'list_user_ids'})),
     url(r'^admin/users$', views.UserPwdViewSet.as_view({'get': 'list_users'})),
@@ -261,7 +265,6 @@ urlpatterns += [
     url(r'^admin/affiliate_submissions$', views.AffiliateSubmissionPwdViewSet.as_view({'get': 'list'})),
     url(r'^admin/affiliate_submissions/(?P<pk>[0-9]+)$',
         views.AffiliateSubmissionPwdViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'})),
-
 ]
 
 # ------------------------------- Management Command ----------------------------- #

@@ -19,6 +19,18 @@ class PaymentRepository(ABC):
     def list_feedback_after_subscription(self, after_days: int = 30) -> List[Dict]:
         pass
 
+    @abstractmethod
+    def statistic_income(self, **filters) -> Dict:
+        pass
+
+    @abstractmethod
+    def statistic_amount(self, **filters) -> Dict:
+        pass
+
+    @abstractmethod
+    def statistic_by_type(self, **filters) -> List:
+        pass
+
     # ------------------------ Get Payment resource --------------------- #
     @abstractmethod
     def is_blocked_by_source(self, user_id: int, utm_source: str) -> bool:
@@ -92,4 +104,3 @@ class PaymentRepository(ABC):
         pass
 
     # ------------------------ Delete Payment resource --------------------- #
-
