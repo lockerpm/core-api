@@ -555,3 +555,49 @@ class PaymentPwdViewSet(APIBaseViewSet):
         user = self.request.user
         result = self.payment_service.plan_limit(user_id=user.user_id)
         return Response(status=status.HTTP_200_OK, data=result)
+
+    @action(methods=["get"], detail=False)
+    def statistic_income(self, request, *args, **kwargs):
+        query_params = self.request.query_params
+        current_time = now()
+        from_param = self.check_int_param(
+            self.request.query_params.get("from")) or current_time - 1000 * 86400
+        to_param = self.check_int_param(self.request.query_params.get("to")) or current_time
+        duration_param = self.request.query_params.get("duration") or "monthly"
+        dashboard_result = self.payment_service.statistic_income(**{
+            "from": from_param,
+            "to": to_param,
+            "duration": duration_param,
+            "platform": query_params.get("platform"),
+            "status": query_params.get("status"),
+            "plan": query_params.get("plan"),
+            "utm_source": query_params.get("utm_source"),
+            "payment_method": query_params.get("payment_method"),
+            "user_id": query_params.get("user_id"),
+            "enterprise_id": query_params.get("enterprise_id"),
+
+        })
+        return Response(status=status.HTTP_200_OK, data=dashboard_result)
+
+    @action(methods=["get"], detail=False)
+    def statistic_amount(self, request, *args, **kwargs):
+        query_params = self.request.query_params
+        current_time = now()
+        from_param = self.check_int_param(
+            self.request.query_params.get("from")) or current_time - 1000 * 86400
+        to_param = self.check_int_param(self.request.query_params.get("to")) or current_time
+        duration_param = self.request.query_params.get("duration") or "monthly"
+        statistic_result = self.payment_service.statistic_amount(**{
+            "from": from_param,
+            "to": to_param,
+            "duration": duration_param,
+            "platform": query_params.get("platform"),
+            "status": query_params.get("status"),
+            "plan": query_params.get("plan"),
+            "utm_source": query_params.get("utm_source"),
+            "payment_method": query_params.get("payment_method"),
+            "user_id": query_params.get("user_id"),
+            "enterprise_id": query_params.get("enterprise_id"),
+
+        })
+        return Response(status=status.HTTP_200_OK, data=statistic_result)
