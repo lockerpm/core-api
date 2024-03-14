@@ -19,6 +19,7 @@ class PaymentORM(AbstractPaymentORM):
         user_id = data["user_id"]
         scope = data.get("scope", settings.SCOPE_PWD_MANAGER)
         plan = data.get("plan")
+        saas_market = data.get("saas_market")
         description = data.get("description")
         payment_method = data.get("payment_method", PAYMENT_METHOD_CARD)
         stripe_invoice_id = data.get("stripe_invoice_id", None)
@@ -38,7 +39,7 @@ class PaymentORM(AbstractPaymentORM):
             user_id=user_id, scope=scope, description=description, duration=duration, created_time=now(), plan=plan,
             payment_method=payment_method, stripe_invoice_id=stripe_invoice_id, mobile_invoice_id=mobile_invoice_id,
             status=status, transaction_type=transaction_type,
-            currency=currency, metadata=metadata, enterprise_id=enterprise_id
+            currency=currency, metadata=metadata, enterprise_id=enterprise_id, saas_market=saas_market,
         )
         new_payment_orm.save()
         new_payment_orm.payment_id = "{}{}".format(BANKING_ID_PWD_MANAGER, 10000 + new_payment_orm.id)

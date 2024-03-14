@@ -31,6 +31,7 @@ class AbstractPaymentORM(models.Model):
     duration = models.CharField(max_length=16, default=DURATION_MONTHLY)
     metadata = models.TextField(blank=True, default="")
     enterprise_id = models.CharField(max_length=128, null=True, default=None)
+    saas_market = models.CharField(max_length=128, null=True, default=None, db_index=True)
     user = models.ForeignKey(
         locker_server_settings.LS_USER_MODEL, on_delete=models.CASCADE, related_name="payments"
     )

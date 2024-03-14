@@ -13,8 +13,8 @@ class Payment(object):
                  transaction_type: str = TRANSACTION_TYPE_PAYMENT, payment_method: str = None,
                  failure_reason: str = None, stripe_invoice_id: str = None, mobile_invoice_id: str = None,
                  code: str = None, bank_id: int = None, scope: str = None, plan: str = None,
-                 duration: str = DURATION_MONTHLY, metadata: str = None, enterprise_id: str = None, user: User = None,
-                 promo_code: PromoCode = None, customer: Customer = None):
+                 duration: str = DURATION_MONTHLY, metadata: str = None, enterprise_id: str = None,
+                 saas_market: str = None, user: User = None, promo_code: PromoCode = None, customer: Customer = None):
         self._id = id
         self._payment_id = payment_id
         self._created_time = created_time
@@ -35,6 +35,7 @@ class Payment(object):
         self._duration = duration
         self._metadata = metadata
         self._enterprise_id = enterprise_id
+        self._saas_market = saas_market
         self._user = user
         self._promo_code = promo_code
         self._customer = customer
@@ -138,6 +139,10 @@ class Payment(object):
     @property
     def customer(self):
         return self._customer
+
+    @property
+    def saas_market(self):
+        return self._saas_market
 
     def get_created_time_str(self, time_format='%H:%M:%S %d-%m-%Y'):
         return datetime.utcfromtimestamp(self.created_time).strftime(time_format) if self.created_time else None

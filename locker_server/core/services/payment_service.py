@@ -1,3 +1,4 @@
+import traceback
 from typing import List, Optional, Dict
 
 import jwt
@@ -289,8 +290,32 @@ class PaymentService:
         self.user_plan_repository.update_plan(
             user_id=user_id, plan_type_alias=plan.alias, duration=upgrade_duration, scope=scope, **plan_metadata
         )
-        user = self.user_repository.update_user(user_id=user_id,
-                                                user_update_data={"saas_source": saas_code.saas_market.name})
+        user = self.user_repository.update_user(
+            user_id=user_id,
+            user_update_data={"saas_source": saas_code.saas_market.name}
+        )
+
+        # Generate new payment
+        try:
+            new_payment_data = {
+                "user_id": user_id,
+                "saas_market": saas_code.saas_market.name,
+                "description": "Upgrade plan from saas code",
+                "plan": plan.alias,
+                "payment_method": PAYMENT_METHOD_CARD,
+                "duration": "lifetime" if plan.alias in LIST_LIFETIME_PLAN else upgrade_duration,
+                "currency": CURRENCY_USD,
+                "promo_code": None,
+                "customer": None,
+                "scope": scope,
+                "status": PAYMENT_STATUS_PAID,
+                "total_price": plan.get_price(duration=upgrade_duration, currency=CURRENCY_USD),
+                "metadata": plan_metadata
+            }
+            self.create_payment(**new_payment_data)
+        except Exception:
+            tb = traceback.format_exc()
+            CyLog.error(**{"message": f"[!] Create the saas payment error::: {user_id} - {code}\n{tb}"})
 
         if user.activated:
             if plan.alias in [PLAN_TYPE_PM_LIFETIME, PLAN_TYPE_PM_LIFETIME_FAMILY]:
