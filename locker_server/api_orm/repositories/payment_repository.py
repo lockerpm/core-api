@@ -101,7 +101,8 @@ class PaymentORMRepository(PaymentRepository):
         platform_param = filters.get("platform", "")  # CHPlay,Stripe,ChPlay, Markets
         status_param = filters.get("status")  # success,failed,pending
         plan_param = filters.get("plan")  # premium, lifetime,family,enterprise
-        utm_source_param = filters.get("utm_source")  # organic,ads, affiliate
+        channel_param = filters.get("channel")  # organic,ads, affiliate
+        source_param = filters.get("source")  # stacksocial, dealmirror, saasmantra
         payment_method_param = filters.get("payment_method")
         user_id_param = filters.get("user_id")
         enterprise_id_param = filters.get("enterprise_id")
@@ -118,8 +119,8 @@ class PaymentORMRepository(PaymentRepository):
             payments_orm = payments_orm.filter(plan=plan_param)
         if status_param:
             payments_orm = payments_orm.filter(status=status_param)
-        if utm_source_param:
-            user_ids = UserORMRepository.search_from_cystack_id(**{"utm_source": utm_source_param}).get("ids", [])
+        if channel_param:
+            user_ids = UserORMRepository.search_from_cystack_id(**{"utm_source": channel_param}).get("ids", [])
             payments_orm = payments_orm.filter(user_id__in=user_ids)
         if platform_param:
             platform_param = platform_param.lower()
@@ -127,12 +128,11 @@ class PaymentORMRepository(PaymentRepository):
                 payments_orm = payments_orm.filter(stripe_invoice_id__isnull=False)
             elif platform_param == "ios":
                 payments_orm = payments_orm.filter(
-                    Q(stripe_invoice_id__isnull=True) & Q(metadata__contains="ios") & Q(mobile_invoice_id__isnull=False)
-
+                    Q(metadata__contains="ios") & Q(mobile_invoice_id__isnull=False)
                 )
             elif platform_param == "android":
                 payments_orm = payments_orm.filter(
-                    Q(stripe_invoice_id__isnull=True) & Q(metadata__contains="android") &
+                    Q(metadata__contains="android") &
                     Q(mobile_invoice_id__isnull=False)
 
                 )
@@ -142,7 +142,9 @@ class PaymentORMRepository(PaymentRepository):
             payments_orm = payments_orm.filter(user_id=user_id_param)
         if enterprise_id_param:
             payments_orm = payments_orm.filter(enterprise_id=enterprise_id_param)
-
+        if source_param:
+            source_param = source_param.lower()
+            payments_orm = payments_orm.filter(saas_market__icontains=source_param)
         payments_orm = payments_orm.select_related('user')
         payments_orm = payments_orm.order_by("-created_time")
         return payments_orm
@@ -373,12 +375,12 @@ class PaymentORMRepository(PaymentRepository):
             ).order_by("currency")
 
             total_price_ios = payments_orm.filter(
-                Q(stripe_invoice_id__isnull=True) & Q(metadata__contains="ios") & Q(mobile_invoice_id__isnull=False)
+                Q(metadata__contains="ios") & Q(mobile_invoice_id__isnull=False)
             ).values("currency").annotate(
                 total_price=Sum('total_price')
             ).order_by("currency")
             total_price_android = payments_orm.filter(
-                Q(stripe_invoice_id__isnull=True) & Q(metadata__contains="android") &
+                Q(metadata__contains="android") &
                 Q(mobile_invoice_id__isnull=False)
             ).values("currency").annotate(
                 total_price=Sum('total_price')
