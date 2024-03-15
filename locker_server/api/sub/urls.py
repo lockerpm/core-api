@@ -13,6 +13,9 @@ urlpatterns = [
 urlpatterns += [
     url(r'^resources/countries$', LONG_TIME_CACHE(views.ResourcePwdViewSet.as_view({'get': 'countries'}))),
     url(r'^resources/server_type$', views.ResourcePwdViewSet.as_view({'get': 'server_type'})),
+    url(r'^resources/enterprise_ids$', views.ResourcePwdViewSet.as_view({'get': 'list_enterprise_id'})),
+    url(r'^resources/channels$', views.ResourcePwdViewSet.as_view({'get': 'list_channel'})),
+    url(r'^resources/saas_markets$', views.ResourcePwdViewSet.as_view({'get': 'list_saas_market'})),
     url(r'^resources/cystack_platform/pm/plans$', views.ResourcePwdViewSet.as_view({'get': 'plans'})),
     url(r'^resources/cystack_platform/pm/enterprise/plans$',
         views.ResourcePwdViewSet.as_view({'get': 'enterprise_plans'})),

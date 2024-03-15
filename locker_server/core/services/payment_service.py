@@ -77,6 +77,9 @@ class PaymentService:
     def list_all_invoices(self, **filter_params) -> List[Payment]:
         return self.payment_repository.list_all_invoices(**filter_params)
 
+    def list_saas_market(self) -> List[str]:
+        return self.payment_repository.list_saas_market()
+
     def list_user_invoices(self, user_id: int, **filter_params) -> List[Payment]:
         return self.payment_repository.list_invoices_by_user(user_id=user_id, **filter_params)
 

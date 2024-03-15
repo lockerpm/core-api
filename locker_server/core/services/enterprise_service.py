@@ -56,6 +56,9 @@ class EnterpriseService:
     def list_policies_by_user(self, user_id: int) -> List[EnterprisePolicy]:
         return self.enterprise_policy_repository.list_policies_by_user(user_id=user_id)
 
+    def list_enterprise_ids(self) -> List[str]:
+        return self.enterprise_repository.list_enterprise_ids()
+
     def get_enterprise_by_id(self, enterprise_id: str) -> Optional[Enterprise]:
         enterprise = self.enterprise_repository.get_enterprise_by_id(
             enterprise_id=enterprise_id

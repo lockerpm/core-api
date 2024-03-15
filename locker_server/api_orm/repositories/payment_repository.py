@@ -10,7 +10,7 @@ from django.db.models.expressions import RawSQL, Case, When
 from django.db.models.functions import TruncYear
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
-from locker_server.api_orm.models import CustomerORM
+from locker_server.api_orm.models import CustomerORM, SaasMarketORM
 from locker_server.api_orm.models.wrapper import get_payment_model, get_promo_code_model, get_user_model, \
     get_user_plan_model, get_plan_model
 from locker_server.api_orm.repositories import UserORMRepository
@@ -155,6 +155,9 @@ class PaymentORMRepository(PaymentRepository):
         for payment_orm in payments_orm:
             payments.append(ModelParser.payment_parser().parse_payment(payment_orm=payment_orm))
         return payments
+
+    def list_saas_market(self) -> List[str]:
+        return list(set(SaasMarketORM.objects.all().values_list("id", flat=True)))
 
     def list_invoices_by_user(self, user_id: int, **filter_params) -> List[Payment]:
         payments_orm = PaymentORM.objects.filter(user_id=user_id).order_by('-created_time')

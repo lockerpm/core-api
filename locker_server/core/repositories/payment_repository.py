@@ -12,6 +12,10 @@ class PaymentRepository(ABC):
         pass
 
     @abstractmethod
+    def list_saas_market(self) -> List[str]:
+        pass
+
+    @abstractmethod
     def list_invoices_by_user(self, user_id: int, **filter_params) -> List[Payment]:
         pass
 

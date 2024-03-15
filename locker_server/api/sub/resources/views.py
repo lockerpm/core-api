@@ -45,3 +45,18 @@ class ResourcePwdViewSet(ResourceV1PwdViewSet):
                 "name": app_info.name
             })
         return Response(status=status.HTTP_200_OK, data=data)
+
+    @action(methods=["get"], detail=False)
+    def list_enterprise_id(self, request, *args, **kwargs):
+        enterprise_ids = self.enterprise_service.list_enterprise_ids()
+        return Response(status=status.HTTP_200_OK, data=enterprise_ids)
+
+    @action(methods=["get"], detail=False)
+    def list_channel(self, request, *args, **kwargs):
+        user_channels = ["organic", "ads", "affiliate"]
+        return Response(status=status.HTTP_200_OK, data=user_channels)
+
+    @action(methods=["get"], detail=False)
+    def list_saas_market(self, request, *args, **kwargs):
+        saas_markets = self.payment_service.list_saas_market()
+        return Response(status=status.HTTP_200_OK, data=saas_markets)
