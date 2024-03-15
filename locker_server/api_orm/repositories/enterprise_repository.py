@@ -49,6 +49,9 @@ class EnterpriseORMRepository(EnterpriseRepository):
             for enterprise_orm in enterprises_orm
         ]
 
+    def list_enterprise_ids(self) -> List[int]:
+        return list(set(EnterpriseORM.objects.all().values_list("id", flat=True)))
+
     def list_user_enterprises(self, user_id: int, **filter_params) -> List[Enterprise]:
         status_param = filter_params.get("status")
         if status_param is not None:
