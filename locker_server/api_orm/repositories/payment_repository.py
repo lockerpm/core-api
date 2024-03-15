@@ -98,11 +98,10 @@ class PaymentORMRepository(PaymentRepository):
     def list_payments_orm(cls, **filters) -> List[PaymentORM]:
         from_param = filters.get("from")
         to_param = filters.get("to")
-        platform_param = filters.get("platform", "")  # CHPlay,Stripe,ChPlay, Markets
         status_param = filters.get("status")  # success,failed,pending
         plan_param = filters.get("plan")  # premium, lifetime,family,enterprise
         channel_param = filters.get("channel")  # organic,ads, affiliate
-        source_param = filters.get("source")  # stacksocial, dealmirror, saasmantra
+        source_param = filters.get("source")  # stacksocial, dealmirror, saasmantra, stripe, ios, android
         payment_method_param = filters.get("payment_method")
         user_id_param = filters.get("user_id")
         enterprise_id_param = filters.get("enterprise_id")
@@ -122,20 +121,7 @@ class PaymentORMRepository(PaymentRepository):
         if channel_param:
             user_ids = UserORMRepository.search_from_cystack_id(**{"utm_source": channel_param}).get("ids", [])
             payments_orm = payments_orm.filter(user_id__in=user_ids)
-        if platform_param:
-            platform_param = platform_param.lower()
-            if platform_param == "stripe":
-                payments_orm = payments_orm.filter(stripe_invoice_id__isnull=False)
-            elif platform_param == "ios":
-                payments_orm = payments_orm.filter(
-                    Q(metadata__contains="ios") & Q(mobile_invoice_id__isnull=False)
-                )
-            elif platform_param == "android":
-                payments_orm = payments_orm.filter(
-                    Q(metadata__contains="android") &
-                    Q(mobile_invoice_id__isnull=False)
 
-                )
         if payment_method_param:
             payments_orm = payments_orm.filter(payment_method=payment_method_param)
         if user_id_param:
@@ -144,7 +130,20 @@ class PaymentORMRepository(PaymentRepository):
             payments_orm = payments_orm.filter(enterprise_id=enterprise_id_param)
         if source_param:
             source_param = source_param.lower()
-            payments_orm = payments_orm.filter(saas_market__icontains=source_param)
+            if source_param == "stripe":
+                payments_orm = payments_orm.filter(stripe_invoice_id__isnull=False)
+            elif source_param == "ios":
+                payments_orm = payments_orm.filter(
+                    Q(metadata__contains="ios") & Q(mobile_invoice_id__isnull=False)
+                )
+            elif source_param == "android":
+                payments_orm = payments_orm.filter(
+                    Q(metadata__contains="android") &
+                    Q(mobile_invoice_id__isnull=False)
+
+                )
+            else:
+                payments_orm = payments_orm.filter(saas_market__icontains=source_param)
         payments_orm = payments_orm.select_related('user')
         payments_orm = payments_orm.order_by("-created_time")
         return payments_orm
@@ -207,7 +206,7 @@ class PaymentORMRepository(PaymentRepository):
             payment_id__startswith="LK"
         )
         success_payments_orm = payments_orm.filter(
-            status="paid"
+            Q(status="paid") & Q(transaction_type="Payment")
         )
 
         # statistic income by duration
@@ -240,6 +239,11 @@ class PaymentORMRepository(PaymentRepository):
         payments_orm_by_status = payments_orm.values("status", "currency").annotate(
             total_price=Sum('total_price')
         ).order_by('status', 'currency')
+        refunds_orm = payments_orm.filter(
+            Q(status="paid") & Q(transaction_type="Refund")
+        ).values("currency").annotate(
+            total_price=Sum('total_price')
+        ).order_by('currency')
         payment_by_status_statistic = {}
         for item in payments_orm_by_status:
             status_dict = payment_by_status_statistic.get(item.get("status")) or {}
@@ -247,6 +251,12 @@ class PaymentORMRepository(PaymentRepository):
                 item.get('currency'): item.get("total_price")
             })
             payment_by_status_statistic[item.get("status")] = status_dict
+        payment_by_status_statistic.update({
+            "refund": {
+                item.get("currency"): item.get("total_price")
+                for item in refunds_orm
+            }
+        })
         total_payment_orm = payments_orm.values("currency").annotate(
             total_price=Sum(F('total_price'))
         ).order_by("currency")
@@ -286,7 +296,7 @@ class PaymentORMRepository(PaymentRepository):
             payment_id__startswith="LK"
         )
         success_payments_orm = payments_orm.filter(
-            status="paid",
+            Q(status="paid") & Q(transaction_type="Payment")
         )
 
         # statistic volume by duration
@@ -314,7 +324,11 @@ class PaymentORMRepository(PaymentRepository):
         total_volume = success_payments_orm.values("currency").annotate(
             volume=Count('total_price')
         ).order_by("currency")
-
+        refunds_orm = payments_orm.filter(
+            Q(status="paid") & Q(transaction_type="Refund")
+        ).values("currency").annotate(
+            volume=Count('total_price')
+        ).order_by("currency")
         # Statistic by status
         payments_orm_by_status = payments_orm.values("status", "currency").annotate(
             volume=Count('total_price')
@@ -326,6 +340,12 @@ class PaymentORMRepository(PaymentRepository):
                 item.get('currency'): item.get("volume")
             })
             payment_by_status_statistic[item.get("status")] = status_dict
+        payment_by_status_statistic.update({
+            "refund": {
+                item.get("currency"): item.get("volume")
+                for item in refunds_orm
+            }
+        })
         total_payment_orm = payments_orm.values("currency").annotate(
             volume=Count('total_price')
         ).order_by("currency")
