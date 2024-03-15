@@ -32,6 +32,8 @@ class MailService(SenderService):
             destinations = get_destinations(kwargs.get("user_ids") or [])
         else:
             destinations = kwargs.get("destinations", [])
+        if not destinations:
+            return
         # Normalize the mail data in kwargs
         detail_data = self.normalize_data(**kwargs)
         # Normalize mail message
