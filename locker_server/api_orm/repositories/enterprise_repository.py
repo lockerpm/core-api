@@ -49,8 +49,16 @@ class EnterpriseORMRepository(EnterpriseRepository):
             for enterprise_orm in enterprises_orm
         ]
 
-    def list_enterprise_ids(self) -> List[int]:
-        return list(EnterpriseORM.objects.all().order_by("id").values("id", "name").distinct())
+    def list_enterprise_ids(self, **filters) -> List:
+        locked_param = filters.get("locked")
+        if locked_param is not None:
+            if locked_param == "1" or bool(locked_param):
+                enterprises_orm = EnterpriseORM.objects.filter(locked=True)
+            else:
+                enterprises_orm = EnterpriseORM.objects.filter(locked=False)
+        else:
+            enterprises_orm = EnterpriseORM.objects.all()
+        return list(enterprises_orm.order_by("id").values("id", "name", "locked").distinct())
 
     def list_user_enterprises(self, user_id: int, **filter_params) -> List[Enterprise]:
         status_param = filter_params.get("status")
