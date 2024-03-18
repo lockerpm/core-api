@@ -157,7 +157,7 @@ class PaymentORMRepository(PaymentRepository):
         return payments
 
     def list_saas_market(self) -> List[str]:
-        return list(set(SaasMarketORM.objects.all().values_list("name", flat=True)))
+        return list(SaasMarketORM.objects.all().order_by("id").values("id", "name").distinct())
 
     def list_invoices_by_user(self, user_id: int, **filter_params) -> List[Payment]:
         payments_orm = PaymentORM.objects.filter(user_id=user_id).order_by('-created_time')
