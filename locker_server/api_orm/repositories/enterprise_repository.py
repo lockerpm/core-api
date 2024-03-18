@@ -50,7 +50,7 @@ class EnterpriseORMRepository(EnterpriseRepository):
         ]
 
     def list_enterprise_ids(self) -> List[int]:
-        return list(set(EnterpriseORM.objects.all().values_list("id", flat=True)))
+        return list(EnterpriseORM.objects.all().order_by("id").values("id", "name").distinct())
 
     def list_user_enterprises(self, user_id: int, **filter_params) -> List[Enterprise]:
         status_param = filter_params.get("status")

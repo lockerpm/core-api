@@ -53,7 +53,20 @@ class ResourcePwdViewSet(ResourceV1PwdViewSet):
 
     @action(methods=["get"], detail=False)
     def list_channel(self, request, *args, **kwargs):
-        user_channels = ["organic", "ads", "affiliate"]
+        user_channels = [
+            {
+                "id": 1,
+                "name": "organic"
+            },
+            {
+                "id": 2,
+                "name": "ads"
+            },
+            {
+                "id": 3,
+                "name": "affiliate"
+            }
+        ]
         return Response(status=status.HTTP_200_OK, data=user_channels)
 
     @action(methods=["get"], detail=False)
