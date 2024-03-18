@@ -52,7 +52,7 @@ class EnterpriseORMRepository(EnterpriseRepository):
     def list_enterprise_ids(self, **filters) -> List:
         locked_param = filters.get("locked")
         if locked_param is not None:
-            if locked_param == "1" or bool(locked_param):
+            if locked_param == "1":
                 enterprises_orm = EnterpriseORM.objects.filter(locked=True)
             else:
                 enterprises_orm = EnterpriseORM.objects.filter(locked=False)
