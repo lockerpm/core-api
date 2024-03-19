@@ -21,7 +21,6 @@ from locker_server.shared.constants.members import *
 from locker_server.shared.utils.app import now
 from locker_server.shared.utils.id_generator import timestamp_id_generator
 
-
 UserORM = get_user_model()
 TeamORM = get_team_model()
 TeamMemberORM = get_team_member_model()
@@ -249,7 +248,7 @@ class SharingORMRepository(SharingRepository):
             # Save owner key for primary member
             primary_member_orm = new_sharing_orm.team_members.get(user=user_orm)
             primary_member_orm.key = sharing_key
-            primary_member_orm.external_id = uuid.uuid4()
+            primary_member_orm.external_id = str(uuid.uuid4())
             primary_member_orm.save()
 
         # If user shares a folder => Create collection for this team
@@ -278,7 +277,8 @@ class SharingORMRepository(SharingRepository):
                     (item for item in shared_collection_ciphers if item["id"] == cipher_orm.id), {}
                 )
                 shared_cipher_ids.append(cipher_orm.id)
-                self._share_cipher_orm(cipher_orm=cipher_orm, team_id=new_sharing_orm.id, cipher_data=shared_cipher_data)
+                self._share_cipher_orm(cipher_orm=cipher_orm, team_id=new_sharing_orm.id,
+                                       cipher_data=shared_cipher_data)
 
             # Delete all folders of the ciphers
             CipherORM.objects.filter(id__in=shared_cipher_ids).update(folders="")
@@ -292,7 +292,8 @@ class SharingORMRepository(SharingRepository):
         # Share a single cipher
         if cipher_orm:
             if not cipher_orm.team:
-                self._share_cipher_orm(cipher_orm=cipher_orm, team_id=new_sharing_orm.id, cipher_data=shared_cipher_data)
+                self._share_cipher_orm(cipher_orm=cipher_orm, team_id=new_sharing_orm.id,
+                                       cipher_data=shared_cipher_data)
 
         # Update revision date of the user
         bump_account_revision_date(team=new_sharing_orm)
@@ -380,7 +381,8 @@ class SharingORMRepository(SharingRepository):
             # if email and email in existed_emails:
             #     team.team_members.filter(email=email).update(is_added_by_group=False)
             #     continue
-            member_data = {"user_id": member_user_id, "email": email, "role": member.get("role"), "key": member.get("key")}
+            member_data = {"user_id": member_user_id, "email": email, "role": member.get("role"),
+                           "key": member.get("key")}
             shared_member_orm = self.__create_shared_member_orm(
                 team_orm=primary_member.team, member_data=member_data, shared_collection_id=shared_collection_id
             )
@@ -675,4 +677,3 @@ class SharingORMRepository(SharingRepository):
         return confirmed_data
 
     # ------------------------ Delete Sharing resource --------------------- #
-
