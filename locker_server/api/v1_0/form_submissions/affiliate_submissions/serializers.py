@@ -2,7 +2,8 @@ import re
 
 from rest_framework import serializers
 
-from locker_server.shared.constants.affiliate_submission import LIST_AFFILIATE_SUBMISSION_STATUS
+from locker_server.shared.constants.affiliate_submission import LIST_AFFILIATE_SUBMISSION_STATUS, \
+    AFFILIATE_SUBMISSION_STATUS_SUBMITTED
 from locker_server.shared.utils.app import now
 
 
@@ -32,7 +33,10 @@ class CreateAffiliateSubmissionSerializer(serializers.Serializer):
     email = serializers.EmailField()
     phone = serializers.CharField()
     company = serializers.CharField(max_length=128, required=False, allow_null=True, allow_blank=True, default="")
-    status = serializers.ChoiceField(choices=LIST_AFFILIATE_SUBMISSION_STATUS)
+    status = serializers.ChoiceField(
+        choices=LIST_AFFILIATE_SUBMISSION_STATUS, required=False,
+        default=AFFILIATE_SUBMISSION_STATUS_SUBMITTED
+    )
 
     def validate(self, data):
         phone = data.get("phone")
