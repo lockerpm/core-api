@@ -153,3 +153,17 @@ class UpgradeEducationPublicSerializer(serializers.Serializer):
 class CancelPlanSerializer(serializers.Serializer):
     immediately = serializers.BooleanField(default=False)
 
+
+class AdminCreateRefundPaymentSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField()
+    total_price = serializers.FloatField()
+    plan = serializers.ChoiceField(choices=LIST_PLAN_TYPE)
+    payment_method = serializers.ChoiceField(choices=LIST_PAYMENT_METHOD)
+    currency = serializers.ChoiceField(choices=LIST_CURRENCY, default=CURRENCY_USD)
+    status = serializers.ChoiceField(choices=LIST_PAYMENT_STATUS, default=PAYMENT_STATUS_PAID, required=False)
+
+    enterprise_id = serializers.CharField(required=False, max_length=128, allow_blank=True, allow_null=True)
+    description = serializers.CharField(required=False, max_length=256, allow_null=True, allow_blank=True)
+    metadata = serializers.CharField(required=False, max_length=512, allow_null=True, allow_blank=True)
+    saas_market = serializers.ChoiceField(choices=LIST_SAAS_MARKET, required=False)
+    bank_id = serializers.IntegerField(required=False, default=0)
