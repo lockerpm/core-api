@@ -39,16 +39,50 @@ class EnterprisePolicyORMRepository(EnterprisePolicyRepository):
         elif policy_type == POLICY_TYPE_2FA:
             Policy2FAORM.create(policy, **kwargs)
 
+    def get_policy_config(self, policy_type: str, policy_id: str):
+        if policy_type == POLICY_TYPE_PASSWORD_REQUIREMENT:
+            config = self.get_policy_password_requirement(
+                policy_id=policy_id
+            )
+        elif policy_type == POLICY_TYPE_MASTER_PASSWORD_REQUIREMENT:
+            config = self.get_policy_master_password_requirement(
+                policy_id=policy_id,
+            )
+        elif policy_type == POLICY_TYPE_BLOCK_FAILED_LOGIN:
+            config = self.get_policy_block_failed_login(
+                policy_id=policy_id,
+
+            )
+        elif policy_type == POLICY_TYPE_PASSWORDLESS:
+            config = self.get_policy_type_passwordless(
+                policy_id=policy_id,
+            )
+        elif policy_type == POLICY_TYPE_2FA:
+            config = self.get_policy_2fa(
+                policy_id=policy_id,
+            )
+        else:
+            config = None
+        if config:
+            return config.get_config_json()
+        return config
+
     # ------------------------ List EnterprisePolicy resource ------------------- #
     def list_policies_by_user(self, user_id: int) -> List[EnterprisePolicy]:
         enterprise_ids = list(EnterpriseMemberORM.objects.filter(
             user_id=user_id, status=E_MEMBER_STATUS_CONFIRMED
         ).values_list('enterprise_id', flat=True))
         policies_orm = EnterprisePolicyORM.objects.filter(enterprise_id__in=enterprise_ids).select_related('enterprise')
-        return [
+        user_enterprise_polices = [
             ModelParser.enterprise_parser().parse_enterprise_policy(enterprise_policy_orm=policy_orm)
             for policy_orm in policies_orm
         ]
+        for policy in user_enterprise_polices:
+            policy_id = policy.policy_id
+            config = self.get_policy_config(policy_type=policy.policy_type, policy_id=policy_id)
+            policy.config = config
+
+        return user_enterprise_polices
 
     def list_2fa_policy(self, enterprise_ids: List[str], enabled: bool = True) -> List[Policy2FA]:
         policies_orm = EnterprisePolicyORM.objects.filter(
