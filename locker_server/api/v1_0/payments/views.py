@@ -23,7 +23,7 @@ from locker_server.shared.utils.app import now
 from .serializers import CalcSerializer, ListInvoiceSerializer, AdminUpgradePlanSerializer, UpgradeTrialSerializer, \
     UpgradeThreePromoSerializer, UpgradeLifetimeSerializer, UpgradeLifetimePublicSerializer, \
     UpgradeEducationPublicSerializer, CancelPlanSerializer, UpgradePlanSerializer, DetailInvoiceSerializer, \
-    CalcLifetimePublicSerializer, UpgradeSubscriptionPublicSerializer
+    CalcLifetimePublicSerializer, UpgradeSubscriptionPublicSerializer, AdminCreateRefundPaymentSerializer
 
 
 class PaymentPwdViewSet(APIBaseViewSet):
@@ -60,6 +60,8 @@ class PaymentPwdViewSet(APIBaseViewSet):
             self.serializer_class = UpgradeEducationPublicSerializer
         elif self.action == "cancel_plan":
             self.serializer_class = CancelPlanSerializer
+        elif self.action == "create_refund":
+            self.serializer_class = AdminCreateRefundPaymentSerializer
         return super().get_serializer_class()
 
     def get_invoice(self):
@@ -599,3 +601,14 @@ class PaymentPwdViewSet(APIBaseViewSet):
 
         })
         return Response(status=status.HTTP_200_OK, data=statistic_result)
+
+    @action(methods=["post"], detail=False)
+    def create_refund(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        try:
+            refund_payment = self.payment_service.create_refund_payment(**validated_data)
+        except UserDoesNotExistException:
+            raise ValidationError(detail={"user_id": ["The user does not exist"]})
+        return Response(status=status.HTTP_200_OK, data={"id": refund_payment.id})

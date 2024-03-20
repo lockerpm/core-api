@@ -772,3 +772,15 @@ class PaymentService:
 
     def statistic(self, **filters) -> List[Dict]:
         return self.payment_repository.statistic_by_type(**filters)
+
+    def create_refund_payment(self, **refund_payment_data) -> Optional[Payment]:
+        user_id = refund_payment_data.get("user_id")
+        user = self.user_repository.get_user_by_id(user_id=user_id)
+        if not user:
+            raise UserDoesNotExistException
+        refund_payment_data.update({
+            "transaction_type": TRANSACTION_TYPE_REFUND,
+            "description": refund_payment_data.get("description", "Refund payment")
+        })
+        refund_payment = self.payment_repository.create_payment(**refund_payment_data)
+        return refund_payment

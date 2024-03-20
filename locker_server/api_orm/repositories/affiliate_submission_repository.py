@@ -4,6 +4,7 @@ from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_affiliate_submission_model
 from locker_server.core.entities.form_submission.affiliate_submission import AffiliateSubmission
 from locker_server.core.repositories.affiliate_submission_repository import AffiliateSubmissionRepository
+from locker_server.shared.utils.app import now
 
 AffiliateSubmissionORM = get_affiliate_submission_model()
 ModelParser = get_model_parser()
@@ -35,6 +36,9 @@ class AffiliateSubmissionORMRepository(AffiliateSubmissionRepository):
 
     # ------------------------ Create AffiliateSubmission resource --------------------- #
     def create_affiliate_submission(self, affiliate_submission_create_data) -> Optional[AffiliateSubmission]:
+        affiliate_submission_create_data.update({
+            "created_time": now()
+        })
         affiliate_submission_orm = AffiliateSubmissionORM.objects.create(**affiliate_submission_create_data)
         return ModelParser.form_submission_parser().parse_affiliate_submission(
             affiliate_submission_orm=affiliate_submission_orm
