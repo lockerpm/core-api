@@ -8,6 +8,8 @@ from locker_server.shared.background.i_background import background_exception_wr
 from locker_server.shared.constants.policy import POLICY_TYPE_PASSWORD_REQUIREMENT, \
     POLICY_TYPE_MASTER_PASSWORD_REQUIREMENT, POLICY_TYPE_BLOCK_FAILED_LOGIN, POLICY_TYPE_PASSWORDLESS, POLICY_TYPE_2FA
 from locker_server.shared.error_responses.error import gen_error
+from locker_server.shared.external_services.pm_sync import PwdSync, SYNC_EVENT_CIPHER_UPDATE, \
+    SYNC_EVENT_ENTERPRISE_POLICY_UPDATE
 from .serializers import *
 from locker_server.api.api_base_view import APIBaseViewSet
 from locker_server.api.permissions.locker_permissions.enterprise_permissions.policy_pwd_permission import \
@@ -98,14 +100,21 @@ class PolicyPwdViewSet(APIBaseViewSet):
             policy=policy,
             policy_update_data=validated_data
         )
-        BackgroundThread(task=self.delete_cache_enterprise_members, **{"enterprise": policy.enterprise})
+        member_user_ids = self.enterprise_member_service.list_enterprise_member_user_ids(**{
+            "enterprise_id": policy.enterprise.enterprise_id
+        })
+        BackgroundThread(task=self.delete_cache_enterprise_members, **{"user_ids": member_user_ids})
+        PwdSync(event=SYNC_EVENT_ENTERPRISE_POLICY_UPDATE, user_ids=member_user_ids).send(
+            data={
+                "policy_id": policy.policy_id,
+                "enterprise_id": policy.enterprise.enterprise_id,
+                "policy_type": policy.policy_type
+            }
+        )
         return Response(status=status.HTTP_200_OK, data={"success": True})
 
     @background_exception_wrapper
-    def delete_cache_enterprise_members(self, enterprise):
-        user_ids = self.enterprise_member_service.list_enterprise_member_user_ids(**{
-            "enterprise_id": enterprise.enterprise_id
-        })
+    def delete_cache_enterprise_members(self, user_ids):
         for user_id in user_ids:
             if not user_id:
                 continue
