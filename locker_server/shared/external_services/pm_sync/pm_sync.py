@@ -47,11 +47,14 @@ class PwdSync:
         else:
             user_ids = user_ids + self.user_ids if self.add_all else self.user_ids
         try:
+            if not user_ids:
+                return
             # Clear all sync cache data
             if self.event in LIST_DELETE_SYNC_CACHE_EVENTS:
                 for user_id in user_ids:
                     delete_sync_cache_data(user_id=user_id)
             user_ids = list(set(user_ids))
+
             if settings.SELF_HOSTED:
                 for user_id in user_ids:
                     WebSocketSender.send_message(
