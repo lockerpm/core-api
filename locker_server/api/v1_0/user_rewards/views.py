@@ -149,10 +149,11 @@ class UserRewardMissionPwdViewSet(APIBaseViewSet):
             user_plan = self.user_service.get_current_plan(user=user)
             # Upgrade plan of the referred user if the plan is Free
             if user_plan.get_plan_type_alias() == PLAN_TYPE_PM_FREE:
-                self.user_service.update_plan(user=user, plan_type_alias=PLAN_TYPE_PM_PREMIUM, **{
-                    "start_period": now(),
-                    "end_period": now() + user_reward_mission.mission.reward_value,
-                })
+                self.user_service.update_plan(
+                    user_id=user.user_id, plan_type_alias=PLAN_TYPE_PM_PREMIUM, **{
+                        "start_period": now(),
+                        "end_period": now() + user_reward_mission.mission.reward_value,
+                    })
             # Else, update extra time
             else:
                 extra_time = user_reward_mission.mission.reward_value

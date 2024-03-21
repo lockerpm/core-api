@@ -54,7 +54,7 @@ class ReferralPwdViewSet(APIBaseViewSet):
             # Upgrade plan of the referred user if the plan is Free
             if referred_user_plan.get_plan_type_alias() == PLAN_TYPE_PM_FREE:
                 self.user_service.update_plan(
-                    user=referred_by_user,
+                    user_id=referred_by_user.user_id,
                     plan_type_alias=PLAN_TYPE_PM_PREMIUM,
                     **{
                         "start_period": current_time,
