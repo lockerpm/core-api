@@ -14,7 +14,6 @@ from locker_server.shared.external_services.user_notification.notification_sende
     SENDING_SERVICE_MAIL
 from locker_server.shared.utils.app import now
 
-
 API_NOTIFY_PAYMENT = "{}/micro_services/cystack_platform/payments".format(settings.GATEWAY_API)
 API_NOTIFY_LOCKER = "{}/micro_services/cystack_platform/pm/notify".format(settings.GATEWAY_API)
 HEADERS = {
@@ -106,7 +105,7 @@ class NotifyBackground(LockerBackground):
                 try:
                     user_obj = user_service.retrieve_by_id(user_id=user_id)
                     NotificationSender(
-                        job=PWD_BANK_TRANSFER_EXPIRED, scope=scope,services=[SENDING_SERVICE_MAIL]
+                        job=PWD_BANK_TRANSFER_EXPIRED, scope=scope, services=[SENDING_SERVICE_MAIL]
                     ).send(**{
                         "user_ids": [user_id],
                         "account": user_obj.email,
@@ -253,6 +252,8 @@ class NotifyBackground(LockerBackground):
                 connection.close()
 
     def notify_tutorial(self, job, user_ids):
+        if not user_ids:
+            return
         url = API_NOTIFY_LOCKER + "/tutorial"
         try:
             notification_data = {"job": job, "user_ids": user_ids}
