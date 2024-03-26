@@ -528,6 +528,9 @@ class UserORMRepository(UserRepository):
             extension_device_count=Count(
                 Case(When(user_devices__client_id='browser', then=1), output_field=IntegerField())
             ),
+            desktop_device_count=Count(
+                Case(When(user_devices__client_id='desktop', then=1), output_field=IntegerField())
+            )
         )
         if device_type_param == "mobile":
             device_users_orm = device_users_orm.filter(mobile_device_count__gt=0)
@@ -539,6 +542,8 @@ class UserORMRepository(UserRepository):
             device_users_orm = device_users_orm.filter(web_device_count__gt=0)
         if device_type_param == "browser":
             device_users_orm = device_users_orm.filter(extension_device_count__gt=0)
+        if device_type_param == "desktop":
+            device_users_orm = device_users_orm.filter(desktop_device_count__gt=0)
         device_users_orm = users_orm.filter(user_id__in=device_users_orm.values_list('user_id', flat=True))
         duration_init_data = self._generate_duration_init_data(
             start=datetime.fromtimestamp(register_from_param),
