@@ -105,7 +105,8 @@ class UserPwdViewSet(APIBaseViewSet):
             "user_ids": self.request.query_params.get("user_ids"),
             "utm_source": self.request.query_params.get("utm_source"),
             "q": self.request.query_params.get("q"),
-            "activated": self.request.query_params.get("activated")
+            "activated": self.request.query_params.get("activated"),
+            "device_type": self.request.query_params.get("device_type")
         })
         return users
 
