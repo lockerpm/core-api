@@ -113,6 +113,8 @@ class UserORMRepository(UserRepository):
         activated_param = filters.get("activated")
         user_ids_param = filters.get("user_ids")
         utm_source_param = filters.get("utm_source")
+        device_type_param = filters.get("device_type")
+
         if q_param or utm_source_param:
             user_ids = cls.search_from_cystack_id(**{"q": q_param, "utm_source": utm_source_param}).get("ids", [])
             users_orm = users_orm.filter(user_id__in=user_ids)
@@ -131,6 +133,41 @@ class UserORMRepository(UserRepository):
                 users_orm = users_orm.filter(activated=False)
             elif activated_param == "1":
                 users_orm = users_orm.filter(activated=True)
+        if device_type_param:
+            device_users_orm = users_orm.annotate(
+                web_device_count=Count(
+                    Case(When(user_devices__client_id='web', then=1), output_field=IntegerField())
+                ),
+                mobile_device_count=Count(
+                    Case(When(user_devices__client_id='mobile', then=1), output_field=IntegerField())
+                ),
+                ios_device_count=Count(
+                    Case(When(user_devices__device_type=1, then=1), output_field=IntegerField())
+                ),
+                android_device_count=Count(
+                    Case(When(user_devices__device_type=0, then=1), output_field=IntegerField())
+                ),
+                extension_device_count=Count(
+                    Case(When(user_devices__client_id='browser', then=1), output_field=IntegerField())
+                ),
+                desktop_device_count=Count(
+                    Case(When(user_devices__client_id="desktop", then=1), output_field=IntegerField())
+                )
+            )
+
+            if device_type_param == "mobile":
+                device_users_orm = device_users_orm.filter(mobile_device_count__gt=0)
+            if device_type_param == "android":
+                device_users_orm = device_users_orm.filter(android_device_count__gt=0)
+            if device_type_param == "ios":
+                device_users_orm = device_users_orm.filter(ios_device_count__gt=0)
+            if device_type_param == "web":
+                device_users_orm = device_users_orm.filter(web_device_count__gt=0)
+            if device_type_param == "browser":
+                device_users_orm = device_users_orm.filter(extension_device_count__gt=0)
+            if device_type_param == "desktop":
+                device_users_orm = device_users_orm.filter(desktop_device_count__gt=0)
+            users_orm = users_orm.filter(user_id__in=device_users_orm.values_list('user_id', flat=True))
         if user_ids_param:
             users_orm = users_orm.filter(user_id__in=user_ids_param.split(","))
         return users_orm
