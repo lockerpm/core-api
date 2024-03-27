@@ -589,8 +589,10 @@ class UserORMRepository(UserRepository):
         )
         statistic_device = duration_init_data.get("duration_init") or {}
         query = duration_init_data.get("query")
-        users_by_duration = device_users_orm.filter(creation_date__gte=register_from_param,
-                                                    creation_date__lte=register_to_param).annotate(
+        users_by_duration = device_users_orm.filter(
+            creation_date__gte=register_from_param,
+            creation_date__lte=register_to_param
+        ).annotate(
             duration=RawSQL(query, [], output_field=CharField())
         ).order_by().values('duration').annotate(count=Count('duration'))
         for user_by_duration in users_by_duration:
@@ -602,6 +604,7 @@ class UserORMRepository(UserRepository):
 
         result = {
             "total_device": device_users_orm.count(),
+            "total_device_user": device_users_orm.values('user_id').distinct().count(),
             "device": statistic_device
         }
         return result
