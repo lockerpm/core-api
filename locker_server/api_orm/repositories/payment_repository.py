@@ -101,7 +101,7 @@ class PaymentORMRepository(PaymentRepository):
         status_param = filters.get("status")  # success,failed,pending
         plan_param = filters.get("plan")  # premium, lifetime,family,enterprise
         channel_param = filters.get("channel")  # organic,ads, affiliate
-        source_param = filters.get("source")  # stacksocial, dealmirror, saasmantra, stripe, ios, android
+        payment_source = filters.get("payment_source")  # stacksocial, dealmirror, saasmantra, stripe, ios, android
         payment_method_param = filters.get("payment_method")
         user_id_param = filters.get("user_id")
         enterprise_id_param = filters.get("enterprise_id")
@@ -115,7 +115,8 @@ class PaymentORMRepository(PaymentRepository):
             payments_orm = payments_orm.filter(created_time__lte=to_param)
 
         if plan_param:
-            payments_orm = payments_orm.filter(plan=plan_param)
+            plans_param = plan_param.split(",")
+            payments_orm = payments_orm.filter(plan__in=plans_param)
         if status_param:
             payments_orm = payments_orm.filter(status=status_param)
         if channel_param:
@@ -128,22 +129,22 @@ class PaymentORMRepository(PaymentRepository):
             payments_orm = payments_orm.filter(user_id=user_id_param)
         if enterprise_id_param:
             payments_orm = payments_orm.filter(enterprise_id=enterprise_id_param)
-        if source_param:
-            source_param = source_param.lower()
-            if source_param == "stripe":
+        if payment_source:
+            payment_source = payment_source.lower()
+            if payment_source == "stripe":
                 payments_orm = payments_orm.filter(stripe_invoice_id__isnull=False)
-            elif source_param == "ios":
+            elif payment_source == "ios":
                 payments_orm = payments_orm.filter(
                     Q(metadata__contains="ios") & Q(mobile_invoice_id__isnull=False)
                 )
-            elif source_param == "android":
+            elif payment_source == "android":
                 payments_orm = payments_orm.filter(
                     Q(metadata__contains="android") &
                     Q(mobile_invoice_id__isnull=False)
 
                 )
             else:
-                payments_orm = payments_orm.filter(saas_market__icontains=source_param)
+                payments_orm = payments_orm.filter(saas_market__icontains=payment_source)
         payments_orm = payments_orm.select_related('user')
         payments_orm = payments_orm.order_by("-created_time")
         return payments_orm
