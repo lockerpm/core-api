@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from locker_server.api.v1_0.resources.views import ResourcePwdViewSet as ResourceV1PwdViewSet
 from locker_server.settings import locker_server_settings
 from locker_server.shared.constants.transactions import PLAN_TYPE_PM_ENTERPRISE
-from .serializers import CountrySerializer
+from .serializers import CountrySerializer, IndividualPlanSerializer
 
 
 class ResourcePwdViewSet(ResourceV1PwdViewSet):
@@ -16,6 +16,8 @@ class ResourcePwdViewSet(ResourceV1PwdViewSet):
     def get_serializer_class(self):
         if self.action == "countries":
             self.serializer_class = CountrySerializer
+        elif self.action == "list_individual_plans":
+            self.serializer_class = IndividualPlanSerializer
         return super(ResourcePwdViewSet, self).get_serializer_class()
 
     @action(methods=["get"], detail=False)
@@ -58,18 +60,27 @@ class ResourcePwdViewSet(ResourceV1PwdViewSet):
     def list_channel(self, request, *args, **kwargs):
         user_channels = [
             {
-                "id": "organic"
+                "id": "organic",
+                "name": "Organic"
             },
             {
-                "id": "ads"
+                "id": "ads",
+                "name": "Ads"
             },
             {
-                "id": "affiliate"
+                "id": "affiliate",
+                "name": "Affiliate"
             }
         ]
         return Response(status=status.HTTP_200_OK, data=user_channels)
 
     @action(methods=["get"], detail=False)
-    def list_saas_market(self, request, *args, **kwargs):
-        saas_markets = self.payment_service.list_saas_market()
-        return Response(status=status.HTTP_200_OK, data=saas_markets)
+    def list_payment_sources(self, request, *args, **kwargs):
+        payment_sources = self.resource_service.list_payment_sources()
+        return Response(status=status.HTTP_200_OK, data=payment_sources)
+
+    @action(methods=["get"], detail=False)
+    def list_individual_plans(self, request, *args, **kwargs):
+        individual_plans = self.resource_service.list_individual_plans()
+        serializer = self.get_serializer(individual_plans, many=True)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
