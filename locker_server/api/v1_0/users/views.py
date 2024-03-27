@@ -101,7 +101,8 @@ class UserPwdViewSet(APIBaseViewSet):
         users = self.user_service.list_users_by_admin(**{
             "register_from": self.check_int_param(self.request.query_params.get("register_from")),
             "register_to": self.check_int_param(self.request.query_params.get("register_to")),
-            "plan": self.request.query_params.get("plan"),
+            # "plan": self.request.query_params.get("plan"),
+            "can_use_plan": self.request.query_params.get("plan") or self.request.query_params.get("can_use_plan"),
             "user_ids": self.request.query_params.get("user_ids"),
             "utm_source": self.request.query_params.get("utm_source"),
             "q": self.request.query_params.get("q"),
