@@ -46,27 +46,42 @@ class UserORMRepository(UserRepository):
     @staticmethod
     def _generate_duration_init_data(start, end, duration="monthly"):
         durations_list = []
-        for i in range((end - start).days + 1):
-            date = start + timedelta(days=i)
+        range_time = (end - start).total_seconds() // 3600 + 1 if duration == "hourly" else (end - start).days
+        for i in range(int(range_time) + 1):
+            if duration == "hourly":
+                date = start + timedelta(hours=i)
+            else:
+                date = start + timedelta(days=i)
             if duration == "daily":
                 d = "{}-{:02}-{:02}".format(date.year, date.month, date.day)
             elif duration == "weekly":
                 d = date.isocalendar()[:2]  # e.g. (2022, 24)
                 d = "{}-{:02}".format(*d)
+            elif duration == "hourly":
+                d = "{}-{:02}-{:02}T{:02}:00:00".format(date.year, date.month, date.day, date.hour)
             else:
                 d = "{}-{:02}".format(date.year, date.month)
             durations_list.append(d)
         duration_init = dict()
-        for d in sorted(set(durations_list), reverse=True):
-            duration_init[d] = None
+        if duration == "hourly":
+            for d in reversed(durations_list):
+                duration_init[d] = None
+        else:
+            for d in sorted(set(durations_list), reverse=True):
+                duration_init[d] = None
 
-        # # Get annotation query
+        # Get annotation query
         if duration == "daily":
             query = "CONCAT(YEAR(FROM_UNIXTIME(creation_date)), '-', " \
                     "LPAD(MONTH(FROM_UNIXTIME(creation_date)), 2, '0'), '-', " \
                     "LPAD(DAY(FROM_UNIXTIME(creation_date)), 2, '0') )"
         elif duration == "weekly":
             query = "CONCAT(YEAR(FROM_UNIXTIME(creation_date)), '-', LPAD(WEEK(FROM_UNIXTIME(creation_date)), 2, '0'))"
+        elif duration == "hourly":
+            query = "CONCAT(YEAR(FROM_UNIXTIME(creation_date)), '-', " \
+                    "LPAD(MONTH(FROM_UNIXTIME(creation_date)), 2, '0'), '-', " \
+                    "LPAD(DAY(FROM_UNIXTIME(creation_date)), 2, '0'), 'T', " \
+                    "LPAD(HOUR(FROM_UNIXTIME(creation_date)), 2, '0'), ':00:00' )"
         else:
             query = "CONCAT(YEAR(FROM_UNIXTIME(creation_date)), '-', LPAD(MONTH(FROM_UNIXTIME(creation_date)), 2, '0'))"
 
