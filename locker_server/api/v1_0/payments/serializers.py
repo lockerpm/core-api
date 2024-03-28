@@ -156,14 +156,12 @@ class CancelPlanSerializer(serializers.Serializer):
 
 class AdminCreateRefundPaymentSerializer(serializers.Serializer):
     user_id = serializers.IntegerField()
-    total_price = serializers.FloatField()
-    plan = serializers.ChoiceField(choices=LIST_PLAN_TYPE)
-    payment_method = serializers.ChoiceField(choices=LIST_PAYMENT_METHOD)
-    currency = serializers.ChoiceField(choices=LIST_CURRENCY, default=CURRENCY_USD)
-    status = serializers.ChoiceField(choices=LIST_PAYMENT_STATUS, default=PAYMENT_STATUS_PAID, required=False)
+    refund = serializers.FloatField()
+    source = serializers.CharField(max_length=128, allow_blank=False, allow_null=False)
+    reason = serializers.CharField(max_length=512, required=False, allow_null=True, allow_blank=True)
 
+    currency = serializers.ChoiceField(choices=LIST_CURRENCY, default=CURRENCY_USD)
     enterprise_id = serializers.CharField(required=False, max_length=128, allow_blank=True, allow_null=True)
     description = serializers.CharField(required=False, max_length=256, allow_null=True, allow_blank=True)
-    metadata = serializers.CharField(required=False, max_length=512, allow_null=True, allow_blank=True)
-    saas_market = serializers.ChoiceField(choices=LIST_SAAS_MARKET, required=False)
     bank_id = serializers.IntegerField(required=False, default=0)
+    status = serializers.ChoiceField(choices=LIST_PAYMENT_STATUS, default=PAYMENT_STATUS_PAID, required=False)
