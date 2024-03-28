@@ -191,7 +191,7 @@ class UserPlanORMRepository(UserPlanRepository):
             if family_member:
                 return family_member.root_user_plan.pm_plan.alias, db_plan_alias
             else:
-                is_enterprise_member = user_plan_orm.user.enterprise_members.exist()
+                is_enterprise_member = user_plan_orm.user.enterprise_members.exists()
                 return PLAN_TYPE_PM_ENTERPRISE, db_plan_alias if is_enterprise_member else db_plan_alias, db_plan_alias
         return db_plan_alias, db_plan_alias
 
