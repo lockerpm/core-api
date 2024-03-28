@@ -40,6 +40,10 @@ class UserRepository(ABC):
     def list_users_by_admin(self, **filters) -> [User]:
         pass
 
+    @abstractmethod
+    def list_users_by_admin_with_paging(self, **filters) -> Tuple:
+        pass
+
     # ------------------------ Get User resource --------------------- #
     @abstractmethod
     def get_user_by_id(self, user_id: int) -> Optional[User]:

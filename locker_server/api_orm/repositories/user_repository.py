@@ -105,7 +105,7 @@ class UserORMRepository(UserRepository):
 
     @classmethod
     def list_users_orm(cls, **filters) -> List[UserORM]:
-        users_orm = UserORM.objects.all().order_by('-creation_date')
+        users_orm = UserORM.objects.all()
         q_param = filters.get("q")
         register_from_param = filters.get("register_from")
         register_to_param = filters.get("register_to")
@@ -309,6 +309,29 @@ class UserORMRepository(UserRepository):
         return [
             ModelParser.user_parser().parse_user(user_orm=user_orm) for user_orm in users_orm
         ]
+
+    def list_users_by_admin_with_paging(self, **filters) -> [User]:
+        users_orm = self.list_users_orm(**filters)
+        users_orm = users_orm.order_by('-creation_date')
+
+        pagging = filters.get("pagging", 1)
+        page_size = filters.get("size", 20)
+        page = filters.get("page", 1)
+        total_record = users_orm.count()
+        if pagging and str(pagging) == "1":
+            # Find start and end index
+            page = max(page, 1)
+            start_idx = (page - 1) * page_size
+            end_idx = page_size * page
+            if start_idx < total_record:
+                start_idx = min(start_idx, total_record - 1)
+                end_idx = min(end_idx, total_record)
+                users_orm = users_orm[start_idx:end_idx]
+            else:
+                users_orm = []
+        users = [ModelParser.user_parser().parse_user(user_orm=user_orm) for user_orm in users_orm]
+
+        return users, total_record
 
     # ------------------------ Get User resource --------------------- #
     def get_user_by_id(self, user_id: int) -> Optional[User]:
