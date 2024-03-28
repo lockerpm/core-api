@@ -80,25 +80,32 @@ class UserORMRepository(UserRepository):
         q_param = filter_params.get("q")
         utm_source_param = filter_params.get("utm_source")
         is_locker_param = filter_params.get("is_locker")
-        # TODO: Update: dont use get. use POST
+        status_param = filter_params.get("status")
         headers = {'Authorization': settings.MICRO_SERVICE_USER_AUTH}
         url = "{}/micro_services/users?".format(settings.GATEWAY_API)
-        if q_param:
-            url += "&q={}".format(q_param)
-        if utm_source_param:
-            url += "&utm_source={}".format(utm_source_param)
+        data_send = {}
+        if q_param is not None:
+            data_send.update({"q": q_param})
+        if utm_source_param is not None:
+            data_send.update({"utm_source": utm_source_param}),
+        if is_locker_param is not None:
+            data_send.update({"is_locker": is_locker_param})
+        if status_param is not None:
+            data_send.update({"status": status_param})
         try:
-            res = requester(method="GET", url=url, headers=headers)
+            res = requester(method="POST", url=url, headers=headers, data_send=data_send)
             if res.status_code == 200:
                 try:
                     return res.json()
                 except json.JSONDecodeError:
-                    CyLog.error(
-                        **{"message": f"[!] User.search_from_cystack_id JSON Decode error: {res.url} {res.text}"})
-                    return {}
-            return {}
+                    CyLog.error(**{
+                        "message": f"[!] User.search_from_cystack_id JSON Decode error: {res.url} {res.text}"
+                    })
+                    return []
+            return []
         except (requests.RequestException, requests.ConnectTimeout):
-            return {}
+            CyLog.error(**{"message": f"[!] User.search_from_cystack_id Request Connect error"})
+            return []
 
     @classmethod
     def list_users_orm(cls, **filters) -> List[UserORM]:
@@ -114,8 +121,11 @@ class UserORMRepository(UserRepository):
         utm_source_param = filters.get("utm_source")
         device_type_param = filters.get("device_type")
 
-        if q_param or utm_source_param:
-            user_ids = cls.search_from_cystack_id(**{"q": q_param, "utm_source": utm_source_param}).get("ids", [])
+        if q_param or utm_source_param or status_param in ["unverified", "deleted"]:
+            users_data = cls.search_from_cystack_id(**{
+                "q": q_param, "utm_source": utm_source_param, "status_param": status_param, "is_locker": True
+            })
+            user_ids = [u.get("id") for u in users_data]
             users_orm = users_orm.filter(user_id__in=user_ids)
 
         if register_from_param:
@@ -152,6 +162,15 @@ class UserORMRepository(UserRepository):
                 users_orm = users_orm.filter(activated=False)
             elif activated_param == "1" or activated_param is True:
                 users_orm = users_orm.filter(activated=True)
+
+        if status_param is not None:
+            if status_param == "created_master_pwd":
+                users_orm = users_orm.filter(activated=True)
+            elif status_param == "verified":
+                users_data = cls.search_from_cystack_id(**{"is_activated": True, "is_locker": True})
+                verified_user_ids = [u.get("id") for u in users_data]
+                users_orm = users_orm.filter(user_id__in=verified_user_ids).exclude(activated=False)
+
         if device_type_param:
             device_users_orm = users_orm.annotate(
                 web_device_count=Count(
