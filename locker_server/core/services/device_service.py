@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 from locker_server.core.entities.factor2.device_factor2 import DeviceFactor2
 from locker_server.core.entities.user.device import Device
@@ -53,3 +53,8 @@ class DeviceService:
         if not device_factor2:
             raise DeviceFactor2DoesNotExistException
         return device_factor2
+
+    def statistic_multiple_device_by_user_id(self, user_id: int) -> Dict:
+        return self.device_repository.statistic_multiple_device_by_user_id(
+            user_id=user_id
+        )
