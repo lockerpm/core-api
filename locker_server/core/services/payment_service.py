@@ -778,9 +778,21 @@ class PaymentService:
         user = self.user_repository.get_user_by_id(user_id=user_id)
         if not user:
             raise UserDoesNotExistException
+        user_plan = self.user_plan_repository.get_user_plan(user_id=user_id)
+        payment_source = refund_payment_data.get("source")
+        total_price = refund_payment_data.get("refund")
+        reason = refund_payment_data.get("reason")
+        metadata = {}
+        metadata.update({
+            "payment_source": payment_source,
+            "reason": reason
+        })
         refund_payment_data.update({
             "transaction_type": TRANSACTION_TYPE_REFUND,
-            "description": refund_payment_data.get("description", "Refund payment")
+            "description": refund_payment_data.get("description", "Refund payment"),
+            "plan": user_plan.pm_plan.alias if user_plan else None,
+            "total_price": total_price,
+            "metadata": metadata
         })
         refund_payment = self.payment_repository.create_payment(**refund_payment_data)
         return refund_payment
