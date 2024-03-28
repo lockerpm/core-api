@@ -34,6 +34,7 @@ from locker_server.shared.external_services.pm_sync import PwdSync, SYNC_EVENT_C
 from locker_server.shared.external_services.user_notification.list_jobs import PWD_MASTER_PASSWORD_CHANGED, \
     PWD_NO_MASTER_PASSWORD_HINT, PWD_HINT_FOR_MASTER_PASSWORD, PWD_ACCOUNT_DELETED, PWD_DELETE_SHARE_ITEM, \
     PWD_CONFIRM_INVITATION
+from locker_server.shared.paginator.paginator import CustomCountPageNumberPagination
 from locker_server.shared.utils.app import now, get_ip_location
 from locker_server.shared.utils.network import get_ip_by_request, detect_device
 from .serializers import UserMeSerializer, UserUpdateMeSerializer, UserRegisterSerializer, UserSessionSerializer, \
@@ -96,6 +97,20 @@ class UserPwdViewSet(APIBaseViewSet):
         elif self.action == "list_users":
             self.serializer_class = ListUserSerializer
         return super().get_serializer_class()
+
+    def get_filter_params(self):
+        return {
+            "register_from": self.check_int_param(self.request.query_params.get("register_from")),
+            "register_to": self.check_int_param(self.request.query_params.get("register_to")),
+            # "plan": self.request.query_params.get("plan"),
+            "can_use_plan": self.request.query_params.get("plan") or self.request.query_params.get("can_use_plan"),
+            "user_ids": self.request.query_params.get("user_ids"),
+            "utm_source": self.request.query_params.get("utm_source"),
+            "q": self.request.query_params.get("q"),
+            "activated": self.request.query_params.get("activated"),
+            "status": self.request.query_params.get("status"),
+            "device_type": self.request.query_params.get("device_type")
+        }
 
     def get_queryset(self):
         users = self.user_service.list_users_by_admin(**{
@@ -992,17 +1007,28 @@ class UserPwdViewSet(APIBaseViewSet):
     def list_users(self, request, *args, **kwargs):
         paging_param = self.request.query_params.get("paging", "1")
         page_size_param = self.check_int_param(self.request.query_params.get("size", 20))
+        page_param = self.check_int_param(self.request.query_params.get("page", 1))
+
+        filter_params = self.get_filter_params()
+        filter_params.update({
+            "paging": paging_param,
+            "size": page_size_param,
+            "page": page_param
+        })
+        users, total_record = self.user_service.list_users_by_admin_with_paging(**filter_params)
+
         if paging_param == "0":
             self.pagination_class = None
         else:
-            self.pagination_class.page_size = page_size_param if page_size_param else 20
-        queryset = self.get_queryset()
-        page = self.paginate_queryset(queryset)
+            self.pagination_class = CustomCountPageNumberPagination
+            self.pagination_class.page_size = page_size_param
+            self.pagination_class.count = total_record
+        page = self.paginate_queryset(users)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             data = self.normalize_users_data(users_data=serializer.data)
             return self.get_paginated_response(data)
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = self.get_serializer(users, many=True)
         data = self.normalize_users_data(users_data=serializer.data)
         return Response(data)
 

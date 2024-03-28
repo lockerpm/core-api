@@ -1012,3 +1012,6 @@ class UserService:
 
     def list_users_by_admin(self, **filters) -> [User]:
         return self.user_repository.list_users_by_admin(**filters)
+
+    def list_users_by_admin_with_paging(self, **filters) -> Tuple:
+        return self.user_repository.list_users_by_admin_with_paging(**filters)
