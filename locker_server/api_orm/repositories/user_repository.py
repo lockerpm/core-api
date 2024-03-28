@@ -1,17 +1,15 @@
 import json
-from datetime import timedelta, datetime
-from typing import Union, Dict, Optional, Tuple, List
-
 import requests
 import stripe
-from django.conf import settings
+from datetime import timedelta, datetime
+from typing import Dict, Optional, Tuple, List
+
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Subquery, OuterRef, Count, Case, When, IntegerField, Value, Q, Sum, CharField, F, Min
+from django.db.models import Subquery, OuterRef, Count, Case, When, IntegerField, Value, Q, Sum, CharField, F
 from django.db.models.expressions import RawSQL
-from django.forms import FloatField
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
-from locker_server.api_orm.models import UserScoreORM
+from locker_server.api_orm.models import UserScoreORM, PMUserPlanFamilyORM
 from locker_server.api_orm.models.wrapper import get_user_model, get_enterprise_member_model, get_enterprise_model, \
     get_event_model, get_cipher_model, get_device_access_token_model, get_team_model, get_team_member_model, \
     get_device_model
@@ -19,21 +17,18 @@ from locker_server.api_orm.utils.revision_date import bump_account_revision_date
 from locker_server.core.entities.user.user import User
 from locker_server.core.repositories.user_repository import UserRepository
 from locker_server.shared.caching.sync_cache import delete_sync_cache_data
-from locker_server.shared.constants.account import ACCOUNT_TYPE_ENTERPRISE, ACCOUNT_TYPE_PERSONAL, \
-    LOGIN_METHOD_PASSWORD, LOGIN_METHOD_PASSWORDLESS
-from locker_server.shared.constants.backup_credential import CREDENTIAL_TYPE_HMAC
+from locker_server.shared.constants.account import *
 from locker_server.shared.constants.ciphers import *
-from locker_server.shared.constants.enterprise_members import E_MEMBER_STATUS_CONFIRMED, E_MEMBER_ROLE_PRIMARY_ADMIN, \
-    E_MEMBER_ROLE_ADMIN
+from locker_server.shared.constants.device_type import *
+from locker_server.shared.constants.enterprise_members import *
 from locker_server.shared.constants.event import EVENT_USER_BLOCK_LOGIN
 from locker_server.shared.constants.members import MEMBER_ROLE_OWNER
 from locker_server.shared.constants.policy import POLICY_TYPE_PASSWORDLESS, POLICY_TYPE_2FA
-from locker_server.shared.constants.transactions import PAYMENT_STATUS_PAID, PLAN_TYPE_PM_FREE
-from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
-from locker_server.shared.external_services.locker_background.constants import BG_NOTIFY
+from locker_server.shared.constants.transactions import *
 from locker_server.shared.external_services.requester.retry_requester import requester
 from locker_server.shared.log.cylog import CyLog
-from locker_server.shared.utils.app import now, start_end_month_current, datetime_from_ts
+from locker_server.shared.utils.app import now, start_end_month_current
+
 
 DeviceORM = get_device_model()
 UserORM = get_user_model()
@@ -84,24 +79,33 @@ class UserORMRepository(UserRepository):
     def search_from_cystack_id(cls, **filter_params):
         q_param = filter_params.get("q")
         utm_source_param = filter_params.get("utm_source")
+        is_locker_param = filter_params.get("is_locker")
+        status_param = filter_params.get("status")
         headers = {'Authorization': settings.MICRO_SERVICE_USER_AUTH}
         url = "{}/micro_services/users?".format(settings.GATEWAY_API)
-        if q_param:
-            url += "&q={}".format(q_param)
-        if utm_source_param:
-            url += "&utm_source={}".format(utm_source_param)
+        data_send = {}
+        if q_param is not None:
+            data_send.update({"q": q_param})
+        if utm_source_param is not None:
+            data_send.update({"utm_source": utm_source_param}),
+        if is_locker_param is not None:
+            data_send.update({"is_locker": is_locker_param})
+        if status_param is not None:
+            data_send.update({"status": status_param})
         try:
-            res = requester(method="GET", url=url, headers=headers)
+            res = requester(method="POST", url=url, headers=headers, data_send=data_send)
             if res.status_code == 200:
                 try:
                     return res.json()
                 except json.JSONDecodeError:
-                    CyLog.error(
-                        **{"message": f"[!] User.search_from_cystack_id JSON Decode error: {res.url} {res.text}"})
-                    return {}
-            return {}
+                    CyLog.error(**{
+                        "message": f"[!] User.search_from_cystack_id JSON Decode error: {res.url} {res.text}"
+                    })
+                    return []
+            return []
         except (requests.RequestException, requests.ConnectTimeout):
-            return {}
+            CyLog.error(**{"message": f"[!] User.search_from_cystack_id Request Connect error"})
+            return []
 
     @classmethod
     def list_users_orm(cls, **filters) -> List[UserORM]:
@@ -110,13 +114,18 @@ class UserORMRepository(UserRepository):
         register_from_param = filters.get("register_from")
         register_to_param = filters.get("register_to")
         plan_param = filters.get("plan")
+        can_use_plan_param = filters.get("can_use_plan")
+        status_param = filters.get("status")
         activated_param = filters.get("activated")
         user_ids_param = filters.get("user_ids")
         utm_source_param = filters.get("utm_source")
         device_type_param = filters.get("device_type")
 
-        if q_param or utm_source_param:
-            user_ids = cls.search_from_cystack_id(**{"q": q_param, "utm_source": utm_source_param}).get("ids", [])
+        if q_param or utm_source_param or status_param in ["unverified", "deleted"]:
+            users_data = cls.search_from_cystack_id(**{
+                "q": q_param, "utm_source": utm_source_param, "status_param": status_param, "is_locker": True
+            })
+            user_ids = [u.get("id") for u in users_data]
             users_orm = users_orm.filter(user_id__in=user_ids)
 
         if register_from_param:
@@ -128,45 +137,97 @@ class UserORMRepository(UserRepository):
                 users_orm = users_orm.filter(Q(pm_user_plan__isnull=True) | Q(pm_user_plan__pm_plan__alias=plan_param))
             else:
                 users_orm = users_orm.filter(pm_user_plan__pm_plan__alias=plan_param)
-        if activated_param:
-            if activated_param == "0":
+        if can_use_plan_param:
+            if plan_param == PLAN_TYPE_PM_ENTERPRISE:
+                enterprise_user_ids = list(
+                    EnterpriseMemberORM.objects.filter(enterprise__locked=False).exclude(
+                        user__isnull=True
+                    ).values_list('user_id', flat=True)
+                )
+                users_orm = users_orm.filter(user_id__in=enterprise_user_ids)
+            elif plan_param in LIST_FAMILY_PLAN:
+                family_member_user_ids = list(PMUserPlanFamilyORM.objects.filter().exclude(
+                    user__isnull=True
+                ).values_list('user_id', flat=True))
+                users_orm = users_orm.filter(
+                    Q(pm_user_plan__pm_plan__alias=plan_param) | Q(user_id__in=family_member_user_ids)
+                ).distinct()
+            elif plan_param == PLAN_TYPE_PM_FREE:
+                users_orm = users_orm.filter(Q(pm_user_plan__isnull=True) | Q(pm_user_plan__pm_plan__alias=plan_param))
+            else:
+                users_orm = users_orm.filter(pm_user_plan__pm_plan__alias=plan_param)
+
+        if activated_param is not None:
+            if activated_param == "0" or activated_param is False:
                 users_orm = users_orm.filter(activated=False)
-            elif activated_param == "1":
+            elif activated_param == "1" or activated_param is True:
                 users_orm = users_orm.filter(activated=True)
+
+        if status_param is not None:
+            if status_param == "created_master_pwd":
+                users_orm = users_orm.filter(activated=True)
+            elif status_param == "verified":
+                users_data = cls.search_from_cystack_id(**{"is_activated": True, "is_locker": True})
+                verified_user_ids = [u.get("id") for u in users_data]
+                users_orm = users_orm.filter(user_id__in=verified_user_ids).exclude(activated=False)
+
         if device_type_param:
             device_users_orm = users_orm.annotate(
                 web_device_count=Count(
-                    Case(When(user_devices__client_id='web', then=1), output_field=IntegerField())
+                    Case(When(user_devices__client_id=CLIENT_ID_WEB, then=1), output_field=IntegerField())
                 ),
                 mobile_device_count=Count(
-                    Case(When(user_devices__client_id='mobile', then=1), output_field=IntegerField())
+                    Case(When(user_devices__client_id=CLIENT_ID_MOBILE, then=1), output_field=IntegerField())
                 ),
                 ios_device_count=Count(
-                    Case(When(user_devices__device_type=1, then=1), output_field=IntegerField())
+                    Case(When(user_devices__device_type=DEVICE_TYPE_IOS, then=1), output_field=IntegerField())
                 ),
                 android_device_count=Count(
-                    Case(When(user_devices__device_type=0, then=1), output_field=IntegerField())
+                    Case(When(user_devices__device_type=DEVICE_TYPE_ANDROID, then=1), output_field=IntegerField())
                 ),
                 extension_device_count=Count(
-                    Case(When(user_devices__client_id='browser', then=1), output_field=IntegerField())
+                    Case(When(user_devices__client_id=CLIENT_ID_BROWSER, then=1), output_field=IntegerField())
                 ),
                 desktop_device_count=Count(
-                    Case(When(user_devices__client_id="desktop", then=1), output_field=IntegerField())
-                )
+                    Case(When(user_devices__client_id=CLIENT_ID_DESKTOP, then=1), output_field=IntegerField())
+                ),
+                desktop_windows_count=Count(
+                    Case(When(
+                        Q(user_devices__client_id=CLIENT_ID_DESKTOP, user_devices__device_type=DEVICE_TYPE_WINDOWS),
+                        then=1
+                    ), output_field=IntegerField())
+                ),
+                desktop_linux_count=Count(
+                    Case(When(
+                        Q(user_devices__client_id=CLIENT_ID_DESKTOP, user_devices__device_type=DEVICE_TYPE_LINUX),
+                        then=1
+                    ), output_field=IntegerField())
+                ),
+                desktop_mac_count=Count(
+                    Case(When(
+                        Q(user_devices__client_id=CLIENT_ID_DESKTOP, user_devices__device_type=DEVICE_TYPE_MAC),
+                        then=1
+                    ), output_field=IntegerField())
+                ),
             )
-
             if device_type_param == "mobile":
                 device_users_orm = device_users_orm.filter(mobile_device_count__gt=0)
-            if device_type_param == "android":
+            elif device_type_param == "android":
                 device_users_orm = device_users_orm.filter(android_device_count__gt=0)
-            if device_type_param == "ios":
+            elif device_type_param == "ios":
                 device_users_orm = device_users_orm.filter(ios_device_count__gt=0)
-            if device_type_param == "web":
+            elif device_type_param == "web":
                 device_users_orm = device_users_orm.filter(web_device_count__gt=0)
-            if device_type_param == "browser":
+            elif device_type_param == "browser":
                 device_users_orm = device_users_orm.filter(extension_device_count__gt=0)
-            if device_type_param == "desktop":
+            elif device_type_param == "desktop":
                 device_users_orm = device_users_orm.filter(desktop_device_count__gt=0)
+            elif device_type_param == "desktop_windows":
+                device_users_orm = device_users_orm.filter(desktop_windows_count__gt=0)
+            elif device_type_param == "desktop_linux":
+                device_users_orm = device_users_orm.filter(desktop_linux_count__gt=0)
+            elif device_type_param == "desktop_mac":
+                device_users_orm = device_users_orm.filter(desktop_mac_count__gt=0)
             users_orm = users_orm.filter(user_id__in=device_users_orm.values_list('user_id', flat=True))
         if user_ids_param:
             users_orm = users_orm.filter(user_id__in=user_ids_param.split(","))

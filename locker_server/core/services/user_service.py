@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List, Dict, NoReturn, Union
+from typing import Optional, List, Dict, NoReturn, Union, Tuple
 
 import jwt
 from django.conf import settings
@@ -87,6 +87,9 @@ class UserService:
 
     def get_current_plan(self, user: User) -> PMUserPlan:
         return self.user_plan_repository.get_user_plan(user_id=user.user_id)
+
+    def get_usable_plan_alias(self, user_id: int) -> Tuple[str, str]:
+        return self.user_plan_repository.get_user_usable_plan_alias(user_id=user_id)
 
     def update_plan(self, user_id: int, plan_type_alias: str, duration: str = DURATION_MONTHLY, scope: str = None,
                     **kwargs):
