@@ -1,6 +1,8 @@
 from typing import Union, Dict, Optional, List
 from abc import ABC, abstractmethod
 
+from django.db.models import Count, Case, When
+
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_device_model, get_device_access_token_model
 from locker_server.core.entities.user.device import Device
@@ -49,6 +51,12 @@ class DeviceORMRepository(DeviceRepository):
 
     def is_active(self, device_id) -> bool:
         return DeviceAccessTokenORM.objects.filter(device_id=device_id).exists()
+
+    def statistic_multiple_device_by_user_id(self, user_id) -> Dict:
+        devices_orm = DeviceORM.objects.filter(user_id=user_id)
+        devices_orm = devices_orm.values("client_id").annotate(count=Count('client_id')).order_by('-count')
+        devices_count = {item["client_id"]: item["count"] for item in list(devices_orm)}
+        return devices_count
 
     # ------------------------ Create Device resource --------------------- #
     def retrieve_or_create(self, user_id: int, **data) -> Device:
