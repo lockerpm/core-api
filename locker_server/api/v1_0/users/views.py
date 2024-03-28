@@ -982,7 +982,12 @@ class UserPwdViewSet(APIBaseViewSet):
             ciphers_count = self.cipher_service.statistic_multiple_cipher_by_user_id(
                 user_id=user.user_id
             )
+            devices_count = self.device_service.statistic_multiple_device_by_user_id(
+                user_id=user.user_id
+            )
             data["items"] = ciphers_count
+            data["devices"] = devices_count
+
         usable_plan_alias, db_plan_alias = self.get_usable_plan(user_id=user.user_id)
         data["current_plan"] = db_plan_alias
         data["usable_plan"] = usable_plan_alias

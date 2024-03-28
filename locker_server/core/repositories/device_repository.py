@@ -28,6 +28,10 @@ class DeviceRepository(ABC):
     def is_active(self, device_id) -> bool:
         pass
 
+    @abstractmethod
+    def statistic_multiple_device_by_user_id(self, user_id) -> Dict:
+        pass
+
     # ------------------------ Create Device resource --------------------- #
     @abstractmethod
     def retrieve_or_create(self, user_id: int, **data) -> Device:
