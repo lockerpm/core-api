@@ -102,17 +102,29 @@ class UserPwdViewSet(APIBaseViewSet):
         return {
             "register_from": self.check_int_param(self.request.query_params.get("register_from")),
             "register_to": self.check_int_param(self.request.query_params.get("register_to")),
-            "plan": self.request.query_params.get("plan"),
+            # "plan": self.request.query_params.get("plan"),
+            "can_use_plan": self.request.query_params.get("plan") or self.request.query_params.get("can_use_plan"),
             "user_ids": self.request.query_params.get("user_ids"),
             "utm_source": self.request.query_params.get("utm_source"),
             "q": self.request.query_params.get("q"),
             "activated": self.request.query_params.get("activated"),
+            "status": self.request.query_params.get("status"),
             "device_type": self.request.query_params.get("device_type")
         }
 
     def get_queryset(self):
-        filter_params = self.get_filter_params()
-        users = self.user_service.list_users_by_admin(**filter_params)
+        users = self.user_service.list_users_by_admin(**{
+            "register_from": self.check_int_param(self.request.query_params.get("register_from")),
+            "register_to": self.check_int_param(self.request.query_params.get("register_to")),
+            # "plan": self.request.query_params.get("plan"),
+            "can_use_plan": self.request.query_params.get("plan") or self.request.query_params.get("can_use_plan"),
+            "user_ids": self.request.query_params.get("user_ids"),
+            "utm_source": self.request.query_params.get("utm_source"),
+            "q": self.request.query_params.get("q"),
+            "activated": self.request.query_params.get("activated"),
+            "status": self.request.query_params.get("status"),
+            "device_type": self.request.query_params.get("device_type")
+        })
         return users
 
     def get_object(self):
@@ -971,10 +983,9 @@ class UserPwdViewSet(APIBaseViewSet):
                 user_id=user.user_id
             )
             data["items"] = ciphers_count
-        current_plan = self.user_service.get_current_plan(
-            user=user
-        )
-        data["current_plan"] = current_plan.pm_plan.alias if current_plan else None
+        usable_plan_alias, db_plan_alias = self.get_usable_plan(user_id=user.user_id)
+        data["current_plan"] = db_plan_alias
+        data["usable_plan"] = usable_plan_alias
 
         return Response(status=status.HTTP_200_OK, data=data)
 
@@ -1015,9 +1026,24 @@ class UserPwdViewSet(APIBaseViewSet):
         page = self.paginate_queryset(users)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+            data = self.normalize_users_data(users_data=serializer.data)
+            return self.get_paginated_response(data)
         serializer = self.get_serializer(users, many=True)
-        return Response(serializer.data)
+        data = self.normalize_users_data(users_data=serializer.data)
+        return Response(data)
+
+    def get_usable_plan(self, user_id):
+        return self.user_service.get_usable_plan_alias(user_id=user_id)
+
+    def normalize_users_data(self, users_data):
+        for user_data in users_data:
+            user_id = user_data.get("id")
+            usable_plan_alias, db_plan_alias = self.get_usable_plan(user_id=user_id)
+            user_data.update({
+                "current_plan": db_plan_alias,
+                "usable_plan": usable_plan_alias,
+            })
+        return users_data
 
     def get_sso_token_id(self):
         decoded_token = self.auth_service.decode_token(self.request.auth.access_token, secret=settings.SECRET_KEY)

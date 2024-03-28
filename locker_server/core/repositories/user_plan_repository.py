@@ -1,4 +1,4 @@
-from typing import Union, Dict, Optional, List
+from typing import Union, Dict, Optional, List, Tuple
 from abc import ABC, abstractmethod
 
 from locker_server.core.entities.enterprise.enterprise import Enterprise
@@ -26,6 +26,10 @@ class UserPlanRepository(ABC):
     # ------------------------ Get PMUserPlan resource --------------------- #
     @abstractmethod
     def get_user_plan(self, user_id: int) -> Optional[PMUserPlan]:
+        pass
+
+    @abstractmethod
+    def get_user_usable_plan_alias(self, user_id: int) -> Tuple:
         pass
 
     @abstractmethod

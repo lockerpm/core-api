@@ -1,6 +1,6 @@
 import ast
 import math
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Tuple
 
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned
@@ -174,6 +174,29 @@ class UserPlanORMRepository(UserPlanRepository):
     def get_user_plan(self, user_id: int) -> Optional[PMUserPlan]:
         user_plan_orm = self._get_current_plan_orm(user_id=user_id)
         return ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=user_plan_orm)
+
+    def get_user_usable_plan_alias(self, user_id: int) -> Tuple:
+        """
+        Get the current plan in the database and the real plan can be used
+        :param user_id:
+        :return: (tuple) the_usable_alias, db_plan_alias
+        """
+        user_plan_orm = self._get_current_plan_orm(user_id=user_id)
+        if not user_plan_orm:
+            return None, None
+        db_plan_alias = user_plan_orm.pm_plan.alias
+        if db_plan_alias == PLAN_TYPE_PM_FREE:
+            # Check user is enterprise member or family member
+            family_member = user_plan_orm.user.pm_plan_family.first()
+            if family_member:
+                return family_member.root_user_plan.pm_plan.alias, db_plan_alias
+            else:
+                is_enterprise_member = user_plan_orm.user.enterprise_members.exists()
+                if is_enterprise_member is True:
+                    return PLAN_TYPE_PM_ENTERPRISE, db_plan_alias
+                else:
+                    return db_plan_alias, db_plan_alias
+        return db_plan_alias, db_plan_alias
 
     def get_mobile_user_plan(self, pm_mobile_subscription: str) -> Optional[PMUserPlan]:
         try:
