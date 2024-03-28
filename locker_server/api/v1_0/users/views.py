@@ -960,7 +960,8 @@ class UserPwdViewSet(APIBaseViewSet):
     def dashboard(self, request, *args, **kwargs):
         current_time = now()
         register_from_param = self.check_int_param(
-            self.request.query_params.get("register_from")) or current_time - 90 * 86400
+            self.request.query_params.get("register_from")
+        ) or current_time - 90 * 86400
         register_to_param = self.check_int_param(self.request.query_params.get("register_to")) or current_time
         duration_param = self.request.query_params.get("duration") or "monthly"
         device_type_param = self.request.query_params.get("device_type") or ""
