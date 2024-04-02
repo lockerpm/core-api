@@ -123,7 +123,7 @@ class ResourcePwdViewSet(ResourceV1PwdViewSet):
     def list_user_status(self, request, *args, **kwargs):
         user_statuses = [
             {
-                "id": "not_verified",
+                "id": "unverified",
                 "name": "Not verified"
             },
             {
@@ -131,7 +131,7 @@ class ResourcePwdViewSet(ResourceV1PwdViewSet):
                 "name": "Verified"
             },
             {
-                "id": "mp_created",
+                "id": "created_master_pwd",
                 "name": "MP created"
             },
             {
