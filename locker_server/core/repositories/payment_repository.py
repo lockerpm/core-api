@@ -32,6 +32,10 @@ class PaymentRepository(ABC):
         pass
 
     @abstractmethod
+    def statistic_net(self, **filters) -> Dict:
+        pass
+
+    @abstractmethod
     def statistic_by_type(self, **filters) -> List:
         pass
 

@@ -189,13 +189,9 @@ class PaymentORMRepository(PaymentRepository):
         ).values('user_id', 'first_payment_plan')
         return users_feedback
 
-    def statistic_income(self, **filters) -> Dict:
-        from_param = filters.get("from")
-        to_param = filters.get("to")
-        if to_param is None:
-            to_param = now()
-        if from_param is None:
-            from_param = PaymentORM.objects.first().created_time
+    def statistic(self, annotate_dict: Dict = {}, **filters):
+        from_param = filters.get("from") or PaymentORM.objects.first().created_time
+        to_param = filters.get("to") or now()
         filters.update({
             "from": from_param,
             "to": to_param
@@ -214,159 +210,103 @@ class PaymentORMRepository(PaymentRepository):
             Q(status="paid") & Q(transaction_type="Payment")
         )
 
-        # statistic income by duration
+        # statistic success payment by duration
         duration_param = filters.get("duration")
         duration_init_data = self._generate_duration_init_data(
             start=datetime.fromtimestamp(from_param),
             end=datetime.fromtimestamp(to_param),
             duration=duration_param
         )
-        gross_payment_statistic = duration_init_data.get("duration_init") or {}
+        statistic_by_function = duration_init_data.get("duration_init") or {}
         query = duration_init_data.get("query")
 
-        gross_payments_orm_by_duration = success_payments_orm.annotate(
+        statistics_orm_by_duration = success_payments_orm.annotate(
             duration_pivot=RawSQL(query, [], output_field=CharField())
-        ).values("duration_pivot", "currency").annotate(total_price=Sum(F("total_price"))).order_by(
+        ).values("duration_pivot", "currency").annotate(**annotate_dict).order_by(
             "currency", "duration_pivot")
-        for payment_orm_by_duration in gross_payments_orm_by_duration:
-            duration_pivot = str(payment_orm_by_duration.get("duration_pivot"))
-            duration_data = gross_payment_statistic.get(duration_pivot) or {}
-            duration_data.update({
-                payment_orm_by_duration.get("currency"): payment_orm_by_duration.get("total_price")
-            })
-            gross_payment_statistic[duration_pivot] = duration_data
-
-        total_gross = success_payments_orm.values("currency").annotate(
-            total_price=Sum(F('total_price'))
+        total_by_func = success_payments_orm.values("currency").annotate(
+            **annotate_dict
         ).order_by("currency")
+        total_by_func_data = {
+            item.get("currency"): item.get(key)
+            for item in total_by_func
+            for key, value in annotate_dict.items()
+        }
+        for statistic_orm_by_duration in statistics_orm_by_duration:
+            duration_pivot = str(statistic_orm_by_duration.get("duration_pivot"))
+            duration_data = statistic_by_function.get(duration_pivot) or {}
+            duration_data.update({
+                statistic_orm_by_duration.get("currency"): statistic_orm_by_duration.get(key) for key, value in
+                annotate_dict.items()
+            })
+            statistic_by_function[duration_pivot] = duration_data
 
         # Statistic by status
         payments_orm_by_status = payments_orm.values("status", "currency").annotate(
-            total_price=Sum('total_price')
+            **annotate_dict
         ).order_by('status', 'currency')
         refunds_orm = payments_orm.filter(
             Q(status="paid") & Q(transaction_type="Refund")
         ).values("currency").annotate(
-            total_price=Sum('total_price')
+            **annotate_dict
         ).order_by('currency')
-        payment_by_status_statistic = {}
+        refund_data = {
+            item.get("currency"): item.get(key)
+            for item in refunds_orm
+            for key, value in annotate_dict.items()
+        }
+        statistic_by_status = {}
         for item in payments_orm_by_status:
-            status_dict = payment_by_status_statistic.get(item.get("status")) or {}
+            status_dict = statistic_by_status.get(item.get("status")) or {}
             status_dict.update({
                 item.get('currency'): item.get("total_price")
             })
-            payment_by_status_statistic[item.get("status")] = status_dict
-        payment_by_status_statistic.update({
-            "refund": {
-                item.get("currency"): item.get("total_price")
-                for item in refunds_orm
-            }
+            statistic_by_status[item.get("status")] = status_dict
+        statistic_by_status.update({
+            "refund": refund_data
         })
-        total_payment_orm = payments_orm.values("currency").annotate(
-            total_price=Sum(F('total_price'))
+        total_by_status = payments_orm.values("currency").annotate(
+            **annotate_dict
         ).order_by("currency")
+        total_by_status_data = {
+            item.get("currency"): item.get(key)
+            for item in total_by_status
+            for key, value in annotate_dict.items()
+        }
         result = {
-            "total_gross": {
-                item.get("currency"): item.get("total_price")
-                for item in total_gross
-            },
-            "gross_by_duration": gross_payment_statistic,
-            "total_payment": {
-                item.get("currency"): item.get("total_price")
-                for item in total_payment_orm
-            },
-            "payment_by_status": payment_by_status_statistic
+            "statistic_by_status": statistic_by_status,
+            "statistic_by_function": statistic_by_function,
+            "total_by_status": total_by_status_data,
+            "total_by_function": total_by_func_data
         }
         return result
+
+    def statistic_income(self, **filters) -> Dict:
+        annotation_dict = {
+            "total_price": Sum(F('total_price'))
+        }
+        result = self.statistic(annotation_dict, **filters)
+        return {
+            "total_gross": result.get("total_by_function"),
+            "gross_by_duration": result.get("statistic_by_function"),
+            "total_payment": result.get("total_by_status"),
+            "payment_by_status": result.get("statistic_by_status")
+        }
 
     def statistic_amount(self, **filters) -> Dict:
-        from_param = filters.get("from")
-        to_param = filters.get("to")
-        if to_param is None:
-            to_param = now()
-        if from_param is None:
-            from_param = PaymentORM.objects.first().created_time
-        filters.update({
-            "from": from_param,
-            "to": to_param
-        })
-        filters.pop("status", None)
-        payments_orm = self.list_payments_orm(**filters)
-
-        # remove testing user id and failed payment
-        exclude_user_ids = []
-        payments_orm = payments_orm.exclude(
-            user_id__in=exclude_user_ids
-        ).filter(
-            payment_id__startswith="LK"
-        )
-        success_payments_orm = payments_orm.filter(
-            Q(status="paid") & Q(transaction_type="Payment")
-        )
-
-        # statistic volume by duration
-        duration_param = filters.get("duration")
-        duration_init_data = self._generate_duration_init_data(
-            start=datetime.fromtimestamp(from_param),
-            end=datetime.fromtimestamp(to_param),
-            duration=duration_param
-        )
-        payment_by_duration_statistic = duration_init_data.get("duration_init") or {}
-        query = duration_init_data.get("query")
-
-        payments_orm_by_duration = success_payments_orm.annotate(
-            duration_pivot=RawSQL(query, [], output_field=CharField())
-        ).values("duration_pivot", "currency").annotate(volume=Count('duration_pivot')).order_by(
-            "currency", "duration_pivot")
-        for payment_by_duration in payments_orm_by_duration:
-            duration_pivot = str(payment_by_duration.get("duration_pivot"))
-            duration_data = payment_by_duration_statistic.get(duration_pivot) or {}
-            duration_data.update({
-                payment_by_duration.get("currency"): payment_by_duration.get("volume")
-            })
-            payment_by_duration_statistic[duration_pivot] = duration_data
-
-        total_volume = success_payments_orm.values("currency").annotate(
-            volume=Count('total_price')
-        ).order_by("currency")
-        refunds_orm = payments_orm.filter(
-            Q(status="paid") & Q(transaction_type="Refund")
-        ).values("currency").annotate(
-            volume=Count('total_price')
-        ).order_by("currency")
-        # Statistic by status
-        payments_orm_by_status = payments_orm.values("status", "currency").annotate(
-            volume=Count('total_price')
-        ).order_by('status', 'currency')
-        payment_by_status_statistic = {}
-        for item in payments_orm_by_status:
-            status_dict = payment_by_status_statistic.get(item.get("status")) or {}
-            status_dict.update({
-                item.get('currency'): item.get("volume")
-            })
-            payment_by_status_statistic[item.get("status")] = status_dict
-        payment_by_status_statistic.update({
-            "refund": {
-                item.get("currency"): item.get("volume")
-                for item in refunds_orm
-            }
-        })
-        total_payment_orm = payments_orm.values("currency").annotate(
-            volume=Count('total_price')
-        ).order_by("currency")
-        result = {
-            "total_success_amount": {
-                item.get("currency"): item.get("volume")
-                for item in total_volume
-            },
-            "success_amount_by_duration": payment_by_duration_statistic,
-            "total_amount": {
-                item.get("currency"): item.get("volume")
-                for item in total_payment_orm
-            },
-            "amount_by_status": payment_by_status_statistic
+        annotation_dict = {
+            "volume": Count('total_price')
         }
-        return result
+        result = self.statistic(annotation_dict, **filters)
+        return {
+            "total_success_amount": result.get("total_by_function"),
+            "success_amount_by_duration": result.get("statistic_by_function"),
+            "total_amount": result.get("total_by_status"),
+            "amount_by_status": result.get("statistic_by_status")
+        }
+
+    def statistic_net(self, **filters) -> Dict:
+        pass
 
     def statistic_by_type(self, **filters) -> List:
         payments_orm = self.list_payments_orm(**filters)
