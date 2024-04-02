@@ -1049,6 +1049,13 @@ class UserPwdViewSet(APIBaseViewSet):
                 "current_plan": db_plan_alias,
                 "usable_plan": usable_plan_alias,
             })
+            user_devices = self.device_service.statistic_multiple_device_by_user_id(
+                user_id
+            )
+            user_data.update({
+                "devices": user_devices
+            })
+
         return users_data
 
     def get_sso_token_id(self):
