@@ -120,8 +120,9 @@ class PaymentORMRepository(PaymentRepository):
         if status_param:
             payments_orm = payments_orm.filter(status=status_param)
         if channel_param:
-            user_ids = UserORMRepository.search_from_cystack_id(**{"utm_source": channel_param}).get("ids", [])
-            payments_orm = payments_orm.filter(user_id__in=user_ids)
+            pass
+            # user_ids = UserORMRepository.search_from_cystack_id(**{"utm_source": channel_param}).get("ids", [])
+            # payments_orm = payments_orm.filter(user_id__in=user_ids)
 
         if payment_method_param:
             payments_orm = payments_orm.filter(payment_method=payment_method_param)
