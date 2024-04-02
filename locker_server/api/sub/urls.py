@@ -17,6 +17,8 @@ urlpatterns += [
     url(r'^resources/channels$', views.ResourcePwdViewSet.as_view({'get': 'list_channel'})),
     url(r'^resources/payment_sources$', views.ResourcePwdViewSet.as_view({'get': 'list_payment_sources'})),
     url(r'^resources/individual_plans$', views.ResourcePwdViewSet.as_view({'get': 'list_individual_plans'})),
+    url(r'^resources/devices$', views.ResourcePwdViewSet.as_view({'get': 'list_device'})),
+    url(r'^resources/users/status$', views.ResourcePwdViewSet.as_view({'get': 'list_user_status'})),
     url(r'^resources/cystack_platform/pm/plans$', views.ResourcePwdViewSet.as_view({'get': 'plans'})),
     url(r'^resources/cystack_platform/pm/enterprise/plans$',
         views.ResourcePwdViewSet.as_view({'get': 'enterprise_plans'})),

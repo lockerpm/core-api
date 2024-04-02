@@ -84,3 +84,59 @@ class ResourcePwdViewSet(ResourceV1PwdViewSet):
         individual_plans = self.resource_service.list_individual_plans()
         serializer = self.get_serializer(individual_plans, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+    @action(methods=["get"], detail=False)
+    def list_device(self, request, *args, **kwargs):
+        devices = [
+            {
+                "id": "web_app",
+                "name": "Web app"
+            },
+            {
+                "id": "mobile_ios",
+                "name": "Mobile IOS"
+            },
+            {
+                "id": "mobile_android",
+                "name": "Mobile Android"
+            },
+            {
+                "id": "macos",
+                "name": "MacOS"
+            },
+            {
+                "id": "windows",
+                "name": "Windows"
+            },
+            {
+                "id": "linux",
+                "name": "Linux"
+            },
+            {
+                "id": "extension",
+                "name": "Extension"
+            }
+        ]
+        return Response(status=status.HTTP_200_OK, data=devices)
+
+    @action(methods=["get"], detail=False)
+    def list_user_status(self, request, *args, **kwargs):
+        user_statuses = [
+            {
+                "id": "not_verified",
+                "name": "Not verified"
+            },
+            {
+                "id": "verified",
+                "name": "Verified"
+            },
+            {
+                "id": "mp_created",
+                "name": "MP created"
+            },
+            {
+                "id": "deleted",
+                "name": "Deleted"
+            }
+        ]
+        return Response(status=status.HTTP_200_OK, data=user_statuses)
