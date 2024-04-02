@@ -7,6 +7,7 @@ from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_device_model, get_device_access_token_model
 from locker_server.core.entities.user.device import Device
 from locker_server.core.repositories.device_repository import DeviceRepository
+from locker_server.shared.constants.device_type import *
 from locker_server.shared.utils.app import now
 
 DeviceORM = get_device_model()
@@ -54,9 +55,48 @@ class DeviceORMRepository(DeviceRepository):
 
     def statistic_multiple_device_by_user_id(self, user_id) -> Dict:
         devices_orm = DeviceORM.objects.filter(user_id=user_id)
-        devices_orm = devices_orm.values("client_id").annotate(count=Count('client_id')).order_by('-count')
-        devices_count = {item["client_id"]: item["count"] for item in list(devices_orm)}
-        return devices_count
+        web_device_count = devices_orm.filter(
+            client_id=CLIENT_ID_WEB
+        ).count()
+        mobile_device_count = devices_orm.filter(
+            client_id=CLIENT_ID_MOBILE
+        ).count()
+        ios_device_count = devices_orm.filter(
+            device_type=DEVICE_TYPE_IOS
+        ).count()
+        android_device_count = devices_orm.filter(
+            device_type=DEVICE_TYPE_ANDROID
+        ).count()
+        extension_device_count = devices_orm.filter(
+            client_id=CLIENT_ID_BROWSER
+        ).count()
+        desktop_device_count = devices_orm.filter(
+            client_id=CLIENT_ID_DESKTOP
+        ).count()
+        desktop_windows_count = devices_orm.filter(
+            client_id=CLIENT_ID_DESKTOP,
+            device_type=DEVICE_TYPE_WINDOWS
+        ).count()
+        desktop_linux_count = devices_orm.filter(
+            client_id=CLIENT_ID_DESKTOP,
+            device_type=DEVICE_TYPE_LINUX
+        ).count()
+        desktop_mac_count = devices_orm.filter(
+            client_id=CLIENT_ID_DESKTOP,
+            device_type=DEVICE_TYPE_MAC
+        ).count()
+
+        return {
+            "mobile": mobile_device_count,
+            "android": android_device_count,
+            "ios": ios_device_count,
+            "web": web_device_count,
+            "browser": extension_device_count,
+            "desktop": desktop_device_count,
+            "desktop_windows": desktop_windows_count,
+            "desktop_linux": desktop_linux_count,
+            "desktop_mac": desktop_mac_count,
+        }
 
     # ------------------------ Create Device resource --------------------- #
     def retrieve_or_create(self, user_id: int, **data) -> Device:
