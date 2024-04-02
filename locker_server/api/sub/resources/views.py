@@ -89,31 +89,31 @@ class ResourcePwdViewSet(ResourceV1PwdViewSet):
     def list_device(self, request, *args, **kwargs):
         devices = [
             {
-                "id": "web_app",
+                "id": "web",
                 "name": "Web app"
             },
             {
-                "id": "mobile_ios",
+                "id": "ios",
                 "name": "Mobile IOS"
             },
             {
-                "id": "mobile_android",
+                "id": "android",
                 "name": "Mobile Android"
             },
             {
-                "id": "macos",
+                "id": "desktop_mac",
                 "name": "MacOS"
             },
             {
-                "id": "windows",
+                "id": "desktop_windows",
                 "name": "Windows"
             },
             {
-                "id": "linux",
+                "id": "desktop_linux",
                 "name": "Linux"
             },
             {
-                "id": "extension",
+                "id": "browser",
                 "name": "Extension"
             }
         ]
