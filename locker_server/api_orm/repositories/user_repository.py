@@ -96,9 +96,13 @@ class UserORMRepository(UserRepository):
         utm_source_param = filter_params.get("utm_source")
         is_locker_param = filter_params.get("is_locker")
         status_param = filter_params.get("status")
+        all_users_param = filter_params.get("all_users")
         headers = {'Authorization': settings.MICRO_SERVICE_USER_AUTH}
         url = "{}/micro_services/users?".format(settings.GATEWAY_API)
-        data_send = {}
+        data_send = {
+            "emails": filter_params.get("emails", []),
+            "ids": filter_params.get("ids", [])
+        }
         if q_param is not None:
             data_send.update({"q": q_param})
         if utm_source_param is not None:
@@ -107,6 +111,8 @@ class UserORMRepository(UserRepository):
             data_send.update({"is_locker": is_locker_param})
         if status_param is not None:
             data_send.update({"status": status_param})
+        if all_users_param is not None:
+            data_send.update({"all_users": all_users_param})
         try:
             res = requester(method="POST", url=url, headers=headers, data_send=data_send)
             if res.status_code == 200:
@@ -138,7 +144,8 @@ class UserORMRepository(UserRepository):
 
         if q_param or utm_source_param or status_param in ["unverified", "deleted"]:
             users_data = cls.search_from_cystack_id(**{
-                "q": q_param, "utm_source": utm_source_param, "status_param": status_param, "is_locker": True
+                "q": q_param, "utm_source": utm_source_param, "status": status_param,
+                "is_locker": True, "all_users": True,
             })
             user_ids = [u.get("id") for u in users_data]
             users_orm = users_orm.filter(user_id__in=user_ids)
@@ -184,7 +191,7 @@ class UserORMRepository(UserRepository):
             if status_param == "created_master_pwd":
                 users_orm = users_orm.filter(activated=True)
             elif status_param == "verified":
-                users_data = cls.search_from_cystack_id(**{"is_activated": True, "is_locker": True})
+                users_data = cls.search_from_cystack_id(**{"is_activated": True, "is_locker": True, "all_users": True})
                 verified_user_ids = [u.get("id") for u in users_data]
                 users_orm = users_orm.filter(user_id__in=verified_user_ids).exclude(activated=False)
 
