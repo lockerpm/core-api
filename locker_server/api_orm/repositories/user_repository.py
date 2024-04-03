@@ -153,24 +153,26 @@ class UserORMRepository(UserRepository):
             else:
                 users_orm = users_orm.filter(pm_user_plan__pm_plan__alias=plan_param)
         if can_use_plan_param:
-            if plan_param == PLAN_TYPE_PM_ENTERPRISE:
+            if can_use_plan_param == PLAN_TYPE_PM_ENTERPRISE:
                 enterprise_user_ids = list(
                     EnterpriseMemberORM.objects.filter(enterprise__locked=False).exclude(
                         user__isnull=True
                     ).values_list('user_id', flat=True)
                 )
                 users_orm = users_orm.filter(user_id__in=enterprise_user_ids)
-            elif plan_param in LIST_FAMILY_PLAN:
+            elif can_use_plan_param in LIST_FAMILY_PLAN:
                 family_member_user_ids = list(PMUserPlanFamilyORM.objects.filter().exclude(
                     user__isnull=True
                 ).values_list('user_id', flat=True))
                 users_orm = users_orm.filter(
-                    Q(pm_user_plan__pm_plan__alias=plan_param) | Q(user_id__in=family_member_user_ids)
+                    Q(pm_user_plan__pm_plan__alias=can_use_plan_param) | Q(user_id__in=family_member_user_ids)
                 ).distinct()
-            elif plan_param == PLAN_TYPE_PM_FREE:
-                users_orm = users_orm.filter(Q(pm_user_plan__isnull=True) | Q(pm_user_plan__pm_plan__alias=plan_param))
+            elif can_use_plan_param == PLAN_TYPE_PM_FREE:
+                users_orm = users_orm.filter(
+                    Q(pm_user_plan__isnull=True) | Q(pm_user_plan__pm_plan__alias=can_use_plan_param)
+                )
             else:
-                users_orm = users_orm.filter(pm_user_plan__pm_plan__alias=plan_param)
+                users_orm = users_orm.filter(pm_user_plan__pm_plan__alias=can_use_plan_param)
 
         if activated_param is not None:
             if activated_param == "0" or activated_param is False:
