@@ -5,15 +5,14 @@ from typing import Optional, List, Dict
 import stripe
 import stripe.error
 
-from django.db.models import F, OuterRef, Subquery, FloatField, CharField, Q, Sum, DateTimeField, Count
-from django.db.models.expressions import RawSQL, Case, When
+from django.db.models import F, OuterRef, Subquery, FloatField, CharField, Q, Sum, DateTimeField, Count, Min
+from django.db.models.expressions import RawSQL, Case, When, Value
 from django.db.models.functions import TruncYear
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models import CustomerORM, SaasMarketORM
 from locker_server.api_orm.models.wrapper import get_payment_model, get_promo_code_model, get_user_model, \
     get_user_plan_model, get_plan_model
-from locker_server.api_orm.repositories import UserORMRepository
 from locker_server.core.entities.payment.payment import Payment
 from locker_server.core.entities.payment.promo_code import PromoCode
 from locker_server.core.repositories.payment_repository import PaymentRepository
@@ -120,9 +119,7 @@ class PaymentORMRepository(PaymentRepository):
         if status_param:
             payments_orm = payments_orm.filter(status=status_param)
         if channel_param:
-            pass
-            # user_ids = UserORMRepository.search_from_cystack_id(**{"utm_source": channel_param}).get("ids", [])
-            # payments_orm = payments_orm.filter(user_id__in=user_ids)
+            payments_orm = payments_orm.filter(channel=channel_param)
 
         if payment_method_param:
             payments_orm = payments_orm.filter(payment_method=payment_method_param)
@@ -190,7 +187,7 @@ class PaymentORMRepository(PaymentRepository):
         return users_feedback
 
     def statistic(self, annotate_dict: Dict = {}, **filters):
-        from_param = filters.get("from") or PaymentORM.objects.first().created_time
+        from_param = filters.get("from") or PaymentORM.objects.aggregate(min_value=Min('created_time'))['min_value']
         to_param = filters.get("to") or now()
         filters.update({
             "from": from_param,
@@ -259,7 +256,9 @@ class PaymentORMRepository(PaymentRepository):
         for item in payments_orm_by_status:
             status_dict = statistic_by_status.get(item.get("status")) or {}
             status_dict.update({
-                item.get('currency'): item.get("total_price")
+                item.get('currency'): item.get(key)
+                for key, value in
+                annotate_dict.items()
             })
             statistic_by_status[item.get("status")] = status_dict
         statistic_by_status.update({
@@ -306,7 +305,16 @@ class PaymentORMRepository(PaymentRepository):
         }
 
     def statistic_net(self, **filters) -> Dict:
-        pass
+        annotation_dict = {
+            "net_price": Sum(F'net_price')
+        }
+        result = self.statistic(annotation_dict, **filters)
+        return {
+            "total_net": result.get("total_by_function"),
+            "net_by_duration": result.get("statistic_by_function"),
+            "total_payment": result.get("total_by_status"),
+            "payment_by_status": result.get("statistic_by_status")
+        }
 
     def statistic_by_type(self, **filters) -> List:
         payments_orm = self.list_payments_orm(**filters)

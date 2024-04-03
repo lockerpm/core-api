@@ -8,7 +8,7 @@ class PaymentPwdPermission(APIPermission):
                            "upgrade_trial_enterprise_by_code", "calc_lifetime_public", "calc_subscription_public"]:
             return True
         elif view.action in ["list", "set_invoice_status", "user_invoices", "admin_upgrade_plan", "statistic_income",
-                             "statistic_amount", "create_refund"]:
+                             "statistic_amount", "create_refund", "statistic_net"]:
             return self.is_admin(request)
         return self.is_auth(request)
 

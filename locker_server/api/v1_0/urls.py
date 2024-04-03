@@ -252,6 +252,7 @@ urlpatterns += [
     url(r'^admin/payments/refund$', views.PaymentPwdViewSet.as_view({'post': 'create_refund'})),
     url(r'^admin/payments/statistic/income$', views.PaymentPwdViewSet.as_view({'get': 'statistic_income'})),
     url(r'^admin/payments/statistic/amount$', views.PaymentPwdViewSet.as_view({'get': 'statistic_amount'})),
+    url(r'^admin/payments/statistic/net$', views.PaymentPwdViewSet.as_view({'get': 'statistic_net'})),
 
     url(r'^admin/payments/invoices/(?P<pk>[A-Z0-9]+)$',
         views.PaymentPwdViewSet.as_view({'put': 'set_invoice_status', 'get': 'retrieve_invoice'})),

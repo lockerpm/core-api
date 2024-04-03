@@ -770,6 +770,9 @@ class PaymentService:
     def statistic_amount(self, **filters) -> Dict:
         return self.payment_repository.statistic_amount(**filters)
 
+    def statistic_net(self, **filters) -> Dict:
+        return self.payment_repository.statistic_net(**filters)
+
     def statistic(self, **filters) -> List[Dict]:
         return self.payment_repository.statistic_by_type(**filters)
 
