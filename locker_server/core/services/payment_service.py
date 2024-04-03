@@ -308,7 +308,7 @@ class PaymentService:
                 "payment_method": PAYMENT_METHOD_CARD,
                 "duration": "lifetime" if plan.alias in LIST_LIFETIME_PLAN else upgrade_duration,
                 "currency": CURRENCY_USD,
-                "promo_code": None,
+                "promo_code": saas_code.promo_code_id,
                 "customer": None,
                 "scope": scope,
                 "status": PAYMENT_STATUS_PAID,
