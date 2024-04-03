@@ -81,7 +81,7 @@ class ResourcePwdViewSet(ResourceV1PwdViewSet):
 
     @action(methods=["get"], detail=False)
     def list_individual_plans(self, request, *args, **kwargs):
-        individual_plans = self.resource_service.list_individual_plans()
+        individual_plans = self.resource_service.list_all_plans()
         serializer = self.get_serializer(individual_plans, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
