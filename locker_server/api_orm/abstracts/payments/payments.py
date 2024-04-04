@@ -4,10 +4,9 @@ from datetime import datetime
 from django.db import models
 from django.conf import settings
 
-from locker_server.shared.constants.transactions import CURRENCY_USD, TRANSACTION_TYPE_PAYMENT, DURATION_MONTHLY
+from locker_server.shared.constants.transactions import CURRENCY_USD, TRANSACTION_TYPE_PAYMENT, DURATION_MONTHLY, \
+    PAYMENT_CHANNEL_ORGANIC
 from locker_server.settings import locker_server_settings
-
-
 
 
 class AbstractPaymentORM(models.Model):
@@ -39,6 +38,9 @@ class AbstractPaymentORM(models.Model):
         locker_server_settings.LS_PROMO_CODE_MODEL, on_delete=models.SET_NULL, related_name="payments",
         null=True, default=None
     )
+
+    net_price = models.FloatField(default=0)
+    channel = models.CharField(max_length=128, null=True, default=PAYMENT_CHANNEL_ORGANIC)
 
     class Meta:
         abstract = True

@@ -88,6 +88,26 @@ class PaymentPwdViewSet(APIBaseViewSet):
 
         return pm_current_plan
 
+    def get_statistic_filters(self):
+        query_params = self.request.query_params
+        current_time = now()
+        from_param = self.check_int_param(self.request.query_params.get("from"))
+        to_param = self.check_int_param(self.request.query_params.get("to")) or current_time
+        duration_param = self.request.query_params.get("duration") or "monthly"
+        return {
+            "from": from_param,
+            "to": to_param,
+            "duration": duration_param,
+            "status": query_params.get("status"),
+            "plan": query_params.get("plan"),
+            "payment_source": query_params.get("payment_source"),
+            "payment_method": query_params.get("payment_method"),
+            "user_id": query_params.get("user_id"),
+            "enterprise_id": query_params.get("enterprise_id"),
+            "channel": query_params.get("channel")
+
+        }
+
     def get_queryset(self):
         all_invoices = self.payment_service.list_all_invoices(**{
             "from": self.check_int_param(self.request.query_params.get("from")),
@@ -560,46 +580,17 @@ class PaymentPwdViewSet(APIBaseViewSet):
 
     @action(methods=["get"], detail=False)
     def statistic_income(self, request, *args, **kwargs):
-        query_params = self.request.query_params
-        current_time = now()
-        from_param = self.check_int_param(self.request.query_params.get("from"))
-        to_param = self.check_int_param(self.request.query_params.get("to")) or current_time
-        duration_param = self.request.query_params.get("duration") or "monthly"
-        dashboard_result = self.payment_service.statistic_income(**{
-            "from": from_param,
-            "to": to_param,
-            "duration": duration_param,
-            "status": query_params.get("status"),
-            "plan": query_params.get("plan"),
-            "payment_source": query_params.get("payment_source"),
-            "payment_method": query_params.get("payment_method"),
-            "user_id": query_params.get("user_id"),
-            "enterprise_id": query_params.get("enterprise_id"),
-            "channel": query_params.get("channel")
-
-        })
+        dashboard_result = self.payment_service.statistic_income(**self.get_statistic_filters())
         return Response(status=status.HTTP_200_OK, data=dashboard_result)
 
     @action(methods=["get"], detail=False)
     def statistic_amount(self, request, *args, **kwargs):
-        query_params = self.request.query_params
-        current_time = now()
-        from_param = self.check_int_param(self.request.query_params.get("from"))
-        to_param = self.check_int_param(self.request.query_params.get("to")) or current_time
-        duration_param = self.request.query_params.get("duration") or "monthly"
-        statistic_result = self.payment_service.statistic_amount(**{
-            "from": from_param,
-            "to": to_param,
-            "duration": duration_param,
-            "status": query_params.get("status"),
-            "plan": query_params.get("plan"),
-            "payment_source": query_params.get("payment_source"),
-            "payment_method": query_params.get("payment_method"),
-            "user_id": query_params.get("user_id"),
-            "enterprise_id": query_params.get("enterprise_id"),
-            "channel": query_params.get("channel")
+        statistic_result = self.payment_service.statistic_amount(**self.get_statistic_filters())
+        return Response(status=status.HTTP_200_OK, data=statistic_result)
 
-        })
+    @action(methods=["get"], detail=False)
+    def statistic_net(self, request, *args, **kwargs):
+        statistic_result = self.payment_service.statistic_net(**self.get_statistic_filters())
         return Response(status=status.HTTP_200_OK, data=statistic_result)
 
     @action(methods=["post"], detail=False)

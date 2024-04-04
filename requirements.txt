@@ -64,3 +64,5 @@ Pillow==10.2.0
 # GeoIP
 geoip2==4.7.0
 
+# Utils
+pandas==2.2.1
