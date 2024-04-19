@@ -63,5 +63,8 @@ class ExcludeDomainPwdViewSet(APIBaseViewSet):
 
     def destroy(self, request, *args, **kwargs):
         exclude_domain = self.get_object()
-        self.exclude_domain_service.delete_exclude_domain(exclude_domain_id=exclude_domain.exclude_domain_id)
+        try:
+            self.exclude_domain_service.delete_exclude_domain(exclude_domain_id=exclude_domain.exclude_domain_id)
+        except ExcludeDomainNotExistException:
+            raise NotFound
         return Response(status=status.HTTP_204_NO_CONTENT)
