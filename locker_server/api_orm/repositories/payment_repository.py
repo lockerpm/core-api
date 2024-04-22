@@ -615,4 +615,31 @@ class PaymentORMRepository(PaymentRepository):
         payment.status = PAYMENT_STATUS_FAILED
         return payment
 
+    def update_stripe_invoices(self):
+        stripe_payments_orm = PaymentORM.objects.filter(
+            Q(stripe_invoice_id__isnull=False) & Q(total_price__gt=0) & Q(net_price__lte=0)
+            & Q(transaction_type='Payment') & Q(status='paid')
+        )
+        stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
+        for stripe_payment_orm in stripe_payments_orm:
+            invoice_id = stripe_payment_orm.stripe_invoice_id
+            try:
+                invoice_detail = stripe.Invoice.retrieve(invoice_id)
+                payment_intent_id = invoice_detail.payment_intent
+                payment_intent_detail = stripe.PaymentIntent.retrieve(
+                    payment_intent_id,
+                    expand=['latest_charge.balance_transaction'],
+                )
+                latest_charge_id = payment_intent_detail.latest_charge.id if payment_intent_detail.latest_charge else None
+                charge_detail = stripe.Charge.retrieve(
+                    latest_charge_id,
+                    expand=["balance_transaction"]
+                )
+                fee = charge_detail.balance_transaction.fee if charge_detail.balance_transaction else 0
+                net_price = (invoice_detail.total - fee) * 1.0 / 100
+            except:
+                net_price = stripe_payment_orm.total_price
+
+            stripe_payment_orm.net_price = net_price
+            stripe_payment_orm.save()
     # ------------------------ Delete Payment resource --------------------- #

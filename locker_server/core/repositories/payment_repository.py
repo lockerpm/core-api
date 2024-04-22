@@ -111,4 +111,7 @@ class PaymentRepository(ABC):
     def set_failed(self, payment: Payment, failure_reason=None) -> Payment:
         pass
 
+    @abstractmethod
+    def update_stripe_invoices(self):
+        pass
     # ------------------------ Delete Payment resource --------------------- #
