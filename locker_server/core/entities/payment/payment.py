@@ -3,8 +3,7 @@ from datetime import datetime
 from locker_server.core.entities.payment.customer import Customer
 from locker_server.core.entities.payment.promo_code import PromoCode
 from locker_server.core.entities.user.user import User
-from locker_server.shared.constants.transactions import CURRENCY_USD, TRANSACTION_TYPE_PAYMENT, DURATION_MONTHLY, \
-    DURATION_YEARLY, DURATION_HALF_YEARLY
+from locker_server.shared.constants.transactions import *
 
 
 class Payment(object):
@@ -14,7 +13,9 @@ class Payment(object):
                  failure_reason: str = None, stripe_invoice_id: str = None, mobile_invoice_id: str = None,
                  code: str = None, bank_id: int = None, scope: str = None, plan: str = None,
                  duration: str = DURATION_MONTHLY, metadata: str = None, enterprise_id: str = None,
-                 saas_market: str = None, user: User = None, promo_code: PromoCode = None, customer: Customer = None):
+                 saas_market: str = None, user: User = None, promo_code: PromoCode = None,
+                 net_price: float = 0, channel: str = PAYMENT_CHANNEL_ORGANIC,
+                 customer: Customer = None):
         self._id = id
         self._payment_id = payment_id
         self._created_time = created_time
@@ -38,6 +39,8 @@ class Payment(object):
         self._saas_market = saas_market
         self._user = user
         self._promo_code = promo_code
+        self._net_price = net_price
+        self._channel = channel
         self._customer = customer
 
     @property
@@ -135,6 +138,14 @@ class Payment(object):
     @property
     def promo_code(self):
         return self._promo_code
+
+    @property
+    def net_price(self):
+        return self._net_price
+
+    @property
+    def channel(self):
+        return self._channel
 
     @property
     def customer(self):
