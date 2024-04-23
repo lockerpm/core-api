@@ -620,7 +620,6 @@ class PaymentORMRepository(PaymentRepository):
             Q(stripe_invoice_id__isnull=False) & Q(total_price__gt=0) & Q(net_price__lte=0)
             & Q(transaction_type='Payment') & Q(status='paid')
         )
-        stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
         for stripe_payment_orm in stripe_payments_orm:
             invoice_id = stripe_payment_orm.stripe_invoice_id
             try:

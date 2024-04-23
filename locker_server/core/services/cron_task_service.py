@@ -482,5 +482,6 @@ class CronTaskService:
                     "review_url": review_url,
                 }
             )
-    def update_update_stripe_invoices(self):
+
+    def update_stripe_invoices(self):
         self.payment_repository.update_stripe_invoices()
