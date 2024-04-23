@@ -105,5 +105,7 @@ class PaymentParser:
             saas_market=payment_orm.saas_market,
             user=user_parser.parse_user(user_orm=payment_orm.user),
             promo_code=cls.parse_promo_code(promo_code_orm=payment_orm.promo_code) if payment_orm.promo_code else None,
+            net_price=payment_orm.net_price,
+            channel=payment_orm.channel,
             customer=cls.parse_customer(customer_orm=payment_orm.customer) if payment_orm.customer else None,
         )
