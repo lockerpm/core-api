@@ -1,6 +1,6 @@
 [
   {
-    "model": "api_orm.Mission",
+    "model": "api_orm.MissionORM",
     "fields": {
       "id": "referral",
       "title": "Referral",
@@ -16,7 +16,7 @@
     }
   },
   {
-    "model": "api_orm.Mission",
+    "model": "api_orm.MissionORM",
     "fields": {
       "id": "extension_installation_and_review",
       "title": "Extension Installation & Review",
@@ -32,7 +32,7 @@
     }
   },
   {
-    "model": "api_orm.Mission",
+    "model": "api_orm.MissionORM",
     "fields": {
       "id": "desktop_app_installation",
       "title": "Desktop App Installation",
@@ -48,7 +48,7 @@
     }
   },
   {
-    "model": "api_orm.Mission",
+    "model": "api_orm.MissionORM",
     "fields": {
       "id": "app_store_rating_and_review",
       "title": "App Store Rating & Review",
@@ -64,7 +64,7 @@
     }
   },
   {
-    "model": "api_orm.Mission",
+    "model": "api_orm.MissionORM",
     "fields": {
       "id": "google_play_rating_and_review",
       "title": "Google Play Rating & Review",
@@ -80,7 +80,7 @@
     }
   },
   {
-    "model": "api_orm.Mission",
+    "model": "api_orm.MissionORM",
     "fields": {
       "id": "capterra_rating_and_review",
       "title": "Capterra Rating & Review",
@@ -96,7 +96,7 @@
     }
   },
   {
-    "model": "api_orm.Mission",
+    "model": "api_orm.MissionORM",
     "fields": {
       "id": "trustpilot_rating_and_review",
       "title": "Trustpilot Rating & Review",
@@ -112,7 +112,7 @@
     }
   },
   {
-    "model": "api_orm.Mission",
+    "model": "api_orm.MissionORM",
     "fields": {
       "id": "g2_rating_and_review",
       "title": "G2 Rating & Review",
@@ -128,7 +128,7 @@
     }
   },
   {
-    "model": "api_orm.Mission",
+    "model": "api_orm.MissionORM",
     "fields": {
       "id": "reddit_community_participation_and_review",
       "title": "Reddit Community Participation & Review",
@@ -137,6 +137,22 @@
       "created_time": 1682408053,
       "mission_type": "review",
       "order_index": 9,
+      "extra_requirements": null,
+      "available": false,
+      "reward_type": "promo_code",
+      "reward_value": 5
+    }
+  },
+  {
+    "model": "api_orm.MissionORM",
+    "fields": {
+      "id": "clutch_rating_and_review",
+      "title": "Clutch Rating & Review",
+      "description_en": "Review Locker on Clutch",
+      "description_vi": "Đánh giá Locker trên Clutch",
+      "created_time": 1714623790,
+      "mission_type": "review",
+      "order_index": 10,
       "extra_requirements": null,
       "available": false,
       "reward_type": "promo_code",
