@@ -18,6 +18,7 @@ from locker_server.shared.constants.missions import USER_MISSION_STATUS_NOT_STAR
     USER_MISSION_STATUS_UNDER_VERIFICATION, USER_MISSION_STATUS_REWARD_SENT, REWARD_TYPE_PREMIUM
 from locker_server.shared.constants.transactions import PLAN_TYPE_PM_FREE, PLAN_TYPE_PM_PREMIUM
 from locker_server.shared.error_responses.error import gen_error
+from locker_server.shared.log.cylog import CyLog
 from locker_server.shared.utils.app import now
 from locker_server.shared.utils.factory import factory
 
@@ -119,6 +120,13 @@ class UserRewardMissionPwdViewSet(APIBaseViewSet):
         if not mission_factory:
             return Response(status=status.HTTP_200_OK, data={"claim": False})
         input_data = {"user": user, "user_identifier": user_identifier}
+
+        if kwargs.get("pk") in ["capterra_rating_and_review", "clutch_rating_and_review", "g2_rating_and_review"]:
+            CyLog.info(**{
+                "message": f"[+] Checking user reward: #{kwargs.get('pk')} - {input_data} by user #{user.user_id}",
+                "output": ["slack_reward_checking"]
+            })
+
         mission_check = mission_factory.check_mission_completion(input_data)
         answer = json.dumps(answer)
 

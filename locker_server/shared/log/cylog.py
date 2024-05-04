@@ -18,6 +18,8 @@ class CyLog:
                 cls.log_to_slack(message, severity)
             elif output_type == "slack_new_users":
                 cls.log_to_slack_new_users(message, severity)
+            elif output_type == "slack_reward_checking":
+                cls.log_to_slack_reward_checking(message, severity)
             elif output_type == "stdout":
                 cls.log_to_screen(message, severity)
 
@@ -39,6 +41,20 @@ class CyLog:
     @staticmethod
     def log_to_slack_new_users(message, severity):
         logger = logging.getLogger('slack_new_users_service')
+        if severity == "debug":
+            logger.debug(message)
+        elif severity == "info":
+            logger.info(message)
+        elif severity == "warning":
+            logger.warning(message)
+        elif severity == "error":
+            logger.error(message)
+        elif severity == "critical":
+            logger.critical(message)
+
+    @staticmethod
+    def log_to_slack_reward_checking(message, severity):
+        logger = logging.getLogger('slack_reward_checking_service')
         if severity == "debug":
             logger.debug(message)
         elif severity == "info":

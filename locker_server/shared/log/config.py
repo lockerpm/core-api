@@ -45,6 +45,12 @@ logging_config = {
             'level': logging.DEBUG,
             'filters': ['site_filter']
         },
+        'slack_reward_checking': {
+            'class': 'locker_server.shared.log.handlers.SlackRewardCheckingHandler',
+            'formatter': 'medium',
+            'level': logging.DEBUG,
+            'filters': ['site_filter']
+        },
         'console': {
             'level': logging.DEBUG,
             'class': 'logging.StreamHandler',
@@ -72,6 +78,12 @@ logging_config = {
         },
         'slack_new_users_service': {
             'handlers': ['slack_new_users', ],
+            'level': 'DEBUG',
+            'propagate': True,
+            'filters': ['site_filter']
+        },
+        'slack_reward_checking_service': {
+            'handlers': ['slack_reward_checking', ],
             'level': 'DEBUG',
             'propagate': True,
             'filters': ['site_filter']
