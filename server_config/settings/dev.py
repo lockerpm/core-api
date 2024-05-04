@@ -13,6 +13,7 @@ try:
     MICRO_SERVICE_SCOPE = "pwdmanager"
 
     SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+    ENVIRONMENT = os.getenv("ENVIRONMENT")
     DEBUG = True
     SELF_HOSTED = True
     ALLOWED_HOSTS = ["*"]
