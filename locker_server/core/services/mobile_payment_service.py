@@ -91,7 +91,7 @@ class MobilePaymentService:
             send_trial_mail = True
             # Update payment -> trial
             new_payment = self.payment_repository.update_payment(
-                payment=new_payment, update_data={"total_price": 0, "discount": 0}
+                payment=new_payment, update_data={"discount": new_payment.total_price, "total_price": 0}
             )
 
         # Send mail
@@ -106,7 +106,9 @@ class MobilePaymentService:
             )
 
         BackgroundFactory.get_background(bg_name=BG_NOTIFY, background=False).run(
-            func_name="pay_successfully", **{"payment": new_payment, "payment_platform": payment_platform}
+            func_name="pay_successfully", **{
+                "payment": new_payment, "payment_platform": payment_platform, "is_trial_period": is_trial_period,
+            }
         )
         return new_payment
 
