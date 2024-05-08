@@ -169,12 +169,34 @@ class MobilePaymentService:
             self.user_plan_repository.set_default_payment_method(
                 user_id=user.user_id, payment_method=PAYMENT_METHOD_MOBILE
             )
+
+            send_trial_mail = False
+            is_trial_period = metadata.get("is_trial_period", False)
+            if is_trial_period is True:
+                self.user_plan_repository.set_personal_trial_applied(
+                    user_id=user.user_id, applied=True, platform="mobile"
+                )
+                send_trial_mail = True
+                # Update payment -> trial
+                new_payment = self.payment_repository.update_payment(
+                    payment=new_payment, update_data={"discount": new_payment.total_price, "total_price": 0}
+                )
             if new_payment.status != PAYMENT_STATUS_PAID:
                 self.payment_repository.set_paid(payment=new_payment)
                 # Send mail
+                if send_trial_mail is True:
+                    BackgroundFactory.get_background(bg_name=BG_NOTIFY, background=False).run(
+                        func_name="trial_successfully", **{
+                            "user_id": new_payment.user.user_id,
+                            "plan": new_payment.plan,
+                            "payment_method": new_payment.payment_method,
+                            "duration": TRIAL_PERSONAL_DURATION_TEXT
+                        }
+                    )
                 BackgroundFactory.get_background(bg_name=BG_NOTIFY, background=False).run(
                     func_name="pay_successfully", **{
-                        "payment": new_payment, "payment_platform": payment_platform.title()
+                        "payment": new_payment, "payment_platform": payment_platform.title(),
+                        "is_trial_period": is_trial_period
                     }
                 )
         elif status == PAYMENT_STATUS_PAST_DUE:
