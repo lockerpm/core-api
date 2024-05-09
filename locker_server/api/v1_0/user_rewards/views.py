@@ -220,7 +220,7 @@ class UserRewardMissionPwdViewSet(APIBaseViewSet):
                 self.user_reward_mission_service.delete_promo_code_by_id(
                     promo_code_id=new_promo_code.promo_code_id
                 )
-            raise ValidationError({"non_field_errors": [gen_error("0008")]})
+                raise ValidationError({"non_field_errors": [gen_error("0008")]})
 
         return Response(status=status.HTTP_200_OK, data={
             "id": new_promo_code.promo_code_id,
