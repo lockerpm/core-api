@@ -36,3 +36,17 @@ class SlackNewUserHandler(logging.Handler):
             )
         except:
             print("Slack handler failed")
+
+
+class SlackRewardCheckingHandler(logging.Handler):
+    def emit(self, record):
+        try:
+            record.exc_info = record.exc_text = None
+            content = {'text': self.format(record)}
+            requests.post(
+                url=settings.SLACK_WEBHOOK_REWARD_CHECKING,
+                json={"text": "```{}```".format(content['text'])},
+                timeout=10
+            )
+        except Exception:
+            print("SlackRewardCheckingHandler failed")

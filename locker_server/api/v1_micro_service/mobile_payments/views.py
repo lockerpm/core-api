@@ -100,6 +100,7 @@ class MobilePaymentViewSet(APIBaseViewSet):
         currency = validated_data.get("currency", CURRENCY_USD)
         failure_reason = validated_data.get("failure_reason")
         end_period = validated_data.get("end_period")
+        is_trial_period = validated_data.get("is_trial_period", False)
 
         try:
             new_payment = self.mobile_payment_service.mobile_renewal(
@@ -110,7 +111,8 @@ class MobilePaymentViewSet(APIBaseViewSet):
                     "end_period": end_period,
                     "mobile_invoice_id": mobile_invoice_id,
                     "mobile_original_id": mobile_original_id,
-                    "description": description
+                    "description": description,
+                    "is_trial_period": is_trial_period,
                 }
             )
         except UserDoesNotExistException:

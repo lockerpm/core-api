@@ -2,6 +2,7 @@ import json
 import os
 import stripe
 import stripe.error
+from django.conf import settings
 from rest_framework import status
 
 from rest_framework.response import Response
@@ -18,6 +19,7 @@ from locker_server.shared.constants.missions import USER_MISSION_STATUS_NOT_STAR
     USER_MISSION_STATUS_UNDER_VERIFICATION, USER_MISSION_STATUS_REWARD_SENT, REWARD_TYPE_PREMIUM
 from locker_server.shared.constants.transactions import PLAN_TYPE_PM_FREE, PLAN_TYPE_PM_PREMIUM
 from locker_server.shared.error_responses.error import gen_error
+from locker_server.shared.log.cylog import CyLog
 from locker_server.shared.utils.app import now
 from locker_server.shared.utils.factory import factory
 
@@ -96,7 +98,8 @@ class UserRewardMissionPwdViewSet(APIBaseViewSet):
         if user_reward_mission.status not in [USER_MISSION_STATUS_NOT_STARTED, USER_MISSION_STATUS_UNDER_VERIFICATION]:
             raise NotFound
 
-        if kwargs.get("pk") == "extension_installation_and_review":
+        pk = kwargs.get("pk")
+        if pk == "extension_installation_and_review":
             extension_user_identifier = []
             for d in request.data:
                 serializer = self.get_serializer(data=d)
@@ -119,6 +122,14 @@ class UserRewardMissionPwdViewSet(APIBaseViewSet):
         if not mission_factory:
             return Response(status=status.HTTP_200_OK, data={"claim": False})
         input_data = {"user": user, "user_identifier": user_identifier}
+
+        if pk in ["capterra_rating_and_review", "clutch_rating_and_review", "g2_rating_and_review"]:
+            env = settings.ENVIRONMENT
+            CyLog.info(**{
+                "message": f"[+] ({env}) Checking user reward: #{pk} - {input_data} by user #{user.user_id}",
+                "output": ["slack_reward_checking"]
+            })
+
         mission_check = mission_factory.check_mission_completion(input_data)
         answer = json.dumps(answer)
 

@@ -157,11 +157,12 @@ class NotifyBackground(LockerBackground):
             if self.background:
                 connection.close()
 
-    def pay_successfully(self, payment, payment_platform="Stripe"):
+    def pay_successfully(self, payment, payment_platform="Stripe", is_trial_period=False):
         """
         Notify when a payment invoice was paid
         :param payment: (obj) Payment invoice
         :param payment_platform: (str)
+        :param is_trial_period: (bool)
         :return:
         """
         url = API_NOTIFY_PAYMENT + "/notify_payment_success"
@@ -199,6 +200,7 @@ class NotifyBackground(LockerBackground):
                 "currency": payment.currency,
                 "duration": payment.duration,
                 "plan": payment.plan,
+                "is_trial_period": is_trial_period,
                 "customer": payment.get_customer_dict(),
                 "payment_method": payment.payment_method,
                 "payment_data": payment_data,
