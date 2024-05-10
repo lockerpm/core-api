@@ -150,7 +150,10 @@ class PMUserPlan(object):
     def get_stripe_subscription(self):
         if not self.pm_stripe_subscription:
             return None
-        return stripe.Subscription.retrieve(self.pm_stripe_subscription)
+        try:
+            return stripe.Subscription.retrieve(self.pm_stripe_subscription)
+        except:
+            return None
 
     def get_plan_type_alias(self) -> str:
         return self.pm_plan.alias
