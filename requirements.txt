@@ -66,3 +66,5 @@ geoip2==4.7.0
 
 # Utils
 pandas==2.2.1
+
+notion-client==2.2.1
