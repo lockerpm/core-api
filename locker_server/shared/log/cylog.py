@@ -1,5 +1,6 @@
 import logging
 import logging.config
+import traceback
 
 from locker_server.shared.log.config import logging_config
 
@@ -12,7 +13,11 @@ class CyLog:
     def create(cls, data):
         output = data.get("output", ["slack", "stdout"])
         severity = data["severity"]
-        message = data["message"]
+        message = data.get("message", "")
+        if severity == "error":
+            if not message:
+                message = traceback.format_exc()
+
         for output_type in output:
             if output_type == "slack":
                 cls.log_to_slack(message, severity)
