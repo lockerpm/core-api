@@ -22,7 +22,7 @@ class FeedbackSupportPwdViewSet(APIBaseViewSet):
     @action(methods=["post"], detail=False)
     def report(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=False)
+        serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
         icon = {"type": "external", "external": {"url": "https://www.notion.so/icons/clipping_lightgray.svg"}}
         task_name = validated_data.get("task_name", "")
