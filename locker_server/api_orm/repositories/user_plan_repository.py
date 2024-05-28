@@ -60,7 +60,7 @@ class UserPlanORMRepository(UserPlanRepository):
         for family_member_orm in family_members_orm:
             if family_member_orm.user:
                 self.update_plan(
-                    user_id=int(user_plan_orm.user_id),
+                    user_id=int(family_member_orm.user.user_id),
                     plan_type_alias=PLAN_TYPE_PM_FREE,
                     scope=settings.SCOPE_PWD_MANAGER
                 )
