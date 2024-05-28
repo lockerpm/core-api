@@ -1,3 +1,5 @@
+from typing import List
+
 from locker_server.shared.constants.account import DEFAULT_KDF_ITERATIONS, LOGIN_METHOD_PASSWORD, \
     DEFAULT_ONBOARDING_PROCESS
 from locker_server.shared.constants.lang import LANG_ENGLISH
@@ -14,7 +16,7 @@ class User(object):
                  api_key: str = None, timeout: int = 20160, timeout_action: str = "lock", is_leaked: bool = False,
                  use_relay_subdomain: bool = False, last_request_login: float = None, login_failed_attempts: int = 0,
                  login_block_until: float = None, login_method: str = LOGIN_METHOD_PASSWORD,
-                 fd_credential_id: str = None, fd_random: str = None,
+                 fd_credential_id: str = None, fd_random: str = None, fd_transports: List[str] = None,
                  onboarding_process: str = DEFAULT_ONBOARDING_PROCESS, saas_source: str = None,
                  email: str = None, full_name: str = None, language: str = LANG_ENGLISH,
                  is_factor2: bool = False, base32_secret_factor2: str = "", is_super_admin: bool = False,
@@ -49,6 +51,7 @@ class User(object):
         self._login_method = login_method
         self._fd_credential_id = fd_credential_id
         self._fd_random = fd_random
+        self._fd_transports = fd_transports
         self._fd_name = fd_name
         self._fd_type = fd_type
         self._fd_creation_date = fd_creation_date
@@ -182,6 +185,10 @@ class User(object):
     @property
     def fd_random(self):
         return self._fd_random
+
+    @property
+    def fd_transports(self):
+        return self._fd_transports
 
     @property
     def onboarding_process(self):

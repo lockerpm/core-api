@@ -19,6 +19,7 @@ class BackupCredentialORM(AbstractBackupCredentialORM):
             creation_date=data.get("creation_date", now()),
             fd_credential_id=data.get("fd_credential_id"),
             fd_random=data.get("fd_random"),
+            fd_transports=data.get("fd_transports"),
             user_id=data.get("user_id"),
             name=data.get("name"),
             type=data.get("type") or data.get("fd_type")
