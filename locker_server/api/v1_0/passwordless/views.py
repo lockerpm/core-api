@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from locker_server.api.api_base_view import APIBaseViewSet
 from locker_server.api.permissions.locker_permissions.passwordless_pwd_permission import PasswordlessPwdPermission
 from locker_server.core.exceptions.user_exception import UserDoesNotExistException
+from locker_server.shared.constants.backup_credential import WEBAUTHN_VALID_TRANSPORTS
 from .serializers import PasswordlessCredentialSerializer
 
 
@@ -41,6 +42,7 @@ class PasswordlessPwdViewSet(APIBaseViewSet):
                 user_backup_credentials_data.append({
                     "credential_id": backup_credential.fd_credential_id,
                     "random": backup_credential.fd_random,
+                    "transports": backup_credential.fd_transports or WEBAUTHN_VALID_TRANSPORTS,
                     "name": backup_credential.name,
                     "type": backup_credential.type,
                     "creation_date": backup_credential.creation_date,
@@ -49,6 +51,7 @@ class PasswordlessPwdViewSet(APIBaseViewSet):
             return Response(status=status.HTTP_200_OK, data={
                 "credential_id": user.fd_credential_id,
                 "random": user.fd_random,
+                "transports": user.fd_transports or WEBAUTHN_VALID_TRANSPORTS,
                 "name": user.fd_name,
                 "type": user.fd_type,
                 "creation_date": user.fd_creation_date,
@@ -65,8 +68,10 @@ class PasswordlessPwdViewSet(APIBaseViewSet):
             name = validated_data.get("name")
             fd_type = validated_data.get("type")
             credential_random = validated_data.get("random") or random.randbytes(16).hex()
+            transports = validated_data.get("transports")
             user = self.user_service.update_passwordless_cred(
                 user=user, fd_credential_id=credential_id, fd_random=credential_random,
+                fd_transports=transports,
                 fd_name=name,
                 fd_type=fd_type
             )

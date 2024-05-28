@@ -127,8 +127,8 @@ class UserRepository(ABC):
 
     @abstractmethod
     def update_passwordless_cred(self,
-                                 user_id: int, fd_credential_id: str, fd_random: str, fd_name: str,
-                                 fd_type: str = None) -> User:
+                                 user_id: int, fd_credential_id: str, fd_random: str, fd_transports,
+                                 fd_name: str, fd_type: str = None) -> User:
         pass
 
     @abstractmethod
