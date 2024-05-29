@@ -221,6 +221,9 @@ class CipherService:
             raise CipherDoesNotExistException
         return cipher
 
+    def list_password_histories(self, cipher_id: str) -> List:
+        return self.cipher_repository.list_password_histories(cipher_id=cipher_id)
+
     def get_multiple_by_ids(self, cipher_ids: List[str]) -> List[Cipher]:
         return self.cipher_repository.get_multiple_by_ids(cipher_ids=cipher_ids)
 
