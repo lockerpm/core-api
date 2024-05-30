@@ -871,6 +871,7 @@ class Migration(migrations.Migration):
                 ('limit_identity', models.IntegerField(default=None, null=True)),
                 ('limit_payment_card', models.IntegerField(default=None, null=True)),
                 ('limit_crypto_asset', models.IntegerField(default=None, null=True)),
+                ('limit_totp', models.IntegerField(default=None, null=True)),
                 ('tools_password_reuse', models.BooleanField(default=False)),
                 ('tools_master_password_check', models.BooleanField(default=False)),
                 ('tools_data_breach', models.BooleanField(default=False)),

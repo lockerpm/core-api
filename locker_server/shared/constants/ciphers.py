@@ -52,6 +52,10 @@ IMMUTABLE_CIPHER_TYPES = [
     CIPHER_TYPE_MASTER_PASSWORD
 ]
 
+SAVE_HISTORY_CIPHER_TYPES = [
+    CIPHER_TYPE_LOGIN
+]
+
 # Duration to sync data when update on multiple device
 SYNC_DURATION_EXPIRED = 1           # 1 second
 
