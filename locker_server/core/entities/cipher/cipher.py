@@ -1,11 +1,12 @@
 from locker_server.core.entities.team.team import Team
 from locker_server.core.entities.user.user import User
+from locker_server.shared.constants.ciphers import CIPHER_TYPE_LOGIN
 
 
 class Cipher(object):
     def __init__(self, cipher_id: str, creation_date: float = None, revision_date: float = None,
                  deleted_date: float = None, last_use_date: float = None, num_use: int = 0, reprompt: int = 0,
-                 score: float = 0,  cipher_type: int = None, data: str = None, favorites: str = "", folders: str = "",
+                 score: float = 0,  cipher_type: int = None, data=None, favorites: str = "", folders: str = "",
                  view_password: bool = True, user: User = None, created_by: User = None, team: Team = None):
         self._cipher_id = cipher_id
         self._creation_date = creation_date
@@ -20,6 +21,7 @@ class Cipher(object):
         self._favorites = favorites
         self._folders = folders
         self._view_password = view_password
+        self._history = []
         self._collection_ids = []
         self._user = user
         self._created_by = created_by
@@ -63,7 +65,10 @@ class Cipher(object):
 
     @property
     def data(self):
-        return self._data
+        d = self._data
+        if self._cipher_type == CIPHER_TYPE_LOGIN:
+            d.update({"password_history": self.history})
+        return d
 
     @property
     def favorites(self):
@@ -100,3 +105,11 @@ class Cipher(object):
     @collection_ids.setter
     def collection_ids(self, collection_ids_value):
         self._collection_ids = collection_ids_value
+
+    @property
+    def history(self):
+        return self._history
+
+    @history.setter
+    def history(self, history_value):
+        self._history = history_value

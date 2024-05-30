@@ -40,10 +40,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='pmplanorm',
-            name='limit_totp',
-            field=models.IntegerField(default=None, null=True),
-        ),
         migrations.RunPython(update_records),
     ]

@@ -168,7 +168,6 @@ class CipherPwdViewSet(APIBaseViewSet):
         user = self.request.user
         self.check_pwd_session_auth(request=request)
         cipher = self.get_object()
-
         try:
             cipher_obj = self.cipher_service.get_multiple_by_user(
                 user_id=user.user_id, filter_ids=[cipher.cipher_id]

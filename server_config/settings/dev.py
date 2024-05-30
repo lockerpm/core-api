@@ -94,7 +94,7 @@ try:
         'PORT': os.getenv("MYSQL_PORT"),
         'CONN_MAX_AGE': 300,
         'OPTIONS': {
-            'init_command': "ALTER DATABASE `%s` CHARACTER SET utf8mb4; "
+            'init_command': "ALTER DATABASE `%s` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; "
                             "SET block_encryption_mode = 'aes-256-cbc'" % (os.getenv("MYSQL_DATABASE")),
             'charset': 'utf8mb4',  # <--- Use this,
             'isolation_level': 'read committed'
