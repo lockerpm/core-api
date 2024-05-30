@@ -574,7 +574,7 @@ class CipherORMRepository(CipherRepository):
         })
         bump_account_revision_date(user=cipher_orm.user)
 
-        return ModelParser.cipher_parser().parse_cipher(cipher_orm=cipher_orm)
+        return ModelParser.cipher_parser().parse_cipher(cipher_orm=cipher_orm, parse_histories=True)
 
     def update_folders(self, cipher_id: str, new_folders_data) -> Cipher:
         cipher_orm = self._get_cipher_orm(cipher_id=cipher_id)
