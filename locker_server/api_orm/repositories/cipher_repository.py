@@ -532,7 +532,7 @@ class CipherORMRepository(CipherRepository):
             if cipher_orm.type == CIPHER_TYPE_LOGIN and \
                     cipher_orm.get_data().get("password") != new_data.get("password"):
                 history_data = {
-                    "last_use_date": cipher_orm.last_use_date,
+                    "last_use_date": cipher_orm.last_use_date or now(),
                     "reprompt": cipher_orm.reprompt,
                     "score": cipher_orm.score,
                     "data": cipher_orm.data,
