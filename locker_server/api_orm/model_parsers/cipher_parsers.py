@@ -6,6 +6,7 @@ from locker_server.api_orm.models import *
 from locker_server.core.entities.cipher.cipher import Cipher
 from locker_server.core.entities.cipher.cipher_history import CipherHistory
 from locker_server.core.entities.cipher.folder import Folder
+from locker_server.shared.utils.app import convert_readable_date
 
 
 class CipherParser:
@@ -56,7 +57,7 @@ class CipherParser:
             data = history_orm.get("data")
             data = {} if not data else ast.literal_eval(str(data))
             history.append({
-                "last_use_date": history_orm.get("last_use_date"),
+                "last_use_date": convert_readable_date(history_orm.get("last_use_date")),
                 "password": data.get("password")
             })
         return history
