@@ -57,7 +57,7 @@ class CipherParser:
             data = history_orm.get("data")
             data = {} if not data else ast.literal_eval(str(data))
             history.append({
-                "last_use_date": convert_readable_date(history_orm.get("last_use_date")),
+                "last_used_date": convert_readable_date(history_orm.get("last_use_date")),
                 "password": data.get("password")
             })
         return history
