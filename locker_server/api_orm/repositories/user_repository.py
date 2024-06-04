@@ -399,11 +399,11 @@ class UserORMRepository(UserRepository):
         users_orm = self.list_users_orm(**filters)
         users_orm = users_orm.order_by('-creation_date')
 
-        pagging = filters.get("pagging", 1)
+        paging = filters.get("paging", 1)
         page_size = filters.get("size", 20)
         page = filters.get("page", 1)
         total_record = users_orm.count()
-        if pagging and str(pagging) == "1":
+        if paging and str(paging) == "1":
             # Find start and end index
             page = max(page, 1)
             start_idx = (page - 1) * page_size
