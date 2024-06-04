@@ -53,3 +53,13 @@ class NotificationSettingService:
         if not notification_setting:
             raise NotificationSettingDoesNotExistException
         return notification_setting
+
+    def get_user_notification(self, category_id: str, user_ids: List[int], is_notify: bool = True) -> List[int]:
+        return self.notification_setting_repository.get_user_notification(
+            category_id=category_id, user_ids=user_ids, is_notify=is_notify
+        )
+
+    def get_user_mail(self, category_id: str, user_ids: List[int], is_notify: bool = True) -> List[int]:
+        return self.notification_setting_repository.get_user_mail(
+            category_id=category_id, user_ids=user_ids, is_notify=is_notify
+        )
