@@ -27,7 +27,7 @@ class CipherHistoryORM(models.Model):
         cipher_history_orm = cls(
             creation_date=data.get("creation_date", now()),
             revision_date=data.get("revision_date", now()),
-            last_use_date=data.get("last_use_date"),
+            last_use_date=data.get("last_use_date", now()),
             reprompt=data.get("reprompt", 0),
             score=data.get("score", 0),
             data=data.get("data"),
