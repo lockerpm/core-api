@@ -42,6 +42,7 @@ class AbstractUserORM(models.Model):
     login_method = models.CharField(max_length=32, default=LOGIN_METHOD_PASSWORD)
     fd_credential_id = models.CharField(max_length=255, null=True)
     fd_random = models.CharField(max_length=128, null=True)
+    fd_transports = models.CharField(max_length=255, blank=True, null=True, default=None)
     fd_name = models.CharField(null=True, max_length=255, default=None)
     fd_type = models.CharField(null=True, max_length=128, default=CREDENTIAL_TYPE_HMAC)
     fd_creation_date = models.FloatField(null=True)
@@ -98,3 +99,8 @@ class AbstractUserORM(models.Model):
         if not self.onboarding_process:
             return DEFAULT_ONBOARDING_PROCESS
         return ast.literal_eval(str(self.onboarding_process))
+
+    def get_fd_transports(self):
+        if not self.fd_transports:
+            return []
+        return self.fd_transports.split(",")

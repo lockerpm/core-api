@@ -22,6 +22,7 @@ class AbstractBackupCredentialORM(models.Model):
     # Passwordless config
     fd_credential_id = models.CharField(max_length=255, null=True)
     fd_random = models.CharField(max_length=128, null=True)
+    fd_transports = models.CharField(max_length=255, blank=True, null=True, default=None)
 
     # Security keys info
     name = models.CharField(max_length=128, null=True, default=None)
@@ -41,3 +42,8 @@ class AbstractBackupCredentialORM(models.Model):
         if not self.master_password:
             return False
         return check_password(raw_password, self.master_password)
+
+    def get_fd_transports(self):
+        if not self.fd_transports:
+            return []
+        return self.fd_transports.split(",")

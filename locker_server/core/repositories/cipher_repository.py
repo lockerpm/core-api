@@ -40,6 +40,10 @@ class CipherRepository(ABC):
     def list_cipher_ids_by_collection_id(self, collection_id: str) -> List[str]:
         pass
 
+    @abstractmethod
+    def list_password_histories(self, cipher_id: str) -> List:
+        pass
+
     # ------------------------ Get Cipher resource --------------------- #
     @abstractmethod
     def get_by_id(self, cipher_id: str) -> Optional[Cipher]:

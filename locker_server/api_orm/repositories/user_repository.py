@@ -344,7 +344,7 @@ class UserORMRepository(UserRepository):
     def list_user_ids_tutorial_reminder(self, duration_unit: int) -> Dict:
         current_time = now()
 
-        users_orm = UserORM.objects.filter()
+        users_orm = UserORM.objects.filter(first_login__isnull=False)
         enterprise_user_ids = EnterpriseMemberORM.objects.filter(
             status=E_MEMBER_STATUS_CONFIRMED
         ).values_list('user_id', flat=True)
@@ -352,17 +352,17 @@ class UserORMRepository(UserRepository):
 
         # 3 days
         user_ids_3days = users_orm.filter(
-            creation_date__range=(current_time - 3 * duration_unit, current_time - 2 * duration_unit)
+            first_login__range=(current_time - 3 * duration_unit, current_time - 2 * duration_unit)
         ).values_list('user_id', flat=True)
 
         # 5 days
         user_ids_5days = users_orm.filter(
-            creation_date__range=(current_time - 5 * duration_unit, current_time - 4 * duration_unit)
+            first_login__range=(current_time - 5 * duration_unit, current_time - 4 * duration_unit)
         ).values_list('user_id', flat=True)
 
         # 7 days
         user_ids_7days = users_orm.filter(
-            creation_date__range=(current_time - 7 * duration_unit, current_time - 6 * duration_unit)
+            first_login__range=(current_time - 7 * duration_unit, current_time - 6 * duration_unit)
         ).values_list('user_id', flat=True)
 
         # 13 days
@@ -379,7 +379,7 @@ class UserORMRepository(UserRepository):
 
         # 20 days
         user_ids_20days = exclude_enterprise_users_orm.filter(
-            creation_date__range=(current_time - 20 * duration_unit, current_time - 19 * duration_unit)
+            first_login__range=(current_time - 20 * duration_unit, current_time - 19 * duration_unit)
         ).values_list('user_id', flat=True)
         return {
             "user_ids_3days": list(user_ids_3days),
@@ -399,11 +399,11 @@ class UserORMRepository(UserRepository):
         users_orm = self.list_users_orm(**filters)
         users_orm = users_orm.order_by('-creation_date')
 
-        pagging = filters.get("pagging", 1)
+        paging = filters.get("paging", 1)
         page_size = filters.get("size", 20)
         page = filters.get("page", 1)
         total_record = users_orm.count()
-        if pagging and str(pagging) == "1":
+        if paging and str(paging) == "1":
             # Find start and end index
             page = max(page, 1)
             start_idx = (page - 1) * page_size
@@ -807,14 +807,16 @@ class UserORMRepository(UserRepository):
         user_orm.save()
         return ModelParser.user_parser().parse_user(user_orm=user_orm)
 
-    def update_passwordless_cred(self, user_id: int, fd_credential_id: str, fd_random: str, fd_name: str,
-                                 fd_type: str = None) -> User:
+    def update_passwordless_cred(self,
+                                 user_id: int, fd_credential_id: str, fd_random: str, fd_transports,
+                                 fd_name: str, fd_type: str = None) -> User:
         try:
             user_orm = UserORM.objects.get(user_id=user_id)
         except UserORM.DoesNotExist:
             return None
         user_orm.fd_credential_id = fd_credential_id
         user_orm.fd_random = fd_random
+        user_orm.fd_transports = fd_transports
         user_orm.fd_name = fd_name
         user_orm.fd_creation_date = now()
         if fd_type is not None:
