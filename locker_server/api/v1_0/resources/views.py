@@ -45,3 +45,10 @@ class ResourcePwdViewSet(APIBaseViewSet):
         ]
 
         return Response(status=status.HTTP_200_OK, data=available_market_banners)
+
+    @action(methos=["get"], detail=False)
+    def banner_data(self, request, *args, **kwargs):
+        url = 'https://notion.cystack.workers.dev/v1/table/bc0065872717477b828ec880194b2370'
+        return Response(status=status.HTTP_200_OK, data={
+            "url": url
+        })
