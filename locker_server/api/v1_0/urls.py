@@ -22,6 +22,7 @@ urlpatterns += [
         LONG_TIME_CACHE(views.ResourcePwdViewSet.as_view({'get': 'enterprise_plans'}))),
     url(r'^resources/mail_providers$', views.ResourcePwdViewSet.as_view({'get': 'mail_providers'})),
     url(r'^resources/market_banners$', views.ResourcePwdViewSet.as_view({'get': 'market_banners'})),
+    url(r'^resources/banner_data', views.ResourcePwdViewSet.as_view({'get': 'banner_data'})),
 ]
 
 # ----------------------------------- Tools ----------------------------- #
