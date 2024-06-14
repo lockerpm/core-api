@@ -28,7 +28,7 @@ try:
     LOCKER_ID_WEB_URL = os.getenv("LOCKER_ID_WEB_URL", "localhost")
     WEB_ORIGIN = os.getenv("WEB_ORIGIN") or LOCKER_WEB_URL.replace("https://", "").replace("http://", "")
     DEV_WEB_ORIGIN = os.getenv("DEV_WEB_ORIGIN")
-
+    BANNER_URL = os.getenv("BANNER_URL")
     # CyStack ID Gateway api
     GATEWAY_API = os.getenv("GATEWAY_API", "https://api.cystack.net")
     MICRO_SERVICE_USER_AUTH = os.getenv("MICRO_SERVICE_USER_AUTH")

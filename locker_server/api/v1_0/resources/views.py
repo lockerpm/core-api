@@ -1,6 +1,7 @@
 import os
 
 import requests
+from django.conf import settings
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -51,7 +52,7 @@ class ResourcePwdViewSet(APIBaseViewSet):
 
     @action(methos=["get"], detail=False)
     def banner_data(self, request, *args, **kwargs):
-        url = os.getenv("BANNER_URL")
+        url = settings.BANNER_URL
         r = requests.get(url)
         if r.status_code in [200, 201]:
             banner_data = r.json()
