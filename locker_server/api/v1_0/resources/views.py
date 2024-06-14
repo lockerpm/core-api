@@ -1,3 +1,6 @@
+import os
+
+import requests
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -48,7 +51,10 @@ class ResourcePwdViewSet(APIBaseViewSet):
 
     @action(methos=["get"], detail=False)
     def banner_data(self, request, *args, **kwargs):
-        url = 'https://notion.cystack.workers.dev/v1/table/bc0065872717477b828ec880194b2370'
-        return Response(status=status.HTTP_200_OK, data={
-            "url": url
-        })
+        url = os.getenv("BANNER_URL")
+        r = requests.get(url)
+        if r.status_code in [200, 201]:
+            banner_data = r.json()
+        else:
+            banner_data = []
+        return Response(status=status.HTTP_200_OK, data=banner_data)

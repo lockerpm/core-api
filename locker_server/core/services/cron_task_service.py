@@ -208,7 +208,8 @@ class CronTaskService:
                     "status": E_MEMBER_STATUS_CONFIRMED,
                     "is_activated": True
                 })
-                pay_quantity = max(num_active_members - enterprise.init_seats, 0)
+                pay_quantity = 0 if num_active_members <= enterprise.init_seats else pay_quantity
+                # pay_quantity = max(num_active_members - enterprise.init_seats, 0)
             if pay_quantity <= 0:
                 self.user_plan_repository.update_user_plan_by_id(
                     user_plan_id=user_plan.pm_user_plan_id,
