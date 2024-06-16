@@ -80,7 +80,7 @@ class ReleasePwdViewSet(APIBaseViewSet):
             data = {
                 "version": version,
                 "environment": environment,
-                "checksum": latest_release.get_checksum(),
+                "checksum": latest_release.get_checksum() if latest_release else {},
                 "platform": platform
             }
             return Response(status=status.HTTP_200_OK, data=data)
