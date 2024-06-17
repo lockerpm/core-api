@@ -67,7 +67,7 @@ class BackupCredential(object):
 
     @property
     def fd_transports(self):
-        return self._fd_transports
+        return self._fd_transports or []
 
     @property
     def user(self):

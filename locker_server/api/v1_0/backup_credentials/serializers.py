@@ -14,7 +14,7 @@ class ListBackupCredentialSerializer(serializers.Serializer):
             "key": instance.key,
             "fd_credential_id": instance.fd_credential_id,
             "fd_random": instance.fd_random,
-            "fd_transports": instance.fd_transports if instance.fd_transports else WEBAUTHN_VALID_TRANSPORTS,
+            "fd_transports": instance.fd_transports,
             "name": instance.name,
             "type": instance.type,
             "last_use_date": instance.last_use_date
