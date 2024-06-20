@@ -23,8 +23,8 @@ class ExcludeDomainSerializer(serializers.Serializer):
             raise serializers.ValidationError(detail={'domain': [
                 'This domain or ip is invalid', 'Domain hoặc ip không hợp lệ'
             ]})
-        if is_domain:
-            data["domain"] = extract_root_domain(domain=domain)
+        # if is_domain:
+        #     data["domain"] = extract_root_domain(domain=domain)
         return data
 
     def to_representation(self, instance):
