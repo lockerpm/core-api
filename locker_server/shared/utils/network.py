@@ -109,6 +109,14 @@ def extract_root_domain(domain: str) -> str:
     return "{}.{}".format(extracted.domain, extracted.suffix)
 
 
+def extract_full_domain(domain: str) -> str:
+    extracted = tldextract.extract(domain)
+    full_domain = "{}.{}".format(extracted.domain, extracted.suffix)
+    if extracted.subdomain is not None:
+        full_domain = "{}.{}".format(extracted.subdomain, full_domain)
+    return full_domain
+
+
 def detect_device(ua_string: str):
     """
     Detect device information from request
