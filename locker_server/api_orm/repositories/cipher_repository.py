@@ -531,7 +531,7 @@ class CipherORMRepository(CipherRepository):
             password_history = cipher_data.get("password_history") or []
             if cipher_orm.type == CIPHER_TYPE_LOGIN and len(password_history) > cipher_orm.cipher_histories.count():
                 latest_password_history = password_history[-1]
-                c_data = cipher_orm.get("data")
+                c_data = cipher_orm.get_data()
                 c_data.update({"password": latest_password_history.get("password") or c_data.get("password")})
                 history_data = {
                     "last_use_date": latest_password_history.get("last_used_date") or cipher_orm.last_use_date or now(),
