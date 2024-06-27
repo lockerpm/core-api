@@ -530,7 +530,7 @@ class CipherORMRepository(CipherRepository):
         if cipher_orm.type in SAVE_HISTORY_CIPHER_TYPES:
             password_history = cipher_data.get("password_history") or []
             if cipher_orm.type == CIPHER_TYPE_LOGIN and len(password_history) > cipher_orm.cipher_histories.count():
-                latest_password_history = password_history[-1]
+                latest_password_history = password_history[0]
                 c_data = cipher_orm.get_data()
                 c_data.update({"password": latest_password_history.get("password") or c_data.get("password")})
                 history_data = {
