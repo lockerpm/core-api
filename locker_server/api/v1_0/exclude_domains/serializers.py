@@ -3,7 +3,7 @@ from urllib.parse import urlparse
 
 from rest_framework import serializers
 
-from locker_server.shared.utils.network import is_valid_ip, extract_root_domain, is_valid_domain
+from locker_server.shared.utils.network import is_valid_ip, extract_root_domain, is_valid_domain, extract_full_domain
 
 
 class ExcludeDomainSerializer(serializers.Serializer):
@@ -24,7 +24,7 @@ class ExcludeDomainSerializer(serializers.Serializer):
                 'This domain or ip is invalid', 'Domain hoặc ip không hợp lệ'
             ]})
         if is_domain:
-            data["domain"] = extract_root_domain(domain=domain)
+            data["domain"] = extract_full_domain(domain=domain)
         return data
 
     def to_representation(self, instance):
