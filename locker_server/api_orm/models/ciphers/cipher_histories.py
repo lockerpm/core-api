@@ -36,6 +36,21 @@ class CipherHistoryORM(models.Model):
         cipher_history_orm.save()
         return cipher_history_orm
 
+    @classmethod
+    def create_multiple(cls, cipher_histories_data):
+        histories = []
+        for cipher_history_data in cipher_histories_data:
+            histories.append(cls(
+                creation_date=cipher_history_data.get("creation_date", now()),
+                revision_date=cipher_history_data.get("revision_date", now()),
+                last_use_date=cipher_history_data.get("last_use_date", now()),
+                reprompt=cipher_history_data.get("reprompt", 0),
+                score=cipher_history_data.get("score", 0),
+                data=cipher_history_data.get("data"),
+                cipher_id=cipher_history_data.get("cipher_id")
+            ))
+        cls.objects.bulk_create(histories, ignore_conflicts=True, batch_size=100)
+
     def get_data(self):
         if not self.data:
             return {}
