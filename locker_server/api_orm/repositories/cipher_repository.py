@@ -528,16 +528,40 @@ class CipherORMRepository(CipherRepository):
 
         # Create new cipher history
         if cipher_orm.type in SAVE_HISTORY_CIPHER_TYPES:
-            new_data = cipher_data.get("data", cipher_orm.get_data())
-            if cipher_orm.type == CIPHER_TYPE_LOGIN and \
-                    cipher_orm.get_data().get("password") != new_data.get("password"):
-                history_data = {
-                    "last_use_date": cipher_orm.last_use_date or now(),
-                    "reprompt": cipher_orm.reprompt,
-                    "score": cipher_orm.score,
-                    "data": cipher_orm.data,
-                }
-                cipher_orm.cipher_histories.model.create(cipher_orm, **history_data)
+            password_history = cipher_data.get("password_history") or []
+            if cipher_orm.type == CIPHER_TYPE_LOGIN and len(password_history) > cipher_orm.cipher_histories.count():
+                num = len(password_history)-cipher_orm.cipher_histories.count()
+                password_histories_data = password_history[:num]
+                c_data = cipher_orm.get_data()
+                cipher_histories_data = []
+                for password_history_data in password_histories_data:
+                    _cipher_data = c_data.copy()
+                    _cipher_data.update({"password": password_history_data.get("password") or c_data.get("password")})
+                    cipher_histories_data.append({
+                        "last_use_date": password_history_data.get("last_used_date") or cipher_orm.last_use_date or now(),
+                        "reprompt": cipher_orm.reprompt,
+                        "score": cipher_orm.score,
+                        "data": _cipher_data,
+                        "cipher_id": cipher_orm.id,
+                    })
+                cipher_orm.cipher_histories.model.create_multiple(cipher_histories_data)
+                # history_data = {
+                #     "last_use_date": latest_password_history.get("last_used_date") or cipher_orm.last_use_date or now(),
+                #     "reprompt": cipher_orm.reprompt,
+                #     "score": cipher_orm.score,
+                #     "data": c_data,
+                # }
+                # cipher_orm.cipher_histories.model.create(cipher_orm, **history_data)
+            # new_data = cipher_data.get("data", cipher_orm.get_data())
+            # if cipher_orm.type == CIPHER_TYPE_LOGIN and \
+            #         cipher_orm.get_data().get("password") != new_data.get("password"):
+            #     history_data = {
+            #         "last_use_date": cipher_orm.last_use_date or now(),
+            #         "reprompt": cipher_orm.reprompt,
+            #         "score": cipher_orm.score,
+            #         "data": cipher_orm.data,
+            #     }
+            #     cipher_orm.cipher_histories.model.create(cipher_orm, **history_data)
 
         # Create new cipher object
         cipher_orm.revision_date = now()
