@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from rest_framework import serializers
 
 from locker_server.api.v1_0.folders.serializers import FolderSerializer
@@ -144,8 +146,30 @@ class VaultItemSerializer(serializers.Serializer):
         return super(VaultItemSerializer, self).to_internal_value(data)
 
 
+class PasswordHistorySerializer(serializers.Serializer):
+    lastUsedDate = serializers.CharField(required=False, allow_null=True, max_length=128)
+    password = serializers.CharField()
+
+    def validate(self, data):
+        last_used_date = data.get("lastUsedDate")
+        if last_used_date:
+            try:
+                last_used_date_ts = datetime.strptime(last_used_date, "%Y-%m-%dT%H:%M:%S.%fZ").timestamp()
+                data["last_used_date"] = last_used_date_ts
+            except TypeError:
+                raise serializers.ValidationError(detail={"lastUsedDate": ["The last used date is not valid datetime"]})
+        return data
+
+
 class UpdateVaultItemSerializer(VaultItemSerializer):
-    pass
+    passwordHistory = PasswordHistorySerializer(many=True, required=False)
+
+    def save(self, **kwargs):
+        detail = super().save(**kwargs)
+        detail.update({
+            "password_history": self.validated_data.get("passwordHistory")
+        })
+        return detail
 
 
 class MultipleItemIdsSerializer(serializers.Serializer):

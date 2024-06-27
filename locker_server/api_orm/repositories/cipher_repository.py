@@ -528,16 +528,28 @@ class CipherORMRepository(CipherRepository):
 
         # Create new cipher history
         if cipher_orm.type in SAVE_HISTORY_CIPHER_TYPES:
-            new_data = cipher_data.get("data", cipher_orm.get_data())
-            if cipher_orm.type == CIPHER_TYPE_LOGIN and \
-                    cipher_orm.get_data().get("password") != new_data.get("password"):
+            password_history = cipher_data.get("password_history") or []
+            if cipher_orm.type == CIPHER_TYPE_LOGIN and len(password_history) > cipher_orm.cipher_histories.count():
+                latest_password_history = password_history[-1]
+                c_data = cipher_orm.get("data")
+                c_data.update({"password": latest_password_history.get("password") or c_data.get("password")})
                 history_data = {
-                    "last_use_date": cipher_orm.last_use_date or now(),
+                    "last_use_date": latest_password_history.get("last_used_date") or cipher_orm.last_use_date or now(),
                     "reprompt": cipher_orm.reprompt,
                     "score": cipher_orm.score,
-                    "data": cipher_orm.data,
+                    "data": c_data,
                 }
                 cipher_orm.cipher_histories.model.create(cipher_orm, **history_data)
+            # new_data = cipher_data.get("data", cipher_orm.get_data())
+            # if cipher_orm.type == CIPHER_TYPE_LOGIN and \
+            #         cipher_orm.get_data().get("password") != new_data.get("password"):
+            #     history_data = {
+            #         "last_use_date": cipher_orm.last_use_date or now(),
+            #         "reprompt": cipher_orm.reprompt,
+            #         "score": cipher_orm.score,
+            #         "data": cipher_orm.data,
+            #     }
+            #     cipher_orm.cipher_histories.model.create(cipher_orm, **history_data)
 
         # Create new cipher object
         cipher_orm.revision_date = now()
