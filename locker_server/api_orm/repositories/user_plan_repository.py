@@ -240,7 +240,7 @@ class UserPlanORMRepository(UserPlanRepository):
         ).select_related('pm_plan')
         cipher_limits = PMPlanORM.objects.filter(id__in=personal_plans_orm.values_list('pm_plan_id')).values(
             'limit_password', 'limit_secure_note', 'limit_identity', 'limit_payment_card', 'limit_crypto_asset',
-            'limit_totp'
+            'limit_totp', 'limit_history'
         )
         limit_password = [cipher_limit.get("limit_password") for cipher_limit in cipher_limits]
         limit_secure_note = [cipher_limit.get("limit_secure_note") for cipher_limit in cipher_limits]
@@ -248,6 +248,7 @@ class UserPlanORMRepository(UserPlanRepository):
         limit_payment_card = [cipher_limit.get("limit_payment_card") for cipher_limit in cipher_limits]
         limit_crypto_asset = [cipher_limit.get("limit_crypto_asset") for cipher_limit in cipher_limits]
         limit_totp = [cipher_limit.get("limit_totp") for cipher_limit in cipher_limits]
+        limit_history = [cipher_limit.get("limit_history") for cipher_limit in cipher_limits]
         return {
             CIPHER_TYPE_LOGIN: None if None in limit_password else max(limit_password),
             CIPHER_TYPE_NOTE: None if None in limit_secure_note else max(limit_secure_note),
@@ -256,6 +257,7 @@ class UserPlanORMRepository(UserPlanRepository):
             CIPHER_TYPE_CRYPTO_ACCOUNT: None if None in limit_crypto_asset else max(limit_crypto_asset),
             CIPHER_TYPE_CRYPTO_WALLET: None if None in limit_crypto_asset else max(limit_crypto_asset),
             CIPHER_TYPE_TOTP: None if None in limit_totp else max(limit_totp),
+            "limit_history": None if None in limit_history else max(limit_history),
         }
 
     def is_in_family_plan(self, user_plan: PMUserPlan) -> bool:

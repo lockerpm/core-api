@@ -193,6 +193,10 @@ class CipherService:
                     if member_collection_id not in add_collection_ids:
                         raise CollectionCannotAddException(collection_id=member_collection_id)
 
+        # Validate plan
+        allow_cipher_type = self.user_plan_repository.get_max_allow_cipher_type(user=user)
+        limit_history = allow_cipher_type.get("limit_history")
+        cipher_data.update({"limit_history": limit_history})
         cipher = self.cipher_repository.update_cipher(cipher_id=cipher.cipher_id, cipher_data=cipher_data)
         return cipher
 
