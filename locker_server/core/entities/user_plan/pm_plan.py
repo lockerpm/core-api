@@ -7,7 +7,8 @@ class PMPlan(object):
                  price_vnd: float = None, half_yearly_price_usd: float = None, half_yearly_price_vnd: float = None,
                  yearly_price_usd: float = None, yearly_price_vnd: float = None, sync_device: int = None,
                  limit_password: int = None, limit_secure_note: int = None, limit_identity: int = None,
-                 limit_payment_card: int = None, limit_crypto_asset: int = None, tools_password_reuse: int = None,
+                 limit_payment_card: int = None, limit_crypto_asset: int = None, limit_history: int = None,
+                 tools_password_reuse: int = None,
                  tools_master_password_check: bool = False, tools_data_breach: bool = False,
                  emergency_access: bool = False, personal_share: bool = False, relay_premium: bool = False,
                  is_family_plan: bool = False, is_team_plan: bool = False, max_number: int = None,
@@ -28,6 +29,7 @@ class PMPlan(object):
         self._limit_identity = limit_identity
         self._limit_payment_card = limit_payment_card
         self._limit_crypto_asset = limit_crypto_asset
+        self._limit_history = limit_history
         self._tools_password_reuse = tools_password_reuse
         self._tools_master_password_check = tools_master_password_check
         self._tools_data_breach = tools_data_breach
@@ -102,6 +104,10 @@ class PMPlan(object):
     @property
     def limit_crypto_asset(self):
         return self._limit_crypto_asset
+
+    @property
+    def limit_history(self):
+        return self._limit_history
 
     @property
     def tools_password_reuse(self):

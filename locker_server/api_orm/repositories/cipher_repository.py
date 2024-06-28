@@ -529,6 +529,9 @@ class CipherORMRepository(CipherRepository):
         # Create new cipher history
         if cipher_orm.type in SAVE_HISTORY_CIPHER_TYPES:
             password_history = cipher_data.get("password_history") or []
+            limit_history = cipher_data.get("limit_history")
+            if limit_history and len(password_history) > limit_history:
+                password_history = password_history[-limit_history:]
             if cipher_orm.type == CIPHER_TYPE_LOGIN and len(password_history) > cipher_orm.cipher_histories.count():
                 num = len(password_history)-cipher_orm.cipher_histories.count()
                 password_histories_data = password_history[:num]
@@ -545,24 +548,6 @@ class CipherORMRepository(CipherRepository):
                         "cipher_id": cipher_orm.id,
                     })
                 cipher_orm.cipher_histories.model.create_multiple(cipher_histories_data)
-                # history_data = {
-                #     "last_use_date": latest_password_history.get("last_used_date") or cipher_orm.last_use_date or now(),
-                #     "reprompt": cipher_orm.reprompt,
-                #     "score": cipher_orm.score,
-                #     "data": c_data,
-                # }
-                # cipher_orm.cipher_histories.model.create(cipher_orm, **history_data)
-            # new_data = cipher_data.get("data", cipher_orm.get_data())
-            # if cipher_orm.type == CIPHER_TYPE_LOGIN and \
-            #         cipher_orm.get_data().get("password") != new_data.get("password"):
-            #     history_data = {
-            #         "last_use_date": cipher_orm.last_use_date or now(),
-            #         "reprompt": cipher_orm.reprompt,
-            #         "score": cipher_orm.score,
-            #         "data": cipher_orm.data,
-            #     }
-            #     cipher_orm.cipher_histories.model.create(cipher_orm, **history_data)
-
         # Create new cipher object
         cipher_orm.revision_date = now()
         cipher_orm.reprompt = cipher_data.get("reprompt", cipher_orm.reprompt) or 0
