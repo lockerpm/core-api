@@ -11,7 +11,8 @@ from locker_server.shared.utils.app import convert_readable_date
 
 class CipherParser:
     @classmethod
-    def parse_cipher(cls, cipher_orm: CipherORM, parse_collection_ids=False, parse_histories=False) -> Cipher:
+    def parse_cipher(cls, cipher_orm: CipherORM, parse_collection_ids=False, parse_histories=False,
+                     limit_history: int = None) -> Cipher:
         user_parser = get_specific_model_parser("UserParser")
         team_parser = get_specific_model_parser("TeamParser")
         try:
@@ -46,11 +47,18 @@ class CipherParser:
             cipher.collection_ids = collection_ids
 
         if parse_histories is True:
-            cipher.history = cls.parse_password_history(cipher_orm=cipher_orm)
+            try:
+                show_history = getattr(cipher_orm, "show_history")
+            except AttributeError:
+                show_history = True
+            if show_history is False:
+                cipher.history = []
+            else:
+                cipher.history = cls.parse_password_history(cipher_orm=cipher_orm, limit_history=limit_history)
         return cipher
 
     @classmethod
-    def parse_password_history(cls, cipher_orm: CipherORM) -> List:
+    def parse_password_history(cls, cipher_orm: CipherORM, limit_history: int = None) -> List:
         history = []
         histories_orm = cipher_orm.cipher_histories.order_by('creation_date').values('last_use_date', 'data')
         for history_orm in histories_orm:
@@ -60,6 +68,8 @@ class CipherParser:
                 "last_used_date": convert_readable_date(history_orm.get("last_use_date")),
                 "password": data.get("password")
             })
+        if limit_history is not None:
+            history = history[-limit_history:]
         return history
 
     @classmethod

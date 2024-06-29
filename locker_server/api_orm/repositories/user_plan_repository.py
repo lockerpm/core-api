@@ -1,6 +1,6 @@
 import ast
 import math
-from typing import Dict, Optional, List, Tuple
+from typing import Dict, Optional, List, Tuple, Union
 
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned
@@ -226,8 +226,9 @@ class UserPlanORMRepository(UserPlanRepository):
             multiple_default_enterprises_orm.exclude(enterprise_id=default_enterprise_orm.id).delete()
         return ModelParser.enterprise_parser().parse_enterprise(enterprise_orm=default_enterprise_orm)
 
-    def get_max_allow_cipher_type(self, user: User) -> Dict:
-        user_orm = self._get_user_orm(user_id=user.user_id)
+    def get_max_allow_cipher_type(self, user: Union[User, int]) -> Dict:
+        user_id = user if isinstance(user, int) else user.user_id
+        user_orm = self._get_user_orm(user_id=user_id)
         user_enterprise_ids = user_orm.enterprise_members.filter(
             status=E_MEMBER_STATUS_CONFIRMED, is_activated=True,
             enterprise__locked=False
@@ -236,7 +237,7 @@ class UserPlanORMRepository(UserPlanRepository):
             role_id=E_MEMBER_ROLE_PRIMARY_ADMIN
         ).values_list('user_id', flat=True)
         personal_plans_orm = PMUserPlanORM.objects.filter(
-            user_id__in=list(primary_admins) + [user.user_id]
+            user_id__in=list(primary_admins) + [user_id]
         ).select_related('pm_plan')
         cipher_limits = PMPlanORM.objects.filter(id__in=personal_plans_orm.values_list('pm_plan_id')).values(
             'limit_password', 'limit_secure_note', 'limit_identity', 'limit_payment_card', 'limit_crypto_asset',
