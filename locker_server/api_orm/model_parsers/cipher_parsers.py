@@ -69,7 +69,8 @@ class CipherParser:
                 "password": data.get("password")
             })
         if limit_history is not None:
-            history = history[-limit_history:]
+            history = history[:limit_history]
+            # history = history[-limit_history:]
         return history
 
     @classmethod
