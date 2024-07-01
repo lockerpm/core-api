@@ -3,7 +3,7 @@ from locker_server.api.permissions.app import APIPermission
 
 class BackupCredentialPwdPermission(APIPermission):
     def has_permission(self, request, view):
-        return self.is_auth(request) and request.user.activated
+        return self.is_auth(request)
 
     def has_object_permission(self, request, view, obj):
         user = request.user

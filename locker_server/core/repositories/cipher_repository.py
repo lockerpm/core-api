@@ -17,7 +17,8 @@ class CipherRepository(ABC):
     @abstractmethod
     def get_multiple_by_user(self, user_id: int, only_personal=False, only_managed_team=False,
                              only_edited=False, only_deleted=False,
-                             exclude_team_ids=None, filter_ids=None, exclude_types=None) -> List[Cipher]:
+                             exclude_team_ids=None, filter_ids=None, exclude_types=None,
+                             limit_history=None) -> List[Cipher]:
         pass
 
     @abstractmethod
@@ -68,7 +69,7 @@ class CipherRepository(ABC):
     @abstractmethod
     def sync_and_statistic_ciphers(self, user_id: int, only_personal=False, only_managed_team=False,
                                    only_edited=False, only_deleted=False,
-                                   exclude_team_ids=None, filter_ids=None, exclude_types=None,
+                                   exclude_team_ids=None, filter_ids=None, exclude_types=None, limit_history=None,
                                    **ciphers_filter) -> Dict:
         pass
 

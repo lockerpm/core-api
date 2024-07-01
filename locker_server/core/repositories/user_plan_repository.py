@@ -42,7 +42,7 @@ class UserPlanRepository(ABC):
         pass
 
     @abstractmethod
-    def get_max_allow_cipher_type(self, user: User) -> Dict:
+    def get_max_allow_cipher_type(self, user: Union[User, int]) -> Dict:
         pass
 
     @abstractmethod
