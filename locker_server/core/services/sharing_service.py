@@ -245,7 +245,7 @@ class SharingService:
         if not cipher:
             return None
         cipher_obj = self.cipher_repository.get_by_id(cipher_id=cipher.get("id"))
-        if not cipher:
+        if not cipher_obj:
             raise CipherDoesNotExistException
         # If the cipher isn't shared?
         if cipher_obj.user and cipher_obj.user.user_id != user.user_id:
