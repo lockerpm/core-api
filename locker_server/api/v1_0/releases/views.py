@@ -1,6 +1,5 @@
 from typing import Dict
 
-from django.http import HttpResponseRedirect
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -190,7 +189,7 @@ class ReleasePwdViewSet(APIBaseViewSet):
         }
         ver = f"{version}.exe" if platform == RELEASE_PLATFORM_WINDOWS else version
         download_url = f"https://s.locker.io/download/locker-{client_id}-{mapping_platform.get(platform, platform)}-{ver}"
-        return HttpResponseRedirect(redirect_to=download_url)
+        return Response(status=status.HTTP_200_OK, data={"download_url": download_url})
 
     @staticmethod
     def update_checksum_by_os(release_data: Dict, os_param: str) -> Dict:
