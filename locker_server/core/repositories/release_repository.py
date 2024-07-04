@@ -21,7 +21,8 @@ class ReleaseRepository(ABC):
         pass
 
     @abstractmethod
-    def get_latest_release(self, client_id: str, environment: str, platform: str = None) -> Optional[Release]:
+    def get_latest_release(self, client_id: str, environment: str, platform: str = None,
+                           stable=None) -> Optional[Release]:
         pass
 
     # ------------------------ Create Release resource --------------------- #

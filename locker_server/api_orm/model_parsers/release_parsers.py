@@ -18,4 +18,5 @@ class ReleaseParser:
             environment=release_orm.environment,
             checksum=release_orm.checksum,
             platform=release_orm.platform,
+            stable=release_orm.stable,
         )

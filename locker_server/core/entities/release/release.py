@@ -4,7 +4,8 @@ import ast
 class Release(object):
     def __init__(self, release_id: int, created_time: int = None, major: str = None, minor: str = None,
                  patch: str = None, build_number: str = None, description_en: str = "", description_vi: str = "",
-                 client_id: str = None, environment: str = "prod", checksum: str = None, platform: str = None):
+                 client_id: str = None, environment: str = "prod", checksum: str = None, platform: str = None,
+                 stable: bool = False):
         self._release_id = release_id
         self._created_time = created_time
         self._major = major
@@ -17,6 +18,7 @@ class Release(object):
         self._environment = environment
         self._checksum = checksum
         self._platform = platform
+        self._stable = stable
 
     @property
     def release_id(self):
@@ -80,3 +82,7 @@ class Release(object):
     @property
     def platform(self):
         return self._platform
+
+    @property
+    def stable(self):
+        return self._stable

@@ -1,5 +1,6 @@
 from typing import Dict
 
+from django.http import HttpResponseRedirect
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -7,8 +8,8 @@ from rest_framework import status
 
 from locker_server.api.api_base_view import APIBaseViewSet
 from locker_server.api.permissions.locker_permissions.release_pwd_permission import ReleasePwdPermission
-from locker_server.shared.constants.device_type import CLIENT_ID_DESKTOP
-from locker_server.shared.constants.release import RELEASE_ENVIRONMENT_PROD, ORG_CYSTACK
+from locker_server.shared.constants.device_type import CLIENT_ID_DESKTOP, CLIENT_ID_CLI
+from locker_server.shared.constants.release import *
 from .serializers import NewReleaseSerializer, NextReleaseSerializer, ListReleaseSerializer, DetailReleaseSerializer
 
 
@@ -167,6 +168,29 @@ class ReleasePwdViewSet(APIBaseViewSet):
             "platform": platform
         }
         return Response(status=status.HTTP_200_OK, data=data)
+
+    @action(methods=["get"], detail=False)
+    def download(self, request, *args, **kwargs):
+        client_id = self.request.query_params.get("client_id", CLIENT_ID_CLI)
+        environment = self.request.query_params.get("environment", RELEASE_ENVIRONMENT_PROD)
+        platform = self.request.query_params.get("platform")
+        latest_stable_release = self.release_service.get_latest_release(
+            client_id=client_id,
+            environment=environment,
+            platform=platform,
+            stable=True
+        )
+        if not latest_stable_release:
+            version = "1.0.0"
+        else:
+            version = latest_stable_release.version
+        mapping_platform = {
+            RELEASE_PLATFORM_WINDOWS: "win-x64",
+            RELEASE_PLATFORM_LINUX: "linux-x64"
+        }
+        ver = f"{version}.exe" if platform == RELEASE_PLATFORM_WINDOWS else version
+        download_url = f"https://s.locker.io/download/locker-{client_id}-{mapping_platform.get(platform, platform)}-{ver}"
+        return HttpResponseRedirect(redirect_to=download_url)
 
     @staticmethod
     def update_checksum_by_os(release_data: Dict, os_param: str) -> Dict:
