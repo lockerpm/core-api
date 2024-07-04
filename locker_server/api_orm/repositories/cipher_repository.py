@@ -127,20 +127,8 @@ class CipherORMRepository(CipherRepository):
                 default=True,
                 output_field=BooleanField()
             )
-        ).annotate(
-            show_history=Case(
-                When(
-                    Q(
-                        team__team_members__role_id__in=[MEMBER_ROLE_ADMIN, MEMBER_ROLE_MANAGER, MEMBER_ROLE_MEMBER],
-                        team__team_members__user_id=user_id,
-                    ), then=False
-                ),
-                default=True,
-                output_field=BooleanField()
-            )
         )
         hide_password_cipher_ids = team_ciphers_orm.filter(view_password=False).values_list('id', flat=True)
-        hide_history_cipher_ids = team_ciphers_orm.filter(show_history=False).values_list('id', flat=True)
         if only_edited:
             team_ciphers_orm = team_ciphers_orm.filter(
                 team__team_members__role_id__in=[MEMBER_ROLE_OWNER, MEMBER_ROLE_ADMIN, MEMBER_ROLE_MANAGER],
@@ -158,12 +146,6 @@ class CipherORMRepository(CipherRepository):
         ).exclude(type__in=exclude_types).annotate(
             view_password=Case(
                 When(id__in=hide_password_cipher_ids, then=False),
-                default=True,
-                output_field=BooleanField()
-            )
-        ).annotate(
-            show_history=Case(
-                When(id__in=hide_history_cipher_ids, then=False),
                 default=True,
                 output_field=BooleanField()
             )
@@ -541,7 +523,6 @@ class CipherORMRepository(CipherRepository):
         user_cipher_id = cipher_data.get("user_id")
         team_id = cipher_data.get("team_id")
         collection_ids = cipher_data.get("collection_ids", [])
-        limit_history = cipher_data.get("limit_history")
 
         # If team_id is not null => This cipher belongs to team
         if team_id:
@@ -605,7 +586,7 @@ class CipherORMRepository(CipherRepository):
         bump_account_revision_date(user=cipher_orm.user)
 
         return ModelParser.cipher_parser().parse_cipher(
-            cipher_orm=cipher_orm, parse_histories=True, limit_history=limit_history
+            cipher_orm=cipher_orm, parse_histories=True,
         )
 
     def update_folders(self, cipher_id: str, new_folders_data) -> Cipher:
