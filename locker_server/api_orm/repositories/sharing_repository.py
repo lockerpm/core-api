@@ -115,6 +115,7 @@ class SharingORMRepository(SharingRepository):
         cipher_orm.score = cipher_data.get("score", cipher_orm.score)
         cipher_orm.type = cipher_data.get("type", cipher_orm.type)
         cipher_orm.data = cipher_data.get("data", cipher_orm.get_data())
+        cipher_orm.password_history = cipher_data.get("password_history", cipher_orm.get_password_history())
         cipher_orm.user_id = None
         cipher_orm.team_id = team_id
         cipher_orm.save()
@@ -128,6 +129,7 @@ class SharingORMRepository(SharingRepository):
         cipher_orm.score = cipher_data.get("score", cipher_orm.score)
         cipher_orm.type = cipher_data.get("type", cipher_orm.type)
         cipher_orm.data = cipher_data.get("data", cipher_orm.get_data())
+        cipher_orm.password_history = cipher_data.get("password_history", cipher_orm.get_password_history())
         cipher_orm.user_id = user_id
         cipher_orm.team_id = None
         cipher_orm.save()

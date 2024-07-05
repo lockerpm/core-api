@@ -133,7 +133,7 @@ class SyncCipherSerializer(serializers.Serializer):
             "notes": data.get("notes"),
             "organization_id": instance.team.team_id if instance.team else None,
             "organization_use_totp": True if login else False,
-            "password_history": instance.history,
+            "password_history": instance.password_history,
             "reprompt": instance.reprompt,
             "revision_date": convert_readable_date(instance.revision_date),
             "creation_date": convert_readable_date(instance.creation_date),

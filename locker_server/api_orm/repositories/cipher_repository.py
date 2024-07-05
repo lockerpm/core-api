@@ -529,33 +529,34 @@ class CipherORMRepository(CipherRepository):
             user_cipher_id = None
 
         # Create new cipher history
-        if cipher_orm.type in SAVE_HISTORY_CIPHER_TYPES:
-            password_history = cipher_data.get("password_history") or []
-            # limit_history = cipher_data.get("limit_history")
-            # if limit_history and len(password_history) > limit_history:
-            #     password_history = password_history[-limit_history:]
-            if cipher_orm.type == CIPHER_TYPE_LOGIN and len(password_history) > cipher_orm.cipher_histories.count():
-                num = len(password_history)-cipher_orm.cipher_histories.count()
-                password_histories_data = password_history[:num]
-                c_data = cipher_orm.get_data()
-                cipher_histories_data = []
-                for password_history_data in password_histories_data:
-                    _cipher_data = c_data.copy()
-                    _cipher_data.update({"password": password_history_data.get("password") or c_data.get("password")})
-                    cipher_histories_data.append({
-                        "last_use_date": password_history_data.get("last_used_date") or cipher_orm.last_use_date or now(),
-                        "reprompt": cipher_orm.reprompt,
-                        "score": cipher_orm.score,
-                        "data": _cipher_data,
-                        "cipher_id": cipher_orm.id,
-                    })
-                cipher_orm.cipher_histories.model.create_multiple(cipher_histories_data)
+        # if cipher_orm.type in SAVE_HISTORY_CIPHER_TYPES:
+        #     password_history = cipher_data.get("password_history") or []
+        #     # limit_history = cipher_data.get("limit_history")
+        #     # if limit_history and len(password_history) > limit_history:
+        #     #     password_history = password_history[-limit_history:]
+        #     if cipher_orm.type == CIPHER_TYPE_LOGIN and len(password_history) > cipher_orm.cipher_histories.count():
+        #         num = len(password_history)-cipher_orm.cipher_histories.count()
+        #         password_histories_data = password_history[:num]
+        #         c_data = cipher_orm.get_data()
+        #         cipher_histories_data = []
+        #         for password_history_data in password_histories_data:
+        #             _cipher_data = c_data.copy()
+        #             _cipher_data.update({"password": password_history_data.get("password") or c_data.get("password")})
+        #             cipher_histories_data.append({
+        #                 "last_use_date": password_history_data.get("last_used_date") or cipher_orm.last_use_date or now(),
+        #                 "reprompt": cipher_orm.reprompt,
+        #                 "score": cipher_orm.score,
+        #                 "data": _cipher_data,
+        #                 "cipher_id": cipher_orm.id,
+        #             })
+        #         cipher_orm.cipher_histories.model.create_multiple(cipher_histories_data)
         # Create new cipher object
         cipher_orm.revision_date = now()
         cipher_orm.reprompt = cipher_data.get("reprompt", cipher_orm.reprompt) or 0
         cipher_orm.score = cipher_data.get("score", cipher_orm.score)
         cipher_orm.type = cipher_data.get("type", cipher_orm.type)
         cipher_orm.data = cipher_data.get("data", cipher_orm.get_data())
+        cipher_orm.password_history = cipher_data.get("password_history", cipher_orm.get_password_history())
         cipher_orm.user_id = user_cipher_id
         cipher_orm.team_id = team_id
         cipher_orm.save()
