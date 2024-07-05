@@ -129,7 +129,8 @@ class SharingSerializer(serializers.Serializer):
             "attachments": None,
             "fields": cipher.get("fields"),
             "collection_ids": [],
-            "data": get_cipher_detail_data(cipher)
+            "data": get_cipher_detail_data(cipher),
+            "password_history": cipher.get("password_history") or cipher.get("passwordHistory")
         }
         return shared_cipher_data
 
