@@ -229,7 +229,8 @@ class MultipleSharingSerializer(serializers.Serializer):
             "attachments": None,
             "fields": cipher.get("fields"),
             "collection_ids": [],
-            "data": get_cipher_detail_data(cipher)
+            "data": get_cipher_detail_data(cipher),
+            "password_history": cipher.get("password_history") or cipher.get("passwordHistory")
         }
         return shared_cipher_data
 
@@ -295,7 +296,8 @@ class StopSharingSerializer(serializers.Serializer):
             "score": cipher.get("score", 0),
             "reprompt": cipher.get("reprompt", 0),
             "fields": cipher.get("fields"),
-            "data": get_cipher_detail_data(cipher)
+            "data": get_cipher_detail_data(cipher),
+            "password_history": cipher.get("password_history") or cipher.get("passwordHistory")
         }
         return shared_cipher_data
 
@@ -339,7 +341,8 @@ class StopSharingFolderSerializer(serializers.Serializer):
             "score": cipher.get("score", 0),
             "reprompt": cipher.get("reprompt", 0),
             "fields": cipher.get("fields"),
-            "data": get_cipher_detail_data(cipher)
+            "data": get_cipher_detail_data(cipher),
+            "password_history": cipher.get("password_history") or cipher.get("passwordHistory")
         }
         return shared_cipher_data
 
@@ -367,7 +370,8 @@ class AddItemShareFolderSerializer(serializers.Serializer):
             "score": cipher.get("score", 0),
             "reprompt": cipher.get("reprompt", 0),
             "fields": cipher.get("fields"),
-            "data": get_cipher_detail_data(cipher)
+            "data": get_cipher_detail_data(cipher),
+            "password_history": cipher.get("password_history") or cipher.get("passwordHistory")
         }
         return shared_cipher_data
 
