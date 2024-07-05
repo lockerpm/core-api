@@ -4,7 +4,7 @@ from locker_server.shared.constants.ciphers import LIST_CIPHER_TYPE, IMMUTABLE_C
 from locker_server.shared.constants.members import MEMBER_ROLE_ADMIN, MEMBER_ROLE_MEMBER
 from locker_server.api.v1_0.ciphers.serializers import ItemFieldSerializer, LoginVaultSerializer, \
     SecurityNoteVaultSerializer, CardVaultSerializer, IdentityVaultSerializer, CryptoAccountSerializer, \
-    CryptoWalletSerializer
+    CryptoWalletSerializer, PasswordHistorySerializer
 from locker_server.shared.utils.app import get_cipher_detail_data
 
 
@@ -88,6 +88,7 @@ class CipherShareSerializer(serializers.Serializer):
     identity = IdentityVaultSerializer(required=False, many=False, allow_null=True)
     cryptoAccount = CryptoAccountSerializer(required=False, many=False, allow_null=True)
     cryptoWallet = CryptoWalletSerializer(required=False, many=False, allow_null=True)
+    passwordHistory = PasswordHistorySerializer(many=True, required=False)
 
 
 class FolderShareSerializer(serializers.Serializer):
