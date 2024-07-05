@@ -33,6 +33,7 @@ class CipherParser:
             folders=cipher_orm.get_folders(),
             favorites=cipher_orm.get_favorites(),
             view_password=view_password,
+            password_history=cipher_orm.get_password_history(),
             user=user_parser.parse_user(user_orm=cipher_orm.user) if cipher_orm.user else None,
             created_by=user_parser.parse_user(user_orm=cipher_orm.created_by) if cipher_orm.created_by else None,
             team=team_parser.parse_team(team_orm=cipher_orm.team) if cipher_orm.team else None,
@@ -46,15 +47,15 @@ class CipherParser:
                 pass
             cipher.collection_ids = collection_ids
 
-        if parse_histories is True:
-            try:
-                show_history = getattr(cipher_orm, "show_history")
-            except AttributeError:
-                show_history = True
-            if show_history is False:
-                cipher.history = []
-            else:
-                cipher.history = cls.parse_password_history(cipher_orm=cipher_orm, limit_history=limit_history)
+        # if parse_histories is True:
+        #     try:
+        #         show_history = getattr(cipher_orm, "show_history")
+        #     except AttributeError:
+        #         show_history = True
+        #     if show_history is False:
+        #         cipher.history = []
+        #     else:
+        #         cipher.history = cls.parse_password_history(cipher_orm=cipher_orm, limit_history=limit_history)
         return cipher
 
     @classmethod

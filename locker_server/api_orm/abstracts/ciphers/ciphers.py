@@ -20,6 +20,7 @@ class AbstractCipherORM(models.Model):
     data = models.TextField(blank=True, null=True)
     favorites = models.TextField(blank=True, null=True)
     folders = models.TextField(blank=True, null=True, default="")
+    password_history = models.TextField(blank=True, null=True, default="")
 
     user = models.ForeignKey(
         locker_server_settings.LS_USER_MODEL, on_delete=models.CASCADE, related_name="ciphers", null=True
@@ -60,3 +61,8 @@ class AbstractCipherORM(models.Model):
         folders[user_id] = folder_id
         self.folders = folders
         self.save()
+
+    def get_password_history(self):
+        if not self.password_history:
+            return []
+        return ast.literal_eval(str(self.password_history))

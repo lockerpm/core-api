@@ -1,3 +1,5 @@
+from typing import List
+
 from locker_server.core.entities.team.team import Team
 from locker_server.core.entities.user.user import User
 from locker_server.shared.constants.ciphers import CIPHER_TYPE_LOGIN
@@ -7,7 +9,8 @@ class Cipher(object):
     def __init__(self, cipher_id: str, creation_date: float = None, revision_date: float = None,
                  deleted_date: float = None, last_use_date: float = None, num_use: int = 0, reprompt: int = 0,
                  score: float = 0,  cipher_type: int = None, data=None, favorites: str = "", folders: str = "",
-                 view_password: bool = True, user: User = None, created_by: User = None, team: Team = None):
+                 view_password: bool = True, password_history: List = None,
+                 user: User = None, created_by: User = None, team: Team = None):
         self._cipher_id = cipher_id
         self._creation_date = creation_date
         self._revision_date = revision_date
@@ -21,6 +24,7 @@ class Cipher(object):
         self._favorites = favorites
         self._folders = folders
         self._view_password = view_password
+        self._password_history = password_history
         self._history = []
         self._collection_ids = []
         self._user = user
@@ -97,6 +101,14 @@ class Cipher(object):
     @view_password.setter
     def view_password(self, view_password_value):
         self._view_password = view_password_value
+
+    @property
+    def password_history(self):
+        return self._password_history or []
+
+    @password_history.setter
+    def password_history(self, password_history_value):
+        self._password_history = password_history_value
 
     @property
     def collection_ids(self):
