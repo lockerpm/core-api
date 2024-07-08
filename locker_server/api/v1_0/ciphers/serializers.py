@@ -155,7 +155,7 @@ class PasswordHistorySerializer(serializers.Serializer):
         if last_used_date:
             try:
                 last_used_date_ts = datetime.strptime(last_used_date, "%Y-%m-%dT%H:%M:%S.%fZ").timestamp()
-                data["last_used_date"] = last_used_date_ts
+                # data["last_used_date"] = last_used_date_ts
             except TypeError:
                 raise serializers.ValidationError(detail={"lastUsedDate": ["The last used date is not valid datetime"]})
         return data
