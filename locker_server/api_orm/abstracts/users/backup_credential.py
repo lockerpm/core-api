@@ -20,7 +20,7 @@ class AbstractBackupCredentialORM(models.Model):
     kdf = models.IntegerField(default=0)
     kdf_iterations = models.IntegerField(default=DEFAULT_KDF_ITERATIONS)
     # Passwordless config
-    fd_credential_id = models.CharField(max_length=255, null=True)
+    fd_credential_id = models.CharField(max_length=300, null=True)
     fd_random = models.CharField(max_length=128, null=True)
     fd_transports = models.CharField(max_length=255, blank=True, null=True, default=None)
 
