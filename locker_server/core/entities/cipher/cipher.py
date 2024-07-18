@@ -71,7 +71,7 @@ class Cipher(object):
     def data(self):
         d = self._data
         if self._cipher_type == CIPHER_TYPE_LOGIN:
-            d.update({"password_history": self.history})
+            d.update({"password_history": self.password_history})
         return d
 
     @property
