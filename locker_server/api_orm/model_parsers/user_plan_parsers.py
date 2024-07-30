@@ -37,6 +37,7 @@ class UserPlanParser:
             personal_share=plan_orm.personal_share,
             relay_premium=plan_orm.relay_premium,
             is_family_plan=plan_orm.is_family_plan,
+            is_team_plan=plan_orm.is_team_plan,
             max_number=plan_orm.max_number,
             team_dashboard=plan_orm.team_dashboard,
             team_policy=plan_orm.team_policy,
