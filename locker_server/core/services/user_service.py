@@ -6,6 +6,7 @@ from django.conf import settings
 
 from locker_server.core.entities.enterprise.enterprise import Enterprise
 from locker_server.core.entities.enterprise.member.enterprise_member import EnterpriseMember
+from locker_server.core.entities.enterprise.policy.policy import EnterprisePolicy
 from locker_server.core.entities.user.backup_credential import BackupCredential
 from locker_server.core.entities.user.device import Device
 from locker_server.core.entities.user.user import User
@@ -303,6 +304,13 @@ class UserService:
     def is_require_passwordless(self, user_id: int,
                                 require_enterprise_member_status: str = E_MEMBER_STATUS_CONFIRMED) -> bool:
         return self.user_repository.is_require_passwordless(
+            user_id=user_id, require_enterprise_member_status=require_enterprise_member_status
+        )
+
+    def is_require_masterpass_requirement(self, user_id: int,
+                                          require_enterprise_member_status: str = E_MEMBER_STATUS_CONFIRMED
+                                          ) -> Optional[EnterprisePolicy]:
+        return self.user_repository.is_require_masterpass_requirement(
             user_id=user_id, require_enterprise_member_status=require_enterprise_member_status
         )
 
