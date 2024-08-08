@@ -10,6 +10,7 @@ from rest_framework.response import Response
 
 from locker_server.api.api_base_view import APIBaseViewSet
 from locker_server.api.permissions.locker_permissions.user_pwd_permission import UserPwdPermission
+from locker_server.api.v1_0.sync.serializers import SyncEnterprisePolicySerializer
 from locker_server.core.exceptions.cipher_exception import FolderDoesNotExistException, CipherMaximumReachedException
 from locker_server.core.exceptions.collection_exception import CollectionDoesNotExistException, \
     CollectionCannotRemoveException, CollectionCannotAddException
@@ -244,19 +245,29 @@ class UserPwdViewSet(APIBaseViewSet):
                 user_id=user.user_id,
                 require_enterprise_member_status=None
             )
+            masterpass_requirement_policy = self.user_service.is_require_masterpass_requirement(
+                user_id=user.user_id,
+                require_enterprise_member_status=None
+            )
         else:
             require_passwordless = self.user_service.is_require_passwordless(
                 user_id=user.user_id,
             )
             require_2fa = self.user_service.is_require_2fa(
-                user_id=user
+                user_id=user.user_id
+            )
+            masterpass_requirement_policy = self.user_service.is_require_masterpass_requirement(
+                user_id=user.user_id,
             )
         return Response(status=status.HTTP_200_OK, data={
             "set_up_passwordless": True if user.fd_credential_id else False,
             "login_method": login_method,
             "is_factor2": user.is_factor2,
             "require_passwordless": require_passwordless,
-            "require_2fa": require_2fa
+            "require_2fa": require_2fa,
+            "master_password_requirement_policy": SyncEnterprisePolicySerializer(
+                masterpass_requirement_policy, many=False
+            ).data if masterpass_requirement_policy else None,
         })
 
     @action(methods=["get"], detail=False)

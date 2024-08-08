@@ -14,6 +14,7 @@ from locker_server.api_orm.models.wrapper import get_user_model, get_enterprise_
     get_event_model, get_cipher_model, get_device_access_token_model, get_team_model, get_team_member_model, \
     get_device_model
 from locker_server.api_orm.utils.revision_date import bump_account_revision_date
+from locker_server.core.entities.enterprise.policy.policy import EnterprisePolicy
 from locker_server.core.entities.user.user import User
 from locker_server.core.repositories.user_repository import UserRepository
 from locker_server.shared.caching.sync_cache import delete_sync_cache_data
@@ -23,7 +24,8 @@ from locker_server.shared.constants.device_type import *
 from locker_server.shared.constants.enterprise_members import *
 from locker_server.shared.constants.event import EVENT_USER_BLOCK_LOGIN
 from locker_server.shared.constants.members import MEMBER_ROLE_OWNER
-from locker_server.shared.constants.policy import POLICY_TYPE_PASSWORDLESS, POLICY_TYPE_2FA
+from locker_server.shared.constants.policy import POLICY_TYPE_PASSWORDLESS, POLICY_TYPE_2FA, \
+    POLICY_TYPE_MASTER_PASSWORD_REQUIREMENT
 from locker_server.shared.constants.transactions import *
 from locker_server.shared.external_services.requester.retry_requester import requester
 from locker_server.shared.log.cylog import CyLog
@@ -451,6 +453,29 @@ class UserORMRepository(UserRepository):
             if policy_orm:
                 e_passwordless_policy = policy_orm.policy_passwordless.only_allow_passwordless
         return e_passwordless_policy
+
+    def is_require_masterpass_requirement(self, user_id: int,
+                                          require_enterprise_member_status: str = E_MEMBER_STATUS_CONFIRMED
+                                          ) -> Optional[EnterprisePolicy]:
+        if require_enterprise_member_status:
+            e_member_orm = EnterpriseMemberORM.objects.filter(
+                user_id=user_id, status=require_enterprise_member_status, enterprise__locked=False
+            ).first()
+        else:
+            e_member_orm = EnterpriseMemberORM.objects.filter(
+                user_id=user_id, enterprise__locked=False
+            ).first()
+        masterpass_requirement_policy = None
+        if e_member_orm:
+            enterprise_orm = e_member_orm.enterprise
+            policy_orm = enterprise_orm.policies.filter(
+                policy_type=POLICY_TYPE_MASTER_PASSWORD_REQUIREMENT, enabled=True
+            ).first()
+            if policy_orm:
+                masterpass_requirement_policy = ModelParser.enterprise_parser().parse_enterprise_policy(
+                    enterprise_policy_orm=policy_orm
+                )
+        return masterpass_requirement_policy
 
     def is_require_2fa(self, user_id: int,
                        require_enterprise_member_status: str = E_MEMBER_STATUS_CONFIRMED) -> bool:
