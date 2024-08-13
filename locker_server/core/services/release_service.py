@@ -47,9 +47,9 @@ class ReleaseService:
             build_number=build_number
         )
 
-    def get_latest_release(self, client_id: str, environment: str, platform: str = None) -> Optional[Release]:
+    def get_latest_release(self, client_id: str, environment: str, platform: str = None, stable=None) -> Optional[Release]:
         latest_release = self.release_repository.get_latest_release(
-            client_id=client_id, environment=environment, platform=platform
+            client_id=client_id, environment=environment, platform=platform, stable=stable
         )
         return latest_release
 

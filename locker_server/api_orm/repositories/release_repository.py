@@ -40,10 +40,14 @@ class ReleaseORMRepository(ReleaseRepository):
             return None
         return ModelParser.release_parser().parse_release(release_orm=release_orm)
 
-    def get_latest_release(self, client_id: str, environment: str, platform: str = None) -> Optional[Release]:
+    def get_latest_release(self, client_id: str, environment: str, platform: str = None,
+                           stable=None) -> Optional[Release]:
         latest_release_orm = ReleaseORM.objects.filter(
             client_id=client_id, environment=environment, platform=platform
-        ).order_by('-id').first()
+        ).order_by('-id')
+        if stable is not None:
+            latest_release_orm = latest_release_orm.filter(stable=stable)
+        latest_release_orm = latest_release_orm.first()
         if not latest_release_orm:
             return None
         return ModelParser.release_parser().parse_release(release_orm=latest_release_orm)

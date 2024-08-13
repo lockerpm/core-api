@@ -130,9 +130,10 @@ class SharingService:
                     item_id = share_cipher.cipher_id
                     cipher_id = item_id
                     self.user_repository.delete_sync_cache_data(user_id=user.user_id)
-                    PwdSync(event=SYNC_EVENT_CIPHER_UPDATE, user_ids=[user.user_id]).send(
-                        data={"id": share_cipher.cipher_id}
-                    )
+                    if member_status == PM_MEMBER_STATUS_CONFIRMED:
+                        PwdSync(event=SYNC_EVENT_CIPHER_UPDATE, user_ids=[user.user_id]).send(
+                            data={"id": share_cipher.cipher_id}
+                        )
             # Else, share a folder
             else:
                 share_collection = self.sharing_repository.get_share_collection(sharing_id=sharing_id)
@@ -141,9 +142,10 @@ class SharingService:
                     item_id = share_collection.collection_id
                     folder_id = item_id
                     self.user_repository.delete_sync_cache_data(user_id=user.user_id)
-                    PwdSync(event=SYNC_EVENT_COLLECTION_UPDATE, user_ids=[user.user_id]).send(
-                        data={"id": share_collection.collection_id}
-                    )
+                    if member_status == PM_MEMBER_STATUS_CONFIRMED:
+                        PwdSync(event=SYNC_EVENT_COLLECTION_UPDATE, user_ids=[user.user_id]).send(
+                            data={"id": share_collection.collection_id}
+                        )
 
         # Reject this invitation
         else:
@@ -245,7 +247,7 @@ class SharingService:
         if not cipher:
             return None
         cipher_obj = self.cipher_repository.get_by_id(cipher_id=cipher.get("id"))
-        if not cipher:
+        if not cipher_obj:
             raise CipherDoesNotExistException
         # If the cipher isn't shared?
         if cipher_obj.user and cipher_obj.user.user_id != user.user_id:

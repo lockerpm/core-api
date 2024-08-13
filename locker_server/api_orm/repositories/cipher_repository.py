@@ -164,7 +164,8 @@ class CipherORMRepository(CipherRepository):
 
     def get_multiple_by_user(self, user_id: int, only_personal=False, only_managed_team=False,
                              only_edited=False, only_deleted=False,
-                             exclude_team_ids=None, filter_ids=None, exclude_types=None) -> List[Cipher]:
+                             exclude_team_ids=None, filter_ids=None, exclude_types=None,
+                             limit_history: int = None) -> List[Cipher]:
         """
         Get list ciphers of user
         :param user_id: (int) The user id
@@ -175,6 +176,7 @@ class CipherORMRepository(CipherRepository):
         :param exclude_team_ids: (list) Excluding all ciphers have team_id in this list
         :param filter_ids: (list) List filtered cipher ids
         :param exclude_types: (list) Excluding all ciphers have type in this list
+        :param limit_history: (int) Limit the number of item histories
         :return:
         """
 
@@ -184,7 +186,7 @@ class CipherORMRepository(CipherRepository):
             exclude_team_ids=exclude_team_ids, filter_ids=filter_ids, exclude_types=exclude_types
         ).prefetch_related('collections_ciphers').prefetch_related('cipher_histories')
         return [ModelParser.cipher_parser().parse_cipher(
-            cipher_orm=c, parse_collection_ids=True, parse_histories=True
+            cipher_orm=c, parse_collection_ids=True, parse_histories=True, limit_history=limit_history
         ) for c in ciphers_orm]
 
     def get_ciphers_created_by_user(self, user_id: int) -> List[Cipher]:
@@ -247,7 +249,7 @@ class CipherORMRepository(CipherRepository):
 
     def sync_and_statistic_ciphers(self, user_id: int, only_personal=False, only_managed_team=False,
                                    only_edited=False, only_deleted=False,
-                                   exclude_team_ids=None, filter_ids=None, exclude_types=None,
+                                   exclude_team_ids=None, filter_ids=None, exclude_types=None, limit_history=None,
                                    **ciphers_filter) -> Dict:
         ciphers_orm = self._get_multiple_ciphers_orm_by_user(
             user_id=user_id, only_personal=only_personal, only_managed_team=only_managed_team,
@@ -273,7 +275,7 @@ class CipherORMRepository(CipherRepository):
             },
             "ciphers": [
                 ModelParser.cipher_parser().parse_cipher(
-                    cipher_orm=c, parse_collection_ids=True, parse_histories=True
+                    cipher_orm=c, parse_collection_ids=True, parse_histories=True, limit_history=limit_history
                 ) for c in ciphers_orm
             ]
         }
@@ -527,24 +529,34 @@ class CipherORMRepository(CipherRepository):
             user_cipher_id = None
 
         # Create new cipher history
-        if cipher_orm.type in SAVE_HISTORY_CIPHER_TYPES:
-            new_data = cipher_data.get("data", cipher_orm.get_data())
-            if cipher_orm.type == CIPHER_TYPE_LOGIN and \
-                    cipher_orm.get_data().get("password") != new_data.get("password"):
-                history_data = {
-                    "last_use_date": cipher_orm.last_use_date or now(),
-                    "reprompt": cipher_orm.reprompt,
-                    "score": cipher_orm.score,
-                    "data": cipher_orm.data,
-                }
-                cipher_orm.cipher_histories.model.create(cipher_orm, **history_data)
-
+        # if cipher_orm.type in SAVE_HISTORY_CIPHER_TYPES:
+        #     password_history = cipher_data.get("password_history") or []
+        #     # limit_history = cipher_data.get("limit_history")
+        #     # if limit_history and len(password_history) > limit_history:
+        #     #     password_history = password_history[-limit_history:]
+        #     if cipher_orm.type == CIPHER_TYPE_LOGIN and len(password_history) > cipher_orm.cipher_histories.count():
+        #         num = len(password_history)-cipher_orm.cipher_histories.count()
+        #         password_histories_data = password_history[:num]
+        #         c_data = cipher_orm.get_data()
+        #         cipher_histories_data = []
+        #         for password_history_data in password_histories_data:
+        #             _cipher_data = c_data.copy()
+        #             _cipher_data.update({"password": password_history_data.get("password") or c_data.get("password")})
+        #             cipher_histories_data.append({
+        #                 "last_use_date": password_history_data.get("last_used_date") or cipher_orm.last_use_date or now(),
+        #                 "reprompt": cipher_orm.reprompt,
+        #                 "score": cipher_orm.score,
+        #                 "data": _cipher_data,
+        #                 "cipher_id": cipher_orm.id,
+        #             })
+        #         cipher_orm.cipher_histories.model.create_multiple(cipher_histories_data)
         # Create new cipher object
         cipher_orm.revision_date = now()
         cipher_orm.reprompt = cipher_data.get("reprompt", cipher_orm.reprompt) or 0
         cipher_orm.score = cipher_data.get("score", cipher_orm.score)
         cipher_orm.type = cipher_data.get("type", cipher_orm.type)
         cipher_orm.data = cipher_data.get("data", cipher_orm.get_data())
+        cipher_orm.password_history = cipher_data.get("password_history", cipher_orm.get_password_history())
         cipher_orm.user_id = user_cipher_id
         cipher_orm.team_id = team_id
         cipher_orm.save()
@@ -574,7 +586,9 @@ class CipherORMRepository(CipherRepository):
         })
         bump_account_revision_date(user=cipher_orm.user)
 
-        return ModelParser.cipher_parser().parse_cipher(cipher_orm=cipher_orm, parse_histories=True)
+        return ModelParser.cipher_parser().parse_cipher(
+            cipher_orm=cipher_orm, parse_histories=True,
+        )
 
     def update_folders(self, cipher_id: str, new_folders_data) -> Cipher:
         cipher_orm = self._get_cipher_orm(cipher_id=cipher_id)

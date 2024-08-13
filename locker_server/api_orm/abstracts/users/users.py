@@ -40,7 +40,7 @@ class AbstractUserORM(models.Model):
 
     # Passwordless config
     login_method = models.CharField(max_length=32, default=LOGIN_METHOD_PASSWORD)
-    fd_credential_id = models.CharField(max_length=255, null=True)
+    fd_credential_id = models.CharField(max_length=300, null=True)
     fd_random = models.CharField(max_length=128, null=True)
     fd_transports = models.CharField(max_length=255, blank=True, null=True, default=None)
     fd_name = models.CharField(null=True, max_length=255, default=None)
