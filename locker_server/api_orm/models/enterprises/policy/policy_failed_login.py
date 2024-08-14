@@ -21,9 +21,9 @@ class PolicyFailedLoginORM(models.Model):
     def create(cls, policy, **kwargs):
         new_policy_failed_login = cls(
             policy=policy,
-            failed_login_attempts=kwargs.get("failed_login_attempts", 1),
-            failed_login_duration=kwargs.get("failed_login_duration", 1),
-            failed_login_block_time=kwargs.get("failed_login_block_time", 1),
+            failed_login_attempts=kwargs.get("failed_login_attempts", None),
+            failed_login_duration=kwargs.get("failed_login_duration", 600),
+            failed_login_block_time=kwargs.get("failed_login_block_time", 900),
             failed_login_owner_email=kwargs.get("failed_login_owner_email", False),
         )
         new_policy_failed_login.save()
