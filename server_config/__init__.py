@@ -1,5 +1,5 @@
 import django.db.backends.utils
-from django.db import OperationalError
+from django.db import OperationalError, connection
 import time
 
 import logging.config
@@ -17,7 +17,8 @@ def execute_wrapper(*args, **kwargs):
             if attempts == 2 or code != 1213:
                 raise e
             attempts += 1
-
+            # Close the current connection
+            connection.close()
             from locker_server.shared.log.config import logging_config
 
             logging.config.dictConfig(logging_config)
