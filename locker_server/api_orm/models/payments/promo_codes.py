@@ -4,7 +4,7 @@ from locker_server.api_orm.abstracts.payments.promo_codes import AbstractPromoCo
 from locker_server.api_orm.models.payments.saas_market import SaasMarketORM
 from locker_server.settings import locker_server_settings
 from locker_server.shared.constants.transactions import PLAN_TYPE_PM_LIFETIME, PROMO_AMOUNT, PROMO_PERCENTAGE, \
-    DURATION_MONTHLY
+    DURATION_MONTHLY, PLAN_TYPE_PM_FREE
 from locker_server.shared.utils.app import now
 
 
@@ -84,6 +84,15 @@ class PromoCodeORM(AbstractPromoCodeORM):
                 return False
             if promo_code.only_plan and new_plan and new_plan not in list(promo_code.only_plan.split(",")):
                 return False
+            # Check specific prefix: Only allow free user or the first subscriber
+            if promo_code.code.startswith("FP-") and current_user:
+                try:
+                    current_plan_alias = current_user.pm_user_plan.pm_plan.alias
+                except (ValueError, AttributeError):
+                    current_plan_alias = PLAN_TYPE_PM_FREE
+                if current_plan_alias != PLAN_TYPE_PM_FREE and \
+                        current_user.payments.filter(total_price__gt=0).count() == 0:
+                    return False
             return promo_code
         except cls.DoesNotExist:
             return False
