@@ -91,7 +91,7 @@ class PromoCodeORM(AbstractPromoCodeORM):
                 except (ValueError, AttributeError):
                     current_plan_alias = PLAN_TYPE_PM_FREE
                 if current_plan_alias != PLAN_TYPE_PM_FREE and \
-                        current_user.payments.filter(total_price__gt=0).count() == 0:
+                        current_user.payments.filter(total_price__gt=0).count() > 0:
                     return False
             return promo_code
         except cls.DoesNotExist:
