@@ -41,6 +41,7 @@ urlpatterns += [
 # ----------------------------------- Users ----------------------------- #
 urlpatterns += [
     url(r'^users/me$', views.UserPwdViewSet.as_view({'get': 'me', 'put': 'me'})),
+    url(r'^users/me/prelogin$', views.UserPwdViewSet.as_view({'get': 'prelogin_me'})),
     url(r'^users/me/revision_date$', views.UserPwdViewSet.as_view({'get': 'revision_date'})),
     url(r'^users/me/onboarding_process$',
         views.UserPwdViewSet.as_view({'get': 'onboarding_process', 'put': 'onboarding_process'})),
