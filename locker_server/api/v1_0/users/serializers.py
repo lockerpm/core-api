@@ -91,7 +91,7 @@ class UserRegisterSerializer(serializers.Serializer):
         kdf_type = data.get("kdf_type", 0)
         if not KDF_TYPE.get(kdf_type):
             raise serializers.ValidationError(detail={"kdf": ["This KDF Type is not valid"]})
-        kdf_iterations = data.get("kdf_iterations", 100000)
+        kdf_iterations = data.get("kdf_iterations", DEFAULT_KDF_ITERATIONS)
         if kdf_iterations < 5000 or kdf_iterations > 1000000:
             raise serializers.ValidationError(detail={
                 "kdf_iterations": ["KDF iterations must be between 5000 and 1000000"]

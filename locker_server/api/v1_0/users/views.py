@@ -156,7 +156,7 @@ class UserPwdViewSet(APIBaseViewSet):
                 **{
                     "full_name": validated_data.get("full_name") or validated_data.get("email"),
                     "kdf": validated_data.get("kdf", 0),
-                    "kdf_iterations": validated_data.get("kdf_iterations", 100000),
+                    "kdf_iterations": validated_data.get("kdf_iterations", DEFAULT_KDF_ITERATIONS),
                     "master_password_hint": validated_data.get("master_password_hint", ""),
                     "score": validated_data.get("score", 0),
                     "trial_plan": validated_data.get("trial_plan"),
@@ -889,11 +889,40 @@ class UserPwdViewSet(APIBaseViewSet):
                     "default_plan": default_plan.pm_plan.alias,
                     "is_password_changed": user.is_password_changed,
                     "require_2fa": require_2fa,
-                    "is_factor2": user.is_factor2
+                    "is_factor2": user.is_factor2,
+                    "kdf": user.kdf,
+                    "kdf_iterations": user.kdf_iterations,
                 }
             )
         except UserDoesNotExistException:
             raise ValidationError(detail={"email": ["User with email does not exist"]})
+
+    @action(methods=["get"], detail=False)
+    def prelogin_me(self, request, *args, **kwargs):
+        user = self.request.user
+        require_enterprise_member_status = None if settings.SELF_HOSTED else E_MEMBER_STATUS_CONFIRMED
+        require_passwordless = self.user_service.is_require_passwordless(
+            user_id=user.user_id, require_enterprise_member_status=require_enterprise_member_status
+        )
+        require_2fa = self.user_service.is_require_2fa(
+            user_id=user.user_id, require_enterprise_member_status=require_enterprise_member_status
+        )
+        return Response(
+            status=status.HTTP_200_OK,
+            data={
+                "activated": user.activated,
+                "sync_all_platforms": user.sync_all_platforms,
+                "set_up_passwordless": True if user.fd_credential_id else False,
+                "login_method": user.login_method,
+                "require_passwordless": require_passwordless,
+                "is_password_changed": user.is_password_changed,
+                "require_2fa": require_2fa,
+                "is_factor2": user.is_factor2,
+                "kdf": user.kdf,
+                "kdf_iterations": user.kdf_iterations,
+            }
+        )
+
 
     @action(methods=["post"], detail=False)
     def reset_password(self, request, *args, **kwargs):
