@@ -860,7 +860,7 @@ class UserORMRepository(UserRepository):
         return ModelParser.user_parser().parse_user(user_orm=user_orm)
 
     def change_master_password(self, user: User, new_master_password_hash: str, new_master_password_hint: str = None,
-                               key: str = None, score=None, login_method: str = None):
+                               key: str = None, score=None, login_method: str = None, kdf_iterations=None):
         try:
             user_orm = UserORM.objects.get(user_id=user.user_id)
         except UserORM.DoesNotExist:
@@ -874,6 +874,8 @@ class UserORMRepository(UserRepository):
             user_orm.master_password_score = score
         if login_method:
             user_orm.login_method = login_method
+        if kdf_iterations is not None:
+            user_orm.kdf_iterations = kdf_iterations
         user_orm.save()
 
     def update_user_factor2(self, user_id: int, is_factor2: bool) -> Optional[User]:

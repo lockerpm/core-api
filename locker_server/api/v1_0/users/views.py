@@ -526,6 +526,7 @@ class UserPwdViewSet(APIBaseViewSet):
         key = validated_data.get("key")
         score = validated_data.get("score", user.master_password_score)
         login_method = validated_data.get("login_method", user.login_method)
+        kdf_iterations = validated_data.get("kdf_iterations")
 
         try:
             sso_token_id = self.get_sso_token_id()
@@ -539,7 +540,8 @@ class UserPwdViewSet(APIBaseViewSet):
                 new_master_password_hint=new_master_password_hint,
                 score=score, login_method=login_method,
                 current_sso_token_id=sso_token_id,
-                require_enterprise_member_status=require_enterprise_member_status
+                kdf_iterations=kdf_iterations,
+                require_enterprise_member_status=require_enterprise_member_status,
             )
         except UserAuthFailedPasswordlessRequiredException:
             raise ValidationError(detail={"login_method": ["Your enterprise requires passwordless method"]})

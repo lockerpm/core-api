@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from locker_server.shared.constants.account import LOGIN_METHOD_PASSWORD, LOGIN_METHOD_PASSWORDLESS
+from locker_server.shared.constants.account import LOGIN_METHOD_PASSWORD, LOGIN_METHOD_PASSWORDLESS, \
+    DEFAULT_KDF_ITERATIONS
 from locker_server.shared.constants.ciphers import KDF_TYPE
 from locker_server.shared.constants.device_type import LIST_CLIENT_ID, LIST_DEVICE_TYPE
 from locker_server.shared.constants.factor2 import LIST_FA2_METHOD
@@ -23,6 +24,8 @@ class UserMeSerializer(serializers.Serializer):
             "login_method": instance.login_method,
             "avatar": instance.get_avatar(),
             "is_super_admin": instance.is_super_admin,
+            "kdf": instance.kdf,
+            "kdf_iterations": instance.kdf_iterations,
         }
         show_key_param = self.context["request"].query_params.get("show_key", "0")
         if show_key_param == "1":
@@ -71,7 +74,7 @@ class UserRegisterSerializer(serializers.Serializer):
     email = serializers.EmailField(max_length=255)
     full_name = serializers.CharField(max_length=255, required=False, allow_blank=True)
     kdf = serializers.IntegerField(default=0)
-    kdf_iterations = serializers.IntegerField(default=100000)
+    kdf_iterations = serializers.IntegerField(default=DEFAULT_KDF_ITERATIONS)
     key = serializers.CharField()
     keys = EncryptedPairKey(many=False)
     master_password_hash = serializers.CharField(allow_blank=False)
@@ -142,6 +145,16 @@ class UserChangePasswordSerializer(serializers.Serializer):
     new_master_password_hint = serializers.CharField(allow_blank=True, max_length=128, required=False)
     score = serializers.FloatField(required=False, allow_null=True)
     login_method = serializers.ChoiceField(choices=[LOGIN_METHOD_PASSWORD, LOGIN_METHOD_PASSWORDLESS], required=False)
+    kdf_iterations = serializers.IntegerField(required=False)
+
+    def validate(self, data):
+        kdf_iterations = data.get("kdf_iterations")
+        if kdf_iterations and (kdf_iterations < 5000 or kdf_iterations > 1000000):
+            raise serializers.ValidationError(detail={
+                "kdf_iterations": ["KDF iterations must be between 5000 and 1000000"]
+            })
+
+        return data
 
 
 class UserNewPasswordSerializer(serializers.Serializer):
