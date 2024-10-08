@@ -684,7 +684,7 @@ class UserPlanORMRepository(UserPlanRepository):
             family_invitations_orm.update(user=user_orm, email=None)
         return user
 
-    def update_user_plan_by_id(self, user_plan_id: str, user_plan_update_data) -> Optional[PMUserPlan]:
+    def update_user_plan_by_id(self, user_plan_id: int, user_plan_update_data) -> Optional[PMUserPlan]:
         try:
             user_plan_orm = PMUserPlanORM.objects.get(user_id=user_plan_id)
         except PMUserPlanORM.DoesNotExist:

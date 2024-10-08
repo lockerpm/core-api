@@ -115,7 +115,7 @@ class UserPlanRepository(ABC):
         pass
 
     @abstractmethod
-    def update_user_plan_by_id(self, user_plan_id: str, user_plan_update_data) -> Optional[PMUserPlan]:
+    def update_user_plan_by_id(self, user_plan_id: int, user_plan_update_data) -> Optional[PMUserPlan]:
         pass
 
     # ------------------------ Delete PMUserPlan resource --------------------- #
