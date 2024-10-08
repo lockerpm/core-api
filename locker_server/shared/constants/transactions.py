@@ -26,7 +26,8 @@ LIST_CURRENCY = [CURRENCY_VND, CURRENCY_USD]
 
 # ------------------- Transaction type ------------------------------ #
 TRANSACTION_TYPE_PAYMENT = "Payment"
-TRANSACTION_TYPE_REFUND: str = "Refund"
+TRANSACTION_TYPE_REFUND = "Refund"
+TRANSACTION_TYPE_TRIAL = "Trial"
 
 # ------------------- Payment method -------------------------------- #
 PAYMENT_METHOD_CARD = "card"
@@ -34,7 +35,6 @@ PAYMENT_METHOD_BANKING = "banking"
 PAYMENT_METHOD_WALLET = "wallet"
 PAYMENT_METHOD_MOBILE = "mobile"
 
-LIST_PAYMENT_METHOD = [PAYMENT_METHOD_CARD]
 
 # ------------------- Payment status -------------------------------- #
 PAYMENT_STATUS_FAILED = "failed"  # Failed

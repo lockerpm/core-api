@@ -32,7 +32,7 @@ class UpgradePlanSerializer(serializers.Serializer):
     promo_code = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     duration = serializers.ChoiceField(choices=LIST_DURATION, default=DURATION_MONTHLY, required=False)
     number_members = serializers.IntegerField(min_value=1, default=1)
-    payment_method = serializers.ChoiceField(choices=LIST_PAYMENT_METHOD, default=PAYMENT_METHOD_CARD)
+    payment_method = serializers.ChoiceField(choices=[PAYMENT_METHOD_CARD], default=PAYMENT_METHOD_CARD)
     bank_id = serializers.IntegerField(required=False)
     # Metadata for family plan
     family_members = FamilyMemberSerializer(many=True, required=False)
