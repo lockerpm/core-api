@@ -116,8 +116,8 @@ class RelayAddressViewSet(APIBaseViewSet):
             raise ValidationError(detail={"address": ["This address exists", "Địa chỉ đã tồn tại"]})
         except RelayAddressInvalidException:
             raise ValidationError(detail={"address": [
-                "This address is not valid (has black words, blocked words, etc...)",
-                "Địa chỉ này có chứa từ khóa không hợp lệ"
+                "This address is not valid (black words, blocked words, used by other user,...)",
+                "Địa chỉ này không hợp lệ (từ khóa cấm, đã sử dụng bởi user khác)"
             ]})
         except RelayAddressDoesNotExistException:
             raise NotFound

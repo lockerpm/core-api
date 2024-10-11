@@ -93,8 +93,13 @@ class RelayAddressService:
     def update_relay_address(self, user_id: int, relay_address: RelayAddress,
                              relay_address_update_data: dict, allow_relay_premium=False) -> Optional[RelayAddress]:
         address = relay_address_update_data.get("address") or relay_address.address
+        old_address = relay_address.address
+        if relay_address.subdomain:
+            full_domain = f"{relay_address.subdomain.subdomain}.{relay_address.domain.relay_domain_id}"
+        else:
+            full_domain = relay_address.domain.relay_domain_id
 
-        if address != relay_address.address:
+        if address != old_address:
             # Only allow update the first address
             oldest_relay_address = self.relay_address_repository.get_oldest_user_relay_address(user_id=user_id)
             if not oldest_relay_address or oldest_relay_address.relay_address_id != relay_address.relay_address_id:
@@ -118,6 +123,16 @@ class RelayAddressService:
         )
         if not relay_address:
             raise RelayAddressDoesNotExistException
+        if address != old_address:
+            self.deleted_relay_address_repository.create_deleted_relay_address(
+                deleted_relay_address_create_data={
+                    "address_hash": RelayAddress.hash_address(address=old_address, domain=full_domain),
+                    "num_forwarded": relay_address.num_forwarded,
+                    "num_blocked": relay_address.num_blocked,
+                    "num_replied": relay_address.num_replied,
+                    "num_spam": relay_address.num_spam,
+                }
+            )
         return relay_address
 
     def delete_relay_address(self, relay_address: RelayAddress) -> bool:
