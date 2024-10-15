@@ -112,7 +112,7 @@ def extract_root_domain(domain: str) -> str:
 def extract_full_domain(domain: str) -> str:
     extracted = tldextract.extract(domain)
     full_domain = "{}.{}".format(extracted.domain, extracted.suffix)
-    if extracted.subdomain is not None:
+    if extracted.subdomain:
         full_domain = "{}.{}".format(extracted.subdomain, full_domain)
     return full_domain
 
