@@ -36,7 +36,7 @@ class TeamMemberORMRepository(TeamMemberRepository):
             return None
 
     @staticmethod
-    def _get_team_member_orm(team_member_id: int) -> Optional[TeamMemberORM]:
+    def _get_team_member_orm(team_member_id: str) -> Optional[TeamMemberORM]:
         try:
             team_member_orm = TeamMemberORM.objects.get(id=team_member_id)
             return team_member_orm
@@ -112,7 +112,7 @@ class TeamMemberORMRepository(TeamMemberRepository):
         return team_ids
 
     # ------------------------ Get TeamMember resource --------------------- #
-    def get_team_member_by_id(self, team_member_id: int) -> Optional[TeamMember]:
+    def get_team_member_by_id(self, team_member_id: str) -> Optional[TeamMember]:
         team_member_orm = self._get_team_member_orm(team_member_id=team_member_id)
         if not team_member_orm:
             return None

@@ -772,7 +772,9 @@ class SharingService:
         member = None
         if member_id:
             member = self.team_member_repository.get_team_member_by_id(team_member_id=member_id)
-            if not member or member.user.user_id == user.user_id or member.team.team_id != sharing_id:
+            if not member:
+                raise TeamMemberDoesNotExistException
+            if (member.user and member.user.user_id == user.user_id) or member.team.team_id != sharing_id:
                 raise TeamMemberDoesNotExistException
 
         shared_team = group.team if group else member.team

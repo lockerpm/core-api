@@ -490,7 +490,9 @@ class SharingORMRepository(SharingRepository):
 
             # Filter list members have only one group. Then delete them
             deleted_members = team_members_orm.filter(group_count=1)
-            deleted_members_user_ids = list(deleted_members.values_list('user_id', flat=True))
+            deleted_members_user_ids = list(
+                deleted_members.filter(user__isnull=False).values_list('user_id', flat=True)
+            )
             deleted_members.delete()
             # Filter list members have other groups => Set role_id by other groups
             first_group_subquery = GroupMemberORM.objects.exclude(group_id=group_orm.id).filter(
@@ -510,7 +512,7 @@ class SharingORMRepository(SharingRepository):
             member_orm = self._get_team_member_orm(team_member_id=member.team_member_id)
             group_member_orm = member_orm.groups_members.all().order_by('group__creation_date').first()
             if not group_member_orm:
-                deleted_members_user_ids = [member_orm.user_id]
+                deleted_members_user_ids = [member_orm.user_id] if member_orm.user_id else []
                 member_orm.delete()
             else:
                 member_orm.is_added_by_group = True
