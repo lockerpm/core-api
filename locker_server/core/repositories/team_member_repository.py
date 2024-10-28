@@ -41,7 +41,7 @@ class TeamMemberRepository(ABC):
 
     # ------------------------ Get TeamMember resource --------------------- #
     @abstractmethod
-    def get_team_member_by_id(self, team_member_id: int) -> Optional[TeamMember]:
+    def get_team_member_by_id(self, team_member_id: str) -> Optional[TeamMember]:
         pass
 
     @abstractmethod
