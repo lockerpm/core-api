@@ -9,7 +9,6 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 
-
 from locker_server.api.api_base_view import APIBaseViewSet
 from locker_server.shared.background.i_background import BackgroundThread
 from locker_server.shared.log.cylog import CyLog
@@ -56,6 +55,17 @@ class ManagementCommandPwdViewSet(APIBaseViewSet):
             raise ValidationError(detail={"err": e.__str__()})
         return Response(status=200, data={"id": command_name})
 
+    def update_autofill_key(self, key: str, values):
+        self.resource_service.update_autofill_key(key, values=values)
+        return {
+            "success": True
+        }
+
+    def delete_autofill_key(self, key):
+        self.resource_service.delete_autofill_key(key)
+        return {
+            "success": True
+        }
     # def set_user_plan(self, user_id, start_period, end_period, cancel_at_period_end, default_payment_method, plan_id,
     #                   pm_mobile_subscription):
     #     user = self.user_repository.retrieve_or_create_by_id(user_id=user_id)

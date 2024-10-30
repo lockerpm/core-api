@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from locker_server.api.v1_0.resources.views import ResourcePwdViewSet as ResourceV1PwdViewSet
 from locker_server.settings import locker_server_settings
 from locker_server.shared.constants.transactions import PLAN_TYPE_PM_ENTERPRISE
-from .serializers import CountrySerializer, IndividualPlanSerializer
+from .serializers import CountrySerializer, IndividualPlanSerializer, AutofillKeySerializer
 
 
 class ResourcePwdViewSet(ResourceV1PwdViewSet):
@@ -18,6 +18,8 @@ class ResourcePwdViewSet(ResourceV1PwdViewSet):
             self.serializer_class = CountrySerializer
         elif self.action == "list_individual_plans":
             self.serializer_class = IndividualPlanSerializer
+        elif self.action in ['get_autofill_key', 'list_autofill_key']:
+            self.serializer_class = AutofillKeySerializer
         return super(ResourcePwdViewSet, self).get_serializer_class()
 
     @action(methods=["get"], detail=False)
@@ -140,3 +142,16 @@ class ResourcePwdViewSet(ResourceV1PwdViewSet):
             }
         ]
         return Response(status=status.HTTP_200_OK, data=user_statuses)
+
+    @action(methods=['get'], detail=False)
+    def list_autofill_key(self, request, *args, **kwargs):
+        autofill_keys = self.resource_service.list_autofill_key()
+        serializer = self.get_serializer(autofill_keys, many=True)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+    @action(methods=['get'], detail=False)
+    def get_autofill_key(self, request, *args, **kwargs):
+        key = self.kwargs.get('key')
+        autofill_key = self.resource_service.get_autofill_by_key(key=key)
+        serializer = self.get_serializer(autofill_key, many=False)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)

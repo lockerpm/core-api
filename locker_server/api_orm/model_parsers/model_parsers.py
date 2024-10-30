@@ -1,3 +1,4 @@
+from .extension_parser import ExtensionParser
 from .factor2_parsers import Factor2Parser
 from .sso_configuration_parsers import SSOConfigurationParser
 from .user_parsers import UserParser
@@ -89,3 +90,7 @@ class ModelParser:
     @classmethod
     def sso_configuration_parser(cls):
         return SSOConfigurationParser
+
+    @classmethod
+    def extension_parser(cls):
+        return ExtensionParser

@@ -69,3 +69,4 @@ class RepositoryFactory(containers.DeclarativeContainer):
 
     sso_configuration_repository = providers.Factory(SSOConfigurationORMRepository)
     app_info_repository = providers.Factory(AppInfoORMRepository)
+    autofill_key_repository = providers.Factory(AutofillKeyORMRepository)
