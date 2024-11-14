@@ -7,7 +7,7 @@ from locker_server.shared.external_services.payment_method.payment_method import
 
 class PaymentMethodFactory:
     @classmethod
-    def get_method(cls, user_plan: object, scope: str, payment_method: str) -> PaymentMethod:
+    def get_method(cls, user_plan, scope: str, payment_method: str) -> PaymentMethod:
         if payment_method == PAYMENT_METHOD_CARD:
             return StripePaymentMethod(user_plan=user_plan, scope=scope)
         elif payment_method == PAYMENT_METHOD_WALLET:
