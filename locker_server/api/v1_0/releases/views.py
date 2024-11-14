@@ -150,10 +150,19 @@ class ReleasePwdViewSet(APIBaseViewSet):
         client_id = self.request.query_params.get("client_id", CLIENT_ID_DESKTOP)
         environment = self.request.query_params.get("environment", RELEASE_ENVIRONMENT_PROD)
         platform = self.request.query_params.get("platform", None)
+        stable = self.request.query_params.get("stable", None)
+        if client_id in [CLIENT_ID_DESKTOP]:
+            stable = self.request.query_params.get("stable", "1")
+        if stable is not None:
+            if stable in ["1", "true"]:
+                stable = True
+            elif stable in ["0", "false"]:
+                stable = False
         latest_release = self.release_service.get_latest_release(
             client_id=client_id,
             environment=environment,
-            platform=platform
+            platform=platform,
+            stable=stable
         )
 
         if not latest_release:
