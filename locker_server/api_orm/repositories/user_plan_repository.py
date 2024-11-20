@@ -23,6 +23,7 @@ from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_PRIM
     E_MEMBER_ROLE_MEMBER, E_MEMBER_ROLE_ADMIN
 from locker_server.shared.constants.transactions import *
 from locker_server.shared.external_services.payment_method.payment_method_factory import PaymentMethodFactory
+from locker_server.shared.external_services.pm_sync import PwdSync, SYNC_EVENT_PLAN_UPDATE
 from locker_server.shared.log.cylog import CyLog
 from locker_server.shared.utils.app import now
 
@@ -559,6 +560,7 @@ class UserPlanORMRepository(UserPlanRepository):
             end_period = None
 
         user_plan_orm = self._get_current_plan_orm(user_id=user_id)
+        old_plan_alias = user_plan_orm.pm_plan.alias
         user_orm = user_plan_orm.user
         user_plan_orm.pm_plan = PMPlanORM.objects.get(alias=plan_type_alias)
         user_plan_orm.duration = duration
@@ -616,7 +618,13 @@ class UserPlanORMRepository(UserPlanRepository):
                 primary_sharing_owner_orm.team.lock_pm_team(lock=False)
 
         user_plan_orm.save()
-
+        new_plan_alias = user_plan_orm.pm_plan.alias
+        if old_plan_alias != new_plan_alias:
+            # TODO: send websocket event
+            PwdSync(
+                event=SYNC_EVENT_PLAN_UPDATE,
+                user_ids=[user_plan_orm.user.user_id],
+            ).send(data={"old_plan": old_plan_alias, "new_plan": new_plan_alias})
         # Update plan rule here
         # If the plan is team plan => Create Enterprise
         plan_orm = user_plan_orm.pm_plan
