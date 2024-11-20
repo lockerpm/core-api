@@ -123,10 +123,11 @@ class QuickShareService:
 
         # Return data - Update access count
         quick_share = self.quick_share_repository.update_access_count(quick_share_id=quick_share.quick_share_id)
-        self.user_repository.delete_sync_cache_data(user_id=quick_share.cipher.created_by.user_id)
-        PwdSync(event=SYNC_QUICK_SHARE, user_ids=[quick_share.cipher.created_by.user_id]).send(
-            data={"id": str(quick_share.quick_share_id)}
-        )
+        if quick_share.cipher.created_by:
+            self.user_repository.delete_sync_cache_data(user_id=quick_share.cipher.created_by.user_id)
+            PwdSync(event=SYNC_QUICK_SHARE, user_ids=[quick_share.cipher.created_by.user_id]).send(
+                data={"id": str(quick_share.quick_share_id)}
+            )
         return quick_share
 
     def set_email_otp(self, quick_share: QuickShare, email: str) -> QuickShare:
