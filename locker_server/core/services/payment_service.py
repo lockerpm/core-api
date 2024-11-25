@@ -420,6 +420,9 @@ class PaymentService:
             user=current_plan.user
         )
         immediate_payment = calc_payment.get("immediate_payment")
+        discount = calc_payment.get("discount")
+        if discount > 0:
+            plan_metadata.update({"discount_amount": discount})
         # Start payment here
         payment = PaymentMethodFactory.get_method(
             user_plan=current_plan, scope=scope, payment_method=PAYMENT_METHOD_CARD

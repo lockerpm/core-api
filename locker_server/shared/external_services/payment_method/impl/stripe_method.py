@@ -315,7 +315,9 @@ class StripePaymentMethod(PaymentMethod):
 
         new_payment = payment_service.update_payment(payment=new_payment, update_data={
             "stripe_invoice_id": stripe_invoice_id,
-            "status": PAYMENT_STATUS_PAID
+            "status": PAYMENT_STATUS_PAID,
+            "total_price": amount,
+            "discount": kwargs.get("discount_amount", new_payment.discount),
         })
         return {
             "success": True,
