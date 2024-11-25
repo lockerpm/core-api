@@ -3,8 +3,7 @@ from django.db import models
 from locker_server.api_orm.abstracts.payments.promo_codes import AbstractPromoCodeORM
 from locker_server.api_orm.models.payments.saas_market import SaasMarketORM
 from locker_server.settings import locker_server_settings
-from locker_server.shared.constants.transactions import PLAN_TYPE_PM_LIFETIME, PROMO_AMOUNT, PROMO_PERCENTAGE, \
-    DURATION_MONTHLY, PLAN_TYPE_PM_FREE
+from locker_server.shared.constants.transactions import *
 from locker_server.shared.utils.app import now
 
 
@@ -76,7 +75,10 @@ class PromoCodeORM(AbstractPromoCodeORM):
             if promo_code.expired_time < now() or promo_code.remaining_times <= 0 or promo_code.is_saas_code:
                 return False
             if current_user is not None:
-                if current_user.payments.filter(promo_code=promo_code).count() > 0:
+                if current_user.payments.filter(
+                    promo_code=promo_code,
+                    status__in=[PAYMENT_STATUS_PAID, PAYMENT_STATUS_PROCESSING, PAYMENT_STATUS_PENDING]
+                ).count() > 0:
                     return False
                 if promo_code.only_user_id and promo_code.only_user_id != current_user.user_id:
                     return False
@@ -104,7 +106,10 @@ class PromoCodeORM(AbstractPromoCodeORM):
             # If promo code was expired or promo code was used by this user?
             if promo_code.expired_time < now() or promo_code.remaining_times <= 0 or promo_code.is_saas_code is False:
                 return False
-            if current_user is not None and current_user.payments.filter(promo_code=promo_code).count() > 0:
+            if current_user is not None and current_user.payments.filter(
+                promo_code=promo_code,
+                status__in=[PAYMENT_STATUS_PAID, PAYMENT_STATUS_PROCESSING, PAYMENT_STATUS_PENDING]
+            ).count() > 0:
                 return False
             return promo_code
         except cls.DoesNotExist:
