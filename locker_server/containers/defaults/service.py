@@ -22,6 +22,7 @@ class ServiceFactory(containers.DeclarativeContainer):
         country_repository=RepositoryFactory.country_repository,
         mail_provider_repository=RepositoryFactory.mail_provider_repository,
         payment_repository=RepositoryFactory.payment_repository,
+        autofill_key_repository=RepositoryFactory.autofill_key_repository
     )
 
     user_service = providers.Factory(

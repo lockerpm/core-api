@@ -19,3 +19,12 @@ class IndividualPlanSerializer(serializers.Serializer):
             "alias": instance.alias,
         }
         return data
+
+
+class AutofillKeySerializer(serializers.Serializer):
+    def to_representation(self, instance):
+        data = {
+            "key": instance.key,
+            "values": instance.values
+        }
+        return data
