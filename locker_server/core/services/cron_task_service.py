@@ -486,3 +486,6 @@ class CronTaskService:
 
     def update_stripe_invoices(self):
         self.payment_repository.update_stripe_invoices()
+
+    def send_payment_click(self):
+        self.payment_repository.send_payment_click()

@@ -114,4 +114,9 @@ class PaymentRepository(ABC):
     @abstractmethod
     def update_stripe_invoices(self):
         pass
+
+    @abstractmethod
+    def send_payment_click(self):
+        pass
+
     # ------------------------ Delete Payment resource --------------------- #
