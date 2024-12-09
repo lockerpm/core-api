@@ -38,6 +38,7 @@ class AbstractPaymentORM(models.Model):
         locker_server_settings.LS_PROMO_CODE_MODEL, on_delete=models.SET_NULL, related_name="payments",
         null=True, default=None
     )
+    click_uuid = models.CharField(max_length=128, db_index=True, null=True)
 
     net_price = models.FloatField(default=0)
     channel = models.CharField(max_length=128, null=True, default=PAYMENT_CHANNEL_ORGANIC)

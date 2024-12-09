@@ -363,7 +363,10 @@ class PaymentPwdViewSet(APIBaseViewSet):
                 user_id=user.user_id, card=card,
                 promo_code=validated_data.get("promo_code"),
                 plan_alias=validated_data.get("plan_alias") or PLAN_TYPE_PM_LIFETIME,
-                scope=settings.SCOPE_PWD_MANAGER
+                scope=settings.SCOPE_PWD_MANAGER,
+                **{
+                    "click_uuid": validated_data.get("click_uuid")
+                }
             )
         except EnterpriseMemberExistedException:
             raise ValidationError(detail={"non_field_errors": [gen_error("7015")]})
@@ -486,6 +489,7 @@ class PaymentPwdViewSet(APIBaseViewSet):
         payment_method = validated_data.get("payment_method")
         card = request.data.get("card")
         bank_id = request.data.get("bank_id")
+        click_uuid = request.data.get("click_uuid")
 
         try:
             payment_result = self.payment_service.upgrade_plan(
@@ -495,6 +499,7 @@ class PaymentPwdViewSet(APIBaseViewSet):
                     "bank_id": bank_id,
                     "card": card,
                     "family_members": family_members,
+                    "click_uuid": click_uuid,
                 }
             )
         except PlanDoesNotExistException:

@@ -385,7 +385,7 @@ class PaymentService:
         return payment_result
 
     def upgrade_lifetime_public(self, user_id: int, card, plan_alias: str = PLAN_TYPE_PM_LIFETIME,
-                                promo_code: str = None, scope: str = None):
+                                promo_code: str = None, scope: str = None, **kwargs):
         if self.enterprise_member_repository.is_in_enterprise(user_id=user_id):
             raise EnterpriseMemberExistedException
 
@@ -411,6 +411,7 @@ class PaymentService:
             "start_period": now(),
             "end_period": None,
             "card": card,
+            "click_uuid": kwargs.get("click_uuid")
         }
         promo_code_value = promo_code_obj.code if promo_code_obj else None
         calc_payment = self.user_plan_repository.calc_lifetime_payment_public(
@@ -611,6 +612,7 @@ class PaymentService:
         bank_id = metadata.get("bank_id")
         card = metadata.get("card")
         family_members = metadata.get("family_members", [])
+        click_uuid = metadata.get("click_uuid")
 
         new_plan = self.plan_repository.get_plan_by_alias(alias=plan_alias)
         if not new_plan:
@@ -656,6 +658,7 @@ class PaymentService:
             "card": card,
             "number_members": number_members,
             "family_members": list(family_members),
+            "click_uuid": click_uuid,
         }
         # Calc payment price of new plan
         promo_code_value = promo_code_obj.code if promo_code_obj else None
