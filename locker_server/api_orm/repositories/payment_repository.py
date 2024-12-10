@@ -19,6 +19,7 @@ from locker_server.core.entities.payment.promo_code import PromoCode
 from locker_server.core.repositories.payment_repository import PaymentRepository
 from locker_server.shared.constants.transactions import *
 from locker_server.shared.external_services.requester.retry_requester import requester
+from locker_server.shared.log.cylog import CyLog
 from locker_server.shared.utils.app import now, random_n_digit
 
 PaymentORM = get_payment_model()
@@ -655,10 +656,13 @@ class PaymentORMRepository(PaymentRepository):
             data_send = {
                 "api_key": api_key,
                 "click_uuid": payment_orm.click_uuid,
+                "pm_adv_id": 153
             }
             res = requester(method="POST", url=settings.PAYMENT_CLICK_URL, data_send=data_send, retry=True)
-            if res.status_code == 200:
+            if 200 <= res.status_code < 400:
                 payment_orm.click_uuid_sender = settings.PAYMENT_CLICK_NAME
                 payment_orm.save()
+            else:
+                CyLog.warning(**{"message": f"[!] send_payment_click error::: {res.status_code} - {res.text}"})
 
     # ------------------------ Delete Payment resource --------------------- #
