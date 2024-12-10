@@ -411,7 +411,7 @@ class PaymentService:
             "start_period": now(),
             "end_period": None,
             "card": card,
-            "click_uuid": kwargs.get("click_uuid")
+            "click_uuid": kwargs.get("click_uuid") or None
         }
         promo_code_value = promo_code_obj.code if promo_code_obj else None
         calc_payment = self.user_plan_repository.calc_lifetime_payment_public(
@@ -612,7 +612,7 @@ class PaymentService:
         bank_id = metadata.get("bank_id")
         card = metadata.get("card")
         family_members = metadata.get("family_members", [])
-        click_uuid = metadata.get("click_uuid")
+        click_uuid = metadata.get("click_uuid") or None
 
         new_plan = self.plan_repository.get_plan_by_alias(alias=plan_alias)
         if not new_plan:

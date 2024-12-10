@@ -28,7 +28,7 @@ class PaymentORM(AbstractPaymentORM):
         status = data.get("status", PAYMENT_STATUS_PENDING)
         currency = data.get('currency')
         transaction_type = data.get("transaction_type", TRANSACTION_TYPE_PAYMENT)
-        click_uuid = data.get("click_uuid")
+        click_uuid = data.get("click_uuid") or None
 
         metadata = data.get("metadata", "")
         enterprise_id = data.get("enterprise_id")

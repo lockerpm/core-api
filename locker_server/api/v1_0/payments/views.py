@@ -365,7 +365,7 @@ class PaymentPwdViewSet(APIBaseViewSet):
                 plan_alias=validated_data.get("plan_alias") or PLAN_TYPE_PM_LIFETIME,
                 scope=settings.SCOPE_PWD_MANAGER,
                 **{
-                    "click_uuid": validated_data.get("click_uuid")
+                    "click_uuid": validated_data.get("click_uuid") or None
                 }
             )
         except EnterpriseMemberExistedException:
@@ -489,7 +489,7 @@ class PaymentPwdViewSet(APIBaseViewSet):
         payment_method = validated_data.get("payment_method")
         card = request.data.get("card")
         bank_id = request.data.get("bank_id")
-        click_uuid = request.data.get("click_uuid")
+        click_uuid = request.data.get("click_uuid") or None
 
         try:
             payment_result = self.payment_service.upgrade_plan(

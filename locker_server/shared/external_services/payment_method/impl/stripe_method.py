@@ -89,7 +89,7 @@ class StripePaymentMethod(PaymentMethod):
                 "family_members": str(kwargs.get("family_members", [])),
                 "enterprise_id": kwargs.get("enterprise_id"),
                 "number_members": kwargs.get("number_members", 1),
-                "click_uuid": kwargs.get("click_uuid"),
+                "click_uuid": kwargs.get("click_uuid") or None,
             }
             if billing_cycle_anchor and billing_cycle_anchor_action == "set":
                 # Set billing_cycle_anchor to void 0 USD invoice from Stripe
@@ -177,7 +177,7 @@ class StripePaymentMethod(PaymentMethod):
                     "family_members": str(kwargs.get("family_members", [])),
                     "key": kwargs.get("key"),
                     "collection_name": kwargs.get("collection_name"),
-                    "click_uuid": kwargs.get("click_uuid"),
+                    "click_uuid": kwargs.get("click_uuid") or None,
                 },
                 coupon=coupon
             )
