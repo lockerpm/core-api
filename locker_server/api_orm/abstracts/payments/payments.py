@@ -39,6 +39,7 @@ class AbstractPaymentORM(models.Model):
         null=True, default=None
     )
     click_uuid = models.CharField(max_length=128, db_index=True, null=True)
+    click_uuid_sender = models.CharField(max_length=16, null=True)
 
     net_price = models.FloatField(default=0)
     channel = models.CharField(max_length=128, null=True, default=PAYMENT_CHANNEL_ORGANIC)

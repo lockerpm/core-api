@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from typing import Optional, List, Dict
 import stripe
 import stripe.error
+from django.conf import settings
 
 from django.db.models import F, OuterRef, Subquery, FloatField, CharField, Q, Sum, DateTimeField, Count, Min
 from django.db.models.expressions import RawSQL, Case, When, Value
@@ -17,6 +18,7 @@ from locker_server.core.entities.payment.payment import Payment
 from locker_server.core.entities.payment.promo_code import PromoCode
 from locker_server.core.repositories.payment_repository import PaymentRepository
 from locker_server.shared.constants.transactions import *
+from locker_server.shared.external_services.requester.retry_requester import requester
 from locker_server.shared.utils.app import now, random_n_digit
 
 PaymentORM = get_payment_model()
@@ -641,4 +643,22 @@ class PaymentORMRepository(PaymentRepository):
 
             stripe_payment_orm.net_price = net_price
             stripe_payment_orm.save()
+
+    def send_payment_click(self):
+        api_key = settings.PAYMENT_CLICK_API_KEY
+        if not api_key or not settings.PAYMENT_CLICK_URL:
+            return
+        payments_orm = PaymentORM.objects.filter(
+            click_uuid__isnull=False, click_uuid_sender__isnull=True
+        ).order_by('id')
+        for payment_orm in payments_orm:
+            data_send = {
+                "api_key": api_key,
+                "click_uuid": payment_orm.click_uuid,
+            }
+            res = requester(method="POST", url=settings.PAYMENT_CLICK_URL, data_send=data_send, retry=True)
+            if res.status_code == 200:
+                payment_orm.click_uuid_sender = settings.PAYMENT_CLICK_NAME
+                payment_orm.save()
+
     # ------------------------ Delete Payment resource --------------------- #
