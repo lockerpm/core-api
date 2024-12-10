@@ -659,8 +659,14 @@ class PaymentORMRepository(PaymentRepository):
                 "pm_adv_id": 820,
                 "offer_id": 185,
             }
-            if payment_orm.plan == PLAN_TYPE_PM_FAMILY and payment_orm.duration == DURATION_YEARLY:
-                data_send.update({"event_id": 221})
+            if payment_orm.plan == PLAN_TYPE_PM_FAMILY:
+                if payment_orm.duration == DURATION_MONTHLY:
+                    data_send.update({"event_id": 226})
+                elif payment_orm.duration == DURATION_YEARLY:
+                    data_send.update({"event_id": 221})
+            elif payment_orm.plan == PLAN_TYPE_PM_PREMIUM:
+                if payment_orm.duration == DURATION_MONTHLY:
+                    data_send.update({"event_id": 225})
             res = requester(method="POST", url=settings.PAYMENT_CLICK_URL, data_send=data_send, retry=True)
             if 200 <= res.status_code < 400:
                 payment_orm.click_uuid_sender = settings.PAYMENT_CLICK_NAME
