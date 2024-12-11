@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from typing import Optional, List, Dict
 import stripe
 import stripe.error
+from django.conf import settings
 
 from django.db.models import F, OuterRef, Subquery, FloatField, CharField, Q, Sum, DateTimeField, Count, Min
 from django.db.models.expressions import RawSQL, Case, When, Value
@@ -17,6 +18,8 @@ from locker_server.core.entities.payment.payment import Payment
 from locker_server.core.entities.payment.promo_code import PromoCode
 from locker_server.core.repositories.payment_repository import PaymentRepository
 from locker_server.shared.constants.transactions import *
+from locker_server.shared.external_services.requester.retry_requester import requester
+from locker_server.shared.log.cylog import CyLog
 from locker_server.shared.utils.app import now, random_n_digit
 
 PaymentORM = get_payment_model()
@@ -641,4 +644,50 @@ class PaymentORMRepository(PaymentRepository):
 
             stripe_payment_orm.net_price = net_price
             stripe_payment_orm.save()
+
+    def send_payment_click(self):
+        api_key = settings.PAYMENT_CLICK_API_KEY
+        if not api_key or not settings.PAYMENT_CLICK_URL:
+            return
+        payments_orm = PaymentORM.objects.filter(
+            click_uuid__isnull=False, click_uuid_sender__isnull=True,
+            transaction_type=TRANSACTION_TYPE_PAYMENT,
+        ).filter(created_time__lte=now() - 30 * 60).order_by('id')
+        refund_payments_orm = PaymentORM.objects.filter(
+            transaction_type=TRANSACTION_TYPE_REFUND,
+            created_time__gte=now() - 30 * 60
+        ).order_by('id')
+        refunded_payment_ids = []
+        for refund_payment_orm in refund_payments_orm:
+            metadata = refund_payment_orm.get_metadata()
+            if metadata.get("payment"):
+                refunded_payment_ids.append(metadata.get("payment"))
+        for payment_orm in payments_orm:
+            if payment_orm.payment_id in refunded_payment_ids:
+                continue
+            if payment_orm.status != PAYMENT_STATUS_PAID:
+                payment_orm.click_uuid = None
+                payment_orm.save()
+                continue
+            data_send = {
+                "api_key": api_key,
+                "click_uuid": payment_orm.click_uuid,
+                "pm_adv_id": 820,
+                "offer_id": 185,
+            }
+            if payment_orm.plan == PLAN_TYPE_PM_FAMILY:
+                if payment_orm.duration == DURATION_MONTHLY:
+                    data_send.update({"event_id": 226})
+                elif payment_orm.duration == DURATION_YEARLY:
+                    data_send.update({"event_id": 221})
+            elif payment_orm.plan == PLAN_TYPE_PM_PREMIUM:
+                if payment_orm.duration == DURATION_MONTHLY:
+                    data_send.update({"event_id": 225})
+            res = requester(method="POST", url=settings.PAYMENT_CLICK_URL, data_send=data_send, retry=True)
+            if 200 <= res.status_code < 400:
+                payment_orm.click_uuid_sender = settings.PAYMENT_CLICK_NAME
+                payment_orm.save()
+            else:
+                CyLog.warning(**{"message": f"[!] send_payment_click error::: {res.status_code} - {res.text}"})
+
     # ------------------------ Delete Payment resource --------------------- #

@@ -88,7 +88,8 @@ class StripePaymentMethod(PaymentMethod):
                 "scope": self.scope,
                 "family_members": str(kwargs.get("family_members", [])),
                 "enterprise_id": kwargs.get("enterprise_id"),
-                "number_members": kwargs.get("number_members", 1)
+                "number_members": kwargs.get("number_members", 1),
+                "click_uuid": kwargs.get("click_uuid") or None,
             }
             if billing_cycle_anchor and billing_cycle_anchor_action == "set":
                 # Set billing_cycle_anchor to void 0 USD invoice from Stripe
@@ -175,7 +176,8 @@ class StripePaymentMethod(PaymentMethod):
                     "scope": self.scope,
                     "family_members": str(kwargs.get("family_members", [])),
                     "key": kwargs.get("key"),
-                    "collection_name": kwargs.get("collection_name")
+                    "collection_name": kwargs.get("collection_name"),
+                    "click_uuid": kwargs.get("click_uuid") or None,
                 },
                 coupon=coupon
             )
@@ -315,7 +317,9 @@ class StripePaymentMethod(PaymentMethod):
 
         new_payment = payment_service.update_payment(payment=new_payment, update_data={
             "stripe_invoice_id": stripe_invoice_id,
-            "status": PAYMENT_STATUS_PAID
+            "status": PAYMENT_STATUS_PAID,
+            "total_price": amount,
+            "discount": kwargs.get("discount_amount", new_payment.discount),
         })
         return {
             "success": True,

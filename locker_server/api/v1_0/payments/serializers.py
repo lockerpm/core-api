@@ -36,6 +36,7 @@ class UpgradePlanSerializer(serializers.Serializer):
     bank_id = serializers.IntegerField(required=False)
     # Metadata for family plan
     family_members = FamilyMemberSerializer(many=True, required=False)
+    click_uuid = serializers.CharField(max_length=128, required=False, allow_null=True, default=None, allow_blank=True)
 
     def validate(self, data):
         data["number_members"] = 1
@@ -125,6 +126,7 @@ class UpgradeLifetimePublicSerializer(serializers.Serializer):
         choices=[PLAN_TYPE_PM_LIFETIME, PLAN_TYPE_PM_LIFETIME_FAMILY], default=PLAN_TYPE_PM_LIFETIME,
         required=False
     )
+    click_uuid = serializers.CharField(max_length=128, required=False, allow_null=True, default=None, allow_blank=True)
 
 
 class UpgradeSubscriptionPublicSerializer(serializers.Serializer):
@@ -134,6 +136,7 @@ class UpgradeSubscriptionPublicSerializer(serializers.Serializer):
         required=False
     )
     duration = serializers.ChoiceField(choices=LIST_DURATION, default=DURATION_MONTHLY, required=False)
+    click_uuid = serializers.CharField(max_length=128, required=False, allow_null=True, default=None, allow_blank=True)
 
 
 class UpgradeEducationPublicSerializer(serializers.Serializer):

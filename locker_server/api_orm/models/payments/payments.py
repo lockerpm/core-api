@@ -28,11 +28,13 @@ class PaymentORM(AbstractPaymentORM):
         status = data.get("status", PAYMENT_STATUS_PENDING)
         currency = data.get('currency')
         transaction_type = data.get("transaction_type", TRANSACTION_TYPE_PAYMENT)
+        click_uuid = data.get("click_uuid") or None
 
         metadata = data.get("metadata", "")
         enterprise_id = data.get("enterprise_id")
         if metadata and isinstance(metadata, dict):
             enterprise_id = metadata.get("enterprise_id") or enterprise_id
+            click_uuid = metadata.get("click_uuid") or click_uuid
             metadata.pop("promo_code", None)
             metadata = str(metadata)
         new_payment_orm = cls(
@@ -40,6 +42,7 @@ class PaymentORM(AbstractPaymentORM):
             payment_method=payment_method, stripe_invoice_id=stripe_invoice_id, mobile_invoice_id=mobile_invoice_id,
             status=status, transaction_type=transaction_type,
             currency=currency, metadata=metadata, enterprise_id=enterprise_id, saas_market=saas_market,
+            click_uuid=click_uuid,
         )
         new_payment_orm.save()
         new_payment_orm.payment_id = "{}{}".format(BANKING_ID_PWD_MANAGER, 10000 + new_payment_orm.id)
