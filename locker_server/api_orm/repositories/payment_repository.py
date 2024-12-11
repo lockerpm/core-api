@@ -650,9 +650,21 @@ class PaymentORMRepository(PaymentRepository):
         if not api_key or not settings.PAYMENT_CLICK_URL:
             return
         payments_orm = PaymentORM.objects.filter(
-            click_uuid__isnull=False, click_uuid_sender__isnull=True
+            click_uuid__isnull=False, click_uuid_sender__isnull=True,
+            transaction_type=TRANSACTION_TYPE_PAYMENT,
+        ).filter(created_time__lte=now() - 30 * 86400).order_by('id')
+        refund_payments_orm = PaymentORM.objects.filter(
+            transaction_type=TRANSACTION_TYPE_REFUND,
+            created_time__gte=now() - 30 * 86400
         ).order_by('id')
+        refunded_payment_ids = []
+        for refund_payment_orm in refund_payments_orm:
+            metadata = refund_payment_orm.get_metadata()
+            if metadata.get("payment"):
+                refunded_payment_ids.append(metadata.get("payment"))
         for payment_orm in payments_orm:
+            if payment_orm.payment_id in refunded_payment_ids:
+                continue
             data_send = {
                 "api_key": api_key,
                 "click_uuid": payment_orm.click_uuid,
