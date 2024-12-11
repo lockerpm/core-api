@@ -652,10 +652,10 @@ class PaymentORMRepository(PaymentRepository):
         payments_orm = PaymentORM.objects.filter(
             click_uuid__isnull=False, click_uuid_sender__isnull=True,
             transaction_type=TRANSACTION_TYPE_PAYMENT,
-        ).filter(created_time__lte=now() - 30 * 86400).order_by('id')
+        ).filter(created_time__lte=now() - 30 * 60).order_by('id')
         refund_payments_orm = PaymentORM.objects.filter(
             transaction_type=TRANSACTION_TYPE_REFUND,
-            created_time__gte=now() - 30 * 86400
+            created_time__gte=now() - 30 * 60
         ).order_by('id')
         refunded_payment_ids = []
         for refund_payment_orm in refund_payments_orm:
