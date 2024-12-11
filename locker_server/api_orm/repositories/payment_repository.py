@@ -665,6 +665,10 @@ class PaymentORMRepository(PaymentRepository):
         for payment_orm in payments_orm:
             if payment_orm.payment_id in refunded_payment_ids:
                 continue
+            if payment_orm.status != PAYMENT_STATUS_PAID:
+                payment_orm.click_uuid = None
+                payment_orm.save()
+                continue
             data_send = {
                 "api_key": api_key,
                 "click_uuid": payment_orm.click_uuid,
