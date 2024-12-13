@@ -687,7 +687,7 @@ class PaymentORMRepository(PaymentRepository):
                 pending_payment_orm.save()
                 continue
             data_send = self._get_payment_click_data_send(payment_orm=pending_payment_orm)
-            data_send.update({"status": 0})
+            data_send.update({"status": "Pending"})
             res = requester(method="POST", url=settings.PAYMENT_CLICK_URL + "/postback", data_send=data_send, retry=True)
             if 200 <= res.status_code < 400:
                 pending_payment_orm.click_uuid_sender = 0
@@ -702,23 +702,18 @@ class PaymentORMRepository(PaymentRepository):
 
         update_headers = {
             "api_key": api_key,
-            "pm_adv_id": 820
+            "pm_adv_id": "820"
         }
         for approved_payment_orm in approved_payments_orm:
             data_send = {
                 "click_uuid": approved_payment_orm.click_uuid,
                 "offer_id": 185
             }
-            if approved_payment_orm.payment_id in refunded_payment_ids:
-                status = 2
-                data_send.update({"status": 2})
-            else:
-                status = 1
+            status = 2 if approved_payment_orm.payment_id in refunded_payment_ids else 1
             data_send.update({"status": status})
             update_status_data = {
                 "update_status": [data_send]
             }
-
             res = requester(
                 method="POST",
                 headers=update_headers,
