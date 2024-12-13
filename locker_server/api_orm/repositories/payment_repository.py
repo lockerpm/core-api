@@ -645,14 +645,28 @@ class PaymentORMRepository(PaymentRepository):
             stripe_payment_orm.net_price = net_price
             stripe_payment_orm.save()
 
+    def _get_payment_click_data_send(self, payment_orm):
+        data_send = {
+            "api_key": settings.PAYMENT_CLICK_API_KEY,
+            "click_uuid": payment_orm.click_uuid,
+            "pm_adv_id": 820,
+            "offer_id": 185,
+        }
+        if payment_orm.plan == PLAN_TYPE_PM_FAMILY:
+            if payment_orm.duration == DURATION_MONTHLY:
+                data_send.update({"event_id": 226})
+            elif payment_orm.duration == DURATION_YEARLY:
+                data_send.update({"event_id": 221})
+        elif payment_orm.plan == PLAN_TYPE_PM_PREMIUM:
+            if payment_orm.duration == DURATION_MONTHLY:
+                data_send.update({"event_id": 225})
+        return data_send
+
     def send_payment_click(self):
         api_key = settings.PAYMENT_CLICK_API_KEY
         if not api_key or not settings.PAYMENT_CLICK_URL:
             return
-        payments_orm = PaymentORM.objects.filter(
-            click_uuid__isnull=False, click_uuid_sender__isnull=True,
-            transaction_type=TRANSACTION_TYPE_PAYMENT,
-        ).filter(created_time__lte=now() - 30 * 86400).order_by('id')
+
         refund_payments_orm = PaymentORM.objects.filter(
             transaction_type=TRANSACTION_TYPE_REFUND,
             created_time__gte=now() - 30 * 86400
@@ -662,32 +676,60 @@ class PaymentORMRepository(PaymentRepository):
             metadata = refund_payment_orm.get_metadata()
             if metadata.get("payment"):
                 refunded_payment_ids.append(metadata.get("payment"))
-        for payment_orm in payments_orm:
-            if payment_orm.payment_id in refunded_payment_ids:
+
+        pending_payments_orm = PaymentORM.objects.filter(
+            click_uuid__isnull=False, click_uuid_sender__isnull=True,
+            transaction_type=TRANSACTION_TYPE_PAYMENT,
+        ).order_by('id')
+        for pending_payment_orm in pending_payments_orm:
+            if pending_payment_orm.status != PAYMENT_STATUS_PAID:
+                pending_payment_orm.click_uuid = None
+                pending_payment_orm.save()
                 continue
-            if payment_orm.status != PAYMENT_STATUS_PAID:
-                payment_orm.click_uuid = None
-                payment_orm.save()
-                continue
-            data_send = {
-                "api_key": api_key,
-                "click_uuid": payment_orm.click_uuid,
-                "pm_adv_id": 820,
-                "offer_id": 185,
-            }
-            if payment_orm.plan == PLAN_TYPE_PM_FAMILY:
-                if payment_orm.duration == DURATION_MONTHLY:
-                    data_send.update({"event_id": 226})
-                elif payment_orm.duration == DURATION_YEARLY:
-                    data_send.update({"event_id": 221})
-            elif payment_orm.plan == PLAN_TYPE_PM_PREMIUM:
-                if payment_orm.duration == DURATION_MONTHLY:
-                    data_send.update({"event_id": 225})
-            res = requester(method="POST", url=settings.PAYMENT_CLICK_URL, data_send=data_send, retry=True)
+            data_send = self._get_payment_click_data_send(payment_orm=pending_payment_orm)
+            data_send.update({"status": 0})
+            res = requester(method="POST", url=settings.PAYMENT_CLICK_URL + "/postback", data_send=data_send, retry=True)
             if 200 <= res.status_code < 400:
-                payment_orm.click_uuid_sender = settings.PAYMENT_CLICK_NAME
-                payment_orm.save()
+                pending_payment_orm.click_uuid_sender = 0
+                pending_payment_orm.save()
             else:
-                CyLog.warning(**{"message": f"[!] send_payment_click error::: {res.status_code} - {res.text}"})
+                CyLog.warning(**{"message": f"[!] send_payment_click pending error::: {res.status_code} - {res.text}"})
+
+        approved_payments_orm = PaymentORM.objects.filter(status=PAYMENT_STATUS_PAID).filter(
+            click_uuid__isnull=False, click_uuid_sender="0",
+            transaction_type=TRANSACTION_TYPE_PAYMENT,
+        ).filter(created_time__lte=now() - 30 * 86400).order_by('id')
+
+        update_headers = {
+            "api_key": api_key,
+            "pm_adv_id": 820
+        }
+        for approved_payment_orm in approved_payments_orm:
+            data_send = {
+                "click_uuid": approved_payment_orm.click_uuid,
+                "offer_id": 185
+            }
+            if approved_payment_orm.payment_id in refunded_payment_ids:
+                status = 2
+                data_send.update({"status": 2})
+            else:
+                status = 1
+            data_send.update({"status": status})
+            update_status_data = {
+                "update_status": [data_send]
+            }
+
+            res = requester(
+                method="POST",
+                headers=update_headers,
+                url=settings.PAYMENT_CLICK_URL + "/conversions/update",
+                data_send=update_status_data,
+                retry=True
+            )
+            if 200 <= res.status_code < 400:
+                approved_payment_orm.click_uuid_sender = status
+                approved_payment_orm.save()
+            else:
+                CyLog.warning(**{"message": f"[!] send_payment_click accept error::: {res.status_code} - {res.text}"})
 
     # ------------------------ Delete Payment resource --------------------- #
