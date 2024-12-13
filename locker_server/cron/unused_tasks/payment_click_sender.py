@@ -25,7 +25,7 @@ class PaymentClickSender(Task):
         cron_task_service.send_payment_click()
 
     def scheduling(self):
-        schedule.every(15).minutes.do(self.run)
+        schedule.every(10).minutes.do(self.run)
         while True:
             schedule.run_pending()
             time.sleep(1)
