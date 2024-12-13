@@ -651,6 +651,7 @@ class PaymentORMRepository(PaymentRepository):
             "click_uuid": payment_orm.click_uuid,
             "pm_adv_id": 820,
             "offer_id": 185,
+            "sale_value": payment_orm.total_price,
         }
         if payment_orm.plan == PLAN_TYPE_PM_FAMILY:
             if payment_orm.duration == DURATION_MONTHLY:
