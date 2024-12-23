@@ -307,8 +307,6 @@ class CipherORMRepository(CipherRepository):
 
     # ------------------------ Create Cipher resource --------------------- #
     def create_cipher(self, cipher_data: Dict) -> Cipher:
-        from locker_server.shared.log.cylog import CyLog
-        CyLog.debug(**{"message": f"[+] Create new cipher data::: {cipher_data}", "output": ["stdout"]})
         favorite = cipher_data.get("favorite", False)
         folder_id = cipher_data.get("folder_id", None)
         user_created_id = cipher_data.get("user_id")
@@ -405,6 +403,7 @@ class CipherORMRepository(CipherRepository):
                     type=cipher_data.get("type"),
                     data=cipher_data.get("data"),
                     user_id=user_orm.user_id,
+                    created_by_id=user_orm.user_id,
                     folders=cipher_data.get("folders", ""),
                     team_id=cipher_data.get("organizationId")
                 )
@@ -452,6 +451,7 @@ class CipherORMRepository(CipherRepository):
             cipher_obj.type = cipher_data.get("type")
             cipher_obj.data = cipher_data.get("data")
             cipher_obj.user_id = user_orm.user_id
+            cipher_obj.created_by_id = user_orm.user_id
             cipher_obj.folders = cipher_data.get("folders", "")
             cipher_obj.team_id = cipher_data.get("organizationId")
             sync_update_ciphers.append(cipher_obj)
@@ -459,7 +459,7 @@ class CipherORMRepository(CipherRepository):
         CipherORM.objects.bulk_update(
             sync_update_ciphers,
             ['creation_date', 'revision_date', 'deleted_date', 'reprompt', 'score', 'type',
-             'data', 'user_id', 'folders', 'team_id'],
+             'data', 'user_id', 'created_by_id', 'folders', 'team_id'],
             batch_size=100
         )
         bump_account_revision_date(user=user_orm)
@@ -520,8 +520,6 @@ class CipherORMRepository(CipherRepository):
 
     # ------------------------ Update Cipher resource --------------------- #
     def update_cipher(self, cipher_id: str, cipher_data: Dict) -> Cipher:
-        from locker_server.shared.log.cylog import CyLog
-        CyLog.debug(**{"message": f"[+] Update cipher data::: {cipher_id} - {cipher_data}", "output": ["stdout"]})
         cipher_orm = self._get_cipher_orm(cipher_id=cipher_id)
         user_created_id = cipher_data.get("user_id")
         user_cipher_id = cipher_data.get("user_id")
