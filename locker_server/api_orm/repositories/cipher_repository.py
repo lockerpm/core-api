@@ -307,6 +307,8 @@ class CipherORMRepository(CipherRepository):
 
     # ------------------------ Create Cipher resource --------------------- #
     def create_cipher(self, cipher_data: Dict) -> Cipher:
+        from locker_server.shared.log.cylog import CyLog
+        CyLog.debug(**{"message": f"[+] Create new cipher data::: {cipher_data}", "output": ["stdout"]})
         favorite = cipher_data.get("favorite", False)
         folder_id = cipher_data.get("folder_id", None)
         user_created_id = cipher_data.get("user_id")
@@ -518,6 +520,8 @@ class CipherORMRepository(CipherRepository):
 
     # ------------------------ Update Cipher resource --------------------- #
     def update_cipher(self, cipher_id: str, cipher_data: Dict) -> Cipher:
+        from locker_server.shared.log.cylog import CyLog
+        CyLog.debug(**{"message": f"[+] Update cipher data::: {cipher_id} - {cipher_data}", "output": ["stdout"]})
         cipher_orm = self._get_cipher_orm(cipher_id=cipher_id)
         user_created_id = cipher_data.get("user_id")
         user_cipher_id = cipher_data.get("user_id")
