@@ -250,6 +250,11 @@ APP_CODE += [
         "code": "7019",
         "message": "The school email was claimed",
         "vi_message": "Email sinh viên này đã được nhận gói ưu đãi"
+    },
+    {
+        "code": "7020",
+        "message": "The saas license key is not valid",
+        "vi_message": "Saas License không hợp lệ"
     }
 ]
 
