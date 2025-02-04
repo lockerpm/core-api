@@ -176,6 +176,13 @@ class UserPlanORMRepository(UserPlanRepository):
         user_plan_orm = self._get_current_plan_orm(user_id=user_id)
         return ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=user_plan_orm)
 
+    def get_user_plan_by_saas_license(self, saas_license: str) -> Optional[PMUserPlan]:
+        try:
+            user_plan_orm = PMUserPlanORM.objects.get(saas_license=saas_license)
+        except PMUserPlanORM.DoesNotExist:
+            return None
+        return ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=user_plan_orm)
+
     def get_user_usable_plan_alias(self, user_id: int) -> Tuple:
         """
         Get the current plan in the database and the real plan can be used
@@ -734,6 +741,7 @@ class UserPlanORMRepository(UserPlanRepository):
         user_plan_orm.member_billing_updated_time = user_plan_update_data.get(
             "member_billing_updated_time", user_plan_orm.member_billing_updated_time
         )
+        user_plan_orm.saas_license = user_plan_update_data.get("saas_license", user_plan_orm.saas_license)
         user_plan_orm.save()
         return ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=user_plan_orm)
 

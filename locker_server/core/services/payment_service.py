@@ -341,6 +341,69 @@ class PaymentService:
                     }
                 )
 
+    def upgrade_by_saas_license(self, user_id: int, saas_license, scope: str = None):
+        if self.enterprise_member_repository.is_in_enterprise(user_id=user_id):
+            raise EnterpriseMemberExistedException
+        if saas_license.status in ["deactivated"]:
+            raise SaasLicenseInvalidException
+        saas_plan_alias = saas_license.tier or PLAN_TYPE_PM_LIFETIME
+        plan = self.plan_repository.get_plan_by_alias(alias=saas_plan_alias)
+        if not plan:
+            CyLog.warning(**{"message": f"[!] Not found the tier of saas plan of the {saas_license.tier}"})
+            plan = self.plan_repository.get_plan_by_alias(alias=PLAN_TYPE_PM_LIFETIME)
+        current_plan = self.user_plan_repository.get_user_plan(user_id=user_id)
+        # Check saas license is used by other user
+        other_user_plan = self.user_plan_repository.get_user_plan_by_saas_license(saas_license=saas_license.license_key)
+        if other_user_plan and other_user_plan.pm_user_plan_id != current_plan.pm_user_plan_id:
+            raise SaasLicenseInvalidException
+
+        if plan.alias == PLAN_TYPE_PM_LIFETIME_FAMILY:
+            if self.user_plan_repository.is_family_member(user_id=user_id):
+                raise PaymentFailedByUserInFamilyException
+        else:
+            if self.user_plan_repository.is_in_family_plan(user_plan=current_plan):
+                raise PaymentFailedByUserInFamilyException
+
+        # Cancel the current Free/Premium/Family
+        # If new plan is family lifetime => Only cancel stripe subscription
+        if plan.alias == PLAN_TYPE_PM_LIFETIME_FAMILY:
+            if current_plan.pm_stripe_subscription:
+                self.user_plan_repository.cancel_plan(user=current_plan.user, immediately=True)
+        else:
+            self.user_plan_repository.cancel_plan(user=current_plan.user, immediately=True)
+        plan_metadata = {
+            "start_period": now(),
+            "end_period": None
+        }
+        upgrade_duration = DURATION_MONTHLY
+        self.user_plan_repository.update_plan(
+            user_id=user_id, plan_type_alias=plan.alias, duration=upgrade_duration, scope=scope, **plan_metadata
+        )
+        self.user_plan_repository.update_user_plan_by_id(
+            user_plan_id=user_id, user_plan_update_data={"saas_license": saas_license.license_key}
+        )
+        # Generate new payment
+        # if not user_plan.saas_license:
+        #     try:
+        #         new_payment_data = {
+        #             "user_id": user_id,
+        #             "saas_market": saas_license.saas_name,
+        #             "description": "Upgrade plan from saas license",
+        #             "plan": plan.alias,
+        #             "payment_method": PAYMENT_METHOD_CARD,
+        #             "duration": "lifetime" if plan.alias in LIST_LIFETIME_PLAN else upgrade_duration,
+        #             "currency": CURRENCY_USD,
+        #             "customer": None,
+        #             "scope": scope,
+        #             "status": PAYMENT_STATUS_PAID,
+        #             "total_price": plan.get_price(duration=upgrade_duration, currency=CURRENCY_USD),
+        #             "metadata": plan_metadata
+        #         }
+        #         self.create_payment(**new_payment_data)
+        #     except Exception:
+        #         tb = traceback.format_exc()
+        #         CyLog.error(**{"message": f"[!] Create the saas payment error::: {user_id} - {code}\n{tb}"})
+
     def upgrade_three_promo(self, user_id: int, card, promo_code: str = None, scope: str = None):
         current_plan = self.user_plan_repository.get_user_plan(user_id=user_id)
         if current_plan.pm_plan.alias != PLAN_TYPE_PM_FREE:
