@@ -29,6 +29,10 @@ class UserPlanRepository(ABC):
         pass
 
     @abstractmethod
+    def get_user_plan_by_saas_license(self, saas_license: str) -> Optional[PMUserPlan]:
+        pass
+
+    @abstractmethod
     def get_user_usable_plan_alias(self, user_id: int) -> Tuple:
         pass
 

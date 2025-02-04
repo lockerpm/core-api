@@ -19,7 +19,7 @@ class PMUserPlan(object):
                  pm_stripe_subscription: str = None, pm_stripe_subscription_created_time: int = None,
                  pm_mobile_subscription: str = None, extra_time: int = 0, extra_plan: str = None,
                  member_billing_updated_time: float = None, attempts: int = 0, pm_plan: PMPlan = None,
-                 promo_code: PromoCode = None):
+                 promo_code: PromoCode = None, saas_license: str = None):
         self._pm_user_plan_id = pm_user_plan_id
         self._user = user
         self._duration = duration
@@ -43,6 +43,7 @@ class PMUserPlan(object):
         self._attempts = attempts
         self._pm_plan = pm_plan
         self._promo_code = promo_code
+        self._saas_license = saas_license
 
     @property
     def pm_user_plan_id(self):
@@ -135,6 +136,10 @@ class PMUserPlan(object):
     @property
     def promo_code(self):
         return self._promo_code
+
+    @property
+    def saas_license(self):
+        return self._saas_license
 
     @classmethod
     def get_duration_month_number(cls, duration):

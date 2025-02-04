@@ -25,6 +25,7 @@ class AbstractPMUserPlanORM(models.Model):
     pm_stripe_subscription = models.CharField(max_length=255, null=True)
     pm_stripe_subscription_created_time = models.IntegerField(null=True)
     pm_mobile_subscription = models.CharField(max_length=255, null=True, default=None)
+    saas_license = models.CharField(max_length=64, unique=True, null=True, default=None)
 
     extra_time = models.IntegerField(default=0)
     extra_plan = models.CharField(max_length=128, null=True, default=None)

@@ -71,6 +71,7 @@ class UserPlanParser:
             pm_stripe_subscription=user_plan_orm.pm_stripe_subscription,
             pm_stripe_subscription_created_time=user_plan_orm.pm_stripe_subscription_created_time,
             pm_mobile_subscription=user_plan_orm.pm_mobile_subscription,
+            saas_license=user_plan_orm.saas_license,
             extra_time=user_plan_orm.extra_time,
             extra_plan=user_plan_orm.extra_plan,
             member_billing_updated_time=user_plan_orm.member_billing_updated_time,

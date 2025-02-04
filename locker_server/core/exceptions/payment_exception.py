@@ -104,3 +104,9 @@ class CurrentPlanIsEnterpriseException(PaymentException):
     """
     The current plan is Enterprise
     """
+
+
+class SaasLicenseInvalidException(PaymentException):
+    """
+    The saas license key is not valid
+    """
