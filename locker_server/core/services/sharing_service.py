@@ -291,7 +291,7 @@ class SharingService:
             return None
         cipher_id = cipher.get("id")
         cipher_obj = self.cipher_repository.get_by_id(cipher_id=cipher_id)
-        if not cipher_obj or cipher_obj.team.team_id != sharing_id:
+        if not cipher_obj or not cipher_obj.team or cipher_obj.team.team_id != sharing_id:
             raise CipherDoesNotExistException
         return cipher_obj
 
