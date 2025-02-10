@@ -346,7 +346,7 @@ class PaymentService:
             raise EnterpriseMemberExistedException
         if saas_license.status in ["deactivated"]:
             raise SaasLicenseInvalidException
-        saas_plan_alias = saas_license.tier or PLAN_TYPE_PM_LIFETIME
+        saas_plan_alias = saas_license.plan_id or PLAN_TYPE_PM_LIFETIME
         plan = self.plan_repository.get_plan_by_alias(alias=saas_plan_alias)
         if not plan:
             CyLog.warning(**{"message": f"[!] Not found the tier of saas plan of the {saas_license.tier}"})
