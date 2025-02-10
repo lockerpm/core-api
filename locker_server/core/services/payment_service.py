@@ -356,6 +356,10 @@ class PaymentService:
         other_user_plan = self.user_plan_repository.get_user_plan_by_saas_license(saas_license=saas_license.license_key)
         if other_user_plan and other_user_plan.pm_user_plan_id != current_plan.pm_user_plan_id:
             raise SaasLicenseInvalidException
+        # Not upgrade the plan if current plan is lifetime and not change
+        if current_plan.pm_plan.alias in [PLAN_TYPE_PM_LIFETIME_FAMILY, PLAN_TYPE_PM_LIFETIME] and \
+                current_plan.pm_plan.alias == plan.alias:
+            return
 
         if plan.alias == PLAN_TYPE_PM_LIFETIME_FAMILY:
             if self.user_plan_repository.is_family_member(user_id=user_id):
