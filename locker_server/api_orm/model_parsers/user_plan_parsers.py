@@ -30,6 +30,7 @@ class UserPlanParser:
             limit_payment_card=plan_orm.limit_payment_card,
             limit_crypto_asset=plan_orm.limit_crypto_asset,
             limit_history=plan_orm.limit_history,
+            limit_total=plan_orm.limit_total,
             tools_password_reuse=plan_orm.tools_password_reuse,
             tools_master_password_check=plan_orm.tools_master_password_check,
             tools_data_breach=plan_orm.tools_data_breach,

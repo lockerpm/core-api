@@ -8,6 +8,7 @@ class PMPlan(object):
                  yearly_price_usd: float = None, yearly_price_vnd: float = None, sync_device: int = None,
                  limit_password: int = None, limit_secure_note: int = None, limit_identity: int = None,
                  limit_payment_card: int = None, limit_crypto_asset: int = None, limit_history: int = None,
+                 limit_total: int = None,
                  tools_password_reuse: int = None,
                  tools_master_password_check: bool = False, tools_data_breach: bool = False,
                  emergency_access: bool = False, personal_share: bool = False, relay_premium: bool = False,
@@ -30,6 +31,7 @@ class PMPlan(object):
         self._limit_payment_card = limit_payment_card
         self._limit_crypto_asset = limit_crypto_asset
         self._limit_history = limit_history
+        self._limit_total = limit_total
         self._tools_password_reuse = tools_password_reuse
         self._tools_master_password_check = tools_master_password_check
         self._tools_data_breach = tools_data_breach
