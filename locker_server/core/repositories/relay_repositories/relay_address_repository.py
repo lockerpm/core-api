@@ -35,10 +35,6 @@ class RelayAddressRepository(ABC):
     def get_relay_address_by_address(self, address: str) -> Optional[RelayAddress]:
         pass
 
-    @abstractmethod
-    def get_relay_address_by_address(self, address: str) -> Optional[RelayAddress]:
-        pass
-
     # ------------------------ Create RelayAddress resource --------------------- #
     @abstractmethod
     def create_relay_address(self, relay_address_create_data) -> Optional[RelayAddress]:

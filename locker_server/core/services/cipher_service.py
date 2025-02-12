@@ -14,6 +14,7 @@ from locker_server.core.repositories.folder_repository import FolderRepository
 from locker_server.core.repositories.team_member_repository import TeamMemberRepository
 from locker_server.core.repositories.team_repository import TeamRepository
 from locker_server.core.repositories.user_plan_repository import UserPlanRepository
+from locker_server.shared.constants.ciphers import CIPHER_TYPE_TOTP, CIPHER_TYPE_MASTER_PASSWORD
 from locker_server.shared.constants.members import *
 from locker_server.shared.utils.app import diff_list
 
@@ -118,15 +119,33 @@ class CipherService:
             return list(set(collection_ids))
 
     def _validated_plan(self, user: User, data):
+        # 12 Feb, 2025: Only check total items
         cipher_type = data.get("type")
-        # Get limit cipher type from personal and team plans
-        allow_cipher_type = self.user_plan_repository.get_max_allow_cipher_type(user=user)
+        params = {}
+        if cipher_type == CIPHER_TYPE_TOTP:
+            allow = cipher_type
+            params.update({"type": cipher_type})
+        else:
+            allow = "limit_total"
+            params.update({"exclude_types": [CIPHER_TYPE_TOTP, CIPHER_TYPE_MASTER_PASSWORD]})
+
         existed_ciphers_count = self.cipher_repository.count_ciphers_created_by_user(
-            user_id=user.user_id, **{"type": cipher_type}
+            user_id=user.user_id, **params
         )
-        if allow_cipher_type.get(cipher_type) and existed_ciphers_count >= allow_cipher_type.get(cipher_type):
+        allow_cipher_type = self.user_plan_repository.get_max_allow_cipher_type(user=user)
+        if allow_cipher_type.get(allow) and existed_ciphers_count >= allow_cipher_type.get(params):
             raise CipherMaximumReachedException
         return data
+
+        # cipher_type = data.get("type")
+        # # Get limit cipher type from personal and team plans
+        # allow_cipher_type = self.user_plan_repository.get_max_allow_cipher_type(user=user)
+        # existed_ciphers_count = self.cipher_repository.count_ciphers_created_by_user(
+        #     user_id=user.user_id, **{"type": cipher_type}
+        # )
+        # if allow_cipher_type.get(cipher_type) and existed_ciphers_count >= allow_cipher_type.get(cipher_type):
+        #     raise CipherMaximumReachedException
+        # return data
 
     def get_master_pwd_item(self, user_id: int) -> Optional[Cipher]:
         return self.cipher_repository.get_master_pwd_item(user_id=user_id)
