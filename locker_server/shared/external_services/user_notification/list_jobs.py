@@ -92,3 +92,5 @@ PWD_EDUCATION_PACK_TEACHER_CONFIRMATION = "education_pack_teacher_email_confirma
 PWD_ASKING_FEEDBACK = "asking_for_feedback_after_subscription"
 
 PWD_ENTERPRISE_ACCOUNT_ADDED = "enterprise_account_added"
+
+PWD_CAMPAIGN_PROMO_CODE = "valentine_gift_code_2025"
