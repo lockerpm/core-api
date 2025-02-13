@@ -12,7 +12,7 @@ from locker_server.shared.background.i_background import BackgroundThread, backg
 from locker_server.shared.constants.transactions import *
 from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
 from locker_server.shared.external_services.locker_background.constants import BG_NOTIFY
-from locker_server.shared.external_services.user_notification.list_jobs import PWD_ASKING_FEEDBACK
+from locker_server.shared.external_services.user_notification.list_jobs import PWD_CAMPAIGN_PROMO_CODE
 from locker_server.shared.log.cylog import CyLog
 from locker_server.shared.utils.app import now
 
@@ -144,9 +144,7 @@ class PaymentHookService:
         result["new_payment"] = new_payment
 
         # # Update:::: 14 Feb - 17 Feb
-        # BackgroundThread(task=self._send_campaign_promo_code, **{
-        #     "new_payment": new_payment
-        # })
+        BackgroundThread(task=self._send_campaign_promo_code, **{"new_payment": new_payment})
 
         return result
 
@@ -327,10 +325,10 @@ class PaymentHookService:
         return []
 
     @background_exception_wrapper
-    def _send_campaign_promo_code(self, new_payment: Payment, ):
+    def _send_campaign_promo_code(self, new_payment: Payment):
         if new_payment.status == PAYMENT_STATUS_PAID and new_payment.plan == PLAN_TYPE_PM_PREMIUM and \
-                new_payment.duration == DURATION_YEARLY and 1739491200 <= now() < 1739836800 and \
-                new_payment.total_price > 0:
+                new_payment.duration == DURATION_YEARLY and now() < 1739750400 and \
+                not new_payment.promo_code:
             campaign_promo_code = self.payment_repository.create_campaign_promo_code(
                 campaign_prefix="VLT", value=100, campaign_description="Valentine"
             )
@@ -338,8 +336,8 @@ class PaymentHookService:
                 BackgroundFactory.get_background(bg_name=BG_NOTIFY, background=False).run(
                     func_name="notify_locker_mail", **{
                         "user_ids": [new_payment.user.user_id],
-                        "job": PWD_ASKING_FEEDBACK,
+                        "job": PWD_CAMPAIGN_PROMO_CODE,
                         "scope": new_payment.scope,
-                        "promo_code": campaign_promo_code.code,
+                        "code": campaign_promo_code.code,
                     }
                 )

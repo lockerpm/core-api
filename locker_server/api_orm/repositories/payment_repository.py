@@ -573,7 +573,7 @@ class PaymentORMRepository(PaymentRepository):
     def create_campaign_promo_code(self, campaign_prefix: str, value: int = 100,
                                    campaign_description: str = "") -> Optional[PromoCode]:
         # The promo code will be expired in a week
-        expired_time = int(now() + 7 * 86400)
+        expired_time = 1740355200
         code = f"{campaign_prefix}{random_n_digit(n=12)}".upper()
         promo_code_data = {
             "type": PROMO_PERCENTAGE,
