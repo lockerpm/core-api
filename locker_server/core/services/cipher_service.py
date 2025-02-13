@@ -133,7 +133,7 @@ class CipherService:
             user_id=user.user_id, **params
         )
         allow_cipher_type = self.user_plan_repository.get_max_allow_cipher_type(user=user)
-        if allow_cipher_type.get(allow) and existed_ciphers_count >= allow_cipher_type.get(params):
+        if allow_cipher_type.get(allow) and existed_ciphers_count >= allow_cipher_type.get(allow):
             raise CipherMaximumReachedException
         return data
 
