@@ -38,8 +38,8 @@
     "fields": {
       "name": "Premium",
       "alias": "pm_premium",
-      "price_usd": 4.99,
-      "price_vnd": 119000,
+      "price_usd": 2.99,
+      "price_vnd": 79000,
       "yearly_price_usd": 15.48,
       "yearly_price_vnd": 369000,
       "half_yearly_price_usd": 29.94,

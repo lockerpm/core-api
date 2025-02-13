@@ -33,6 +33,7 @@ class StripePaymentMethod(PaymentMethod):
         real_stripe_plans = {}
         if os.getenv("PROD_ENV") == "staging":
             real_stripe_plans["pm_enterprise_monthly"] = "locker_pm_enterprise_monthly"
+            real_stripe_plans["pm_premium_monthly"] = "locker_pm_premium_monthly"
         elif os.getenv("PROD_ENV") == "prod":
             real_stripe_plans["pm_family_yearly"] = "locker_pm_family_yearly"
 
