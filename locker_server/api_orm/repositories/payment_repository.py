@@ -570,6 +570,40 @@ class PaymentORMRepository(PaymentRepository):
                 return None
         return ModelParser.payment_parser().parse_promo_code(promo_code_orm=promo_code_orm)
 
+    def create_campaign_promo_code(self, campaign_prefix: str, value: int = 100,
+                                   campaign_description: str = "") -> Optional[PromoCode]:
+        # The promo code will be expired in a week
+        expired_time = int(now() + 7 * 86400)
+        code = f"{campaign_prefix}{random_n_digit(n=12)}".upper()
+        promo_code_data = {
+            "type": PROMO_PERCENTAGE,
+            "expired_time": expired_time,
+            "code": code,
+            "value": value,
+            "duration": 1,
+            "number_code": 1,
+            "description_en": f"{campaign_description} PromoCode",
+            "description_vi": f"{campaign_description} PromoCode",
+            "only_period": DURATION_YEARLY,
+            "only_plan": PLAN_TYPE_PM_PREMIUM,
+        }
+        promo_code_orm = PromoCodeORM.create(**promo_code_data)
+
+        # Create on Stripe
+        if os.getenv("PROD_ENV") in ["prod", "staging"]:
+            try:
+                stripe.Coupon.create(
+                    duration='once',
+                    id="{}_yearly".format(promo_code_orm.id),
+                    percent_off=value,
+                    name=code,
+                    redeem_by=expired_time
+                )
+            except stripe.error.StripeError:
+                promo_code_orm.delete()
+                return None
+        return ModelParser.payment_parser().parse_promo_code(promo_code_orm=promo_code_orm)
+
     # ------------------------ Update Payment resource --------------------- #
     def update_promo_code_remaining_times(self, promo_code: PromoCode, amount: int = 1) -> PromoCode:
         promo_code_orm = self._get_promo_code_orm(promo_code_id=promo_code.promo_code_id)
