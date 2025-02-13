@@ -54,6 +54,7 @@ class PromoCodeORM(AbstractPromoCodeORM):
             description_vi=description_vi, description_en=description_en,
             only_user_id=only_user_id,
             only_period=only_period,
+            only_plan=only_plan,
             is_saas_code=is_saas_code, saas_market_id=saas_market_id, saas_plan=saas_plan
         )
         new_promo_code.save()
