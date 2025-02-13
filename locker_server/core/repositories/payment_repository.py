@@ -90,6 +90,11 @@ class PaymentRepository(ABC):
     def create_education_promo_code(self, user_id: int) -> Optional[PromoCode]:
         pass
 
+    @abstractmethod
+    def create_campaign_promo_code(self, campaign_prefix: str, value: int = 100,
+                                   campaign_description: str = "") -> Optional[PromoCode]:
+        pass
+
     # ------------------------ Update Payment resource --------------------- #
     @abstractmethod
     def update_promo_code_remaining_times(self, promo_code: PromoCode, amount: int = 1) -> PromoCode:
