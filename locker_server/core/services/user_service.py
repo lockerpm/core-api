@@ -691,7 +691,7 @@ class UserService:
         return self.user_repository.get_customer_data(user=user, token_card=token_card, id_card=id_card)
 
     def allow_create_user(self, default_plan: str) -> bool:
-        if default_plan == PLAN_TYPE_PM_ENTERPRISE:
+        if default_plan in [PLAN_TYPE_PM_ENTERPRISE, PLAN_TYPE_PM_ENTERPRISE_STARTUP]:
             return self.user_repository.allow_create_enterprise_user()
         return True
 

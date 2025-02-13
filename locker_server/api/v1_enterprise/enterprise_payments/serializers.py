@@ -1,7 +1,8 @@
 from django.forms import model_to_dict
 from rest_framework import serializers
 
-from locker_server.shared.constants.transactions import LIST_DURATION, DURATION_MONTHLY, LIST_CURRENCY, CURRENCY_USD
+from locker_server.shared.constants.transactions import LIST_DURATION, DURATION_MONTHLY, LIST_CURRENCY, CURRENCY_USD, \
+    PLAN_TYPE_PM_ENTERPRISE, PLAN_TYPE_PM_ENTERPRISE_STARTUP
 
 
 class ListInvoiceSerializer(serializers.ModelSerializer):
@@ -63,6 +64,9 @@ class CalcPublicSerializer(serializers.Serializer):
 
 
 class UpgradePlanSerializer(serializers.Serializer):
+    plan_alias = serializers.ChoiceField(
+        choices=[PLAN_TYPE_PM_ENTERPRISE, PLAN_TYPE_PM_ENTERPRISE_STARTUP], default=PLAN_TYPE_PM_ENTERPRISE
+    )
     promo_code = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     duration = serializers.ChoiceField(choices=LIST_DURATION, default=DURATION_MONTHLY, required=False)
 
@@ -73,6 +77,9 @@ class UpgradePlanSerializer(serializers.Serializer):
 
 
 class UpgradePlanPublicSerializer(UpgradePlanSerializer):
+    plan_alias = serializers.ChoiceField(
+        choices=[PLAN_TYPE_PM_ENTERPRISE, PLAN_TYPE_PM_ENTERPRISE_STARTUP], default=PLAN_TYPE_PM_ENTERPRISE
+    )
     quantity = serializers.IntegerField(min_value=1, default=1)
     organization = serializers.CharField(max_length=128, default="My Enterprise")
     enterprise_address1 = serializers.CharField(max_length=255, required=False, allow_blank=True)
@@ -80,6 +87,13 @@ class UpgradePlanPublicSerializer(UpgradePlanSerializer):
     enterprise_phone = serializers.CharField(max_length=128, required=False, allow_blank=True)
     enterprise_country = serializers.CharField(max_length=128, required=False, allow_blank=True)
     enterprise_postal_code = serializers.CharField(max_length=16, required=False, allow_blank=True)
+
+    def validate(self, data):
+        data = super().validate(data)
+        plan_alias = data.get("plan_alias", PLAN_TYPE_PM_ENTERPRISE)
+        if plan_alias == PLAN_TYPE_PM_ENTERPRISE_STARTUP:
+            data["quantity"] = 1
+        return data
 
 
 class BillingAddressSerializer(serializers.Serializer):
