@@ -9,6 +9,7 @@ from locker_server.api.permissions.micro_service_permissions.payment_permission 
 from locker_server.core.exceptions.payment_exception import PaymentInvoiceDoesNotExistException
 from locker_server.api.v1_0.payments.serializers import DetailInvoiceSerializer
 from locker_server.core.exceptions.user_exception import UserDoesNotExistException
+from locker_server.shared.background.i_background import BackgroundThread
 from locker_server.shared.constants.transactions import *
 from .serializers import InvoiceWebhookSerializer, PaymentStatusWebhookSerializer, BankingCallbackSerializer, \
     PaymentRefundedWebhookSerializer
@@ -55,6 +56,9 @@ class PaymentViewSet(APIBaseViewSet):
             "durations": [DURATION_YEARLY],
             "status": PAYMENT_STATUS_PAID
         })
+        # Update:::: 14 Feb - 17 Feb
+        if is_first_annual is True:
+            BackgroundThread(task=self.payment_hook_service.send_campaign_promo_code, **{"new_payment": new_payment})
         return Response(status=status.HTTP_200_OK, data={
             "success": True,
             "user_id": user_id,

@@ -8,7 +8,7 @@ from locker_server.core.exceptions.payment_exception import PaymentInvoiceDoesNo
 from locker_server.core.repositories.payment_repository import PaymentRepository
 from locker_server.core.repositories.user_plan_repository import UserPlanRepository
 from locker_server.core.repositories.user_repository import UserRepository
-from locker_server.shared.background.i_background import BackgroundThread, background_exception_wrapper
+from locker_server.shared.background.i_background import background_exception_wrapper
 from locker_server.shared.constants.transactions import *
 from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
 from locker_server.shared.external_services.locker_background.constants import BG_NOTIFY
@@ -142,9 +142,6 @@ class PaymentHookService:
         else:
             new_payment = self.payment_repository.set_failed(payment=new_payment, failure_reason=failure_reason)
         result["new_payment"] = new_payment
-
-        # # Update:::: 14 Feb - 17 Feb
-        BackgroundThread(task=self._send_campaign_promo_code, **{"new_payment": new_payment})
 
         return result
 
@@ -325,7 +322,7 @@ class PaymentHookService:
         return []
 
     @background_exception_wrapper
-    def _send_campaign_promo_code(self, new_payment: Payment):
+    def send_campaign_promo_code(self, new_payment: Payment):
         if new_payment.status == PAYMENT_STATUS_PAID and new_payment.plan == PLAN_TYPE_PM_PREMIUM and \
                 new_payment.duration == DURATION_YEARLY and now() < 1739750400 and \
                 not new_payment.promo_code:
