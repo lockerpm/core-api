@@ -872,3 +872,20 @@ class PaymentService:
         })
         refund_payment = self.payment_repository.create_payment(**refund_payment_data)
         return refund_payment
+
+    def downgrade_by_saas_license(self, license_key: str, scope: str = None):
+        current_plan = self.user_plan_repository.get_user_plan_by_saas_license(saas_license=license_key)
+        if not current_plan:
+            CyLog.warning(**{"message": f"[+] Not found license when downgrade {license_key}"})
+            raise SaasLicenseInvalidException
+        if current_plan.pm_plan.alias not in [PLAN_TYPE_PM_LIFETIME_FAMILY, PLAN_TYPE_PM_LIFETIME]:
+            return
+        if current_plan.pm_stripe_subscription:
+            self.user_plan_repository.cancel_plan(user=current_plan.user, immediately=True)
+        self.user_plan_repository.update_plan(
+            user_id=current_plan.user.user_id, plan_type_alias=PLAN_TYPE_PM_FREE, scope=scope
+        )
+        # # Update saas license
+        # self.user_plan_repository.update_user_plan_by_id(
+        #     user_plan_id=current_plan.user.user_id, user_plan_update_data={"saas_license": None}
+        # )
