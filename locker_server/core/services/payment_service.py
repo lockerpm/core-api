@@ -6,6 +6,7 @@ import jwt
 from locker_server.core.entities.payment.payment import Payment
 from locker_server.core.entities.user.user import User
 from locker_server.core.entities.user_plan.pm_plan import PMPlan
+from locker_server.core.entities.user_plan.pm_user_plan import PMUserPlan
 from locker_server.core.exceptions.enterprise_member_repository import EnterpriseMemberExistedException
 from locker_server.core.exceptions.payment_exception import *
 from locker_server.core.exceptions.plan_repository import PlanDoesNotExistException
@@ -340,6 +341,12 @@ class PaymentService:
                         "plan": plan.name
                     }
                 )
+
+    def get_user_plan_by_saas_license(self, license_key: str) -> Optional[PMUserPlan]:
+        user_plan = self.user_plan_repository.get_user_plan_by_saas_license(saas_license=license_key)
+        if not user_plan:
+            raise UserDoesNotExistException
+        return user_plan
 
     def upgrade_by_saas_license(self, user_id: int, saas_license, scope: str = None):
         if self.enterprise_member_repository.is_in_enterprise(user_id=user_id):
@@ -873,12 +880,17 @@ class PaymentService:
         refund_payment = self.payment_repository.create_payment(**refund_payment_data)
         return refund_payment
 
-    def downgrade_by_saas_license(self, license_key: str, scope: str = None):
+    def downgrade_by_saas_license(self, saas_license,  scope: str = None):
+        saas_plan_alias = saas_license.plan_id or PLAN_TYPE_PM_LIFETIME
+        license_key = saas_license.license_key
+
         current_plan = self.user_plan_repository.get_user_plan_by_saas_license(saas_license=license_key)
         if not current_plan:
             CyLog.warning(**{"message": f"[+] Not found license when downgrade {license_key}"})
             raise SaasLicenseInvalidException
         if current_plan.pm_plan.alias not in [PLAN_TYPE_PM_LIFETIME_FAMILY, PLAN_TYPE_PM_LIFETIME]:
+            return
+        if current_plan.pm_plan.alias != saas_plan_alias:
             return
         if current_plan.pm_stripe_subscription:
             self.user_plan_repository.cancel_plan(user=current_plan.user, immediately=True)
