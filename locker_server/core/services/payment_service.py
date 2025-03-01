@@ -368,12 +368,12 @@ class PaymentService:
                 current_plan.pm_plan.alias == plan.alias:
             return
 
-        if plan.alias == PLAN_TYPE_PM_LIFETIME_FAMILY:
-            if self.user_plan_repository.is_family_member(user_id=user_id):
-                raise PaymentFailedByUserInFamilyException
-        else:
-            if self.user_plan_repository.is_in_family_plan(user_plan=current_plan):
-                raise PaymentFailedByUserInFamilyException
+        # if plan.alias == PLAN_TYPE_PM_LIFETIME_FAMILY:
+        #     if self.user_plan_repository.is_family_member(user_id=user_id):
+        #         raise PaymentFailedByUserInFamilyException
+        # else:
+        #     if self.user_plan_repository.is_in_family_plan(user_plan=current_plan):
+        #         raise PaymentFailedByUserInFamilyException
 
         # Cancel the current Free/Premium/Family
         # If new plan is family lifetime => Only cancel stripe subscription
@@ -382,6 +382,12 @@ class PaymentService:
                 self.user_plan_repository.cancel_plan(user=current_plan.user, immediately=True)
         else:
             self.user_plan_repository.cancel_plan(user=current_plan.user, immediately=True)
+
+        # First, update user plan to free plan to remove all current family members, etc...
+        self.user_plan_repository.update_plan(
+            user_id=user_id, plan_type_alias=PLAN_TYPE_PM_FREE, duration=DURATION_MONTHLY, scope=scope
+        )
+        # Then, update to new plan
         plan_metadata = {
             "start_period": now(),
             "end_period": None
