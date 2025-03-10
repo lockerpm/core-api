@@ -25,6 +25,8 @@ class APIBaseViewSet(AppGeneralViewSet):
     mobile_payment_service = mobile_payment_service
     payment_hook_service = payment_hook_service
 
+    attachment_service = attachment_service
+
     cipher_service = cipher_service
     folder_service = folder_service
 
