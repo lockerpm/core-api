@@ -291,6 +291,7 @@ try:
     AWS_SQS_URL = os.getenv("AWS_SQS_URL")
 
     # AWS S3
+    CDN_ATTACHMENT_URL = os.getenv("CDN_ATTACHMENT_URL")
     AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
     AWS_S3_BUCKET = os.getenv("AWS_S3_BUCKET")
     AWS_S3_ACCESS_KEY = os.getenv("AWS_S3_ACCESS_KEY")
