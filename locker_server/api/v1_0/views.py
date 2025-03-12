@@ -3,6 +3,7 @@ from locker_server.api.v1_0.users.views import UserPwdViewSet
 from locker_server.api.v1_0.notification_settings.views import NotificationSettingPwdViewSet
 from locker_server.api.v1_0.sync.views import SyncPwdViewSet
 from locker_server.api.v1_0.ciphers.views import CipherPwdViewSet
+from locker_server.api.v1_0.attachments.views import AttachmentPwdViewSet
 from locker_server.api.v1_0.sharing.views import SharingPwdViewSet
 from locker_server.api.v1_0.quick_shares.views import QuickSharePwdViewSet
 from locker_server.api.v1_0.folders.views import FolderPwdViewSet

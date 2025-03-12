@@ -44,7 +44,7 @@ from locker_server.shared.external_services.locker_background.background_factory
 from locker_server.shared.external_services.locker_background.constants import BG_NOTIFY, BG_EVENT
 from locker_server.shared.external_services.pm_sync import SYNC_EVENT_MEMBER_UPDATE, PwdSync, SYNC_EVENT_VAULT, \
     SYNC_EVENT_MEMBER_ACCEPTED
-from locker_server.shared.utils.app import secure_random_string, now
+from locker_server.shared.utils.app import secure_random_string, now, md5_encode
 from locker_server.shared.utils.network import detect_device
 
 
@@ -1023,3 +1023,6 @@ class UserService:
 
     def list_users_by_admin_with_paging(self, **filters) -> Tuple:
         return self.user_repository.list_users_by_admin_with_paging(**filters)
+
+    def get_hash_user_key(self, user: User) -> str:
+        return md5_encode(text=user.internal_id)
