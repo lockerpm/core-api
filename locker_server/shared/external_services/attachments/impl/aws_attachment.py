@@ -292,7 +292,7 @@ class AWSAttachmentService(AttachmentStorageService):
         :return: Onetime url
         """
         if is_cdn:
-            expired = kwargs.get("expired", 60)
+            expired = kwargs.get("expired_in") or kwargs.get("expired") or 120
             expire_date = datetime.datetime.utcfromtimestamp(now() + expired)  # 1 minute
             cloudfront_signer = CloudFrontSigner(settings.AWS_CLOUDFRONT_PUBLIC_KEY_ID, self._rsa_signer)
 

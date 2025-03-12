@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -69,7 +70,8 @@ class AttachmentPwdViewSet(APIBaseViewSet):
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
         path = validated_data.get("path")
-        onetime_url = self.attachment_service.get_onetime_url(path=path, is_cdn=True, **{
+        is_cdn = True if settings.AWS_CLOUDFRONT_PUBLIC_KEY_ID else False
+        onetime_url = self.attachment_service.get_onetime_url(path=path, is_cdn=is_cdn, **{
             "response_content_disposition": "inline",
             "expired": DEFAULT_ATTACHMENT_EXPIRED
         })
