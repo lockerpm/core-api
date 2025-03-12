@@ -4,6 +4,7 @@ from typing import List
 from locker_server.api_orm.model_parsers.wrapper_specific_model_parser import get_specific_model_parser
 from locker_server.api_orm.models import *
 from locker_server.core.entities.cipher.cipher import Cipher
+from locker_server.core.entities.cipher.cipher_attachment import CipherAttachment
 from locker_server.core.entities.cipher.cipher_history import CipherHistory
 from locker_server.core.entities.cipher.folder import Folder
 from locker_server.shared.utils.app import convert_readable_date
@@ -98,5 +99,20 @@ class CipherParser:
             reprompt=cipher_history_orm.reprompt,
             score=cipher_history_orm.score,
             data=cipher_history_orm.get_data(),
+            cipher=cipher,
+        )
+
+    @classmethod
+    def parse_cipher_attachment(cls, cipher_attachment_orm: CipherAttachmentORM, parse_cipher=False) -> CipherAttachment:
+        cipher = None
+        if parse_cipher is True:
+            cipher = cls.parse_cipher(cipher_orm=cipher_attachment_orm.cipher)
+        return CipherAttachment(
+            cipher_attachment_id=cipher_attachment_orm.id,
+            path=cipher_attachment_orm.path,
+            creation_date=cipher_attachment_orm.creation_date,
+            file_name=cipher_attachment_orm.file_name,
+            size=cipher_attachment_orm.size,
+            key=cipher_attachment_orm.key,
             cipher=cipher,
         )
