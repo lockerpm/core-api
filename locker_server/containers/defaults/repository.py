@@ -26,7 +26,7 @@ class RepositoryFactory(containers.DeclarativeContainer):
 
     cipher_repository = providers.Factory(CipherORMRepository)
     folder_repository = providers.Factory(FolderORMRepository)
-    cipher_attachment_repository = providers.Factory(CipherAttachmentORMRepository)
+    # cipher_attachment_repository = providers.Factory(CipherAttachmentORMRepository)
 
     team_repository = providers.Factory(TeamORMRepository)
     team_member_repository = providers.Factory(TeamMemberORMRepository)

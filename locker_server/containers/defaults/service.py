@@ -99,7 +99,7 @@ class ServiceFactory(containers.DeclarativeContainer):
 
     attachment_service = providers.Factory(
         AttachmentService,
-        cipher_attachment_repository=RepositoryFactory.cipher_attachment_repository,
+        # cipher_attachment_repository=RepositoryFactory.cipher_attachment_repository,
         attachment_storage=AttachmentStorageFactory.get_attachment_service(service_name=ATTACHMENT_AWS),
 
     )

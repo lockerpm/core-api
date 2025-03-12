@@ -17,7 +17,7 @@ from .device_access_token_repository import DeviceAccessTokenORMRepository
 
 from .cipher_repository import CipherORMRepository
 from .folder_repository import FolderORMRepository
-from .cipher_attachment_repository import CipherAttachmentORMRepository
+# from .cipher_attachment_repository import CipherAttachmentORMRepository
 
 from .team_repository import TeamORMRepository
 from .team_member_repository import TeamMemberORMRepository

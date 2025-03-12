@@ -1,20 +1,21 @@
 import secrets
 from typing import Optional
 
-from locker_server.core.entities.cipher.cipher_attachment import CipherAttachment
-from locker_server.core.exceptions.cipher_attachment_repository import CipherAttachmentDoesNotExistException
-from locker_server.core.repositories.cipher_attachment_repository import CipherAttachmentRepository
+# from locker_server.core.entities.cipher.cipher_attachment import CipherAttachment
+# from locker_server.core.exceptions.cipher_attachment_repository import CipherAttachmentDoesNotExistException
+# from locker_server.core.repositories.cipher_attachment_repository import CipherAttachmentRepository
 from locker_server.shared.external_services.attachments.attachment import AttachmentStorageService
 from locker_server.shared.constants.attachments import UPLOAD_ACTION_ATTACHMENT, LIMIT_SIZE_ATTACHMENT
+
 
 class AttachmentService:
     """
     This class represents Use Cases related attachments
     """
 
-    def __init__(self, cipher_attachment_repository: CipherAttachmentRepository,
+    def __init__(self,
                  attachment_storage: AttachmentStorageService):
-        self.cipher_attachment_repository = cipher_attachment_repository
+        # self.cipher_attachment_repository = cipher_attachment_repository
         self.attachment_storage = attachment_storage
 
     @staticmethod
@@ -22,11 +23,11 @@ class AttachmentService:
         attachment_id = secrets.randbits(64)
         return str(attachment_id)
 
-    def get_cipher_attachment_by_path(self, path: str) -> Optional[CipherAttachment]:
-        cipher_attachment = self.cipher_attachment_repository.get_by_path(path=path)
-        if not cipher_attachment:
-            raise CipherAttachmentDoesNotExistException
-        return cipher_attachment
+    # def get_cipher_attachment_by_path(self, path: str) -> Optional[CipherAttachment]:
+    #     cipher_attachment = self.cipher_attachment_repository.get_by_path(path=path)
+    #     if not cipher_attachment:
+    #         raise CipherAttachmentDoesNotExistException
+    #     return cipher_attachment
 
     def get_attachment_upload_form(self, action: str, file_name: str = None, **metadata):
         acl = "private"
