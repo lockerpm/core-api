@@ -43,7 +43,7 @@ from locker_server.api_orm.models.ciphers.folders import FolderORM
 from locker_server.api_orm.models.teams.teams import TeamORM
 from locker_server.api_orm.models.ciphers.ciphers import CipherORM
 from locker_server.api_orm.models.ciphers.cipher_histories import CipherHistoryORM
-from locker_server.api_orm.models.ciphers.cipher_attachments import CipherAttachmentORM
+# from locker_server.api_orm.models.ciphers.cipher_attachments import CipherAttachmentORM
 from locker_server.api_orm.models.members.member_roles import MemberRoleORM
 from locker_server.api_orm.models.members.team_members import TeamMemberORM
 from locker_server.api_orm.models.teams.collections import CollectionORM
