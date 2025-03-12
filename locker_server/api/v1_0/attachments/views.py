@@ -15,7 +15,7 @@ from locker_server.shared.external_services.attachments.exceptions import FileEx
     AttachmentCreateUploadFormException
 
 
-class CipherPwdViewSet(APIBaseViewSet):
+class AttachmentPwdViewSet(APIBaseViewSet):
     permission_classes = (AttachmentPwdPermission, )
     http_method_names = ["head", "options", "post", ]
 
@@ -62,23 +62,6 @@ class CipherPwdViewSet(APIBaseViewSet):
         except AttachmentCreateUploadFormException:
             raise ValidationError({"non_field_errors": [gen_error("0009")]})
         return Response(status=status.HTTP_200_OK, data=allocated_attachment)
-
-    # @action(methods=["post"], detail=False)
-    # def signed(self, request, *args, **kwargs):
-    #     serializer = self.get_serializer()
-    #     serializer.is_valid(raise_exception=True)
-    #     validated_data = serializer.validated_data
-    #     path = validated_data.get("path")
-    #     cipher_attachment = self.get_cipher_attachment_by_path(path=path)
-    #     if not cipher_attachment:
-    #         return Response(status=status.HTTP_200_OK, data={"success": False, "url": None})
-
-    # @action(methods=["post"], detail=False)
-    # def signed(self, request, *args, **kwargs):
-    #     serializer = self.get_serializer(data=request.data)
-    #     serializer.is_valid(raise_exception=True)
-    #     validated_data = serializer.validated_data
-    #     path = validated_data.get("path")
 
     @action(methods=["post"], detail=False)
     def url(self, request, *args, **kwargs):

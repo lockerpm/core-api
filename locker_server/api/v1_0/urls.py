@@ -286,3 +286,10 @@ urlpatterns += [
     url(r'^reward/missions/(?P<pk>[a-z0-9_]+)/completed$',
         views.UserRewardMissionPwdViewSet.as_view({'post': 'completed'})),
 ]
+
+
+# ----------------------------------- Cipher Attachments ----------------- ------------ #
+urlpatterns += [
+    url(r'^attachments$', views.AttachmentPwdViewSet.as_view({'post': 'create'})),
+    url(r'^attachments/url$', views.AttachmentPwdViewSet.as_view({'post': 'url'})),
+]
