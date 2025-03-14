@@ -1,7 +1,6 @@
 import json
 import uuid
-from typing import Union, Dict, Optional, List
-from abc import ABC, abstractmethod
+from typing import Dict, Optional, List
 
 from django.db.models import Value, BooleanField, Q, Case, When, Count, F
 
@@ -12,12 +11,14 @@ from locker_server.api_orm.utils.revision_date import bump_account_revision_date
 from locker_server.core.entities.cipher.cipher import Cipher
 from locker_server.core.entities.cipher.folder import Folder
 from locker_server.core.entities.member.team_member import TeamMember
-from locker_server.core.entities.user.device import Device
 from locker_server.core.entities.user.user import User
 from locker_server.core.repositories.cipher_repository import CipherRepository
 from locker_server.shared.constants.ciphers import *
 from locker_server.shared.constants.members import *
-from locker_server.shared.utils.app import now, diff_list, get_cipher_detail_data
+from locker_server.shared.external_services.attachments.attachment_factory import AttachmentStorageFactory, \
+    ATTACHMENT_AWS
+from locker_server.shared.utils.app import now, diff_list, get_cipher_detail_data, md5_encode
+
 
 UserORM = get_user_model()
 TeamORM = get_team_model()
@@ -652,8 +653,20 @@ class CipherORMRepository(CipherRepository):
         ).exclude(type__in=IMMUTABLE_CIPHER_TYPES)
         team_ids = ciphers_orm.exclude(team__isnull=True).values_list('team_id', flat=True)
         # Delete ciphers objects
-        deleted_cipher_ids = list(ciphers_orm.values_list('id', flat=True))
+        deleted_ciphers = list(ciphers_orm.values('id', 'created_by__internal_id'))
+        deleted_cipher_ids = [c.get("id") for c in deleted_ciphers]
         ciphers_orm.delete()
+
+        # Delete cipher attachments
+        attachment_storage = AttachmentStorageFactory.get_attachment_service(service_name=ATTACHMENT_AWS)
+        deleted_attachment_keys = [
+            f'attachments/{md5_encode(text=c.get("created_by__internal_id"))}/{c.get("id")}'
+            for c in deleted_ciphers if c.get("created_by__internal_id")
+        ]
+        if deleted_attachment_keys:
+            for k in list(set(deleted_attachment_keys)):
+                attachment_storage.delete_prefix(prefix=k)
+
         # Bump revision date: teams and user
         teams_orm = TeamORM.objects.filter(id__in=team_ids)
         for team_orm in teams_orm:

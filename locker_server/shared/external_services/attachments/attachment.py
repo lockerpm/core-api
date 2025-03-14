@@ -14,10 +14,11 @@ class AttachmentStorageService:
     @staticmethod
     def gen_action_key_path(action: str, attachment_id: str = None, **metadata) -> str:
         user_key = metadata.get("user_key")
+        cipher_id = metadata.get("cipher_id")
         attachment_id = attachment_id or metadata.get("attachment_id")
 
         if action == UPLOAD_ACTION_ATTACHMENT:
-            path = f"attachments/{user_key}/{attachment_id}"
+            path = f"attachments/{user_key}/{cipher_id}/{attachment_id}"
         else:
             path = ""
         return path

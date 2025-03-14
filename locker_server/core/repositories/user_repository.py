@@ -114,6 +114,10 @@ class UserRepository(ABC):
     def statistic_dashboard(self, **filters) -> Dict:
         pass
 
+    @abstractmethod
+    def get_hash_user_key(self, internal_id: str) -> str:
+        pass
+
     # ------------------------ Create User resource --------------------- #
     @abstractmethod
     def retrieve_or_create_by_id(self, user_id, creation_date=None) -> Tuple[User, bool]:

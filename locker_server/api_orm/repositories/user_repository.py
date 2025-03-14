@@ -29,8 +29,7 @@ from locker_server.shared.constants.policy import POLICY_TYPE_PASSWORDLESS, POLI
 from locker_server.shared.constants.transactions import *
 from locker_server.shared.external_services.requester.retry_requester import requester
 from locker_server.shared.log.cylog import CyLog
-from locker_server.shared.utils.app import now, start_end_month_current
-
+from locker_server.shared.utils.app import now, start_end_month_current, md5_encode
 
 DeviceORM = get_device_model()
 UserORM = get_user_model()
@@ -741,6 +740,9 @@ class UserORMRepository(UserRepository):
             "device": statistic_device
         }
         return result
+
+    def get_hash_user_key(self, internal_id: str) -> str:
+        return md5_encode(text=internal_id)
 
     # ------------------------ Create User resource --------------------- #
     def retrieve_or_create_by_id(self, user_id, creation_date=None) -> Tuple[User, bool]:

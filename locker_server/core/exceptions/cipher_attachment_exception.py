@@ -11,3 +11,9 @@ class CipherAttachmentDoesNotExistException(CipherAttachmentException):
     """
     The cipher attachment does not exist
     """
+
+
+class CipherAttachmentLimitSizeReachedException(CipherAttachmentException):
+    """
+    The max total size reached
+    """

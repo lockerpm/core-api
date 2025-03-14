@@ -1,9 +1,6 @@
 from datetime import datetime
 from typing import Optional, List, Dict, NoReturn, Union, Tuple
 
-import jwt
-from django.conf import settings
-
 from locker_server.core.entities.enterprise.enterprise import Enterprise
 from locker_server.core.entities.enterprise.member.enterprise_member import EnterpriseMember
 from locker_server.core.entities.enterprise.policy.policy import EnterprisePolicy
@@ -30,21 +27,20 @@ from locker_server.core.repositories.team_member_repository import TeamMemberRep
 from locker_server.core.repositories.team_repository import TeamRepository
 from locker_server.core.repositories.user_plan_repository import UserPlanRepository
 from locker_server.core.repositories.user_repository import UserRepository
-from locker_server.shared.caching.sync_cache import delete_sync_cache_data, get_sync_cache_key
+from locker_server.shared.caching.sync_cache import get_sync_cache_key
 from locker_server.shared.constants.account import LOGIN_METHOD_PASSWORD
 from locker_server.shared.constants.enterprise_members import *
 from locker_server.shared.constants.event import EVENT_USER_LOGIN_FAILED, EVENT_USER_LOGIN, EVENT_USER_BLOCK_LOGIN
 from locker_server.shared.constants.factor2 import FA2_METHOD_MAIL_OTP
 from locker_server.shared.constants.members import PM_MEMBER_STATUS_INVITED, PM_MEMBER_STATUS_ACCEPTED
-from locker_server.shared.constants.token import TOKEN_EXPIRED_TIME_INVITE_MEMBER, TOKEN_TYPE_RESET_PASSWORD, \
-    TOKEN_PREFIX
+from locker_server.shared.constants.token import TOKEN_TYPE_RESET_PASSWORD
 from locker_server.shared.constants.transactions import *
 from locker_server.shared.constants.user_notification import NOTIFY_CHANGE_MASTER_PASSWORD, NOTIFY_SHARING
 from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
 from locker_server.shared.external_services.locker_background.constants import BG_NOTIFY, BG_EVENT
 from locker_server.shared.external_services.pm_sync import SYNC_EVENT_MEMBER_UPDATE, PwdSync, SYNC_EVENT_VAULT, \
     SYNC_EVENT_MEMBER_ACCEPTED
-from locker_server.shared.utils.app import secure_random_string, now, md5_encode
+from locker_server.shared.utils.app import secure_random_string, now
 from locker_server.shared.utils.network import detect_device
 
 
@@ -1025,4 +1021,4 @@ class UserService:
         return self.user_repository.list_users_by_admin_with_paging(**filters)
 
     def get_hash_user_key(self, user: User) -> str:
-        return md5_encode(text=user.internal_id)
+        return self.user_repository.get_hash_user_key(internal_id=user.internal_id)

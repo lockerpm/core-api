@@ -1,14 +1,16 @@
 from django.conf import settings
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, PermissionDenied
 from rest_framework.response import Response
 
 from locker_server.api.api_base_view import APIBaseViewSet
 from locker_server.api.permissions.locker_permissions.attachment_permission import AttachmentPwdPermission
 from locker_server.api.v1_0.attachments.serializers import AttachmentUploadSerializer, SignedAttachmentSerializeR
-from locker_server.core.exceptions.cipher_attachment_repository import CipherAttachmentDoesNotExistException
-from locker_server.shared.constants.attachments import DEFAULT_ATTACHMENT_EXPIRED
+from locker_server.core.exceptions.cipher_attachment_exception import CipherAttachmentDoesNotExistException
+from locker_server.core.exceptions.cipher_exception import CipherDoesNotExistException
+from locker_server.shared.constants.attachments import DEFAULT_ATTACHMENT_EXPIRED, UPLOAD_ACTION_ATTACHMENT
+from locker_server.shared.constants.transactions import PLAN_TYPE_PM_FREE
 from locker_server.shared.error_responses.error import gen_error
 from locker_server.shared.external_services.attachments.attachment_factory import AttachmentStorageFactory, \
     ATTACHMENT_AWS
@@ -27,6 +29,25 @@ class AttachmentPwdViewSet(APIBaseViewSet):
             self.serializer_class = SignedAttachmentSerializeR
         return super().get_serializer_class()
 
+    def allow_attachments(self) -> bool:
+        user = self.request.user
+        current_plan = self.user_service.get_current_plan(user=user)
+        plan = current_plan.pm_plan
+        is_active_enterprise_member = self.user_service.is_active_enterprise_member(user_id=user.user_id)
+        return plan.alias not in [PLAN_TYPE_PM_FREE] or is_active_enterprise_member
+
+    def get_cipher_obj(self, cipher_id: str):
+        try:
+            cipher = self.cipher_service.get_by_id(cipher_id=self.kwargs.get("pk"))
+            if cipher.team:
+                self.check_object_permissions(request=self.request, obj=cipher)
+            else:
+                if cipher.user.user_id != self.request.user.user_id:
+                    return None
+            return cipher
+        except CipherDoesNotExistException:
+            return None
+
     def get_cipher_attachment_by_path(self, path: str):
         try:
             cipher_attachment = self.attachment_service.get_cipher_attachment_by_path(path=path)
@@ -36,6 +57,10 @@ class AttachmentPwdViewSet(APIBaseViewSet):
         return cipher_attachment
 
     def create(self, request, *args, **kwargs):
+        allow_upload_file = self.allow_attachments()
+        if allow_upload_file is False:
+            raise ValidationError({"non_field_errors": [gen_error("7002")]})
+
         user = self.request.user
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -44,7 +69,7 @@ class AttachmentPwdViewSet(APIBaseViewSet):
         file_name = validated_data.get("file_name")
         metadata = validated_data.get("metadata") or {}
         metadata.update({
-            "user_key": self.user_service.get_hash_user_key(user=user)
+            "user_key": self.user_service.get_hash_user_key(user=user),
         })
         # Update content type
         attachment_storage = AttachmentStorageFactory.get_attachment_service(service_name=ATTACHMENT_AWS)
@@ -53,6 +78,12 @@ class AttachmentPwdViewSet(APIBaseViewSet):
             metadata.update({"content_type": 'image/jpeg'})
         # Validate data: Check permission
         limit_size = True
+
+        if upload_action == UPLOAD_ACTION_ATTACHMENT:
+            cipher_id = metadata.get("cipher_id")
+            cipher = self.get_cipher_obj(cipher_id=cipher_id)
+            if not cipher:
+                raise PermissionDenied
         try:
             metadata.update({"limit": limit_size})
             allocated_attachment = self.attachment_service.get_attachment_upload_form(
