@@ -1,11 +1,9 @@
 import secrets
-from typing import Optional
 
-# from locker_server.core.entities.cipher.cipher_attachment import CipherAttachment
-# from locker_server.core.exceptions.cipher_attachment_repository import CipherAttachmentDoesNotExistException
-# from locker_server.core.repositories.cipher_attachment_repository import CipherAttachmentRepository
+from locker_server.core.exceptions.cipher_attachment_exception import CipherAttachmentLimitSizeReachedException
 from locker_server.shared.external_services.attachments.attachment import AttachmentStorageService
-from locker_server.shared.constants.attachments import UPLOAD_ACTION_ATTACHMENT, LIMIT_SIZE_ATTACHMENT
+from locker_server.shared.constants.attachments import UPLOAD_ACTION_ATTACHMENT, LIMIT_SIZE_ATTACHMENT, \
+    LIMIT_TOTAL_SIZE_ATTACHMENT
 
 
 class AttachmentService:
@@ -37,7 +35,12 @@ class AttachmentService:
         attachment_id = self.generate_attachment_id()
         if limit:
             if action in [UPLOAD_ACTION_ATTACHMENT]:
-                limit_size = LIMIT_SIZE_ATTACHMENT
+                user_key = metadata.get("user_key")
+                current_folder_size = self.attachment_storage.get_folder_size(folder_path=f"attachments/{user_key}")
+                remain_size = max(LIMIT_TOTAL_SIZE_ATTACHMENT - current_folder_size, 0)
+                if remain_size <= 0:
+                    raise CipherAttachmentLimitSizeReachedException
+                limit_size = min(remain_size, LIMIT_SIZE_ATTACHMENT)
         upload_file_path = self.attachment_storage.gen_action_key_path(
             action=action, attachment_id=attachment_id, **metadata
         )
@@ -48,6 +51,7 @@ class AttachmentService:
 
         allocated_attachment = {
             "upload_id": upload_file_path,
+            "limit_size": limit_size,
             "upload_form": upload_form,
         }
         return allocated_attachment
