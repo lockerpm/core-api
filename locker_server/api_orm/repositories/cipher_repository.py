@@ -233,8 +233,11 @@ class CipherORMRepository(CipherRepository):
     def count_ciphers_created_by_user(self, user_id: int, **filter_params) -> int:
         ciphers = CipherORM.objects.filter(created_by_id=user_id)
         type_param = filter_params.get("type")
+        exclude_types_param = filter_params.get("exclude_types")
         if type_param:
             ciphers = ciphers.filter(type=type_param)
+        if exclude_types_param:
+            ciphers = ciphers.exclude(type__in=exclude_types_param)
         return ciphers.count()
 
     def get_master_pwd_item(self, user_id: int) -> Optional[Cipher]:
@@ -470,27 +473,40 @@ class CipherORMRepository(CipherRepository):
         user_orm = self._get_user_orm(user_id=user_id)
         existed_folder_ids = list(user_orm.folders.values_list('id', flat=True))
 
+        # # Check limit ciphers
+        # existed_ciphers_orm = CipherORM.objects.filter(created_by_id=user_id).values('type').annotate(
+        #     count=Count('type')
+        # )
+        # existed_ciphers_count = {item["type"]: item["count"] for item in list(existed_ciphers_orm)}
+
         # Check limit ciphers
-        existed_ciphers_orm = CipherORM.objects.filter(created_by_id=user_id).values('type').annotate(
-            count=Count('type')
-        )
-        existed_ciphers_count = {item["type"]: item["count"] for item in list(existed_ciphers_orm)}
+        totp_ciphers_count = CipherORM.objects.filter(created_by_id=user_id, type=CIPHER_TYPE_TOTP).count()
+        other_ciphers_count = CipherORM.objects.filter(created_by_id=user_id).exclude(
+            type__in=[CIPHER_TYPE_TOTP, CIPHER_TYPE_MASTER_PASSWORD]
+        ).count()
+        existed_ciphers_count = {CIPHER_TYPE_TOTP: totp_ciphers_count, "limit_total": other_ciphers_count}
 
         # Create multiple ciphers
         import_ciphers = []
-        import_ciphers_count = {vault_type: 0 for vault_type in LIST_CIPHER_TYPE}
+        # import_ciphers_count = {vault_type: 0 for vault_type in LIST_CIPHER_TYPE}
+        import_ciphers_count = {CIPHER_TYPE_TOTP: 0, "limit_total": 0}
 
         for cipher_data in ciphers:
             # Only accepts ciphers which have name
             if not cipher_data.get("name"):
                 continue
             cipher_type = cipher_data.get("type")
+            check_type = "limit_total" if cipher_type != CIPHER_TYPE_TOTP else cipher_type
+            if allow_cipher_type and allow_cipher_type.get(check_type) and import_ciphers_count.get(check_type, 0) + \
+                    existed_ciphers_count.get(check_type, 0) >= allow_cipher_type.get(check_type):
+                continue
+            import_ciphers_count[check_type] = import_ciphers_count.get(check_type) + 1
 
             # Check limit ciphers
-            if allow_cipher_type and allow_cipher_type.get(cipher_type) and import_ciphers_count.get(cipher_type, 0) + \
-                    existed_ciphers_count.get(cipher_type, 0) >= allow_cipher_type.get(cipher_type):
-                continue
-            import_ciphers_count[cipher_type] = import_ciphers_count.get(cipher_type) + 1
+            # if allow_cipher_type and allow_cipher_type.get(cipher_type) and import_ciphers_count.get(cipher_type, 0) + \
+            #         existed_ciphers_count.get(cipher_type, 0) >= allow_cipher_type.get(cipher_type):
+            #     continue
+            # import_ciphers_count[cipher_type] = import_ciphers_count.get(cipher_type) + 1
 
             # Get folder id
             folder_id = None

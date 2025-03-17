@@ -255,6 +255,11 @@ APP_CODE += [
         "code": "7020",
         "message": "The saas license key is not valid",
         "vi_message": "Saas License không hợp lệ"
+    },
+    {
+        "code": "7021",
+        "message": "Number of Enterprise members exceeds plan limit",
+        "vi_message": "Số lượng thành viên của Enterprise vượt quá giới hạn của gói"
     }
 ]
 

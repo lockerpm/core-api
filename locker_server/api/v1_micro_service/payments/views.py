@@ -44,7 +44,7 @@ class PaymentViewSet(APIBaseViewSet):
         new_payment = result.get("new_payment")
         payment_data = result.get("payment_data", {})
         subtotal = new_payment.total_price + new_payment.discount
-        if payment_data.get("enterprise_id") and new_payment.plan == PLAN_TYPE_PM_ENTERPRISE:
+        if payment_data.get("enterprise_id") and new_payment.plan in LIST_ENTERPRISE_PLAN:
             enterprise_billing_contacts = self.payment_hook_service.list_enterprise_billing_emails(
                 enterprise_id=payment_data.get("enterprise_id")
             )
@@ -56,8 +56,8 @@ class PaymentViewSet(APIBaseViewSet):
             "durations": [DURATION_YEARLY],
             "status": PAYMENT_STATUS_PAID
         })
+        # Update:::: 14 Feb - 17 Feb
         if is_first_annual is True:
-            # Update:::: 14 Feb - 17 Feb
             BackgroundThread(task=self.payment_hook_service.send_campaign_promo_code, **{"new_payment": new_payment})
         return Response(status=status.HTTP_200_OK, data={
             "success": True,

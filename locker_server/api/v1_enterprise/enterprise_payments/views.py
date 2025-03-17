@@ -16,7 +16,7 @@ from locker_server.core.exceptions.payment_exception import PaymentInvoiceDoesNo
 from locker_server.core.exceptions.plan_repository import PlanDoesNotExistException
 from locker_server.shared.constants.enterprise_members import E_MEMBER_STATUS_CONFIRMED, E_MEMBER_ROLE_MEMBER, \
     E_MEMBER_ROLE_ADMIN
-from locker_server.shared.constants.transactions import PLAN_TYPE_PM_ENTERPRISE, PAYMENT_METHOD_CARD
+from locker_server.shared.constants.transactions import PAYMENT_METHOD_CARD
 from locker_server.shared.error_responses.error import gen_error
 from locker_server.shared.external_services.payment_method.payment_method_factory import PaymentMethodFactory
 from locker_server.shared.log.cylog import CyLog
@@ -257,6 +257,7 @@ class PaymentPwdViewSet(APIBaseViewSet):
             raise ValidationError({"non_field_errors": [gen_error("7007")]})
 
         validated_data = serializer.validated_data
+        plan_alias = validated_data.get("plan_alias", PLAN_TYPE_PM_ENTERPRISE)
         promo_code_obj = validated_data.get("promo_code_obj", None)
         duration = validated_data.get("duration", DURATION_MONTHLY)
         currency = validated_data.get("currency")
@@ -279,9 +280,23 @@ class PaymentPwdViewSet(APIBaseViewSet):
             )
         except CountryDoesNotExistException:
             raise ValidationError(detail={"enterprise_country": ["The country does not exist"]})
+
+        # Validate plan
+        number_members = self.enterprise_member_service.count_enterprise_members(**{
+            "status": E_MEMBER_STATUS_CONFIRMED,
+            "is_activated": True,
+            "enterprise_id": enterprise.enterprise_id
+        })
+        plan = self.payment_service.get_pm_plan_by_alias(plan_alias)
+        if not plan:
+            raise ValidationError(detail={"plan_alias": ["The plan alias does not exist"]})
+        if plan.max_number is not None:
+            if number_members > plan.max_number:
+                raise ValidationError({"non_field_errors": [gen_error("7021")]})
+
         update_result = self._upgrade_plan(
             user=user, enterprise=updated_enterprise, card=card, promo_code_obj=promo_code_obj,
-            duration=duration, number_members=quantity, currency=currency
+            duration=duration, number_members=quantity, currency=currency, plan_alias=plan_alias,
         )
         # Saving the init seats of the enterprise
         stripe_subscription_id = update_result.get("stripe_subscription_id")
@@ -294,7 +309,6 @@ class PaymentPwdViewSet(APIBaseViewSet):
                         enterprise_update_data={
                             "init_seats": quantity,
                             "init_seats_expired_time": stripe_subscription.current_period_end,
-
                         }
                     )
                     # Then, set the quantity to 1
@@ -310,7 +324,8 @@ class PaymentPwdViewSet(APIBaseViewSet):
         return Response(status=200, data={"success": True})
 
     def _upgrade_plan(self, user, enterprise, card, promo_code_obj=None,
-                      duration=DURATION_MONTHLY, number_members=None, currency=CURRENCY_USD):
+                      duration=DURATION_MONTHLY, number_members=None, currency=CURRENCY_USD,
+                      plan_alias: str = PLAN_TYPE_PM_ENTERPRISE):
         if not card:
             raise ValidationError({"non_field_errors": [gen_error("7007")]})
         if not card.get("id_card"):
@@ -333,7 +348,7 @@ class PaymentPwdViewSet(APIBaseViewSet):
             user_plan=current_plan, scope=settings.SCOPE_PWD_MANAGER, payment_method=PAYMENT_METHOD_CARD
         )
         payment_result = payment.upgrade_recurring_subscription(
-            amount=immediate_payment, plan_type=PLAN_TYPE_PM_ENTERPRISE, coupon=promo_code_obj, duration=duration,
+            amount=immediate_payment, plan_type=plan_alias, coupon=promo_code_obj, duration=duration,
             **metadata
         )
         update_result = payment_result.get("success")
@@ -369,7 +384,11 @@ class PaymentPwdViewSet(APIBaseViewSet):
         if not card.get("id_card"):
             raise ValidationError({"non_field_errors": [gen_error("7007")]})
         validated_data = serializer.validated_data
-        plan = self.payment_service.get_pm_plan_by_alias(PLAN_TYPE_PM_ENTERPRISE)
+        plan_alias = validated_data.get("plan_alias", PLAN_TYPE_PM_ENTERPRISE)
+        plan = self.payment_service.get_pm_plan_by_alias(plan_alias)
+        if not plan:
+            raise ValidationError(detail={"plan_alias": ["The plan alias does not exist"]})
+
         promo_code = validated_data.get("promo_code")
         promo_code_obj = None
         if promo_code:
@@ -380,15 +399,22 @@ class PaymentPwdViewSet(APIBaseViewSet):
             if not promo_code_obj:
                 raise ValidationError(detail={"promo_code": ["This coupon is expired or invalid"]})
         duration = validated_data.get("duration", DURATION_MONTHLY)
+
         number_members = self.enterprise_member_service.count_enterprise_members(**{
             "status": E_MEMBER_STATUS_CONFIRMED,
             "is_activated": True,
             "enterprise_id": enterprise.enterprise_id
         })
+        if plan.max_number is not None:
+            if number_members > plan.max_number:
+                raise ValidationError({"non_field_errors": [gen_error("7021")]})
+            quantity = 1
+        else:
+            quantity = number_members
         currency = validated_data.get("currency")
         self._upgrade_plan(
             user=user, enterprise=enterprise, card=card, promo_code_obj=promo_code_obj,
-            duration=duration, number_members=number_members, currency=currency
+            duration=duration, number_members=quantity, currency=currency, plan_alias=plan_alias,
         )
         return Response(status=status.HTTP_200_OK, data={"success": True})
 

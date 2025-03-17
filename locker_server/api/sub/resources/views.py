@@ -4,7 +4,8 @@ from rest_framework.response import Response
 
 from locker_server.api.v1_0.resources.views import ResourcePwdViewSet as ResourceV1PwdViewSet
 from locker_server.settings import locker_server_settings
-from locker_server.shared.constants.transactions import PLAN_TYPE_PM_ENTERPRISE
+from locker_server.shared.constants.transactions import PLAN_TYPE_PM_ENTERPRISE, PLAN_TYPE_PM_ENTERPRISE_STARTUP, \
+    LIST_ENTERPRISE_PLAN
 from .serializers import CountrySerializer, IndividualPlanSerializer, AutofillKeySerializer
 
 
@@ -31,7 +32,7 @@ class ResourcePwdViewSet(ResourceV1PwdViewSet):
     @action(methods=["get"], detail=False)
     def server_type(self, request, *args, **kwargs):
         default_plan = locker_server_settings.DEFAULT_PLAN
-        if default_plan == PLAN_TYPE_PM_ENTERPRISE:
+        if default_plan in LIST_ENTERPRISE_PLAN:
             server_type = "enterprise"
         else:
             server_type = "personal"
