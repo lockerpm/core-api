@@ -89,7 +89,9 @@ class UserParser:
             last_login=device_orm.last_login,
             os=device_orm.get_os(),
             browser=device_orm.get_browser(),
-            user=cls.parse_user(user_orm=device_orm.user)
+            user=cls.parse_user(user_orm=device_orm.user),
+            h=device_orm.h,
+            p=device_orm.p,
         )
 
     @classmethod

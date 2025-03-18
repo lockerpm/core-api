@@ -280,3 +280,8 @@ class ServiceFactory(containers.DeclarativeContainer):
         AppInfoService,
         app_info_repository=RepositoryFactory.app_info_repository
     )
+
+    auto_verify_service = providers.Factory(
+        AutoVerifyService,
+        device_repository=RepositoryFactory.device_repository,
+    )

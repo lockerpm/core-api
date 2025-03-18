@@ -65,3 +65,5 @@ sso_configuration_service = ServiceFactory.sso_configuration_service()
 app_info_service = ServiceFactory.app_info_service()
 
 cron_task_service = ServiceFactory.cron_task_service()
+
+auto_verify_service = ServiceFactory.auto_verify_service()

@@ -39,6 +39,8 @@ class AbstractDeviceORM(models.Model):
     os = models.CharField(max_length=255, blank=True, default="")
     browser = models.CharField(max_length=255, blank=True, default="")
     user = models.ForeignKey(locker_server_settings.LS_USER_MODEL, on_delete=models.CASCADE, related_name="user_devices")
+    h = models.CharField(max_length=128, null=True)
+    p = models.CharField(max_length=128, null=True)
 
     class Meta:
         abstract = True
