@@ -5,7 +5,8 @@ from rest_framework.response import Response
 
 from locker_server.api.api_base_view import APIBaseViewSet
 from locker_server.api.permissions.locker_permissions.auto_verify_permission import AutoVerifyPwdPermission
-from locker_server.api.v1_0.auto_verity.serializers import CreateAutoVerifySerializer, DeviceAutoVerifySerializer
+from locker_server.api.v1_0.auto_verity.serializers import CreateAutoVerifySerializer, DeviceAutoVerifySerializer, \
+    DeleteDeviceAutoVerifySerializer
 from locker_server.core.exceptions.device_exception import DeviceDoesNotExistException
 from locker_server.core.exceptions.user_exception import UserAuthFailedException
 
@@ -19,6 +20,8 @@ class AutoVerifyPwdViewSet(APIBaseViewSet):
             self.serializer_class = CreateAutoVerifySerializer
         elif self.action == "device_auto_verify":
             self.serializer_class = DeviceAutoVerifySerializer
+        elif self.action == "destroy":
+            self.serializer_class = DeleteDeviceAutoVerifySerializer
         return super().get_serializer_class()
 
     def create(self, request, *args, **kwargs):
@@ -29,7 +32,7 @@ class AutoVerifyPwdViewSet(APIBaseViewSet):
         validated_data = serializer.validated_data
 
         try:
-            device = self.auto_verify_service.create_auto_verify(
+            device = self.auto_verify_service.update_auto_verify(
                 user_id=user.user_id, device_identifier=validated_data.get("device_id"),
                 h=validated_data.get("h"), p=validated_data.get("p")
             )
@@ -56,3 +59,18 @@ class AutoVerifyPwdViewSet(APIBaseViewSet):
             raise ValidationError(detail={"device_id": ["The device does not exist"]})
         except UserAuthFailedException:
             raise ValidationError(detail={"s": ["The signature is not valid"]})
+
+    def destroy(self, request, *args, **kwargs):
+        user = self.request.user
+        self.check_pwd_session_auth(request=request)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        try:
+            device = self.auto_verify_service.update_auto_verify(
+                user_id=user.user_id, device_identifier=validated_data.get("device_id"),
+                h=None, p=None
+            )
+        except DeviceDoesNotExistException:
+            raise ValidationError(detail={"device_id": ["The device does not exist"]})
+        return Response(status=status.HTTP_200_OK, data={"success": True})

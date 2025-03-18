@@ -20,7 +20,7 @@ class AutoVerifyService:
     def __init__(self, device_repository: DeviceRepository, ):
         self.device_repository = device_repository
 
-    def create_auto_verify(self, user_id: int, device_identifier: str, h: str, p: str) -> Optional[Device]:
+    def update_auto_verify(self, user_id: int, device_identifier: str, h: str, p: str) -> Optional[Device]:
         device = self.device_repository.update_auto_verify(
             user_id=user_id, device_identifier=device_identifier, h=h, p=p,
         )
