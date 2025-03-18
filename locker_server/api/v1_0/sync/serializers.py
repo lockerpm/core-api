@@ -101,7 +101,9 @@ class SyncCipherSerializer(serializers.Serializer):
         cipher_detail.pop("name", None)
         cipher_detail.pop("notes", None)
         fields = cipher_detail.get("fields")
+        attachments = cipher_detail.get("attachments")
         cipher_detail.pop("fields", None)
+        cipher_detail.pop("attachments", None)
 
         login = cipher_detail if instance.cipher_type in [CIPHER_TYPE_LOGIN, CIPHER_TYPE_MASTER_PASSWORD] else None
         secure_note = cipher_detail if instance.cipher_type in [CIPHER_TYPE_NOTE, CIPHER_TYPE_TOTP] else None
@@ -114,7 +116,7 @@ class SyncCipherSerializer(serializers.Serializer):
 
         data = {
             "object": "cipherDetails",
-            "attachments": None,
+            "attachments": attachments,
             "card": card,
             "crypto_account": crypto_account,
             "crypto_wallet": crypto_wallet,
