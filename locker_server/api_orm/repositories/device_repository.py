@@ -112,10 +112,20 @@ class DeviceORMRepository(DeviceRepository):
         except DeviceORM.DoesNotExist:
             return
 
-    def update_fcm_id(self, user_id: int, device_identifier: str, fcm_id: str) -> Device:
+    def update_fcm_id(self, user_id: int, device_identifier: str, fcm_id: str) -> Optional[Device]:
         try:
             device_orm = DeviceORM.objects.get(user_id=user_id, device_identifier=device_identifier)
             device_orm.fcm_id = fcm_id
+            device_orm.save()
+            return ModelParser.user_parser().parse_device(device_orm=device_orm)
+        except DeviceORM.DoesNotExist:
+            return None
+
+    def update_auto_verify(self, user_id: int, device_identifier: str, h: str, p: str) -> Optional[Device]:
+        try:
+            device_orm = DeviceORM.objects.get(device_identifier=device_identifier, user_id=user_id)
+            device_orm.h = h
+            device_orm.p = p
             device_orm.save()
             return ModelParser.user_parser().parse_device(device_orm=device_orm)
         except DeviceORM.DoesNotExist:

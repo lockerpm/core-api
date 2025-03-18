@@ -55,3 +55,5 @@ from .cron_task_service import CronTaskService
 from .app_info_service import AppInfoService
 
 from .attachment_service import AttachmentService
+
+from .auto_verify_service import AutoVerifyService

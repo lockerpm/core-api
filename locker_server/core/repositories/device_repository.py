@@ -43,7 +43,11 @@ class DeviceRepository(ABC):
         pass
 
     @abstractmethod
-    def update_fcm_id(self, user_id: int, device_identifier: str, fcm_id: str) -> Device:
+    def update_fcm_id(self, user_id: int, device_identifier: str, fcm_id: str) -> Optional[Device]:
+        pass
+
+    @abstractmethod
+    def update_auto_verify(self, user_id: int, device_identifier: str, h: str, p: str) -> Optional[Device]:
         pass
 
     # ------------------------ Delete Device resource --------------------- #

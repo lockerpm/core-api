@@ -3,9 +3,9 @@ from locker_server.core.entities.user.user import User
 
 class Device(object):
     def __init__(self, device_id: int, created_time: float = None, refresh_token: str = None, token_type: str = None,
-                 scope: str = None, client_id: str = None, device_name: str = None, device_type: str = None,
+                 scope: str = None, client_id: str = None, device_name: str = None, device_type: int = None,
                  device_identifier: str = None, fcm_id: str = None, last_login: float = None, os: str = "",
-                 browser: str = "", user: User = None, is_active: bool = False):
+                 browser: str = "", user: User = None, is_active: bool = False, h: str = None, p: str = None):
         self._device_id = device_id
         self._created_time = created_time
         self._refresh_token = refresh_token
@@ -21,6 +21,8 @@ class Device(object):
         self._browser = browser
         self._user = user
         self._is_active = is_active
+        self._h = h
+        self._p = p
 
     @property
     def device_id(self):
@@ -85,3 +87,11 @@ class Device(object):
     @is_active.setter
     def is_active(self, is_active_value):
         self._is_active = is_active_value
+
+    @property
+    def h(self):
+        return self._h
+
+    @property
+    def p(self):
+        return self._p
