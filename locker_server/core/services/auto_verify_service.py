@@ -42,6 +42,8 @@ class AutoVerifyService:
             raise DeviceDoesNotExistException
         if ts + 20000 <= now() * 1000:
             raise UserAuthFailedException
+        if not device.p:
+            raise UserAuthFailedException
 
         public_key = base64.b64decode(device.p)
         signature = base64.b64decode(s)
