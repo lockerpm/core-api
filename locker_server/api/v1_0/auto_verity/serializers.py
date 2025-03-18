@@ -13,3 +13,6 @@ class DeviceAutoVerifySerializer(serializers.Serializer):
     s = serializers.CharField(max_length=128)
     pk = serializers.CharField(max_length=1024)
 
+
+class DeleteDeviceAutoVerifySerializer(serializers.Serializer):
+    device_id = serializers.CharField(max_length=64)
