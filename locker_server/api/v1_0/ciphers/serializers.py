@@ -82,6 +82,14 @@ class SecurityNoteVaultSerializer(serializers.Serializer):
     response = serializers.CharField(allow_null=True, allow_blank=True, default=None)
 
 
+class AttachmentSerializer(serializers.Serializer):
+    id = serializers.CharField(max_length=255)
+    url = serializers.CharField(max_length=1024)
+    size = serializers.FloatField(allow_null=True)
+    sizeName = serializers.CharField(max_length=128, allow_null=True, allow_blank=True)
+    fileName = serializers.CharField(max_length=255)
+
+
 class VaultItemSerializer(serializers.Serializer):
     collectionIds = serializers.ListField(
         child=serializers.CharField(max_length=128), required=False, allow_null=True, allow_empty=True
@@ -102,6 +110,7 @@ class VaultItemSerializer(serializers.Serializer):
     identity = IdentityVaultSerializer(required=False, many=False, allow_null=True)
     cryptoAccount = CryptoAccountSerializer(required=False, many=False, allow_null=True)
     cryptoWallet = CryptoWalletSerializer(required=False, many=False, allow_null=True)
+    attachments = AttachmentSerializer(required=False, many=True, allow_null=True)
 
     def validate(self, data):
         vault_type = data.get("type")
@@ -132,7 +141,7 @@ class VaultItemSerializer(serializers.Serializer):
             "folder_id": validated_data.get("folderId"),
             "favorite": validated_data.get("favorite", False),
             "reprompt": validated_data.get("reprompt", 0),
-            "attachments": None,
+            "attachments": validated_data.get("attachments"),
             "fields": validated_data.get("fields"),
             "score": validated_data.get("score", 0),
             "collection_ids": validated_data.get("collectionIds"),

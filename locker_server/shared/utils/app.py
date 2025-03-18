@@ -172,7 +172,8 @@ def get_cipher_detail_data(cipher):
         data = dict()
     data.update({
         "name": cipher.get("name"),
-        "fields": cipher.get("fields")
+        "fields": cipher.get("fields"),
+        "attachments": cipher.get("attachments"),
     })
     if cipher.get("notes"):
         data.update({"notes": cipher.get("notes")})
