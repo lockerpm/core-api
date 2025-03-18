@@ -9,7 +9,7 @@ class CreateAutoVerifySerializer(serializers.Serializer):
 
 class DeviceAutoVerifySerializer(serializers.Serializer):
     device_id = serializers.CharField(max_length=64)
-    ts = serializers.FloatField()
+    ts = serializers.IntegerField()
     s = serializers.CharField(max_length=128)
     pk = serializers.CharField(max_length=1024)
 
