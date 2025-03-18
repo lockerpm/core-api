@@ -52,13 +52,11 @@ class AutoVerifyService:
         except Exception:
             raise UserAuthFailedException
         return {
-            "device_id": device.device_identifier,
-            "h": self.encrypt_with_rsa(device.h, pk),
-            "p": device.p,
+            "h": self.encrypt_h(device.h, pk),
         }
 
     @staticmethod
-    def encrypt_with_rsa(message, public_key_string):
+    def encrypt_h(message, public_key_string):
         # Convert the base64 encoded public key to binary
         public_key_bytes = base64.b64decode(public_key_string)
 
