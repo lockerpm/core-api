@@ -72,7 +72,7 @@ class AutoVerifyService:
         encrypted = public_key.encrypt(
             message_bytes,
             padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                mgf=padding.MGF1(algorithm=hashes.SHA1()),
                 algorithm=hashes.SHA256(),
                 label=None
             )
