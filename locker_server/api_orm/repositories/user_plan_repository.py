@@ -591,6 +591,7 @@ class UserPlanORMRepository(UserPlanRepository):
             user_plan_orm.start_period = None
             user_plan_orm.end_period = None
             user_plan_orm.attempts = 0
+            user_plan_orm.saas_license = None
             user_plan_orm.cancel_mobile_subscription()
             # Lock all primary sharing
             primary_sharing_owners_orm = user_orm.team_members.filter(is_primary=True, key__isnull=False)
