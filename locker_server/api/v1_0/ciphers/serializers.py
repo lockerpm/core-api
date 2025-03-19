@@ -86,8 +86,8 @@ class AttachmentSerializer(serializers.Serializer):
     id = serializers.CharField(max_length=255)
     url = serializers.CharField(max_length=1024)
     size = serializers.FloatField(allow_null=True)
-    sizeName = serializers.CharField(max_length=128, allow_null=True, allow_blank=True)
     fileName = serializers.CharField(max_length=255)
+    key = serializers.CharField(max_length=512)
 
 
 class VaultItemSerializer(serializers.Serializer):
