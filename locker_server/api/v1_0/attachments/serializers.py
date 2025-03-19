@@ -24,5 +24,17 @@ class AttachmentUploadSerializer(serializers.Serializer):
         return data
 
 
-class SignedAttachmentSerializeR(serializers.Serializer):
+class SignedAttachmentSerializer(serializers.Serializer):
     path = serializers.CharField(max_length=255)
+
+
+class MultipleDeleteAttachmentSerializer(serializers.Serializer):
+    paths = serializers.ListSerializer(
+        child=serializers.CharField(max_length=255),
+    )
+
+    def validate(self, data):
+        paths = data.get("paths")
+        if len(paths) > 20:
+            raise serializers.ValidationError(detail={"paths": ["You can only delete up to 20 paths at a time"]})
+        return data

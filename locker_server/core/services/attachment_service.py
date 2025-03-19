@@ -1,4 +1,5 @@
 import secrets
+from typing import List
 
 from locker_server.core.exceptions.cipher_attachment_exception import CipherAttachmentLimitSizeReachedException
 from locker_server.shared.external_services.attachments.attachment import AttachmentStorageService
@@ -61,3 +62,6 @@ class AttachmentService:
             file_path=path, is_cdn=is_cdn, **kwargs
         )
         return onetime_url
+
+    def delete_multiple_attachments(self, paths: List[str]):
+        self.attachment_storage.delete_files(file_paths=paths)

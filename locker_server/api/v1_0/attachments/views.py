@@ -6,7 +6,8 @@ from rest_framework.response import Response
 
 from locker_server.api.api_base_view import APIBaseViewSet
 from locker_server.api.permissions.locker_permissions.attachment_permission import AttachmentPwdPermission
-from locker_server.api.v1_0.attachments.serializers import AttachmentUploadSerializer, SignedAttachmentSerializeR
+from locker_server.api.v1_0.attachments.serializers import AttachmentUploadSerializer, SignedAttachmentSerializer, \
+    MultipleDeleteAttachmentSerializer
 from locker_server.core.exceptions.cipher_attachment_exception import CipherAttachmentDoesNotExistException
 from locker_server.core.exceptions.cipher_exception import CipherDoesNotExistException
 from locker_server.shared.constants.attachments import DEFAULT_ATTACHMENT_EXPIRED, UPLOAD_ACTION_ATTACHMENT
@@ -26,7 +27,9 @@ class AttachmentPwdViewSet(APIBaseViewSet):
         if self.action == "create":
             self.serializer_class = AttachmentUploadSerializer
         elif self.action in ["signed", "url"]:
-            self.serializer_class = SignedAttachmentSerializeR
+            self.serializer_class = SignedAttachmentSerializer
+        elif self.action == "multiple_delete":
+            self.serializer_class = MultipleDeleteAttachmentSerializer
         return super().get_serializer_class()
 
     def allow_attachments(self) -> bool:
@@ -38,7 +41,7 @@ class AttachmentPwdViewSet(APIBaseViewSet):
 
     def get_cipher_obj(self, cipher_id: str):
         try:
-            cipher = self.cipher_service.get_by_id(cipher_id=self.kwargs.get("pk"))
+            cipher = self.cipher_service.get_by_id(cipher_id=cipher_id)
             if cipher.team:
                 self.check_object_permissions(request=self.request, obj=cipher)
             else:
@@ -107,3 +110,24 @@ class AttachmentPwdViewSet(APIBaseViewSet):
             "expired": DEFAULT_ATTACHMENT_EXPIRED
         })
         return Response(status=status.HTTP_200_OK, data={"url": onetime_url})
+
+    @action(methods=["post"], detail=False)
+    def multiple_delete(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        paths = validated_data.get("paths", [])
+
+        deleted_paths = []
+        for attachment_path in paths:
+            try:
+                cipher_id = attachment_path.split("/")[2]
+            except IndexError:
+                raise ValidationError(detail={"paths": [f"The attachment path {attachment_path} does not exist"]})
+            cipher = self.get_cipher_obj(cipher_id=cipher_id)
+            if cipher:
+                deleted_paths.append(attachment_path)
+        self.attachment_service.delete_multiple_attachments(paths=deleted_paths)
+        return Response(status=status.HTTP_200_OK, data={"success": True})
+
+
