@@ -14,7 +14,7 @@ from locker_server.shared.constants.attachments import DEFAULT_ATTACHMENT_EXPIRE
 from locker_server.shared.constants.transactions import PLAN_TYPE_PM_FREE
 from locker_server.shared.error_responses.error import gen_error
 from locker_server.shared.external_services.attachments.attachment_factory import AttachmentStorageFactory, \
-    ATTACHMENT_AWS
+    ATTACHMENT_AWS, ATTACHMENT_R2
 from locker_server.shared.external_services.attachments.exceptions import FileExtensionNotAllowedException, \
     AttachmentCreateUploadFormException
 
@@ -75,7 +75,9 @@ class AttachmentPwdViewSet(APIBaseViewSet):
             "user_key": self.user_service.get_hash_user_key(user=user),
         })
         # Update content type
-        attachment_storage = AttachmentStorageFactory.get_attachment_service(service_name=ATTACHMENT_AWS)
+        attachment_storage = AttachmentStorageFactory.get_attachment_service(
+            service_name=settings.DEFAULT_CLOUD_STORAGE
+        )
         extension = attachment_storage.get_file_name(file_path=file_name)[1]
         if extension.lower() in [".jpg", ".png", ".jpeg"]:
             metadata.update({"content_type": 'image/jpeg'})
@@ -88,7 +90,10 @@ class AttachmentPwdViewSet(APIBaseViewSet):
             if not cipher:
                 raise PermissionDenied
         try:
-            metadata.update({"limit": limit_size})
+            metadata.update({
+                "limit": limit_size,
+                "method": "put",
+            })
             allocated_attachment = self.attachment_service.get_attachment_upload_form(
                 action=upload_action, file_name=file_name, **metadata
             )
@@ -104,7 +109,12 @@ class AttachmentPwdViewSet(APIBaseViewSet):
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
         path = validated_data.get("path")
-        is_cdn = True if settings.AWS_CLOUDFRONT_PUBLIC_KEY_ID else False
+        if settings.DEFAULT_CLOUD_STORAGE == ATTACHMENT_R2 and settings.CDN_ATTACHMENT_URL:
+            is_cdn = True
+        elif settings.AWS_CLOUDFRONT_PUBLIC_KEY_ID:
+            is_cdn = True
+        else:
+            is_cdn = False
         onetime_url = self.attachment_service.get_onetime_url(path=path, is_cdn=is_cdn, **{
             "response_content_disposition": "inline",
             "expired": DEFAULT_ATTACHMENT_EXPIRED

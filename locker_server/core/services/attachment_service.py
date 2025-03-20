@@ -47,7 +47,7 @@ class AttachmentService:
         )
         upload_form = self.attachment_storage.generate_upload_form(
             upload_file_path=upload_file_path,
-            **{"acl": acl, "limit": limit_size, "content_type": content_type}
+            **{"acl": acl, "limit": limit_size, "content_type": content_type, "method": metadata.get("method")}
         )
 
         allocated_attachment = {
