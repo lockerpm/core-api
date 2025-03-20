@@ -531,10 +531,14 @@ class UserPlanORMRepository(UserPlanRepository):
                     family_user_plan_orm.user_id, family_member_user_orm.user_id, None
                 )
 
-                # Then upgrade to Premium
+                # Then upgrade to Premium or Premium Lifetime
+                if family_user_plan_orm.pm_plan.alias in [PLAN_TYPE_PM_LIFETIME_FAMILY]:
+                    plan_type_alias = PLAN_TYPE_PM_LIFETIME
+                else:
+                    plan_type_alias = PLAN_TYPE_PM_PREMIUM
                 self.update_plan(
                     user_id=family_member_user_orm.user_id,
-                    plan_type_alias=PLAN_TYPE_PM_PREMIUM,
+                    plan_type_alias=plan_type_alias,
                     duration=family_user_plan_orm.duration,
                     scope=settings.SCOPE_PWD_MANAGER, **{
                         "start_period": family_user_plan_orm.start_period,
