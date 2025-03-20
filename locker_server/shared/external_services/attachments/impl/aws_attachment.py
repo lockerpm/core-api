@@ -142,7 +142,6 @@ class AWSAttachmentService(AttachmentStorageService):
                 bucket_params = {
                     'Bucket': destination,
                     'Key': upload_file_path,
-                    # 'ACL': "private",
                 }
                 if response_content_disposition:
                     bucket_params.update({"ResponseContentDisposition": response_content_disposition})

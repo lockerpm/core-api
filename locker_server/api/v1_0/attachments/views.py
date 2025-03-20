@@ -75,7 +75,9 @@ class AttachmentPwdViewSet(APIBaseViewSet):
             "user_key": self.user_service.get_hash_user_key(user=user),
         })
         # Update content type
-        attachment_storage = AttachmentStorageFactory.get_attachment_service(service_name=ATTACHMENT_AWS)
+        attachment_storage = AttachmentStorageFactory.get_attachment_service(
+            service_name=settings.DEFAULT_CLOUD_STORAGE
+        )
         extension = attachment_storage.get_file_name(file_path=file_name)[1]
         if extension.lower() in [".jpg", ".png", ".jpeg"]:
             metadata.update({"content_type": 'image/jpeg'})
@@ -88,7 +90,10 @@ class AttachmentPwdViewSet(APIBaseViewSet):
             if not cipher:
                 raise PermissionDenied
         try:
-            metadata.update({"limit": limit_size})
+            metadata.update({
+                "limit": limit_size,
+                "method": "put",
+            })
             allocated_attachment = self.attachment_service.get_attachment_upload_form(
                 action=upload_action, file_name=file_name, **metadata
             )

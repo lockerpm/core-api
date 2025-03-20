@@ -3,8 +3,8 @@ import dependency_injector.providers as providers
 
 from locker_server.core.services import *
 from locker_server.settings import locker_server_settings
-from locker_server.shared.external_services.attachments.attachment_factory import AttachmentStorageFactory, \
-    ATTACHMENT_AWS
+from locker_server.shared.external_services.attachments.attachment_factory import AttachmentStorageFactory
+
 
 RepositoryFactory = locker_server_settings.API_REPOSITORY_CLASS
 
@@ -100,7 +100,9 @@ class ServiceFactory(containers.DeclarativeContainer):
     attachment_service = providers.Factory(
         AttachmentService,
         # cipher_attachment_repository=RepositoryFactory.cipher_attachment_repository,
-        attachment_storage=AttachmentStorageFactory.get_attachment_service(service_name=ATTACHMENT_AWS),
+        attachment_storage=AttachmentStorageFactory.get_attachment_service(
+            service_name=locker_server_settings.DEFAULT_CLOUD_STORAGE
+        ),
 
     )
 
