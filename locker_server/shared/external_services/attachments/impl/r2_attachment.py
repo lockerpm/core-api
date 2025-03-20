@@ -15,7 +15,7 @@ from locker_server.shared.log.cylog import CyLog
 
 class R2AttachmentService(AWSAttachmentService):
     def __init__(self, access_key: str = settings.R2_ACCESS_KEY, secret_key: str = settings.R2_SECRET_KEY,
-                 endpoint_url: str = settings.R2_ENDPOINT_URL, region: str = settings.R2_REGION):
+                 endpoint_url: str = settings.R2_ENDPOINT_URL, region: str = settings.R2_REGION_NAME):
         super().__init__(access_key, secret_key, endpoint_url, region)
         self.s3_client = boto3.client(
             's3',
