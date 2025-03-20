@@ -30,7 +30,7 @@ class SignedAttachmentSerializer(serializers.Serializer):
 
 class MultipleDeleteAttachmentSerializer(serializers.Serializer):
     paths = serializers.ListSerializer(
-        child=serializers.CharField(max_length=255),
+        child=serializers.CharField(max_length=512),
     )
 
     def validate(self, data):
