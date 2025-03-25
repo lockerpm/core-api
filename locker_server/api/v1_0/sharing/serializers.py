@@ -4,7 +4,7 @@ from locker_server.shared.constants.ciphers import LIST_CIPHER_TYPE, IMMUTABLE_C
 from locker_server.shared.constants.members import MEMBER_ROLE_ADMIN, MEMBER_ROLE_MEMBER
 from locker_server.api.v1_0.ciphers.serializers import ItemFieldSerializer, LoginVaultSerializer, \
     SecurityNoteVaultSerializer, CardVaultSerializer, IdentityVaultSerializer, CryptoAccountSerializer, \
-    CryptoWalletSerializer, PasswordHistorySerializer
+    CryptoWalletSerializer, PasswordHistorySerializer, AttachmentSerializer
 from locker_server.shared.utils.app import get_cipher_detail_data
 
 
@@ -89,6 +89,7 @@ class CipherShareSerializer(serializers.Serializer):
     cryptoAccount = CryptoAccountSerializer(required=False, many=False, allow_null=True)
     cryptoWallet = CryptoWalletSerializer(required=False, many=False, allow_null=True)
     passwordHistory = PasswordHistorySerializer(many=True, required=False)
+    attachments = AttachmentSerializer(required=False, many=True, allow_null=True)
 
 
 class FolderShareSerializer(serializers.Serializer):
@@ -126,7 +127,7 @@ class SharingSerializer(serializers.Serializer):
             "type": cipher.get("type"),
             "score": cipher.get("score", 0),
             "reprompt": cipher.get("reprompt", 0),
-            "attachments": None,
+            "attachments": cipher.get("attachments"),
             "fields": cipher.get("fields"),
             "collection_ids": [],
             "data": get_cipher_detail_data(cipher),
@@ -226,7 +227,7 @@ class MultipleSharingSerializer(serializers.Serializer):
             "type": cipher.get("type"),
             "score": cipher.get("score", 0),
             "reprompt": cipher.get("reprompt", 0),
-            "attachments": None,
+            "attachments": cipher.get("attachments"),
             "fields": cipher.get("fields"),
             "collection_ids": [],
             "data": get_cipher_detail_data(cipher),
@@ -295,6 +296,7 @@ class StopSharingSerializer(serializers.Serializer):
             "type": cipher.get("type"),
             "score": cipher.get("score", 0),
             "reprompt": cipher.get("reprompt", 0),
+            "attachments": cipher.get("attachments"),
             "fields": cipher.get("fields"),
             "data": get_cipher_detail_data(cipher),
             "password_history": cipher.get("password_history") or cipher.get("passwordHistory")
@@ -369,6 +371,7 @@ class AddItemShareFolderSerializer(serializers.Serializer):
             "type": cipher.get("type"),
             "score": cipher.get("score", 0),
             "reprompt": cipher.get("reprompt", 0),
+            "attachments": cipher.get("attachments"),
             "fields": cipher.get("fields"),
             "data": get_cipher_detail_data(cipher),
             "password_history": cipher.get("password_history") or cipher.get("passwordHistory")
