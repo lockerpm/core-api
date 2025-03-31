@@ -279,6 +279,8 @@ class PaymentHookService:
         # If this plan is cancelled because the Family Lifetime upgrade => Not downgrade
         if current_plan.pm_plan.alias == PLAN_TYPE_PM_LIFETIME_FAMILY and plan != PLAN_TYPE_PM_LIFETIME_FAMILY:
             return old_plan
+        if current_plan.pm_plan.alias == PLAN_TYPE_PM_LIFETIME_TEAM and plan != PLAN_TYPE_PM_LIFETIME_TEAM:
+            return old_plan
         # if this plan is canceled because the user is added into family plan => Not notify
         if not self.user_plan_repository.is_family_member(user_id=user.user_id):
             self.user_plan_repository.update_plan(

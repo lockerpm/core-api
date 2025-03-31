@@ -532,7 +532,7 @@ class UserPlanORMRepository(UserPlanRepository):
                 )
 
                 # Then upgrade to Premium or Premium Lifetime
-                if family_user_plan_orm.pm_plan.alias in [PLAN_TYPE_PM_LIFETIME_FAMILY]:
+                if family_user_plan_orm.pm_plan.alias in [PLAN_TYPE_PM_LIFETIME_FAMILY, PLAN_TYPE_PM_LIFETIME_TEAM]:
                     plan_type_alias = PLAN_TYPE_PM_LIFETIME
                 else:
                     plan_type_alias = PLAN_TYPE_PM_PREMIUM
@@ -569,7 +569,7 @@ class UserPlanORMRepository(UserPlanRepository):
                 end_period = 365 * 86400 + start_period
             else:
                 end_period = 30 * 86400 + start_period
-        if plan_type_alias in [PLAN_TYPE_PM_LIFETIME, PLAN_TYPE_PM_LIFETIME_FAMILY]:
+        if plan_type_alias in LIST_LIFETIME_PLAN:
             end_period = None
 
         user_plan_orm = self._get_current_plan_orm(user_id=user_id)

@@ -256,7 +256,7 @@ class PaymentService:
 
         current_plan = self.user_plan_repository.get_user_plan(user_id=user_id)
 
-        if plan.alias == PLAN_TYPE_PM_LIFETIME_FAMILY:
+        if plan.alias in [PLAN_TYPE_PM_LIFETIME_FAMILY, PLAN_TYPE_PM_LIFETIME_TEAM]:
             if self.user_plan_repository.is_family_member(user_id=user_id):
                 raise PaymentFailedByUserInFamilyException
         else:
@@ -271,7 +271,7 @@ class PaymentService:
 
         # Cancel the current Free/Premium/Family
         # If new plan is family lifetime => Only cancel stripe subscription
-        if plan.alias == PLAN_TYPE_PM_LIFETIME_FAMILY:
+        if plan.alias in [PLAN_TYPE_PM_LIFETIME_FAMILY, PLAN_TYPE_PM_LIFETIME_TEAM]:
             if current_plan.pm_stripe_subscription:
                 self.user_plan_repository.cancel_plan(user=current_plan.user, immediately=True)
         else:
@@ -322,7 +322,7 @@ class PaymentService:
             CyLog.error(**{"message": f"[!] Create the saas payment error::: {user_id} - {code}\n{tb}"})
 
         if user.activated:
-            if plan.alias in [PLAN_TYPE_PM_LIFETIME, PLAN_TYPE_PM_LIFETIME_FAMILY]:
+            if plan.alias in LIST_LIFETIME_PLAN:
                 BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
                     func_name="notify_locker_mail", **{
                         "user_ids": [user.user_id],
@@ -364,20 +364,13 @@ class PaymentService:
         if other_user_plan and other_user_plan.pm_user_plan_id != current_plan.pm_user_plan_id:
             raise SaasLicenseInvalidException
         # Not upgrade the plan if current plan is lifetime and not change
-        if current_plan.pm_plan.alias in [PLAN_TYPE_PM_LIFETIME_FAMILY, PLAN_TYPE_PM_LIFETIME] and \
+        if current_plan.pm_plan.alias in LIST_LIFETIME_PLAN and \
                 current_plan.pm_plan.alias == plan.alias:
             return
 
-        # if plan.alias == PLAN_TYPE_PM_LIFETIME_FAMILY:
-        #     if self.user_plan_repository.is_family_member(user_id=user_id):
-        #         raise PaymentFailedByUserInFamilyException
-        # else:
-        #     if self.user_plan_repository.is_in_family_plan(user_plan=current_plan):
-        #         raise PaymentFailedByUserInFamilyException
-
         # Cancel the current Free/Premium/Family
         # If new plan is family lifetime => Only cancel stripe subscription
-        if plan.alias == PLAN_TYPE_PM_LIFETIME_FAMILY:
+        if plan.alias in [PLAN_TYPE_PM_LIFETIME_FAMILY, PLAN_TYPE_PM_LIFETIME_TEAM]:
             if current_plan.pm_stripe_subscription:
                 self.user_plan_repository.cancel_plan(user=current_plan.user, immediately=True)
         else:
@@ -479,7 +472,7 @@ class PaymentService:
         current_plan = self.user_plan_repository.get_user_plan(user_id=user_id)
         if current_plan.pm_plan.alias == plan_alias:
             raise PaymentFailedByUserInLifetimeException
-        if plan_alias == PLAN_TYPE_PM_LIFETIME_FAMILY:
+        if plan_alias in [PLAN_TYPE_PM_LIFETIME_FAMILY, PLAN_TYPE_PM_LIFETIME_TEAM]:
             if self.user_plan_repository.is_family_member(user_id=user_id):
                 raise PaymentFailedByUserInFamilyException
         else:
@@ -894,7 +887,7 @@ class PaymentService:
         if not current_plan:
             CyLog.warning(**{"message": f"[+] Not found license when downgrade {license_key}"})
             raise SaasLicenseInvalidException
-        if current_plan.pm_plan.alias not in [PLAN_TYPE_PM_LIFETIME_FAMILY, PLAN_TYPE_PM_LIFETIME]:
+        if current_plan.pm_plan.alias not in LIST_LIFETIME_PLAN:
             return
         if current_plan.pm_plan.alias != saas_plan_alias:
             return
