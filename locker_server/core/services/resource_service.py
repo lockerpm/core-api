@@ -33,7 +33,7 @@ class ResourceService:
 
     def list_personal_plans(self) -> List[PMPlan]:
         return self.plan_repository.list_plans(**{
-            "exclude_alias": [PLAN_TYPE_PM_LIFETIME, PLAN_TYPE_PM_LIFETIME_FAMILY],
+            "exclude_alias": LIST_LIFETIME_PLAN,
             "is_team_plan": False
         })
 
