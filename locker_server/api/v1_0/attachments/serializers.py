@@ -22,6 +22,11 @@ class AttachmentUploadSerializer(serializers.Serializer):
             raise serializers.ValidationError(detail={"metadata": {"cipher_id": ["This field is required"]}})
 
         return data
+    
+    def to_internal_value(self, data):
+        if "action" not in data:
+            data["action"] = UPLOAD_ACTION_ATTACHMENT
+        return super().to_internal_value(data)
 
 
 class SignedAttachmentSerializer(serializers.Serializer):
