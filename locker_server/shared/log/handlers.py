@@ -50,3 +50,17 @@ class SlackRewardCheckingHandler(logging.Handler):
             )
         except Exception:
             print("SlackRewardCheckingHandler failed")
+
+
+class SlackSaasLicenseHandler(logging.Handler):
+    def emit(self, record):
+        try:
+            record.exc_info = record.exc_text = None
+            content = {'text': self.format(record)}
+            requests.post(
+                url=settings.SLACK_SAAS_LICENSE_LOG,
+                json={"text": "```{}```".format(content['text'])},
+                timeout=10
+            )
+        except Exception:
+            print("SlackSaasLicenseHandler failed")
