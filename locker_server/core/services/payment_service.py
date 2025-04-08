@@ -20,7 +20,6 @@ from locker_server.core.repositories.plan_repository import PlanRepository
 from locker_server.core.repositories.relay_repositories.relay_address_repository import RelayAddressRepository
 from locker_server.core.repositories.user_plan_repository import UserPlanRepository
 from locker_server.core.repositories.user_repository import UserRepository
-from locker_server.shared.constants.attachments import LIMIT_TOTAL_SIZE_ATTACHMENT
 from locker_server.shared.constants.relay_address import MAX_FREE_RElAY_DOMAIN
 from locker_server.shared.constants.token import *
 from locker_server.shared.constants.transactions import *
@@ -798,7 +797,6 @@ class PaymentService:
             relay_addresses_limit = MAX_FREE_RElAY_DOMAIN
         plan_limit.update({
             "relay_addresses": relay_addresses_limit,
-            "limit_attachment": LIMIT_TOTAL_SIZE_ATTACHMENT,
         })
 
         return {

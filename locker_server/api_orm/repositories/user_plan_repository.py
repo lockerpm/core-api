@@ -18,6 +18,7 @@ from locker_server.core.entities.user_plan.pm_user_plan import PMUserPlan
 from locker_server.core.entities.user_plan.pm_user_plan_family import PMUserPlanFamily
 from locker_server.core.exceptions.payment_exception import PaymentMethodNotSupportException
 from locker_server.core.repositories.user_plan_repository import UserPlanRepository
+from locker_server.shared.constants.attachments import LIMIT_TOTAL_SIZE_ATTACHMENT
 from locker_server.shared.constants.ciphers import *
 from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_PRIMARY_ADMIN, E_MEMBER_STATUS_CONFIRMED, \
     E_MEMBER_ROLE_MEMBER, E_MEMBER_ROLE_ADMIN
@@ -259,6 +260,7 @@ class UserPlanORMRepository(UserPlanRepository):
         limit_totp = [cipher_limit.get("limit_totp") for cipher_limit in cipher_limits]
         limit_history = [cipher_limit.get("limit_history") for cipher_limit in cipher_limits]
         limit_total = [cipher_limit.get("limit_total") for cipher_limit in cipher_limits]
+        limit_attachments = LIMIT_TOTAL_SIZE_ATTACHMENT if None in limit_total else 0
         return {
             CIPHER_TYPE_LOGIN: None if None in limit_password else max(limit_password),
             CIPHER_TYPE_NOTE: None if None in limit_secure_note else max(limit_secure_note),
@@ -269,6 +271,7 @@ class UserPlanORMRepository(UserPlanRepository):
             CIPHER_TYPE_TOTP: None if None in limit_totp else max(limit_totp),
             "limit_history": None if None in limit_history else max(limit_history),
             "limit_total": None if None in limit_total else max(limit_total),
+            "limit_attachments": limit_attachments,
         }
 
     def is_in_family_plan(self, user_plan: PMUserPlan) -> bool:
