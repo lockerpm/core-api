@@ -437,6 +437,17 @@ class UserPlanORMRepository(UserPlanRepository):
             current_plan = self.get_user_plan(user_id=user.user_id)
             if current_plan.pm_plan.alias == PLAN_TYPE_PM_LIFETIME and new_plan.alias == PLAN_TYPE_PM_LIFETIME_FAMILY:
                 old_plan_discount = math.floor(current_plan.pm_plan.get_price(currency=currency))
+            if new_plan.alias == PLAN_TYPE_PM_LIFETIME_TEAM:
+                if current_plan.saas_license:
+                    if current_plan.pm_plan.alias == PLAN_TYPE_PM_LIFETIME:
+                        old_plan_discount = APPSUMO_PRICE_LIFETIME
+                    elif current_plan.pm_plan.alias == PLAN_TYPE_PM_LIFETIME_FAMILY:
+                        old_plan_discount = APPSUMO_PRICE_LIFETIME_FAMILY
+
+                else:
+                    if current_plan.pm_plan.alias in [PLAN_TYPE_PM_LIFETIME, PLAN_TYPE_PM_LIFETIME_FAMILY]:
+                        old_plan_discount = math.floor(current_plan.pm_plan.get_price(currency=currency))
+
         # Calc discount
         error_promo = None
         promo_code_orm = None

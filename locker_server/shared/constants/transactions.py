@@ -10,6 +10,9 @@ TRIAL_TEAM_MEMBERS = 10
 REFERRAL_EXTRA_TIME = 86400 * 30  # 30 days
 REFERRAL_LIMIT = 3
 
+APPSUMO_PRICE_LIFETIME = 19
+APPSUMO_PRICE_LIFETIME_FAMILY = 59
+
 # -------------------- Max attempts ------------------------------ #
 MAX_ATTEMPTS = 3
 

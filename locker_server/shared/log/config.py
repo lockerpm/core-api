@@ -51,6 +51,12 @@ logging_config = {
             'level': logging.DEBUG,
             'filters': ['site_filter']
         },
+        'slack_saas_license': {
+            'class': 'locker_server.shared.log.handlers.SlackSaasLicenseHandler',
+            'formatter': 'medium',
+            'level': logging.DEBUG,
+            'filters': ['site_filter']
+        },
         'console': {
             'level': logging.DEBUG,
             'class': 'logging.StreamHandler',
@@ -84,6 +90,12 @@ logging_config = {
         },
         'slack_reward_checking_service': {
             'handlers': ['slack_reward_checking', ],
+            'level': 'DEBUG',
+            'propagate': True,
+            'filters': ['site_filter']
+        },
+        'slack_saas_license_service': {
+            'handlers': ['slack_saas_license', ],
             'level': 'DEBUG',
             'propagate': True,
             'filters': ['site_filter']
