@@ -20,9 +20,11 @@ from locker_server.core.repositories.plan_repository import PlanRepository
 from locker_server.core.repositories.relay_repositories.relay_address_repository import RelayAddressRepository
 from locker_server.core.repositories.user_plan_repository import UserPlanRepository
 from locker_server.core.repositories.user_repository import UserRepository
+from locker_server.shared.constants.attachments import LIMIT_TOTAL_SIZE_ATTACHMENT
 from locker_server.shared.constants.relay_address import MAX_FREE_RElAY_DOMAIN
 from locker_server.shared.constants.token import *
 from locker_server.shared.constants.transactions import *
+from locker_server.shared.external_services.attachments.attachment import AttachmentStorageService
 from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
 from locker_server.shared.external_services.locker_background.constants import BG_NOTIFY
 from locker_server.shared.external_services.payment_method.payment_method_factory import PaymentMethodFactory
@@ -43,7 +45,8 @@ class PaymentService:
                  enterprise_member_repository: EnterpriseMemberRepository,
                  education_email_repository: EducationEmailRepository,
                  cipher_repository: CipherRepository,
-                 relay_address_repository: RelayAddressRepository):
+                 relay_address_repository: RelayAddressRepository,
+                 attachment_storage: AttachmentStorageService):
         self.payment_repository = payment_repository
         self.user_plan_repository = user_plan_repository
         self.plan_repository = plan_repository
@@ -52,6 +55,7 @@ class PaymentService:
         self.education_email_repository = education_email_repository
         self.cipher_repository = cipher_repository
         self.relay_address_repository = relay_address_repository
+        self.attachment_storage = attachment_storage
 
     def get_by_user_id(self, user_id: int, payment_id: str) -> Optional[Payment]:
         payment = self.payment_repository.get_by_user_id(
@@ -780,6 +784,11 @@ class PaymentService:
         relay_addresses_statistic_data = {
             "total": self.relay_address_repository.count_user_relay_addresses(user_id=user_id)
         }
+        user_key = self.user_repository.get_hash_user_key(internal_id=current_plan.user.internal_id)
+        current_folder_size = self.attachment_storage.get_folder_size(folder_path=f"attachments/{user_key}")
+        attachment_statistic_data = {
+            "total": current_folder_size,
+        }
 
         plan_limit = self.user_plan_repository.get_max_allow_cipher_type(user=current_plan.user)
         plan_obj = current_plan.pm_plan
@@ -788,12 +797,14 @@ class PaymentService:
         else:
             relay_addresses_limit = MAX_FREE_RElAY_DOMAIN
         plan_limit.update({
-            "relay_addresses": relay_addresses_limit
+            "relay_addresses": relay_addresses_limit,
+            "limit_attachment": LIMIT_TOTAL_SIZE_ATTACHMENT,
         })
 
         return {
             "ciphers": ciphers_statistic_data,
             "relay_addresses": relay_addresses_statistic_data,
+            "attachments": attachment_statistic_data,
             "plan_limit": plan_limit
         }
 
