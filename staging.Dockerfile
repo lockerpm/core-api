@@ -1,8 +1,8 @@
-FROM python:3.10
+FROM python:3.10.0-alpine
 
 WORKDIR /app
 
-RUN apt update -qq && apt install -y gcc default-libmysqlclient-dev
+RUN apk update && apk add --no-cache gcc musl-dev mysql-dev git shadow
 
 RUN groupadd -r cystack && useradd -r -g cystack -s /usr/sbin/nologin -c "CyStack user" cystack
 
@@ -11,7 +11,6 @@ RUN pip install --upgrade pip
 COPY requirements.txt /tmp/
 
 RUN pip install -r /tmp/requirements.txt
-
 
 EXPOSE 8000
 
