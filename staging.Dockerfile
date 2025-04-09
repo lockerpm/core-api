@@ -12,6 +12,8 @@ COPY requirements.txt /tmp/
 
 RUN pip install -r /tmp/requirements.txt
 
+RUN pip install wheel==0.46.1
+
 EXPOSE 8000
 
 COPY ./src/ /app
