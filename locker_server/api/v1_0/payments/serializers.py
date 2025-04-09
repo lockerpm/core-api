@@ -114,7 +114,8 @@ class CalcLifetimePublicSerializer(serializers.Serializer):
     promo_code = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     currency = serializers.ChoiceField(choices=LIST_CURRENCY, default=CURRENCY_USD, required=False)
     plan_alias = serializers.ChoiceField(
-        choices=[PLAN_TYPE_PM_LIFETIME, PLAN_TYPE_PM_LIFETIME_FAMILY], default=PLAN_TYPE_PM_LIFETIME,
+        choices=[PLAN_TYPE_PM_LIFETIME, PLAN_TYPE_PM_LIFETIME_FAMILY, PLAN_TYPE_PM_LIFETIME_TEAM],
+        default=PLAN_TYPE_PM_LIFETIME,
         required=False
     )
     email = serializers.EmailField(required=False, allow_null=True)
@@ -123,7 +124,8 @@ class CalcLifetimePublicSerializer(serializers.Serializer):
 class UpgradeLifetimePublicSerializer(serializers.Serializer):
     promo_code = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     plan_alias = serializers.ChoiceField(
-        choices=[PLAN_TYPE_PM_LIFETIME, PLAN_TYPE_PM_LIFETIME_FAMILY], default=PLAN_TYPE_PM_LIFETIME,
+        choices=[PLAN_TYPE_PM_LIFETIME, PLAN_TYPE_PM_LIFETIME_FAMILY, PLAN_TYPE_PM_LIFETIME],
+        default=PLAN_TYPE_PM_LIFETIME,
         required=False
     )
     click_uuid = serializers.CharField(max_length=128, required=False, allow_null=True, default=None, allow_blank=True)
