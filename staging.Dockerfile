@@ -6,13 +6,14 @@ RUN apt update -qq && apt install -y gcc default-libmysqlclient-dev
 
 RUN groupadd -r cystack && useradd -r -g cystack -s /usr/sbin/nologin -c "CyStack user" cystack
 
-RUN pip install --upgrade pip
+# RUN pip install --upgrade pip
+
+# RUN pip install wheel==0.46.1
 
 COPY requirements.txt /tmp/
 
 RUN pip install -r /tmp/requirements.txt
 
-RUN pip install wheel==0.46.1
 
 EXPOSE 8000
 
