@@ -8,7 +8,8 @@ from locker_server.api.api_base_view import APIBaseViewSet
 from locker_server.api.permissions.locker_permissions.attachment_permission import AttachmentPwdPermission
 from locker_server.api.v1_0.attachments.serializers import AttachmentUploadSerializer, SignedAttachmentSerializer, \
     MultipleDeleteAttachmentSerializer
-from locker_server.core.exceptions.cipher_attachment_exception import CipherAttachmentDoesNotExistException
+from locker_server.core.exceptions.cipher_attachment_exception import CipherAttachmentDoesNotExistException, \
+    CipherAttachmentLimitSizeReachedException
 from locker_server.core.exceptions.cipher_exception import CipherDoesNotExistException
 from locker_server.shared.constants.attachments import DEFAULT_ATTACHMENT_EXPIRED, UPLOAD_ACTION_ATTACHMENT
 from locker_server.shared.constants.transactions import PLAN_TYPE_PM_FREE
@@ -101,6 +102,8 @@ class AttachmentPwdViewSet(APIBaseViewSet):
             raise ValidationError(detail={"file_name": ["This file type is not valid"]})
         except AttachmentCreateUploadFormException:
             raise ValidationError({"non_field_errors": [gen_error("0009")]})
+        except CipherAttachmentLimitSizeReachedException:
+            raise ValidationError({"non_field_errors": [gen_error("5003")]})
         return Response(status=status.HTTP_200_OK, data=allocated_attachment)
 
     @action(methods=["post"], detail=False)

@@ -158,6 +158,11 @@ APP_CODE += [
         "code": "5002",
         "message": "The maximum number of items is reached. Please check your trash if any",
         "vi_message": "Giới hạn số lượng item đã đạt giới hạn. Vui lòng kiểm tra thùng rác"
+    },
+    {
+        "code": "5003",
+        "message": "The maximum size of attachments is reached. Please check your trash if any",
+        "vi_message": "Giới hạn kích thước file đính kèm đã đạt giới hạn. Vui lòng kiểm tra thùng rác"
     }
 ]
 
