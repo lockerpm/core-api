@@ -471,6 +471,9 @@ class UserPlanORMRepository(UserPlanRepository):
         total_amount = max(total_amount, 0)
         discount = promo_code_orm.get_discount(total_amount) if promo_code_orm else 0.0
         discount = discount + old_plan_discount
+        if discount > total_amount:
+            discount = total_amount
+
         immediate_amount = max(round(total_amount - discount, 2), 0)
 
         result = {
