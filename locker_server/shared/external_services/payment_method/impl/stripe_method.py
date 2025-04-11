@@ -282,6 +282,7 @@ class StripePaymentMethod(PaymentMethod):
             "metadata": kwargs
         }
         new_payment = payment_service.create_payment(**new_payment_data)
+
         # Create new invoice item
         stripe.InvoiceItem.create(
             customer=stripe_customer_id,
@@ -316,6 +317,15 @@ class StripePaymentMethod(PaymentMethod):
                 "stripe_error": True,
                 "error_details": self.handle_error(e)
             }
+        except stripe.error.InvalidRequestError as e:
+            if "already paid" in e.user_message:
+                pass
+            else:
+                return {
+                    "success": False,
+                    "stripe_error": True,
+                    "error_details": self.handle_error(e)
+                }
 
         new_payment = payment_service.update_payment(payment=new_payment, update_data={
             "stripe_invoice_id": stripe_invoice_id,
