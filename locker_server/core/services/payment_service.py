@@ -351,7 +351,7 @@ class PaymentService:
             raise UserDoesNotExistException
         return user_plan
 
-    def upgrade_by_saas_license(self, user_id: int, saas_license, scope: str = None):
+    def upgrade_by_saas_license(self, user_id: int, saas_license, scope: str = None, event: str = None):
         if self.enterprise_member_repository.is_in_enterprise(user_id=user_id):
             raise EnterpriseMemberExistedException
         if saas_license.status in ["deactivated"]:
@@ -395,6 +395,16 @@ class PaymentService:
         self.user_plan_repository.update_user_plan_by_id(
             user_plan_id=user_id, user_plan_update_data={"saas_license": saas_license.license_key}
         )
+        # Sending notification
+        if event and event == "downgrade":
+            BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+                func_name="appsumo_downgrade_to_premium", **{
+                    "user_ids": [user_id],
+                    "job": "appsumo_downgrade_to_free",
+                    "scope": scope,
+                }
+            )
+
         # Generate new payment
         # if not user_plan.saas_license:
         #     try:
@@ -917,3 +927,11 @@ class PaymentService:
         # self.user_plan_repository.update_user_plan_by_id(
         #     user_plan_id=current_plan.user.user_id, user_plan_update_data={"saas_license": None}
         # )
+
+        BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+            func_name="notify_locker_mail", **{
+                "user_ids": [current_plan.user.user_id],
+                "job": "appsumo_downgrade_to_free",
+                "scope": scope,
+            }
+        )
