@@ -98,19 +98,26 @@ class SyncPwdViewSet(APIBaseViewSet):
             exclude_types = [CIPHER_TYPE_MASTER_PASSWORD]
 
         sync_statistic_ciphers = self.cipher_service.sync_and_statistic_ciphers(
-            user_id=user.user_id, exclude_team_ids=block_team_ids, exclude_types=exclude_types
+            user_id=user.user_id, exclude_team_ids=block_team_ids, exclude_types=exclude_types,
+            **{
+                "paging": paging_param,
+                "size": page_size_param,
+                "page": page_param,
+            }
         )
         statistic_count = sync_statistic_ciphers.get("count")
         ciphers = sync_statistic_ciphers.get("ciphers")
 
-        if paging_param == "0":
-            ciphers_page = ciphers
-        else:
-            try:
-                paginator = Paginator(list(ciphers), page_size_param or 50)
-                ciphers_page = paginator.page(page_param).object_list
-            except EmptyPage:
-                ciphers_page = []
+        ciphers_page = ciphers
+
+        # if paging_param == "0":
+        #     ciphers_page = ciphers
+        # else:
+        #     try:
+        #         paginator = Paginator(list(ciphers), page_size_param or 50)
+        #         ciphers_page = paginator.page(page_param).object_list
+        #     except EmptyPage:
+        #         ciphers_page = []
 
         ciphers_serializer = SyncCipherSerializer(ciphers_page, many=True, context={"user": user})
         folders = self.folder_service.get_multiple_by_user(user_id=user.user_id)
@@ -150,7 +157,12 @@ class SyncPwdViewSet(APIBaseViewSet):
             exclude_types = [CIPHER_TYPE_MASTER_PASSWORD]
 
         sync_statistic_ciphers = self.cipher_service.sync_and_statistic_ciphers(
-            user_id=user.user_id, exclude_team_ids=block_team_ids, exclude_types=exclude_types
+            user_id=user.user_id, exclude_team_ids=block_team_ids, exclude_types=exclude_types,
+            **{
+                "paging": self.request.query_params.get("paging", "1"),
+                "size": self.check_int_param(self.request.query_params.get("size", 50)),
+                "page": self.check_int_param(self.request.query_params.get("page", 1)) or 1,
+            }
         )
         statistic_count = sync_statistic_ciphers.get("count")
         total_folders = len(self.folder_service.get_multiple_by_user(user_id=user.user_id))
@@ -178,7 +190,10 @@ class SyncPwdViewSet(APIBaseViewSet):
         page_param = self.check_int_param(self.request.query_params.get("page", 1))
         page_param = page_param if page_param is not None else 1
         ciphers_filter = {
-            "collection_id": self.request.query_params.get("collection_id")
+            "collection_id": self.request.query_params.get("collection_id"),
+            "paging": paging_param,
+            "size": page_size_param,
+            "page": page_param,
         }
         # Check team policies
         block_team_ids = []
@@ -197,15 +212,15 @@ class SyncPwdViewSet(APIBaseViewSet):
             **ciphers_filter
         )
         ciphers = sync_statistic_ciphers.get("ciphers")
-
-        if paging_param == "0":
-            ciphers_page = ciphers
-        else:
-            try:
-                paginator = Paginator(list(ciphers), page_size_param or 50)
-                ciphers_page = paginator.page(page_param).object_list
-            except EmptyPage:
-                ciphers_page = []
+        ciphers_page = ciphers
+        # if paging_param == "0":
+        #     ciphers_page = ciphers
+        # else:
+        #     try:
+        #         paginator = Paginator(list(ciphers), page_size_param or 50)
+        #         ciphers_page = paginator.page(page_param).object_list
+        #     except EmptyPage:
+        #         ciphers_page = []
         serializer = SyncCipherSerializer(ciphers_page, many=True, context={"user": user})
         result = camel_snake_data(serializer.data, snake_to_camel=True)
         return Response(status=status.HTTP_200_OK, data=result)
