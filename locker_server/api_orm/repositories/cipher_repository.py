@@ -17,6 +17,7 @@ from locker_server.shared.constants.ciphers import *
 from locker_server.shared.constants.members import *
 from locker_server.shared.external_services.attachments.attachment_factory import AttachmentStorageFactory, \
     ATTACHMENT_AWS
+from locker_server.shared.paginations.app import paginate_queryset
 from locker_server.shared.utils.app import now, diff_list, get_cipher_detail_data, md5_encode
 
 
@@ -269,6 +270,13 @@ class CipherORMRepository(CipherRepository):
             count=Count('type')
         ).order_by('-count')
         not_deleted_ciphers_count = {item["type"]: item["count"] for item in list(not_deleted_ciphers_statistic)}
+
+        ciphers_orm, total_record = paginate_queryset(
+            ciphers_orm,
+            paging=ciphers_filter.get("paging", "1"),
+            page=ciphers_filter.get("page", 1),
+            page_size=ciphers_filter.get("size", 10)
+        )
         return {
             "count": {
                 "ciphers": total_cipher,
