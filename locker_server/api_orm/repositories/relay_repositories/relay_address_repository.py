@@ -59,6 +59,7 @@ class RelayAddressORMRepository(RelayAddressRepository):
             relay_addresses_orm = relay_addresses_orm.filter(
                 subdomain_id=subdomain_id_param
             )
+        relay_addresses_orm = relay_addresses_orm.select_related('subdomain').select_related('domain')
         return [
             ModelParser.relay_parser().parse_relay_address(relay_address_orm=relay_address_orm)
             for relay_address_orm in relay_addresses_orm
@@ -67,7 +68,7 @@ class RelayAddressORMRepository(RelayAddressRepository):
     def list_user_relay_addresses(self, user_id: int, **filters) -> List[RelayAddress]:
         relay_addresses_orm = RelayAddressORM.objects.filter(
             user_id=user_id
-        ).order_by('created_time')
+        ).select_related('subdomain').select_related('domain').order_by('created_time')
         return [
             ModelParser.relay_parser().parse_relay_address(relay_address_orm=relay_address_orm)
             for relay_address_orm in relay_addresses_orm
@@ -158,6 +159,7 @@ class RelayAddressORMRepository(RelayAddressRepository):
             return None
         if statistic_type == RELAY_STATISTIC_TYPE_FORWARDED:
             relay_address_orm.num_forwarded = F('num_forwarded') + amount
+            relay_address_orm.latest_used_time = now(return_float=True)
         elif statistic_type == RELAY_STATISTIC_TYPE_BLOCKED_SPAM:
             relay_address_orm.num_spam = F('num_spam') + amount
         relay_address_orm.save()
@@ -175,3 +177,4 @@ class RelayAddressORMRepository(RelayAddressRepository):
     def delete_subdomain_relay_addresses(self, relay_subdomain_id: str) -> bool:
         RelayAddressORM.objects.filter(subdomain_id=relay_subdomain_id).delete()
         return True
+

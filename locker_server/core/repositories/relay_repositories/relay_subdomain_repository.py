@@ -14,6 +14,10 @@ class RelaySubdomainRepository(ABC):
         pass
 
     @abstractmethod
+    def list_unused_subdomain_relay_addresses(self, latest_used_time_pivot: float) -> List[RelaySubdomain]:
+        pass
+
+    @abstractmethod
     def check_existed(self, **filters) -> bool:
         pass
 

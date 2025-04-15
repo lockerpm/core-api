@@ -4,6 +4,7 @@ from hashlib import sha256
 from django.db import models, transaction
 
 from locker_server.settings import locker_server_settings
+from locker_server.shared.utils.app import now
 
 
 # class MaxRelayAddressReachedException(BaseException):
@@ -28,6 +29,7 @@ class AbstractRelayAddressORM(models.Model):
     description = models.CharField(max_length=64, blank=True)
     created_time = models.FloatField()
     updated_time = models.FloatField(null=True)
+    latest_used_time = models.FloatField(default=now)
     num_forwarded = models.PositiveIntegerField(default=0)
     num_blocked = models.PositiveIntegerField(default=0)
     num_replied = models.PositiveIntegerField(default=0)

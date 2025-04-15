@@ -1,7 +1,7 @@
 from typing import Optional, List
 
 from django.db import transaction
-from django.db.models import Count, Sum
+from django.db.models import Count, Sum, Max
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_relay_subdomain_model, get_user_model
 from locker_server.core.entities.relay.relay_subdomain import RelaySubdomain
@@ -20,7 +20,7 @@ class RelaySubdomainORMRepository(RelaySubdomainRepository):
             num_alias=Count('relay_addresses'),
             num_spam=Sum('relay_addresses__num_spam'),
             num_forwarded=Sum('relay_addresses__num_forwarded'),
-        ).order_by('created_time')
+        ).select_related('domain').order_by('created_time')
 
         return [
             ModelParser.relay_parser().parse_relay_subdomain(relay_subdomain_orm=relay_subdomain_orm)
@@ -32,7 +32,7 @@ class RelaySubdomainORMRepository(RelaySubdomainRepository):
             num_alias=Count('relay_addresses'),
             num_spam=Sum('relay_addresses__num_spam'),
             num_forwarded=Sum('relay_addresses__num_forwarded'),
-        ).order_by('created_time')
+        ).select_related('domain').order_by('created_time')
         is_deleted_param = filters.get("is_deleted")
         if is_deleted_param is not None:
             if is_deleted_param is False or is_deleted_param.lower() == "false":
@@ -40,6 +40,17 @@ class RelaySubdomainORMRepository(RelaySubdomainRepository):
             elif is_deleted_param is True or is_deleted_param.lower() == "true":
                 relay_subdomains_orm = relay_subdomains_orm.filter(is_deleted=True)
 
+        return [
+            ModelParser.relay_parser().parse_relay_subdomain(relay_subdomain_orm=relay_subdomain_orm)
+            for relay_subdomain_orm in relay_subdomains_orm
+        ]
+
+    def list_unused_subdomain_relay_addresses(self, latest_used_time_pivot: float) -> List[RelaySubdomain]:
+        relay_subdomains_orm = RelaySubdomainORM.objects.filter(is_deleted=False).annotate(
+            latest_used_time=Max('relay_addresses__latest_used_time')
+        ).filter(
+            latest_used_time__lt=latest_used_time_pivot
+        ).select_related('domain')
         return [
             ModelParser.relay_parser().parse_relay_subdomain(relay_subdomain_orm=relay_subdomain_orm)
             for relay_subdomain_orm in relay_subdomains_orm
