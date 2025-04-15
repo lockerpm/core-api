@@ -215,3 +215,25 @@ class RelaySubdomainService:
             return False
         return True
 
+    def delete_unused_subdomain_relay_addresses(self, latest_used_time_pivot: float):
+        unused_subdomain_relay_addresses = self.relay_subdomain_repository.list_unused_subdomain_relay_addresses(
+            latest_used_time_pivot=latest_used_time_pivot
+        )
+        for relay_subdomain in unused_subdomain_relay_addresses:
+            # Delete all old relay addresses of this subdomain
+            self.delete_old_addresses_of_subdomain(relay_subdomain=relay_subdomain)
+            # Create deletion SQS job
+            if os.getenv("PROD_ENV") == "prod":
+                action_delete_msg = {
+                    'action': 'delete',
+                    'domain': f"{relay_subdomain.subdomain}.{relay_subdomain.domain.relay_domain_id}"
+                }
+                delete_msg = {'Type': 'DomainIdentity', 'Message': json.dumps(action_delete_msg)}
+                sqs_service.send_message(message_body=json.dumps(delete_msg))
+
+            # Save subdomain object as deleted
+            self.relay_subdomain_repository.create_relay_subdomain(
+                relay_subdomain_create_data={
+                    "user_id": relay_subdomain.user.user_id, "subdomain": relay_subdomain.subdomain, "is_deleted": True
+                }
+            )

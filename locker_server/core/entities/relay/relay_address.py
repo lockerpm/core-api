@@ -8,8 +8,8 @@ from locker_server.core.entities.user.user import User
 class RelayAddress(object):
     def __init__(self, relay_address_id: int, user: User = None, address: str = None, subdomain: RelaySubdomain = None,
                  domain: RelayDomain = None, enabled: bool = True, block_spam: bool = False, description: str = "",
-                 created_time: float = None, updated_time: float = None, num_forwarded: int = 0, num_blocked: int = 0,
-                 num_replied: int = 0, num_spam: int = 0):
+                 created_time: float = None, updated_time: float = None, latest_used_time: float = None,
+                 num_forwarded: int = 0, num_blocked: int = 0, num_replied: int = 0, num_spam: int = 0):
         self._relay_address_id = relay_address_id
         self._user = user
         self._address = address
@@ -20,6 +20,7 @@ class RelayAddress(object):
         self._description = description
         self._created_time = created_time
         self._updated_time = updated_time
+        self._latest_used_time = latest_used_time
         self._num_forwarded = num_forwarded
         self._num_blocked = num_blocked
         self._num_replied = num_replied
@@ -64,6 +65,10 @@ class RelayAddress(object):
     @property
     def updated_time(self):
         return self._updated_time
+
+    @property
+    def latest_used_time(self):
+        return self._latest_used_time
 
     @property
     def num_forwarded(self):

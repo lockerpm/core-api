@@ -26,6 +26,7 @@ class RelayParser:
             description=relay_address_orm.description,
             created_time=relay_address_orm.created_time,
             updated_time=relay_address_orm.updated_time,
+            latest_used_time=relay_address_orm.latest_used_time,
             num_forwarded=relay_address_orm.num_forwarded,
             num_blocked=relay_address_orm.num_blocked,
             num_replied=relay_address_orm.num_replied,
