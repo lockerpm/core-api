@@ -73,7 +73,7 @@ class SyncPwdViewSet(APIBaseViewSet):
         user = self.request.user
         self.check_pwd_session_auth(request=request)
 
-        paging_param = self.request.query_params.get("paging", "0")
+        paging_param = self.request.query_params.get("paging", "1")
         page_size_param = self.check_int_param(self.request.query_params.get("size", 50))
         page_param = self.check_int_param(self.request.query_params.get("page", 1))
         page_param = page_param if page_param is not None else 1
@@ -173,7 +173,7 @@ class SyncPwdViewSet(APIBaseViewSet):
         user = self.request.user
         self.check_pwd_session_auth(request=request)
 
-        paging_param = self.request.query_params.get("paging", "0")
+        paging_param = self.request.query_params.get("paging", "1")
         page_size_param = self.check_int_param(self.request.query_params.get("size", 50))
         page_param = self.check_int_param(self.request.query_params.get("page", 1))
         page_param = page_param if page_param is not None else 1
