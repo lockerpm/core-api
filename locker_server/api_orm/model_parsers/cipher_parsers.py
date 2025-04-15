@@ -35,9 +35,9 @@ class CipherParser:
             favorites=cipher_orm.get_favorites(),
             view_password=view_password,
             password_history=cipher_orm.get_password_history(),
-            user=user_parser.parse_user(user_orm=cipher_orm.user) if cipher_orm.user else None,
-            created_by=user_parser.parse_user(user_orm=cipher_orm.created_by) if cipher_orm.created_by else None,
-            team=team_parser.parse_team(team_orm=cipher_orm.team) if cipher_orm.team else None,
+            user=user_parser.parse_user(user_orm=cipher_orm.user) if cipher_orm.user_id else None,
+            created_by=user_parser.parse_user(user_orm=cipher_orm.created_by) if cipher_orm.created_by_id else None,
+            team=team_parser.parse_team(team_orm=cipher_orm.team) if cipher_orm.team_id else None,
         )
         if parse_collection_ids is True:
             collection_ids = []

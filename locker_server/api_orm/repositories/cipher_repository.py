@@ -110,27 +110,28 @@ class CipherORMRepository(CipherRepository):
                 team__team_members__user_id=user_id
             )
         ).distinct().annotate(
-            view_password=Case(
-                When(
-                    Q(
-                        team__team_members__role_id__in=[MEMBER_ROLE_MEMBER],
-                        team__team_members__user_id=user_id,
-                        collections_ciphers__collection__collections_members__hide_passwords=True
-                    ), then=False
-                ),
-                When(
-                    Q(
-                        team__team_members__role_id__in=[MEMBER_ROLE_MEMBER],
-                        team__team_members__user_id=user_id,
-                        team__personal_share=True,
-                        team__team_members__hide_passwords=True
-                    ), then=False
-                ),
-                default=True,
-                output_field=BooleanField()
-            )
+            # view_password=Case(
+            #     When(
+            #         Q(
+            #             team__team_members__role_id__in=[MEMBER_ROLE_MEMBER],
+            #             team__team_members__user_id=user_id,
+            #             collections_ciphers__collection__collections_members__hide_passwords=True
+            #         ), then=False
+            #     ),
+            #     When(
+            #         Q(
+            #             team__team_members__role_id__in=[MEMBER_ROLE_MEMBER],
+            #             team__team_members__user_id=user_id,
+            #             team__personal_share=True,
+            #             team__team_members__hide_passwords=True
+            #         ), then=False
+            #     ),
+            #     default=True,
+            #     output_field=BooleanField()
+            # )
         )
-        hide_password_cipher_ids = team_ciphers_orm.filter(view_password=False).values_list('id', flat=True)
+        # hide_password_cipher_ids = team_ciphers_orm.filter(view_password=False).values_list('id', flat=True)
+        hide_password_cipher_ids = []
         if only_edited:
             team_ciphers_orm = team_ciphers_orm.filter(
                 team__team_members__role_id__in=[MEMBER_ROLE_OWNER, MEMBER_ROLE_ADMIN, MEMBER_ROLE_MANAGER],
