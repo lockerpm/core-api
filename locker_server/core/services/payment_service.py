@@ -935,3 +935,8 @@ class PaymentService:
                 "scope": scope,
             }
         )
+        CyLog.debug(**{
+            "message": f"[+] AppSumo downgraded::: {license_key} - user id {current_plan.user.user_id}",
+            "output": ["slack_saas_license"]
+        })
+
