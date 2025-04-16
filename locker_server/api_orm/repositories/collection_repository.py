@@ -23,8 +23,8 @@ ModelParser = get_model_parser()
 
 
 class CollectionORMRepository(CollectionRepository):
-    # ------------------------ List Collection resource ------------------- #
-    def list_user_collections(self, user_id: int, exclude_team_ids=None, filter_ids=None) -> List[Collection]:
+    @staticmethod
+    def _list_user_collections_orm(user_id: int, exclude_team_ids=None, filter_ids=None):
         members_orm = TeamMemberORM.objects.filter(
             user_id=user_id, status=PM_MEMBER_STATUS_CONFIRMED, team__key__isnull=False
         )
@@ -56,6 +56,13 @@ class CollectionORMRepository(CollectionRepository):
                 output_field=BooleanField()
             )
         ).order_by('-creation_date').select_related('team')
+        return collections_orm
+
+    # ------------------------ List Collection resource ------------------- #
+    def list_user_collections(self, user_id: int, exclude_team_ids=None, filter_ids=None) -> List[Collection]:
+        collections_orm = self._list_user_collections_orm(
+            user_id=user_id, exclude_team_ids=exclude_team_ids, filter_ids=filter_ids
+        )
 
         return [
             ModelParser.team_parser().parse_collection(collection_orm=collection_orm)
@@ -69,6 +76,12 @@ class CollectionORMRepository(CollectionRepository):
             return ModelParser.team_parser().parse_collection(collection_orm=collection_orm)
         except CollectionORM.DoesNotExist:
             return None
+
+    def count_user_collections(self, user_id: int, exclude_team_ids=None, filter_ids=None) -> int:
+        collections_orm = self._list_user_collections_orm(
+            user_id=user_id, exclude_team_ids=exclude_team_ids, filter_ids=filter_ids
+        )
+        return collections_orm.values('id').count()
 
     # ------------------------ Create Collection resource --------------------- #
 

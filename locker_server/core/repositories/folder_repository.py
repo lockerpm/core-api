@@ -15,6 +15,10 @@ class FolderRepository(ABC):
     def get_by_id(self, folder_id: str) -> Optional[Folder]:
         pass
 
+    @abstractmethod
+    def count_folders_by_user(self, user_id: int) -> int:
+        pass
+
     # ------------------------ Create Folder resource --------------------- #
     @abstractmethod
     def create_new_folder(self, user_id: int, name: str) -> Folder:

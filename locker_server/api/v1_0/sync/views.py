@@ -156,19 +156,23 @@ class SyncPwdViewSet(APIBaseViewSet):
         if user.login_method == LOGIN_METHOD_PASSWORDLESS:
             exclude_types = [CIPHER_TYPE_MASTER_PASSWORD]
 
-        sync_statistic_ciphers = self.cipher_service.sync_and_statistic_ciphers(
+        sync_statistic_ciphers = self.cipher_service.sync_count_ciphers(
             user_id=user.user_id, exclude_team_ids=block_team_ids, exclude_types=exclude_types,
-            **{
-                "paging": self.request.query_params.get("paging", "1"),
-                "size": self.check_int_param(self.request.query_params.get("size", 50)),
-                "page": self.check_int_param(self.request.query_params.get("page", 1)) or 1,
-            }
+            # **{
+            #     "paging": self.request.query_params.get("paging", "1"),
+            #     "size": self.check_int_param(self.request.query_params.get("size", 50)),
+            #     "page": self.check_int_param(self.request.query_params.get("page", 1)) or 1,
+            # }
         )
         statistic_count = sync_statistic_ciphers.get("count")
-        total_folders = len(self.folder_service.get_multiple_by_user(user_id=user.user_id))
-        total_collections = len(self.collection_service.list_user_collections(
+        total_folders = self.folder_service.count_folders_by_user(user_id=user.user_id)
+        total_collections = self.collection_service.count_user_collections(
             user_id=user.user_id, exclude_team_ids=block_team_ids
-        ))
+        )
+        # total_folders = len(self.folder_service.get_multiple_by_user(user_id=user.user_id))
+        # total_collections = len(self.collection_service.list_user_collections(
+        #     user_id=user.user_id, exclude_team_ids=block_team_ids
+        # ))
         statistic_count.update({
             "folders": total_folders,
             "collections": total_collections

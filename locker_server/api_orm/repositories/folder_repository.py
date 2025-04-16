@@ -23,7 +23,7 @@ class FolderORMRepository(FolderRepository):
 
     # ------------------------ List Folder resource ------------------- #
     def list_by_user_id(self, user_id: int) -> List[Folder]:
-        folders_orm = FolderORM.objects.filter(user_id=user_id)
+        folders_orm = FolderORM.objects.filter(user_id=user_id).select_related('user')
         return [ModelParser.cipher_parser().parse_folder(folder_orm=folder_orm) for folder_orm in folders_orm]
 
     # ------------------------ Get Folder resource --------------------- #
@@ -33,6 +33,9 @@ class FolderORMRepository(FolderRepository):
             return ModelParser.cipher_parser().parse_folder(folder_orm=folder_orm)
         except FolderORM.DoesNotExist:
             return None
+
+    def count_folders_by_user(self, user_id: int) -> int:
+        return FolderORM.objects.filter(user_id=user_id).values('id').count()
 
     # ------------------------ Create Folder resource --------------------- #
     def create_new_folder(self, user_id: int, name: str) -> Folder:

@@ -20,6 +20,10 @@ class CollectionRepository(ABC):
     def get_by_id(self, collection_id: str) -> Optional[Collection]:
         pass
 
+    @abstractmethod
+    def count_user_collections(self, user_id: int, exclude_team_ids=None, filter_ids=None) -> int:
+        pass
+
     # ------------------------ Create Collection resource --------------------- #
 
     # ------------------------ Update Collection resource --------------------- #

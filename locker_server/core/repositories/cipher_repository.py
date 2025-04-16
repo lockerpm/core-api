@@ -74,6 +74,13 @@ class CipherRepository(ABC):
         pass
 
     @abstractmethod
+    def sync_count_ciphers(self, user_id: int, only_personal=False, only_managed_team=False,
+                           only_edited=False, only_deleted=False,
+                           exclude_team_ids=None, filter_ids=None, exclude_types=None, limit_history=None,
+                           **ciphers_filter) -> Dict:
+        pass
+
+    @abstractmethod
     def statistic_created_ciphers(self, user_id: int) -> Dict:
         pass
 
