@@ -16,7 +16,7 @@ class AbstractCipherORM(models.Model):
     reprompt = models.IntegerField(default=0)
 
     score = models.FloatField(default=0)
-    type = models.IntegerField()
+    type = models.IntegerField(db_index=True)
     data = models.TextField(blank=True, null=True)
     favorites = models.TextField(blank=True, null=True)
     folders = models.TextField(blank=True, null=True, default="")
