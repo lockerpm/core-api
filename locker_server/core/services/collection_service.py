@@ -23,3 +23,8 @@ class CollectionService:
         if not collection:
             raise CollectionDoesNotExistException
         return collection
+
+    def count_user_collections(self, user_id: int, exclude_team_ids=None, filter_ids=None) -> int:
+        return self.collection_repository.count_user_collections(
+            user_id=user_id, exclude_team_ids=exclude_team_ids, filter_ids=filter_ids
+        )

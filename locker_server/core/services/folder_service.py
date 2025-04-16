@@ -49,5 +49,8 @@ class FolderService:
     def get_multiple_by_user(self, user_id: int) -> List[Folder]:
         return self.folder_repository.list_by_user_id(user_id=user_id)
 
+    def count_folders_by_user(self, user_id: int) -> int:
+        return self.folder_repository.count_folders_by_user(user_id=user_id)
+
     def import_multiple_folders(self, user_id: int, folders: List) -> List[str]:
         return self.folder_repository.import_multiple_folders(user_id=user_id, folders=folders)

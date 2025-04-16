@@ -267,6 +267,17 @@ class CipherService:
             **ciphers_filter
         )
 
+    def sync_count_ciphers(self, user_id: int, only_personal=False, only_managed_team=False,
+                           only_edited=False, only_deleted=False,
+                           exclude_team_ids=None, filter_ids=None, exclude_types=None,
+                           **ciphers_filter) -> Dict:
+        return self.cipher_repository.sync_count_ciphers(
+            user_id=user_id, only_personal=only_personal, only_managed_team=only_managed_team,
+            only_edited=only_edited, only_deleted=only_deleted,
+            exclude_team_ids=exclude_team_ids, filter_ids=filter_ids, exclude_types=exclude_types,
+            **ciphers_filter
+        )
+
     def delete_multiple_ciphers(self, cipher_ids: List[str], user_id_deleted: int) -> List[str]:
         return self.cipher_repository.delete_multiple_cipher(
             cipher_ids=cipher_ids, user_id_deleted=user_id_deleted

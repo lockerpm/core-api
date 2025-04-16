@@ -293,6 +293,36 @@ class CipherORMRepository(CipherRepository):
             ]
         }
 
+    def sync_count_ciphers(self, user_id: int, only_personal=False, only_managed_team=False,
+                           only_edited=False, only_deleted=False,
+                           exclude_team_ids=None, filter_ids=None, exclude_types=None, limit_history=None,
+                           **ciphers_filter) -> Dict:
+        ciphers_orm = self._get_multiple_ciphers_orm_by_user(
+            user_id=user_id, only_personal=only_personal, only_managed_team=only_managed_team,
+            only_edited=only_edited, only_deleted=only_deleted,
+            exclude_team_ids=exclude_team_ids, filter_ids=filter_ids, exclude_types=exclude_types,
+            **ciphers_filter
+        ).select_related('user').select_related('created_by').select_related('team').prefetch_related(
+            'collections_ciphers'
+        ).prefetch_related('cipher_histories')
+        total_cipher = ciphers_orm.values('id').count()
+        not_deleted_ciphers_orm = ciphers_orm.filter(deleted_date__isnull=True)
+        not_deleted_ciphers_total_count = not_deleted_ciphers_orm.values('id').count()
+        not_deleted_ciphers_statistic = not_deleted_ciphers_orm.values('type').annotate(
+            count=Count('type')
+        ).order_by('-count')
+        not_deleted_ciphers_count = {item["type"]: item["count"] for item in list(not_deleted_ciphers_statistic)}
+
+        return {
+            "count": {
+                "ciphers": total_cipher,
+                "not_deleted_ciphers": {
+                    "total": not_deleted_ciphers_total_count,
+                    "ciphers": not_deleted_ciphers_count
+                },
+            },
+        }
+
     def statistic_created_ciphers(self, user_id: int) -> Dict:
         ciphers_statistic = CipherORM.objects.filter(created_by_id=user_id)
         ciphers_statistic_data = {
