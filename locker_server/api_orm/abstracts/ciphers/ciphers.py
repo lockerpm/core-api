@@ -9,8 +9,8 @@ from locker_server.settings import locker_server_settings
 class AbstractCipherORM(models.Model):
     id = models.CharField(primary_key=True, max_length=128, default=uuid.uuid4)
     creation_date = models.FloatField()
-    revision_date = models.FloatField()
-    deleted_date = models.FloatField(null=True)
+    revision_date = models.FloatField(db_index=True)
+    deleted_date = models.FloatField(null=True, db_index=True)
     last_use_date = models.FloatField(null=True)
     num_use = models.IntegerField(default=0)
     reprompt = models.IntegerField(default=0)
