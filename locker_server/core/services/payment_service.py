@@ -537,7 +537,9 @@ class PaymentService:
                 plan_metadata["family_members"] = family_members
 
             # Cancel the current Stripe subscription: Free/Premium/Family
-            self.user_plan_repository.cancel_plan(user=current_plan.user, immediately=True)
+            stripe_subscription = current_plan.get_stripe_subscription()
+            if stripe_subscription:
+                self.user_plan_repository.cancel_plan(user=current_plan.user, immediately=True)
             # Make sure the plan is upgraded
             self.user_plan_repository.update_plan(
                 user_id=user_id, plan_type_alias=plan_obj.alias,
