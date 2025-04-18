@@ -918,8 +918,8 @@ class PaymentService:
             raise SaasLicenseInvalidException
         if current_plan.pm_plan.alias not in LIST_LIFETIME_PLAN:
             return
-        if current_plan.pm_plan.alias != saas_plan_alias:
-            return
+        # if current_plan.pm_plan.alias != saas_plan_alias:
+        #     return
         if current_plan.pm_stripe_subscription:
             self.user_plan_repository.cancel_plan(user=current_plan.user, immediately=True)
         self.user_plan_repository.update_plan(
