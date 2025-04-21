@@ -3,6 +3,7 @@ from datetime import datetime
 
 import requests
 from django.conf import settings
+from django.core.cache import cache
 from django.db import close_old_connections, connection
 from django.db.models import Count, When, Case, IntegerField, Sum, F, FloatField, Value, Q
 from rest_framework.response import Response
@@ -11,6 +12,7 @@ from rest_framework.exceptions import NotFound, PermissionDenied, ValidationErro
 
 from locker_server.api.api_base_view import APIBaseViewSet
 from locker_server.shared.background.i_background import BackgroundThread
+from locker_server.shared.constants.autofill_keys import AUTOFILL_CACHE
 from locker_server.shared.log.cylog import CyLog
 from locker_server.shared.utils.app import now
 
@@ -55,17 +57,18 @@ class ManagementCommandPwdViewSet(APIBaseViewSet):
             raise ValidationError(detail={"err": e.__str__()})
         return Response(status=200, data={"id": command_name})
 
-    def update_autofill_key(self, key: str, values):
-        self.resource_service.update_autofill_key(key, values=values)
+    def update_autofill_key(self, **data):
+        cache.set(AUTOFILL_CACHE, data, None)
+        self.resource_service.update_autofill_key(AUTOFILL_CACHE, values=data)
         return {
             "success": True
         }
 
-    def delete_autofill_key(self, key):
-        self.resource_service.delete_autofill_key(key)
-        return {
-            "success": True
-        }
+    # def delete_autofill_key(self, key):
+    #     self.resource_service.delete_autofill_key(key)
+    #     return {
+    #         "success": True
+    #     }
     # def set_user_plan(self, user_id, start_period, end_period, cancel_at_period_end, default_payment_method, plan_id,
     #                   pm_mobile_subscription):
     #     user = self.user_repository.retrieve_or_create_by_id(user_id=user_id)
