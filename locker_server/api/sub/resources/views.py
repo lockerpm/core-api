@@ -1,9 +1,11 @@
+from django.core.cache import cache
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from locker_server.api.v1_0.resources.views import ResourcePwdViewSet as ResourceV1PwdViewSet
 from locker_server.settings import locker_server_settings
+from locker_server.shared.constants.autofill_keys import AUTOFILL_CACHE, DEFAULT_AUTOFILL
 from locker_server.shared.constants.transactions import PLAN_TYPE_PM_ENTERPRISE, PLAN_TYPE_PM_ENTERPRISE_STARTUP, \
     LIST_ENTERPRISE_PLAN
 from .serializers import CountrySerializer, IndividualPlanSerializer, AutofillKeySerializer
@@ -146,13 +148,14 @@ class ResourcePwdViewSet(ResourceV1PwdViewSet):
 
     @action(methods=['get'], detail=False)
     def list_autofill_key(self, request, *args, **kwargs):
-        autofill_keys = self.resource_service.list_autofill_key()
-        serializer = self.get_serializer(autofill_keys, many=True)
-        return Response(status=status.HTTP_200_OK, data=serializer.data)
+        autofill_keys = cache.get(AUTOFILL_CACHE)
+        if not autofill_keys:
+            autofill_keys = DEFAULT_AUTOFILL
+        return Response(status=status.HTTP_200_OK, data=autofill_keys)
 
     @action(methods=['get'], detail=False)
     def get_autofill_key(self, request, *args, **kwargs):
-        key = self.kwargs.get('key')
-        autofill_key = self.resource_service.get_autofill_by_key(key=key)
-        serializer = self.get_serializer(autofill_key, many=False)
-        return Response(status=status.HTTP_200_OK, data=serializer.data)
+        autofill_keys = cache.get(AUTOFILL_CACHE)
+        if not autofill_keys:
+            autofill_keys = DEFAULT_AUTOFILL
+        return Response(status=status.HTTP_200_OK, data=autofill_keys)
