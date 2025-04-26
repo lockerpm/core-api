@@ -204,6 +204,8 @@ class PMUserPlan(object):
     def get_max_allow_members(self):
         if self.pm_plan.is_team_plan:
             return self.number_members
+        elif self.pm_plan.is_family_plan:
+            return max(self.pm_plan.max_number, self.number_members)
         return self.pm_plan.max_number
 
     @staticmethod
