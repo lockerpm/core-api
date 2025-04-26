@@ -452,6 +452,9 @@ class PaymentPwdViewSet(APIBaseViewSet):
         current_plan = self.user_service.get_current_plan(user=user)
         next_billing_time = current_plan.get_next_billing_time()
         result = current_plan.pm_plan.to_json()
+        is_family = self.family_service.is_in_family_plan(user_plan=current_plan)
+        if is_family:
+            result.update({"max_number": current_plan.get_max_allow_members()})
         result.update({
             "next_billing_time": next_billing_time,
             "duration": current_plan.duration,
@@ -460,7 +463,7 @@ class PaymentPwdViewSet(APIBaseViewSet):
             "cancel_at_period_end": current_plan.is_cancel_at_period_end(),
             "payment_method": current_plan.default_payment_method,
             "number_members": current_plan.number_members,
-            "is_family": self.family_service.is_in_family_plan(user_plan=current_plan),
+            "is_family": is_family,
             "personal_trial_applied": current_plan.is_personal_trial_applied(),
             "extra_time": current_plan.extra_time,
             "extra_plan": current_plan.extra_plan or PLAN_TYPE_PM_PREMIUM if current_plan.extra_time else None

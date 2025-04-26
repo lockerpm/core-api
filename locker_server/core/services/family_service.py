@@ -27,7 +27,8 @@ class FamilyService:
         pm_plan = current_family_plan.pm_plan
 
         # Check max number is reached?
-        if len(family_members) > pm_plan.max_number - self.user_plan_repository.count_family_members(user_id=user_id):
+        max_number = current_family_plan.get_max_allow_members()
+        if len(family_members) > max_number - self.user_plan_repository.count_family_members(user_id=user_id):
             raise MaxUserPlanFamilyReachedException
 
         for family_member in family_members:
