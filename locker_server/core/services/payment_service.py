@@ -367,8 +367,8 @@ class PaymentService:
         if other_user_plan and other_user_plan.pm_user_plan_id != current_plan.pm_user_plan_id:
             raise SaasLicenseInvalidException
         # Not upgrade the plan if current plan is lifetime and not change
-        if current_plan.pm_plan.alias in LIST_LIFETIME_PLAN and \
-                current_plan.pm_plan.alias == plan.alias:
+        old_plan = current_plan.pm_plan.alias
+        if old_plan in LIST_LIFETIME_PLAN and old_plan == plan.alias:
             return
 
         # Cancel the current Free/Premium/Family
@@ -396,11 +396,11 @@ class PaymentService:
             user_plan_id=user_id, user_plan_update_data={"saas_license": saas_license.license_key}
         )
         # Sending notification
-        if event and event == "downgrade":
+        if event and event == "downgrade" and old_plan == PLAN_TYPE_PM_LIFETIME_TEAM:
             BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
-                func_name="appsumo_downgrade_to_premium", **{
+                func_name="notify_locker_mail", **{
                     "user_ids": [user_id],
-                    "job": "appsumo_downgrade_to_free",
+                    "job": "appsumo_downgrade_to_premium",
                     "scope": scope,
                 }
             )
@@ -916,7 +916,8 @@ class PaymentService:
         if not current_plan:
             CyLog.warning(**{"message": f"[+] Not found license when downgrade {license_key}"})
             raise SaasLicenseInvalidException
-        if current_plan.pm_plan.alias not in LIST_LIFETIME_PLAN:
+        old_plan_alias = current_plan.pm_plan.alias
+        if old_plan_alias not in LIST_LIFETIME_PLAN:
             return
         # if current_plan.pm_plan.alias != saas_plan_alias:
         #     return
@@ -930,13 +931,14 @@ class PaymentService:
         #     user_plan_id=current_plan.user.user_id, user_plan_update_data={"saas_license": None}
         # )
 
-        BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
-            func_name="notify_locker_mail", **{
-                "user_ids": [current_plan.user.user_id],
-                "job": "appsumo_downgrade_to_free",
-                "scope": scope,
-            }
-        )
+        if old_plan_alias == PLAN_TYPE_PM_LIFETIME_TEAM:
+            BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+                func_name="notify_locker_mail", **{
+                    "user_ids": [current_plan.user.user_id],
+                    "job": "appsumo_downgrade_to_free",
+                    "scope": scope,
+                }
+            )
         CyLog.debug(**{
             "message": f"[+] AppSumo downgraded::: {license_key} - user id {current_plan.user.user_id}",
             "output": ["slack_saas_license"]
