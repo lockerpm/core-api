@@ -83,7 +83,7 @@ class CipherPwdViewSet(APIBaseViewSet):
             if cipher_data.get("type") in [CIPHER_TYPE_MASTER_PASSWORD] and master_pwd_item_obj:
                 raise ValidationError(detail={"type": ["This type is not valid"]})
             new_cipher = self.cipher_service.create_cipher(
-                user=self.request.user, cipher_data=cipher_data, check_plan=check_plan
+                user=self.request.user, cipher_data=cipher_data, check_plan=check_plan, view_action="create"
             )
             return new_cipher
         except FolderDoesNotExistException:

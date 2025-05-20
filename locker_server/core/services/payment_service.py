@@ -345,6 +345,83 @@ class PaymentService:
                     }
                 )
 
+    def upgrade_subscription_by_code(self, user_id: int, code: str, scope: str = None):
+        if self.enterprise_member_repository.is_in_enterprise(user_id=user_id):
+            raise EnterpriseMemberExistedException
+        saas_code = self.payment_repository.check_saas_promo_code(user_id=user_id, code=code)
+        if not saas_code:
+            raise PaymentPromoCodeInvalidException
+        saas_plan_alias = saas_code.saas_plan or PLAN_TYPE_PM_PREMIUM
+        plan = self.plan_repository.get_plan_by_alias(alias=saas_plan_alias)
+        if not plan:
+            CyLog.warning(**{"message": f"[!] Not found the subscription plan of the code {saas_code}"})
+            plan = self.plan_repository.get_plan_by_alias(alias=PLAN_TYPE_PM_PREMIUM)
+
+        # Only allow free user and trial premium user
+        current_plan = self.user_plan_repository.get_user_plan(user_id=user_id)
+        if self.user_plan_repository.is_in_family_plan(user_plan=current_plan):
+            raise PaymentFailedByUserInFamilyException
+        if not (current_plan.pm_plan.alias == PLAN_TYPE_PM_FREE and current_plan.is_trialing()):
+            raise CurrentPlanDoesNotSupportOperatorException
+
+        # Update remaining times of the promo code
+        saas_code = self.payment_repository.update_promo_code_remaining_times(promo_code=saas_code)
+        # Avoid race conditions - Make sure that this code is still available
+        if saas_code.remaining_times < 0:
+            raise PaymentPromoCodeInvalidException
+
+        # Cancel the current Free/Premium/Family
+        # If the new plan is family lifetime => Only cancel stripe subscription
+        self.user_plan_repository.cancel_plan(user=current_plan.user, immediately=True)
+
+        upgrade_duration = DURATION_YEARLY
+        saas_end_period = now() + saas_code.saas_market.lifetime_duration
+        plan_metadata = {
+            "start_period": now(),
+            "end_period": saas_end_period,
+            "extra_time": max(current_plan.end_period - now(), 0) if current_plan.end_period else None,
+        }
+        self.user_plan_repository.update_plan(
+            user_id=user_id, plan_type_alias=plan.alias, duration=upgrade_duration, scope=scope,
+            **plan_metadata
+        )
+        user = self.user_repository.update_user(
+            user_id=user_id,
+            user_update_data={"saas_source": saas_code.saas_market.name}
+        )
+
+        # Generate new payment
+        try:
+            new_payment_data = {
+                "user_id": user_id,
+                "saas_market": saas_code.saas_market.name,
+                "description": "Upgrade plan from saas code",
+                "plan": plan.alias,
+                "payment_method": PAYMENT_METHOD_CARD,
+                "duration": upgrade_duration,
+                "currency": CURRENCY_USD,
+                "promo_code": saas_code.promo_code_id,
+                "customer": None,
+                "scope": scope,
+                "status": PAYMENT_STATUS_PAID,
+                "total_price": plan.get_price(duration=upgrade_duration, currency=CURRENCY_USD),
+                "metadata": plan_metadata
+            }
+            self.create_payment(**new_payment_data)
+        except Exception:
+            tb = traceback.format_exc()
+            CyLog.error(**{"message": f"[!] Create the saas payment error::: {user_id} - {code}\n{tb}"})
+        BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+            func_name="notify_locker_mail", **{
+                "user_ids": [user.user_id],
+                "job": "upgraded_from_code_promo",
+                "scope": scope,
+                "service_name": user.saas_source,
+                "plan": plan.name
+            }
+        )
+
+
     def get_user_plan_by_saas_license(self, license_key: str) -> Optional[PMUserPlan]:
         user_plan = self.user_plan_repository.get_user_plan_by_saas_license(saas_license=license_key)
         if not user_plan:
