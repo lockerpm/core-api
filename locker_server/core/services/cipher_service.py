@@ -46,7 +46,7 @@ class CipherService:
         collection_ids = data.get("collection_ids", []) or data.get("collectionIds", [])
         # Check the permission in the organization_id
         allow_roles = [MEMBER_ROLE_OWNER]
-        if view_action == "update":
+        if view_action in ["update", "create"]:
             allow_roles.append(MEMBER_ROLE_ADMIN)
         if organization_id:
             team_member = self.team_member_repository.get_user_team_member(
