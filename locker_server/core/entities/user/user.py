@@ -11,7 +11,8 @@ class User(object):
                  first_login: float = None, activated: bool = False, activated_date: float = None,
                  delete_account_date: float = None, account_revision_date: float = None,
                  master_password: str = None, master_password_hint: str = "",
-                 master_password_score: int = 0, security_stamp: str = None, key: str = None,
+                 master_password_score: float = 0, hide_master_password: bool = False,
+                 security_stamp: str = None, key: str = None,
                  public_key: str = None, private_key: str = None, kdf: int = 0, kdf_iterations=DEFAULT_KDF_ITERATIONS,
                  api_key: str = None, timeout: int = 20160, timeout_action: str = "lock", is_leaked: bool = False,
                  use_relay_subdomain: bool = False, last_request_login: float = None, login_failed_attempts: int = 0,
@@ -34,6 +35,7 @@ class User(object):
         self._master_password = master_password
         self._master_password_hint = master_password_hint
         self._master_password_score = master_password_score
+        self._hide_master_password = hide_master_password
         self._security_stamp = security_stamp
         self._key = key
         self._public_key = public_key
@@ -117,6 +119,10 @@ class User(object):
     @property
     def master_password_score(self):
         return self._master_password_score
+
+    @property
+    def hide_master_password(self):
+        return self._hide_master_password
 
     @property
     def security_stamp(self):

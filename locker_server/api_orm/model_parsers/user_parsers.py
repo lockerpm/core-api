@@ -25,6 +25,7 @@ class UserParser:
             master_password=user_orm.master_password,
             master_password_hint=user_orm.master_password_hint,
             master_password_score=user_orm.master_password_score,
+            hide_master_password=user_orm.hide_master_password,
             security_stamp=user_orm.security_stamp,
             key=user_orm.key,
             public_key=user_orm.public_key,

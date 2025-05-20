@@ -26,6 +26,7 @@ class UserMeSerializer(serializers.Serializer):
             "is_super_admin": instance.is_super_admin,
             "kdf": instance.kdf,
             "kdf_iterations": instance.kdf_iterations,
+            "hide_master_password": instance.hide_master_password,
         }
         show_key_param = self.context["request"].query_params.get("show_key", "0")
         if show_key_param == "1":
@@ -55,6 +56,7 @@ class UserUpdateMeSerializer(serializers.Serializer):
     language = serializers.ChoiceField(choices=[LANG_ENGLISH, LANG_VIETNAM], required=False)
     name = serializers.CharField(required=False, max_length=512, allow_blank=False)
     sync_all_platforms = serializers.BooleanField(required=False)
+    hide_master_password = serializers.BooleanField(required=False)
 
     def to_internal_value(self, data):
         name = data.get("name")
