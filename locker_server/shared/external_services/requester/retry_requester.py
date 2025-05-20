@@ -73,7 +73,14 @@ def requester(method, url, headers=None, data_send=None, is_json=True, retry=Fal
                 res._content = json.dumps(refer_error(gen_error("0008"))).encode('utf-8')
                 return res
             return res
-        except (requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout):
+        except (requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout,
+                requests.exceptions.ReadTimeout) as e:
+            if isinstance(e, requests.exceptions.ReadTimeout):
+                message = "requests.exceptions.ReadTimeout:\n\turl:`{url}`\n\tdata:{data}".format(
+                    url=url,data=data_send
+                )
+                CyLog.warning(**{"message": message})
+
             number_retries += 1
             if retry:
                 if number_retries <= max_retries:
@@ -89,6 +96,6 @@ def requester(method, url, headers=None, data_send=None, is_json=True, retry=Fal
                 res.status_code = 400
                 res._content = json.dumps(refer_error(gen_error("0009"))).encode('utf-8')
                 return res
-        except requests.exceptions.ReadTimeout:
-            message = "requests.exceptions.ReadTimeout:\n\turl:`{url}`\n\tdata:{data}".format(url=url, data=data_send)
-            CyLog.warning(**{"message": message})
+        # except requests.exceptions.ReadTimeout:
+        #     message = "requests.exceptions.ReadTimeout:\n\turl:`{url}`\n\tdata:{data}".format(url=url, data=data_send)
+        #     CyLog.warning(**{"message": message})
