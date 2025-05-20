@@ -801,6 +801,7 @@ class UserORMRepository(UserRepository):
 
         user_orm.is_super_admin = user_update_data.get("is_super_admin", user_orm.is_super_admin)
         user_orm.sync_all_platforms = user_update_data.get("sync_all_platforms", user_orm.sync_all_platforms)
+        user_orm.hide_master_password = user_update_data.get("hide_master_password", user_orm.hide_master_password)
         if user_update_data.get("master_password_hash"):
             user_orm.set_master_password(raw_password=user_update_data.get("master_password_hash"))
         user_orm.is_password_changed = user_update_data.get("is_password_changed", user_orm.is_password_changed)

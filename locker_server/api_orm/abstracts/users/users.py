@@ -21,6 +21,7 @@ class AbstractUserORM(models.Model):
     master_password = models.CharField(max_length=300, null=True)
     master_password_hint = models.CharField(max_length=128, blank=True, null=True, default="")
     master_password_score = models.FloatField(default=0)
+    hide_master_password = models.BooleanField(default=False)
     security_stamp = models.CharField(max_length=50, null=True)
     key = models.TextField(null=True)
     public_key = models.TextField(null=True)
