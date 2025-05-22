@@ -361,7 +361,7 @@ class PaymentService:
         current_plan = self.user_plan_repository.get_user_plan(user_id=user_id)
         if self.user_plan_repository.is_in_family_plan(user_plan=current_plan):
             raise PaymentFailedByUserInFamilyException
-        if not (current_plan.pm_plan.alias == PLAN_TYPE_PM_FREE and current_plan.is_trialing()):
+        if not (current_plan.pm_plan.alias == PLAN_TYPE_PM_FREE or current_plan.is_trialing()):
             raise CurrentPlanDoesNotSupportOperatorException
 
         # Update remaining times of the promo code
