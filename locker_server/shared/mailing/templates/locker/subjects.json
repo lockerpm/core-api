@@ -212,8 +212,8 @@
     "vi": "Tài khoản Locker của bạn đã được nâng cấp lên gói Lifetime"
   },
   "upgraded_from_code_promo": {
-    "en": "Your Locker account has been upgraded to {{plan}} Plan",
-    "vi": "Tài khoản Locker của bạn đã được nâng cấp lên gói {{plan}}"
+    "en": "Your Locker account has been upgraded to {{plan_name}} Plan",
+    "vi": "Tài khoản Locker của bạn đã được nâng cấp lên gói {{plan_name}}"
   },
   "otp_for_quick_share": {
     "en": "Verify your email address to view the shared item",

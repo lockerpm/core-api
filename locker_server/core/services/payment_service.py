@@ -341,7 +341,7 @@ class PaymentService:
                         "job": "upgraded_from_code_promo",
                         "scope": scope,
                         "service_name": user.saas_source,
-                        "plan": plan.name
+                        "plan_name": plan.name
                     }
                 )
 
@@ -422,7 +422,7 @@ class PaymentService:
             "job": "upgraded_from_code_promo",
             "scope": scope,
             "service_name": user.saas_source,
-            "plan": plan.name
+            "plan_name": plan.name
         }
         CyLog.debug(**{"message": f"[+] notification_data::: {notification_data}"})
         BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(

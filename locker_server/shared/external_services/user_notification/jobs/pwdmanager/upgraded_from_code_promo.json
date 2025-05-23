@@ -10,7 +10,7 @@
         "destinations": [],
         "data": {
           "service_name": "{service_name}",
-          "plan": "{plan}"
+          "plan_name": "{plan_name}"
         }
       }
     },
