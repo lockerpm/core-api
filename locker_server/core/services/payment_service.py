@@ -346,13 +346,16 @@ class PaymentService:
                 )
 
     def upgrade_subscription_by_code(self, user_id: int, code: str, scope: str = None):
+        CyLog.debug(**{"message": f"[+] Starting upgrade sub by code::: {user_id} {code} {scope}"})
         if self.enterprise_member_repository.is_in_enterprise(user_id=user_id):
             raise EnterpriseMemberExistedException
         saas_code = self.payment_repository.check_saas_promo_code(user_id=user_id, code=code)
         if not saas_code:
             raise PaymentPromoCodeInvalidException
         saas_plan_alias = saas_code.saas_plan or PLAN_TYPE_PM_PREMIUM
+        CyLog.debug(**{"message": f"[+] saas_plan_alias::: {saas_plan_alias}"})
         plan = self.plan_repository.get_plan_by_alias(alias=saas_plan_alias)
+        CyLog.debug(**{"message": f"[+] plan::: {plan} - {plan.alias} - {plan.name}"})
         if not plan:
             CyLog.warning(**{"message": f"[!] Not found the subscription plan of the code {saas_code}"})
             plan = self.plan_repository.get_plan_by_alias(alias=PLAN_TYPE_PM_PREMIUM)
@@ -389,6 +392,7 @@ class PaymentService:
             user_id=user_id,
             user_update_data={"saas_source": saas_code.saas_market.name}
         )
+        CyLog.debug(**{"message": f"[+] plan2::: {plan} - {plan.alias} - {plan.name}"})
 
         # Generate new payment
         try:
@@ -411,14 +415,18 @@ class PaymentService:
         except Exception:
             tb = traceback.format_exc()
             CyLog.error(**{"message": f"[!] Create the saas payment error::: {user_id} - {code}\n{tb}"})
+
+        CyLog.debug(**{"message": f"[+] plan3::: {plan} - {plan.alias} - {plan.name}"})
+        notification_data = {
+            "user_ids": [user.user_id],
+            "job": "upgraded_from_code_promo",
+            "scope": scope,
+            "service_name": user.saas_source,
+            "plan": plan.name
+        }
+        CyLog.debug(**{"message": f"[+] notification_data::: {notification_data}"})
         BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
-            func_name="notify_locker_mail", **{
-                "user_ids": [user.user_id],
-                "job": "upgraded_from_code_promo",
-                "scope": scope,
-                "service_name": user.saas_source,
-                "plan": plan.name
-            }
+            func_name="notify_locker_mail", **notification_data
         )
 
 
