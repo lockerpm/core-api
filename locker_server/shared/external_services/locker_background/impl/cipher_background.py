@@ -1,7 +1,8 @@
 from django.db import connection
 
 from locker_server.shared.external_services.locker_background.background import LockerBackground
-from locker_server.shared.external_services.pm_sync import PwdSync, SYNC_EVENT_CIPHER_DELETE, SYNC_EVENT_CIPHER_RESTORE
+from locker_server.shared.external_services.pm_sync import PwdSync, SYNC_EVENT_CIPHER_DELETE, SYNC_EVENT_CIPHER_RESTORE, \
+    SYNC_ACTION_DELETE
 
 
 class CipherBackground(LockerBackground):
@@ -17,7 +18,7 @@ class CipherBackground(LockerBackground):
             deleted_ciphers = cipher_service.get_multiple_by_ids(cipher_ids=deleted_cipher_ids)
             teams = [deleted_cipher.team for deleted_cipher in deleted_ciphers if deleted_cipher.team]
             PwdSync(event=SYNC_EVENT_CIPHER_DELETE, user_ids=[user.user_id], teams=teams, add_all=True).send(
-                data={"ids": list(deleted_cipher_ids)}
+                data={"ids": list(deleted_cipher_ids), "action": SYNC_ACTION_DELETE}
             )
         except Exception as e:
             self.log_error(func_name="multiple_delete")
