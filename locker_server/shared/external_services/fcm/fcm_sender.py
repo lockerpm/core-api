@@ -75,7 +75,7 @@ class FCMSenderService:
                     )
                 )
             )
-            response = messaging.send_multicast(message)
+            response = messaging.send_each_for_multicast(message)
             if response.failure_count > 0:
                 responses = response.responses
                 for idx, resp in enumerate(responses):

@@ -288,7 +288,7 @@ class UserService:
                         "user_ids": [user.user_id],
                         "job": "upgraded_from_code_promo",
                         "service_name": user.saas_source,
-                        "plan": current_plan.pm_plan.alias
+                        "plan_name": current_plan.pm_plan.alias
                     }
                 )
 

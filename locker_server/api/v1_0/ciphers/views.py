@@ -18,7 +18,7 @@ from locker_server.shared.error_responses.error import gen_error
 from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
 from locker_server.shared.external_services.locker_background.constants import BG_CIPHER
 from locker_server.shared.external_services.pm_sync import SYNC_EVENT_FOLDER_UPDATE, PwdSync, SYNC_EVENT_FOLDER_DELETE, \
-    SYNC_EVENT_CIPHER_UPDATE, SYNC_EVENT_CIPHER_DELETE_PERMANENT, SYNC_EVENT_VAULT
+    SYNC_EVENT_CIPHER_UPDATE, SYNC_EVENT_CIPHER_DELETE_PERMANENT, SYNC_EVENT_VAULT, SYNC_ACTION_DELETE
 from locker_server.shared.utils.app import camel_snake_data
 from locker_server.shared.utils.avatar import get_avatar
 from .serializers import VaultItemSerializer, MultipleItemIdsSerializer, DetailCipherSerializer, \
@@ -83,7 +83,7 @@ class CipherPwdViewSet(APIBaseViewSet):
             if cipher_data.get("type") in [CIPHER_TYPE_MASTER_PASSWORD] and master_pwd_item_obj:
                 raise ValidationError(detail={"type": ["This type is not valid"]})
             new_cipher = self.cipher_service.create_cipher(
-                user=self.request.user, cipher_data=cipher_data, check_plan=check_plan
+                user=self.request.user, cipher_data=cipher_data, check_plan=check_plan, view_action="create"
             )
             return new_cipher
         except FolderDoesNotExistException:
@@ -142,7 +142,7 @@ class CipherPwdViewSet(APIBaseViewSet):
         self.user_service.delete_sync_cache_data(user_id=user.user_id)
         PwdSync(
             event=SYNC_EVENT_CIPHER_DELETE_PERMANENT, user_ids=[request.user.user_id], teams=teams, add_all=True
-        ).send(data={"ids": deleted_cipher_ids})
+        ).send(data={"ids": deleted_cipher_ids, "action": SYNC_ACTION_DELETE})
         return Response(status=status.HTTP_200_OK, data={"success": True})
 
     @action(methods=["put"], detail=False)

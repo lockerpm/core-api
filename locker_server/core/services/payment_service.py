@@ -341,9 +341,94 @@ class PaymentService:
                         "job": "upgraded_from_code_promo",
                         "scope": scope,
                         "service_name": user.saas_source,
-                        "plan": plan.name
+                        "plan_name": plan.name
                     }
                 )
+
+    def upgrade_subscription_by_code(self, user_id: int, code: str, scope: str = None):
+        CyLog.debug(**{"message": f"[+] Starting upgrade sub by code::: {user_id} {code} {scope}"})
+        if self.enterprise_member_repository.is_in_enterprise(user_id=user_id):
+            raise EnterpriseMemberExistedException
+        saas_code = self.payment_repository.check_saas_promo_code(user_id=user_id, code=code)
+        if not saas_code:
+            raise PaymentPromoCodeInvalidException
+        saas_plan_alias = saas_code.saas_plan or PLAN_TYPE_PM_PREMIUM
+        CyLog.debug(**{"message": f"[+] saas_plan_alias::: {saas_plan_alias}"})
+        plan = self.plan_repository.get_plan_by_alias(alias=saas_plan_alias)
+        CyLog.debug(**{"message": f"[+] plan::: {plan} - {plan.alias} - {plan.name}"})
+        if not plan:
+            CyLog.warning(**{"message": f"[!] Not found the subscription plan of the code {saas_code}"})
+            plan = self.plan_repository.get_plan_by_alias(alias=PLAN_TYPE_PM_PREMIUM)
+
+        # Only allow free user and trial premium user
+        current_plan = self.user_plan_repository.get_user_plan(user_id=user_id)
+        if self.user_plan_repository.is_in_family_plan(user_plan=current_plan):
+            raise PaymentFailedByUserInFamilyException
+        if not (current_plan.pm_plan.alias == PLAN_TYPE_PM_FREE or current_plan.is_trialing()):
+            raise CurrentPlanDoesNotSupportOperatorException
+
+        # Update remaining times of the promo code
+        saas_code = self.payment_repository.update_promo_code_remaining_times(promo_code=saas_code)
+        # Avoid race conditions - Make sure that this code is still available
+        if saas_code.remaining_times < 0:
+            raise PaymentPromoCodeInvalidException
+
+        # Cancel the current Free/Premium/Family
+        # If the new plan is family lifetime => Only cancel stripe subscription
+        self.user_plan_repository.cancel_plan(user=current_plan.user, immediately=True)
+
+        upgrade_duration = DURATION_YEARLY
+        saas_end_period = now() + saas_code.saas_market.lifetime_duration
+        plan_metadata = {
+            "start_period": now(),
+            "end_period": saas_end_period,
+            "extra_time": max(current_plan.end_period - now(), 0) if current_plan.end_period else None,
+        }
+        self.user_plan_repository.update_plan(
+            user_id=user_id, plan_type_alias=plan.alias, duration=upgrade_duration, scope=scope,
+            **plan_metadata
+        )
+        user = self.user_repository.update_user(
+            user_id=user_id,
+            user_update_data={"saas_source": saas_code.saas_market.name}
+        )
+        CyLog.debug(**{"message": f"[+] plan2::: {plan} - {plan.alias} - {plan.name}"})
+
+        # Generate new payment
+        try:
+            new_payment_data = {
+                "user_id": user_id,
+                "saas_market": saas_code.saas_market.name,
+                "description": "Upgrade plan from saas code",
+                "plan": plan.alias,
+                "payment_method": PAYMENT_METHOD_CARD,
+                "duration": upgrade_duration,
+                "currency": CURRENCY_USD,
+                "promo_code": saas_code.promo_code_id,
+                "customer": None,
+                "scope": scope,
+                "status": PAYMENT_STATUS_PAID,
+                "total_price": plan.get_price(duration=upgrade_duration, currency=CURRENCY_USD),
+                "metadata": plan_metadata
+            }
+            self.create_payment(**new_payment_data)
+        except Exception:
+            tb = traceback.format_exc()
+            CyLog.error(**{"message": f"[!] Create the saas payment error::: {user_id} - {code}\n{tb}"})
+
+        CyLog.debug(**{"message": f"[+] plan3::: {plan} - {plan.alias} - {plan.name}"})
+        notification_data = {
+            "user_ids": [user.user_id],
+            "job": "upgraded_from_code_promo",
+            "scope": scope,
+            "service_name": user.saas_source,
+            "plan_name": plan.name
+        }
+        CyLog.debug(**{"message": f"[+] notification_data::: {notification_data}"})
+        BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+            func_name="notify_locker_mail", **notification_data
+        )
+
 
     def get_user_plan_by_saas_license(self, license_key: str) -> Optional[PMUserPlan]:
         user_plan = self.user_plan_repository.get_user_plan_by_saas_license(saas_license=license_key)
@@ -367,8 +452,8 @@ class PaymentService:
         if other_user_plan and other_user_plan.pm_user_plan_id != current_plan.pm_user_plan_id:
             raise SaasLicenseInvalidException
         # Not upgrade the plan if current plan is lifetime and not change
-        if current_plan.pm_plan.alias in LIST_LIFETIME_PLAN and \
-                current_plan.pm_plan.alias == plan.alias:
+        old_plan = current_plan.pm_plan.alias
+        if old_plan in LIST_LIFETIME_PLAN and old_plan == plan.alias:
             return
 
         # Cancel the current Free/Premium/Family
@@ -396,11 +481,11 @@ class PaymentService:
             user_plan_id=user_id, user_plan_update_data={"saas_license": saas_license.license_key}
         )
         # Sending notification
-        if event and event == "downgrade":
+        if event and event == "downgrade" and old_plan == PLAN_TYPE_PM_LIFETIME_TEAM:
             BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
-                func_name="appsumo_downgrade_to_premium", **{
+                func_name="notify_locker_mail", **{
                     "user_ids": [user_id],
-                    "job": "appsumo_downgrade_to_free",
+                    "job": "appsumo_downgrade_to_premium",
                     "scope": scope,
                 }
             )
@@ -916,7 +1001,8 @@ class PaymentService:
         if not current_plan:
             CyLog.warning(**{"message": f"[+] Not found license when downgrade {license_key}"})
             raise SaasLicenseInvalidException
-        if current_plan.pm_plan.alias not in LIST_LIFETIME_PLAN:
+        old_plan_alias = current_plan.pm_plan.alias
+        if old_plan_alias not in LIST_LIFETIME_PLAN:
             return
         # if current_plan.pm_plan.alias != saas_plan_alias:
         #     return
@@ -930,13 +1016,14 @@ class PaymentService:
         #     user_plan_id=current_plan.user.user_id, user_plan_update_data={"saas_license": None}
         # )
 
-        BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
-            func_name="notify_locker_mail", **{
-                "user_ids": [current_plan.user.user_id],
-                "job": "appsumo_downgrade_to_free",
-                "scope": scope,
-            }
-        )
+        if old_plan_alias == PLAN_TYPE_PM_LIFETIME_TEAM:
+            BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+                func_name="notify_locker_mail", **{
+                    "user_ids": [current_plan.user.user_id],
+                    "job": "appsumo_downgrade_to_free",
+                    "scope": scope,
+                }
+            )
         CyLog.debug(**{
             "message": f"[+] AppSumo downgraded::: {license_key} - user id {current_plan.user.user_id}",
             "output": ["slack_saas_license"]

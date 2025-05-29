@@ -23,7 +23,8 @@ from locker_server.shared.utils.app import now
 from .serializers import CalcSerializer, ListInvoiceSerializer, AdminUpgradePlanSerializer, UpgradeTrialSerializer, \
     UpgradeThreePromoSerializer, UpgradeLifetimeSerializer, UpgradeLifetimePublicSerializer, \
     UpgradeEducationPublicSerializer, CancelPlanSerializer, UpgradePlanSerializer, DetailInvoiceSerializer, \
-    CalcLifetimePublicSerializer, UpgradeSubscriptionPublicSerializer, AdminCreateRefundPaymentSerializer
+    CalcLifetimePublicSerializer, UpgradeSubscriptionPublicSerializer, AdminCreateRefundPaymentSerializer, \
+    UpgradeSubscriptionByCodeSerializer
 
 
 class PaymentPwdViewSet(APIBaseViewSet):
@@ -48,6 +49,8 @@ class PaymentPwdViewSet(APIBaseViewSet):
             self.serializer_class = UpgradeTrialSerializer
         elif self.action == "upgrade_lifetime":
             self.serializer_class = UpgradeLifetimeSerializer
+        elif self.action == "upgrade_subscription_by_code":
+            self.serializer_class = UpgradeSubscriptionByCodeSerializer
         elif self.action == "upgrade_three_promo":
             self.serializer_class = UpgradeThreePromoSerializer
         elif self.action == "upgrade_lifetime_public":
@@ -291,6 +294,31 @@ class PaymentPwdViewSet(APIBaseViewSet):
         return Response(status=status.HTTP_200_OK, data={"success": True})
 
     @action(methods=["post"], detail=False)
+    def upgrade_subscription_by_code(self, request, *args, **kwargs):
+        user = self.request.user
+        if self.enterprise_service.is_in_enterprise(user_id=user.user_id):
+            raise ValidationError(detail={"non_field_errors": [gen_error("7015")]})
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        code = validated_data.get("code")
+
+        try:
+            self.payment_service.upgrade_subscription_by_code(
+                user_id=user.user_id, code=code, scope=settings.SCOPE_PWD_MANAGER
+            )
+        except EnterpriseMemberExistedException:
+            raise ValidationError(detail={"non_field_errors": [gen_error("7015")]})
+        except PaymentPromoCodeInvalidException:
+            raise ValidationError(detail={"code": ["This code is expired or invalid"]})
+        except PaymentFailedByUserInFamilyException:
+            raise ValidationError(detail={"non_field_errors": [gen_error("7016")]})
+        except CurrentPlanDoesNotSupportOperatorException:
+            raise ValidationError(detail={"non_field_errors": [gen_error("7014")]})
+        return Response(status=status.HTTP_200_OK, data={"success": True})
+
+
+    @action(methods=["post"], detail=False)
     def upgrade_three_promo(self, request, *args, **kwargs):
         user = self.request.user
         card = request.data.get("card")
@@ -452,6 +480,9 @@ class PaymentPwdViewSet(APIBaseViewSet):
         current_plan = self.user_service.get_current_plan(user=user)
         next_billing_time = current_plan.get_next_billing_time()
         result = current_plan.pm_plan.to_json()
+        is_family = self.family_service.is_in_family_plan(user_plan=current_plan)
+        if is_family:
+            result.update({"max_number": current_plan.get_max_allow_members()})
         result.update({
             "next_billing_time": next_billing_time,
             "duration": current_plan.duration,
@@ -460,7 +491,7 @@ class PaymentPwdViewSet(APIBaseViewSet):
             "cancel_at_period_end": current_plan.is_cancel_at_period_end(),
             "payment_method": current_plan.default_payment_method,
             "number_members": current_plan.number_members,
-            "is_family": self.family_service.is_in_family_plan(user_plan=current_plan),
+            "is_family": is_family,
             "personal_trial_applied": current_plan.is_personal_trial_applied(),
             "extra_time": current_plan.extra_time,
             "extra_plan": current_plan.extra_plan or PLAN_TYPE_PM_PREMIUM if current_plan.extra_time else None

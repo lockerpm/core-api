@@ -106,6 +106,10 @@ class UpgradeLifetimeSerializer(serializers.Serializer):
     code = serializers.CharField(max_length=32)
 
 
+class UpgradeSubscriptionByCodeSerializer(serializers.Serializer):
+    code = serializers.CharField(max_length=32)
+
+
 class UpgradeThreePromoSerializer(serializers.Serializer):
     promo_code = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
