@@ -38,6 +38,10 @@ class PwdSync:
         user_ids = []
         if self.team:
             team_user_ids = team_member_service.list_member_user_ids_by_teams(teams=[self.team])
+            # TODO: Check the members of the team must be confirmed
+            # team_user_ids = team_member_service.list_member_user_ids_by_teams(
+            #     teams=[self.team], status=PM_MEMBER_STATUS_CONFIRMED
+            # )
             user_ids = user_ids + team_user_ids if self.add_all else team_user_ids
         elif self.teams:
             teams_user_ids = team_member_service.list_member_user_ids_by_teams(

@@ -15,8 +15,8 @@ class TeamMemberService:
     def __init__(self, team_member_repository: TeamMemberRepository):
         self.team_member_repository = team_member_repository
 
-    def list_member_user_ids_by_teams(self, teams: List[Team], status: str = None, personal_share: bool = None) -> List[
-        int]:
+    def list_member_user_ids_by_teams(self, teams: List[Team], status: str = None,
+                                      personal_share: bool = None) -> List[int]:
         return self.team_member_repository.list_member_user_ids_by_teams(
             teams=teams, status=status, personal_share=personal_share
         )
