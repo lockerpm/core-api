@@ -160,6 +160,22 @@ class EnterpriseORMRepository(EnterpriseRepository):
             "enterprise_postal_code",
             enterprise_orm.enterprise_postal_code
         )
+        enterprise_orm.enterprise_registration_number = enterprise_update_data.get(
+            "enterprise_registration_number",
+            enterprise_orm.enterprise_registration_number,
+        )
+        enterprise_orm.enterprise_registration_date = enterprise_update_data.get(
+            "enterprise_registration_date",
+            enterprise_orm.enterprise_registration_date,
+        )
+        enterprise_orm.enterprise_entity_type = enterprise_update_data.get(
+            "enterprise_entity_type",
+            enterprise_orm.enterprise_entity_type,
+        )
+        enterprise_orm.enterprise_vat_id = enterprise_update_data.get(
+            "enterprise_vat_id",
+            enterprise_orm.enterprise_vat_id,
+        )
         enterprise_orm.init_seats = enterprise_update_data.get("init_seats", enterprise_orm.init_seats)
         enterprise_orm.init_seats_expired_time = enterprise_update_data.get(
             "init_seats_expired_time",

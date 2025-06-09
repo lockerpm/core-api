@@ -41,7 +41,11 @@ class EnterpriseParser:
             enterprise_postal_code=enterprise_orm.enterprise_postal_code,
             init_seats=enterprise_orm.init_seats,
             init_seats_expired_time=enterprise_orm.init_seats_expired_time,
-            avatar=avatar_url
+            avatar=avatar_url,
+            enterprise_registration_number=enterprise_orm.enterprise_registration_number,
+            enterprise_registration_date=enterprise_orm.enterprise_registration_date,
+            enterprise_entity_type=enterprise_orm.enterprise_entity_type,
+            enterprise_vat_id=enterprise_orm.enterprise_vat_id,
         )
 
     @classmethod

@@ -100,9 +100,13 @@ class BillingAddressSerializer(serializers.Serializer):
     enterprise_name = serializers.CharField(max_length=128, required=False, allow_blank=True)
     enterprise_address1 = serializers.CharField(max_length=255, required=False, allow_blank=True)
     enterprise_address2 = serializers.CharField(max_length=255, required=False, allow_blank=True)
-    enterprise_phone = serializers.CharField(max_length=128, required=False, allow_blank=True)
-    enterprise_country = serializers.CharField(max_length=128, required=False, allow_blank=True)
     enterprise_postal_code = serializers.CharField(max_length=16, required=False, allow_blank=True)
+    enterprise_country = serializers.CharField(max_length=128, required=False, allow_blank=True)
+    enterprise_registration_number = serializers.CharField(max_length=128, required=False, allow_blank=True)
+    enterprise_registration_date = serializers.FloatField(required=False, allow_null=True)
+    enterprise_entity_type = serializers.CharField(max_length=128, required=False, allow_blank=True)
+    enterprise_vat_id = serializers.CharField(max_length=128, required=False, allow_blank=True)
+    enterprise_phone = serializers.CharField(max_length=128, required=False, allow_blank=True)
 
     def to_representation(self, instance):
         data = {
@@ -110,8 +114,12 @@ class BillingAddressSerializer(serializers.Serializer):
             "enterprise_name": instance.enterprise_name,
             "enterprise_address1": instance.enterprise_address1,
             "enterprise_address2": instance.enterprise_address2,
-            "enterprise_phone": instance.enterprise_phone,
-            "enterprise_country": instance.enterprise_country,
             "enterprise_postal_code": instance.enterprise_postal_code,
+            "enterprise_country": instance.enterprise_country,
+            "enterprise_registration_number": instance.enterprise_registration_number,
+            "enterprise_registration_date": instance.enterprise_registration_date,
+            "enterprise_entity_type": instance.enterprise_entity_type,
+            "enterprise_vat_id": instance.enterprise_vat_id,
+            "enterprise_phone": instance.enterprise_phone,
         }
         return data
