@@ -13,18 +13,22 @@ class ExcludeDomainSerializer(serializers.Serializer):
         domain = data.get("domain")
         url = urllib.parse.unquote(domain)
         parsed_url = urlparse(url)
-        if not parsed_url.scheme:
-            url = f"https://{url}"
-            parsed_url = urlparse(url)
-        domain = parsed_url.netloc
-        is_domain = is_valid_domain(domain)
-        is_ip = is_valid_ip(domain)
-        if (is_domain is False) and (is_ip is False):
-            raise serializers.ValidationError(detail={'domain': [
-                'This domain or ip is invalid', 'Domain hoặc ip không hợp lệ'
-            ]})
-        if is_domain:
-            data["domain"] = extract_full_domain(domain=domain)
+        is_ip = is_valid_ip(parsed_url.netloc or parsed_url.path)
+        if not is_ip and parsed_url.scheme:
+            data["domain"] = url
+        else:
+            if not parsed_url.scheme:
+                url = f"https://{url}"
+                parsed_url = urlparse(url)
+            domain = parsed_url.netloc
+            is_domain = is_valid_domain(domain)
+
+            if (is_domain is False) and (is_ip is False):
+                raise serializers.ValidationError(detail={'domain': [
+                    'This domain or ip is invalid', 'Domain hoặc ip không hợp lệ'
+                ]})
+            if is_domain:
+                data["domain"] = extract_full_domain(domain=domain)
         return data
 
     def to_representation(self, instance):
