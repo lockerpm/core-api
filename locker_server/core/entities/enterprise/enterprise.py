@@ -6,7 +6,9 @@ class Enterprise(object):
                  revision_date: float = None, locked: bool = False, enterprise_name: str = "",
                  enterprise_address1: str = "", enterprise_address2: str = "", enterprise_phone: str = "",
                  enterprise_country: str = None, enterprise_postal_code: str = "", init_seats: int = None,
-                 init_seats_expired_time: float = None, avatar: str = None):
+                 init_seats_expired_time: float = None, avatar: str = None,
+                 enterprise_registration_number: str = "", enterprise_registration_date: float = None,
+                 enterprise_entity_type: str = "", enterprise_vat_id: str = ""):
         self._enterprise_id = enterprise_id
         self._name = name
         self._description = description
@@ -16,9 +18,13 @@ class Enterprise(object):
         self._enterprise_name = enterprise_name
         self._enterprise_address1 = enterprise_address1
         self._enterprise_address2 = enterprise_address2
-        self._enterprise_phone = enterprise_phone
-        self._enterprise_country = enterprise_country
         self._enterprise_postal_code = enterprise_postal_code
+        self._enterprise_country = enterprise_country
+        self._enterprise_registration_number = enterprise_registration_number
+        self._enterprise_registration_date = enterprise_registration_date
+        self._enterprise_entity_type = enterprise_entity_type
+        self._enterprise_vat_id = enterprise_vat_id
+        self._enterprise_phone = enterprise_phone
         self._init_seats = init_seats
         self._init_seats_expired_time = init_seats_expired_time
         self._avatar = avatar
@@ -82,3 +88,19 @@ class Enterprise(object):
     @property
     def avatar(self):
         return self._avatar or get_avatar(email=self.enterprise_id)
+
+    @property
+    def enterprise_registration_number(self):
+        return self._enterprise_registration_number
+
+    @property
+    def enterprise_registration_date(self):
+        return self._enterprise_registration_date
+
+    @property
+    def enterprise_entity_type(self):
+        return self._enterprise_entity_type
+
+    @property
+    def enterprise_vat_id(self):
+        return self._enterprise_vat_id

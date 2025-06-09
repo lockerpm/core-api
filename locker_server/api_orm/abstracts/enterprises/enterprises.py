@@ -14,6 +14,10 @@ class AbstractEnterpriseORM(models.Model):
     enterprise_phone = models.CharField(max_length=128, blank=True, default="")
     enterprise_country = models.CharField(max_length=128, blank=True, default="")
     enterprise_postal_code = models.CharField(max_length=16, blank=True, default="")
+    enterprise_registration_number = models.CharField(max_length=128, blank=True, default="")
+    enterprise_registration_date = models.FloatField(max_length=128, null=True, default=None)
+    enterprise_entity_type = models.CharField(max_length=128, blank=True, default="")
+    enterprise_vat_id = models.CharField(max_length=128, blank=True, default="")
 
     # Init members seats
     init_seats = models.IntegerField(null=True, default=None)
