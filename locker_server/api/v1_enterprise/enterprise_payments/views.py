@@ -264,7 +264,7 @@ class PaymentPwdViewSet(APIBaseViewSet):
         quantity = validated_data.get("quantity")
         organization = validated_data.get("organization")
         enterprise = self.user_service.get_default_enterprise(
-            user=user, enterprise_name=organization, create_if_not_exist=True
+            user_id=user.user_id, enterprise_name=organization, create_if_not_exist=True
         )
         # Update billing infor
         try:
