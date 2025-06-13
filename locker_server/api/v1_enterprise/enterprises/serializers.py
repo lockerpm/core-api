@@ -39,6 +39,10 @@ class DetailEnterpriseSerializer(serializers.Serializer):
             "enterprise_phone": instance.enterprise_phone,
             "enterprise_country": instance.enterprise_country,
             "enterprise_postal_code": instance.enterprise_postal_code,
+            "enterprise_registration_number": instance.enterprise_registration_number,
+            "enterprise_registration_date": instance.enterprise_registration_date,
+            "enterprise_entity_type": instance.enterprise_entity_type,
+            "enterprise_vat_id": instance.enterprise_vat_id,
         }
         return data
 
