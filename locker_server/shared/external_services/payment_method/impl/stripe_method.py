@@ -177,6 +177,7 @@ class StripePaymentMethod(PaymentMethod):
                     "user_id": self.user_plan.user.user_id,
                     "scope": self.scope,
                     "family_members": str(kwargs.get("family_members", [])),
+                    "enterprise_id": kwargs.get("enterprise_id"),
                     "key": kwargs.get("key"),
                     "collection_name": kwargs.get("collection_name"),
                     "click_uuid": kwargs.get("click_uuid") or None,

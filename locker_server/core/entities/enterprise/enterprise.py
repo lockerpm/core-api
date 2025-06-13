@@ -1,3 +1,5 @@
+from locker_server.shared.constants.lang import COUNTRIES
+from locker_server.shared.utils.app import convert_readable_date
 from locker_server.shared.utils.avatar import get_avatar
 
 
@@ -104,3 +106,18 @@ class Enterprise(object):
     @property
     def enterprise_vat_id(self):
         return self._enterprise_vat_id
+
+    def get_enterprise_registration_date_str(self):
+        if not self.enterprise_registration_date:
+            return None
+        return convert_readable_date(self.enterprise_registration_date, "%b %d, %Y")
+
+    @property
+    def enterprise_full_address(self):
+        country_name = None
+        if self.enterprise_country:
+            country = next((c for c in COUNTRIES if c.get("country_code") == self.enterprise_country), None)
+            country_name = country.get("country_name") if country else None
+        if country_name:
+            return f"{self.enterprise_address1}, {country_name}"
+        return self.enterprise_address1
