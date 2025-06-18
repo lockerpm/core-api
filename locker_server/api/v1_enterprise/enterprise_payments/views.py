@@ -271,15 +271,15 @@ class PaymentPwdViewSet(APIBaseViewSet):
             updated_enterprise = self.enterprise_service.update_enterprise(
                 enterprise_id=enterprise.enterprise_id,
                 enterprise_update_data={
-                    "enterprise_address1": validated_data.get("enterprise_address1"),
-                    "enterprise_address2": validated_data.get("enterprise_address2"),
-                    "enterprise_phone": validated_data.get("enterprise_phone"),
+                    "enterprise_address1": validated_data.get("enterprise_address1") or enterprise.enterprise_address1,
+                    "enterprise_address2": validated_data.get("enterprise_address2") or enterprise.enterprise_address2,
+                    "enterprise_phone": validated_data.get("enterprise_phone") or enterprise.enterprise_phone,
                     "enterprise_country": validated_data.get("enterprise_country"),
-                    "enterprise_postal_code": validated_data.get("enterprise_postal_code"),
-                    "enterprise_registration_number": validated_data.get("enterprise_registration_number"),
-                    "enterprise_registration_date": validated_data.get("enterprise_registration_date"),
-                    "enterprise_entity_type": validated_data.get("enterprise_entity_type"),
-                    "enterprise_vat_id": validated_data.get("enterprise_vat_id"),
+                    "enterprise_postal_code": validated_data.get("enterprise_postal_code") or enterprise.enterprise_postal_code,
+                    "enterprise_registration_number": validated_data.get("enterprise_registration_number") or enterprise.enterprise_registration_number,
+                    "enterprise_registration_date": validated_data.get("enterprise_registration_date") or enterprise.enterprise_registration_date,
+                    "enterprise_entity_type": validated_data.get("enterprise_entity_type") or enterprise.enterprise_entity_type,
+                    "enterprise_vat_id": validated_data.get("enterprise_vat_id") or enterprise.enterprise_vat_id,
                 }
             )
         except CountryDoesNotExistException:
