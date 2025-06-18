@@ -87,6 +87,10 @@ class UpgradePlanPublicSerializer(UpgradePlanSerializer):
     enterprise_phone = serializers.CharField(max_length=128, required=False, allow_blank=True)
     enterprise_country = serializers.CharField(max_length=128, required=False, allow_blank=True)
     enterprise_postal_code = serializers.CharField(max_length=16, required=False, allow_blank=True)
+    enterprise_registration_number = serializers.CharField(max_length=128, required=False, allow_blank=True)
+    enterprise_registration_date = serializers.FloatField(required=False, allow_null=True)
+    enterprise_entity_type = serializers.CharField(max_length=128, required=False, allow_blank=True)
+    enterprise_vat_id = serializers.CharField(max_length=128, required=False, allow_blank=True)
 
     def validate(self, data):
         data = super().validate(data)

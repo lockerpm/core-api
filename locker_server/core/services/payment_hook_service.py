@@ -71,12 +71,12 @@ class PaymentHookService:
             if promo_code:
                 promo_code_id = promo_code.replace("_half_yearly", "").replace("_yearly", "").replace("_monthly", "")
                 new_payment_data["promo_code"] = promo_code_id
-            # Find payments items
+            # Find payment items
             payments_items = []
             new_payment_data["payments_items"] = payments_items
 
             new_payment = self.payment_repository.create_payment(**new_payment_data)
-            # Set total amount
+            # Set the total amount
             if total is not None:
                 new_total_price = round(float(total / 100), 2)
                 new_payment = self.payment_repository.update_payment(payment=new_payment, update_data={
@@ -129,6 +129,13 @@ class PaymentHookService:
                 result["payment_data"] = {
                     "enterprise_id": enterprise.enterprise_id if enterprise else None,
                     "enterprise_name": enterprise.name if enterprise else None,
+                    "receipt_organization": enterprise.enterprise_name or enterprise.name if enterprise else None,
+                    "receipt_address": enterprise.enterprise_full_address if enterprise else None,
+                    "receipt_postal_code": enterprise.enterprise_postal_code if enterprise else None,
+                    "receipt_registration_number": enterprise.enterprise_registration_number if enterprise else None,
+                    "receipt_registration_date": enterprise.get_enterprise_registration_date_str() if enterprise else None,
+                    "receipt_entity_type": enterprise.enterprise_entity_type if enterprise else None,
+                    "receipt_vat_id": enterprise.enterprise_vat_id if enterprise else None,
                     "stripe_invoice_id": new_payment.stripe_invoice_id,
                     "plan_name": updated_user_plan.pm_plan.name,
                     "plan_price": updated_user_plan.pm_plan.get_price(
@@ -244,6 +251,13 @@ class PaymentHookService:
             "payment_data": {
                 "enterprise_id": enterprise.enterprise_id if enterprise else None,
                 "enterprise_name": enterprise.name if enterprise else None,
+                "receipt_organization": enterprise.enterprise_name or enterprise.name if enterprise else None,
+                "receipt_address": enterprise.enterprise_full_address if enterprise else None,
+                "receipt_postal_code": enterprise.enterprise_postal_code if enterprise else None,
+                "receipt_registration_number": enterprise.enterprise_registration_number if enterprise else None,
+                "receipt_registration_date": enterprise.get_enterprise_registration_date_str() if enterprise else None,
+                "receipt_entity_type": enterprise.enterprise_entity_type if enterprise else None,
+                "receipt_vat_id": enterprise.enterprise_vat_id if enterprise else None,
                 "stripe_invoice_id": payment.stripe_invoice_id,
                 "number_members": 1,
                 "description": payment.description,
