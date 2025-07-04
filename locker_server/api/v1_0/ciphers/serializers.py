@@ -22,6 +22,22 @@ class LoginUriVaultSerializer(serializers.Serializer):
     uri = serializers.CharField(allow_null=True)
 
 
+class Fido2CredentialSerializer(serializers.Serializer):
+    credentialId = serializers.CharField(allow_null=True)
+    keyType = serializers.CharField(allow_null=True)
+    keyAlgorithm = serializers.CharField(allow_null=True)
+    keyCurve = serializers.CharField(allow_null=True)
+    keyValue = serializers.CharField(allow_null=True)
+    rpId = serializers.CharField(allow_null=True)
+    userHandle = serializers.CharField(allow_null=True)
+    userName = serializers.CharField(allow_null=True)
+    counter = serializers.CharField(allow_null=True)
+    rpName = serializers.CharField(allow_null=True)
+    userDisplayName = serializers.CharField(allow_null=True)
+    discoverable = serializers.CharField(allow_null=True)
+    creationDate = serializers.CharField(allow_null=True)
+
+
 class LoginVaultSerializer(serializers.Serializer):
     autofillOnPageLoad = serializers.BooleanField(required=False, allow_null=True, default=None)
     username = serializers.CharField(allow_null=True, allow_blank=True)
@@ -29,6 +45,7 @@ class LoginVaultSerializer(serializers.Serializer):
     totp = serializers.CharField(allow_null=True, allow_blank=True)
     response = serializers.CharField(allow_null=True, allow_blank=True, default=None)
     uris = LoginUriVaultSerializer(many=True, allow_null=True)
+    fido2Credentials = Fido2CredentialSerializer(many=True, allow_null=True, required=False)
 
 
 class CryptoAccountSerializer(serializers.Serializer):
