@@ -576,15 +576,17 @@ class SharingORMRepository(SharingRepository):
             cipher_orm = self._get_cipher_orm(cipher_id=cipher.cipher_id)
             self._stop_share_cipher_orm(cipher_orm=cipher_orm, user_id=user_owner_orm.user_id, cipher_data=cipher_data)
 
-        # Delete this team
         team_orm = self._get_team_orm(team_id=team_id)
+        # Update revision date of user
+        bump_account_revision_date(team=team_orm)
+        # Delete this team
         team_orm.ciphers.all().delete()
         team_orm.collections.all().delete()
         team_orm.groups.all().delete()
         team_orm.delete()
 
-        # Update revision date of user
-        bump_account_revision_date(user=user_owner_orm)
+        # # Update revision date of user
+        # bump_account_revision_date(user=user_owner_orm)
         return other_members, personal_folder_id
 
     def leave_sharing(self, member: TeamMember) -> int:
@@ -629,14 +631,16 @@ class SharingORMRepository(SharingRepository):
         # Move ciphers to the trash
         CipherORM.objects.filter(id__in=shared_folder_cipher_ids).update(revision_date=now(), deleted_date=now())
 
+        # Update revision date of user
+        bump_account_revision_date(team=team_orm)
         # Delete this team
         team_orm.ciphers.all().delete()
         team_orm.collections.all().delete()
         team_orm.groups.all().delete()
         team_orm.delete()
 
-        # Update revision date of user
-        bump_account_revision_date(user=user_owner_orm)
+        # # Update revision date of user
+        # bump_account_revision_date(user=user_owner_orm)
         return other_members
 
     def add_group_member_to_share(self, enterprise_group: EnterpriseGroup, new_member_ids: List[str]):
