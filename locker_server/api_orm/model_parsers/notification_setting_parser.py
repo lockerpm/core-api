@@ -3,6 +3,8 @@ from locker_server.api_orm.models import *
 from locker_server.core.entities.notification.notification import Notification
 from locker_server.core.entities.notification.notification_category import NotificationCategory
 from locker_server.core.entities.notification.notification_setting import NotificationSetting
+from locker_server.core.entities.scam_setting.scam_setting import ScamSetting
+from locker_server.core.entities.scam_setting.scam_setting_category import ScamSettingCategory
 
 
 class NotificationParser:
@@ -42,4 +44,27 @@ class NotificationParser:
             read=notification_orm.read,
             read_time=notification_orm.read_time,
             user=user_parser.parse_user(user_orm=notification_orm.user)
+        )
+
+    @classmethod
+    def parse_scam_setting_category(cls, scam_setting_category_orm: ScamSettingCategoryORM) -> ScamSettingCategory:
+        return ScamSettingCategory(
+            scam_setting_category_id=scam_setting_category_orm.id,
+            name=scam_setting_category_orm.name,
+            name_vi=scam_setting_category_orm.name_vi,
+            enable=scam_setting_category_orm.enabled
+        )
+
+    @classmethod
+    def parse_user_scam_setting(cls, user_scam_setting_orm: ScamSettingORM) -> ScamSetting:
+        user_parser = get_specific_model_parser("UserParser")
+        user = user_parser.parse_user(user_orm=user_scam_setting_orm.user)
+        return ScamSetting(
+            scam_setting_id=user_scam_setting_orm.id,
+            user=user,
+            category=cls.parse_scam_setting_category(user_scam_setting_orm.category),
+            enabled=user_scam_setting_orm.enabled,
+            created_at=user_scam_setting_orm.created_at,
+            updated_at=user_scam_setting_orm.updated_at
+
         )

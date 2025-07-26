@@ -63,3 +63,4 @@ from .mail_configuration_repository import MailConfigurationORMRepository
 from .sso_configuration_repository import SSOConfigurationORMRepository
 from .app_info_repository import AppInfoORMRepository
 from .extension.autofill_key_repository import AutofillKeyORMRepository
+from .scam_setting_repository import ScamSettingORMRepository

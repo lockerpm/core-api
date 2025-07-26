@@ -1,0 +1,38 @@
+[
+  {
+    "model": "api_orm.ScamSettingCategoryORM",
+    "fields": {
+      "id": "show_safety_info",
+      "name": "Hiện thông tin về mức độ an toàn của website",
+      "name_vi": "Hiện thông tin về mức độ an toàn của website",
+      "enabled": true
+    }
+  },
+  {
+    "model": "api_orm.ScamSettingCategoryORM",
+    "fields": {
+      "id": "warn_on_facebook_links",
+      "name": "Cảnh báo link Facebook không an toàn",
+      "name_vi": "Cảnh báo link Facebook không an toàn",
+      "enabled": true
+    }
+  },
+  {
+    "model": "api_orm.ScamSettingCategoryORM",
+    "fields": {
+      "id": "warn_on_search_results",
+      "name": "Cảnh báo link không an toàn trong kết quả tìm kiếm",
+      "name_vi": "Cảnh báo link không an toàn trong kết quả tìm kiếm",
+      "enabled": true
+    }
+  },
+  {
+    "model": "api_orm.ScamSettingCategoryORM",
+    "fields": {
+      "id": "warn_on_direct_links",
+      "name": "Cảnh báo khi tôi truy cập các đường link không an toàn",
+      "name_vi": "Cảnh báo khi tôi truy cập các đường link không an toàn",
+      "enabled": true
+    }
+  }
+]
