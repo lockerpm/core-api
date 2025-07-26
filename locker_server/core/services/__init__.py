@@ -57,3 +57,5 @@ from .app_info_service import AppInfoService
 from .attachment_service import AttachmentService
 
 from .auto_verify_service import AutoVerifyService
+
+from .scam_setting_service import ScamSettingService

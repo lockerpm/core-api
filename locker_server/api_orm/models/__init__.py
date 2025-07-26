@@ -103,3 +103,6 @@ from locker_server.api_orm.models.configurations.mail_configurations import Mail
 from locker_server.api_orm.models.configurations.sso_providers import SSOProviderORM
 from locker_server.api_orm.models.configurations.sso_configurations import SSOConfigurationORM
 from locker_server.api_orm.models.configurations.app_info import AppInfoORM
+# -------------------------- Scam Setting -------------------------- #
+from locker_server.api_orm.models.scam_setting.scam_setting_category import ScamSettingCategoryORM
+from locker_server.api_orm.models.scam_setting.user_scam_settings import ScamSettingORM

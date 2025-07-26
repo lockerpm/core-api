@@ -62,6 +62,7 @@ class APIBaseViewSet(AppGeneralViewSet):
     app_info_service = app_info_service
 
     auto_verify_service = auto_verify_service
+    scam_setting_service = scam_setting_service
 
     def get_throttles(self):
         if self.request.user and not isinstance(self.request.user, AnonymousUser):

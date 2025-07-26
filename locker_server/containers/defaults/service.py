@@ -5,7 +5,6 @@ from locker_server.core.services import *
 from locker_server.settings import locker_server_settings
 from locker_server.shared.external_services.attachments.attachment_factory import AttachmentStorageFactory
 
-
 RepositoryFactory = locker_server_settings.API_REPOSITORY_CLASS
 
 
@@ -289,4 +288,8 @@ class ServiceFactory(containers.DeclarativeContainer):
     auto_verify_service = providers.Factory(
         AutoVerifyService,
         device_repository=RepositoryFactory.device_repository,
+    )
+    scam_setting_service = providers.Factory(
+        ScamSettingService,
+        scam_setting_repository=RepositoryFactory.scam_setting_repository,
     )

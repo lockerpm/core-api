@@ -67,3 +67,4 @@ app_info_service = ServiceFactory.app_info_service()
 cron_task_service = ServiceFactory.cron_task_service()
 
 auto_verify_service = ServiceFactory.auto_verify_service()
+scam_setting_service = ServiceFactory.scam_setting_service()
