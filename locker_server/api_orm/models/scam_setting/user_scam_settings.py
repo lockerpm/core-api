@@ -6,6 +6,10 @@ from locker_server.shared.utils.app import now
 
 
 class ScamSettingORM(models.Model):
+    enabled = models.BooleanField(default=True)
+    created_at = models.FloatField(default=now, null=True)
+    updated_at = models.FloatField(default=None, null=True)
+
     user = models.ForeignKey(
         locker_server_settings.LS_USER_MODEL, on_delete=models.CASCADE, related_name="scam_settings"
     )
@@ -13,9 +17,6 @@ class ScamSettingORM(models.Model):
         ScamSettingCategoryORM, on_delete=models.CASCADE,
         related_name="scam_settings"
     )
-    enabled = models.BooleanField(default=True)
-    created_at = models.FloatField(default=now, null=True)
-    updated_at = models.FloatField(default=None, null=True)
 
     class Meta:
         db_table = 'cs_user_scam_settings'

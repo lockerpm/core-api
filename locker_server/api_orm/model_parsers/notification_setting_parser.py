@@ -5,6 +5,7 @@ from locker_server.core.entities.notification.notification_category import Notif
 from locker_server.core.entities.notification.notification_setting import NotificationSetting
 from locker_server.core.entities.scam_setting.scam_setting import ScamSetting
 from locker_server.core.entities.scam_setting.scam_setting_category import ScamSettingCategory
+from locker_server.core.entities.scam_setting.whitelist_scam_url import WhitelistScamUrl
 
 
 class NotificationParser:
@@ -66,5 +67,18 @@ class NotificationParser:
             enabled=user_scam_setting_orm.enabled,
             created_at=user_scam_setting_orm.created_at,
             updated_at=user_scam_setting_orm.updated_at
+
+        )
+
+    @classmethod
+    def parse_whitelist_url(cls, whitelist_scam_url_orm: WhitelistScamUrlORM) -> WhitelistScamUrl:
+        user_parser = get_specific_model_parser("UserParser")
+        user = user_parser.parse_user(user_orm=whitelist_scam_url_orm.user)
+        return WhitelistScamUrl(
+            whitelist_id=whitelist_scam_url_orm.id,
+            user=user,
+            url=whitelist_scam_url_orm.url,
+            created_at=whitelist_scam_url_orm.created_at,
+            updated_at=whitelist_scam_url_orm.updated_at
 
         )

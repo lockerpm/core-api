@@ -72,3 +72,4 @@ class RepositoryFactory(containers.DeclarativeContainer):
     app_info_repository = providers.Factory(AppInfoORMRepository)
     autofill_key_repository = providers.Factory(AutofillKeyORMRepository)
     scam_setting_repository = providers.Factory(ScamSettingORMRepository)
+    whitelist_scam_url_repository = providers.Factory(WhitelistScamUrlORMRepository)

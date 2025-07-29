@@ -292,4 +292,5 @@ class ServiceFactory(containers.DeclarativeContainer):
     scam_setting_service = providers.Factory(
         ScamSettingService,
         scam_setting_repository=RepositoryFactory.scam_setting_repository,
+        whitelist_scam_url_repository=RepositoryFactory.whitelist_scam_url_repository,
     )
