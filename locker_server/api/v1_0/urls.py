@@ -295,5 +295,10 @@ urlpatterns += [
 ]
 # -------------------------------- Scam setting  ------------------------------------- #
 urlpatterns += [
-    url(r'^scam_settings', views.ScamSettingPwdViewSet.as_view({'get': 'list', 'put': 'update'})),
+    url(r'^scam_settings$', views.ScamSettingPwdViewSet.as_view({'get': 'list', 'put': 'update'})),
+    url(r'^scam_settings/whitelist_urls$',
+        views.ScamSettingPwdViewSet.as_view({'get': 'list_wl_urls', 'post': 'create_wl_url'})),
+    url(r'^scam_settings/whitelist_urls/(?P<wl_url_id>[a-zA-Z0-9_-]+)$',
+        views.ScamSettingPwdViewSet.as_view(
+            {'get': 'retrieve_wl_url', 'put': 'update_wl_url', "delete": "destroy_wl_url"})),
 ]

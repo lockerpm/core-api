@@ -31,6 +31,7 @@ class ModelParser:
     def notification_parser(cls):
         return NotificationParser
 
+
     @classmethod
     def user_plan_parser(cls):
         return UserPlanParser
