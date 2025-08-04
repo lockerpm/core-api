@@ -3,7 +3,7 @@ from rest_framework.exceptions import PermissionDenied
 from locker_server.api.permissions.app import APIPermission
 from locker_server.core.exceptions.enterprise_member_exception import EnterpriseMemberDoesNotExistException
 from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_PRIMARY_ADMIN, E_MEMBER_ROLE_ADMIN
-from locker_server.containers.containers import enterprise_member_service, enterprise_service
+from locker_server.containers.containers import enterprise_member_service
 
 
 class EnterprisePwdPermission(APIPermission):
