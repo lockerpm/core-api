@@ -127,3 +127,7 @@ class BillingAddressSerializer(serializers.Serializer):
             "enterprise_phone": instance.enterprise_phone,
         }
         return data
+
+
+class UpgradePlanByCodeSerializer(serializers.Serializer):
+    code = serializers.CharField(max_length=32)

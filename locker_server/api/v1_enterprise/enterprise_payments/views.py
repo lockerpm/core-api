@@ -12,7 +12,9 @@ from rest_framework.exceptions import NotFound, ValidationError
 from locker_server.core.entities.enterprise.enterprise import Enterprise
 from locker_server.core.exceptions.country_exception import CountryDoesNotExistException
 from locker_server.core.exceptions.enterprise_exception import EnterpriseDoesNotExistException
-from locker_server.core.exceptions.payment_exception import PaymentInvoiceDoesNotExistException
+from locker_server.core.exceptions.enterprise_member_repository import EnterpriseMemberExistedException
+from locker_server.core.exceptions.payment_exception import PaymentInvoiceDoesNotExistException, \
+    PaymentPromoCodeInvalidException, PaymentFailedByUserInFamilyException, CurrentPlanDoesNotSupportOperatorException
 from locker_server.core.exceptions.plan_repository import PlanDoesNotExistException
 from locker_server.shared.constants.enterprise_members import E_MEMBER_STATUS_CONFIRMED, E_MEMBER_ROLE_MEMBER, \
     E_MEMBER_ROLE_ADMIN
@@ -46,6 +48,8 @@ class PaymentPwdViewSet(APIBaseViewSet):
             self.serializer_class = UpgradePlanPublicSerializer
         elif self.action == "billing_address":
             self.serializer_class = BillingAddressSerializer
+        elif self.action == "upgrade_by_code":
+            self.serializer_class = UpgradePlanByCodeSerializer
         return super().get_serializer_class()
 
     def get_enterprise(self):
@@ -474,3 +478,29 @@ class PaymentPwdViewSet(APIBaseViewSet):
         except PlanDoesNotExistException:
             raise ValidationError(detail={"plan_alias": ["This plan alias does not exist"]})
         return result
+
+    @action(methods=["post"], detail=False)
+    def upgrade_by_code(self, request, *args, **kwargs):
+        user = self.request.user
+        if self.enterprise_service.is_in_enterprise(user_id=user.user_id):
+            raise ValidationError(detail={"non_field_errors": [gen_error("7015")]})
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        code = validated_data.get("code")
+
+        try:
+            self.payment_service.upgrade_enterprise_plan_by_code(
+                user_id=user.user_id, code=code, scope=settings.SCOPE_PWD_MANAGER
+            )
+        except EnterpriseMemberExistedException:
+            raise ValidationError(detail={"non_field_errors": [gen_error("7015")]})
+        except PaymentPromoCodeInvalidException:
+            raise ValidationError(detail={"code": ["This code is expired or invalid"]})
+        except PaymentFailedByUserInFamilyException:
+            raise ValidationError(detail={"non_field_errors": [gen_error("7016")]})
+        except CurrentPlanDoesNotSupportOperatorException:
+            raise ValidationError(detail={"non_field_errors": [gen_error("7014")]})
+        except PlanDoesNotExistException:
+            raise ValidationError(detail={"code": ["This code is expired or invalid"]})
+        return Response(status=status.HTTP_200_OK, data={"success": True})

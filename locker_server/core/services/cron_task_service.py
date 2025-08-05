@@ -179,6 +179,10 @@ class CronTaskService:
             if not primary_member:
                 continue
             user_plan = self.user_plan_repository.get_user_plan(user_id=primary_member.user.user_id)
+            # Only accept the Enterprise plan (full features)
+            if user_plan.pm_plan.alias not in [PLAN_TYPE_PM_ENTERPRISE]:
+                continue
+
             # Only accept stripe subscription
             stripe_subscription = user_plan.get_stripe_subscription()
             if not stripe_subscription or not user_plan.start_period or not user_plan.end_period:
@@ -314,6 +318,8 @@ class CronTaskService:
     def pm_enterprise_reminder(self):
         expiring_enterprise_plans = self.user_plan_repository.list_expiring_enterprise_plans()
         for enterprise_plan in expiring_enterprise_plans:
+            if enterprise_plan.pm_plan.alias not in [PLAN_TYPE_PM_ENTERPRISE]:
+                continue
             stripe_subscription = enterprise_plan.get_stripe_subscription()
             if not stripe_subscription:
                 continue
