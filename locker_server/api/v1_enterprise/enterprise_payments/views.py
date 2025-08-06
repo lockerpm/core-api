@@ -169,11 +169,15 @@ class PaymentPwdViewSet(APIBaseViewSet):
         # If the Enterprise plan doesn't have Stripe Subscription => Subscribe with stripe
         if primary_admin_plan.pm_plan.is_team_plan and stripe_subscription is None and \
                 primary_admin_plan.end_period and primary_admin_plan.end_period > now():
-            number_members = self.enterprise_member_service.count_enterprise_members(**{
-                "enterprise_id": enterprise.enterprise_id,
-                "status": E_MEMBER_STATUS_CONFIRMED,
-                "is_activated": True
-            })
+
+            if primary_admin_plan.pm_plan.alias in [PLAN_TYPE_PM_ENTERPRISE_STARTUP]:
+                number_members = 1
+            else:
+                number_members = self.enterprise_member_service.count_enterprise_members(**{
+                    "enterprise_id": enterprise.enterprise_id,
+                    "status": E_MEMBER_STATUS_CONFIRMED,
+                    "is_activated": True
+                })
             metadata = {
                 "currency": CURRENCY_USD,
                 "promo_code": None,
