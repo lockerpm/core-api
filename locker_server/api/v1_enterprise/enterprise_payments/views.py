@@ -103,8 +103,10 @@ class PaymentPwdViewSet(APIBaseViewSet):
     def current_plan(self, request, *args, **kwargs):
         enterprise = self.get_enterprise()
         primary_admin = self.enterprise_service.get_primary_member(enterprise_id=enterprise.enterprise_id).user
-        enterprise_plan = self.payment_service.get_pm_plan_by_alias(alias=PLAN_TYPE_PM_ENTERPRISE)
         current_plan = self.user_service.get_current_plan(user=primary_admin)
+        enterprise_plan = current_plan.pm_plan
+        if not enterprise_plan.is_team_plan:
+            enterprise_plan = self.payment_service.get_pm_plan_by_alias(alias=PLAN_TYPE_PM_ENTERPRISE)
         result = enterprise_plan.to_json()
         result.update({
             "start_period": current_plan.start_period,
