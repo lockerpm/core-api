@@ -353,10 +353,10 @@ class PaymentPwdViewSet(APIBaseViewSet):
             "number_members": number_members,
             "enterprise_id": enterprise.enterprise_id,
         }
-        # Calc payment price of new plan
+        # Calc payment price of a new plan
         promo_code_value = promo_code_obj.code if promo_code_obj else None
         calc_payment = self._calc_payment(
-            enterprise=enterprise, duration=duration, currency=currency, promo_code=promo_code_value
+            enterprise=enterprise, plan_alias=plan_alias, duration=duration, currency=currency, promo_code=promo_code_value
         )
         immediate_payment = calc_payment.get("immediate_payment")
         current_plan = self.user_service.get_current_plan(user=user)
