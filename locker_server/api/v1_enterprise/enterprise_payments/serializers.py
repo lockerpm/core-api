@@ -51,16 +51,28 @@ class DetailInvoiceSerializer(ListInvoiceSerializer):
 
 
 class CalcSerializer(serializers.Serializer):
+    plan_alias = serializers.ChoiceField(
+        choices=[PLAN_TYPE_PM_ENTERPRISE, PLAN_TYPE_PM_ENTERPRISE_STARTUP], default=PLAN_TYPE_PM_ENTERPRISE
+    )
     promo_code = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     duration = serializers.ChoiceField(choices=LIST_DURATION, default=DURATION_MONTHLY)
     currency = serializers.ChoiceField(choices=LIST_CURRENCY, default=CURRENCY_USD, required=False)
 
 
 class CalcPublicSerializer(serializers.Serializer):
-    quantity = serializers.IntegerField(required=True, min_value=1)
+    plan_alias = serializers.ChoiceField(
+        choices=[PLAN_TYPE_PM_ENTERPRISE, PLAN_TYPE_PM_ENTERPRISE_STARTUP], default=PLAN_TYPE_PM_ENTERPRISE
+    )
+    quantity = serializers.IntegerField(required=True, min_value=1, default=1)
     promo_code = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     duration = serializers.ChoiceField(choices=LIST_DURATION, default=DURATION_MONTHLY)
     currency = serializers.ChoiceField(choices=LIST_CURRENCY, default=CURRENCY_USD, required=False)
+
+    def validate(self, data):
+        plan_alias = data.get("plan_alias", PLAN_TYPE_PM_ENTERPRISE)
+        if plan_alias == PLAN_TYPE_PM_ENTERPRISE_STARTUP:
+            data["quantity"] = 1
+        return data
 
 
 class UpgradePlanSerializer(serializers.Serializer):

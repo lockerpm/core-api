@@ -226,12 +226,13 @@ class PaymentPwdViewSet(APIBaseViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
+        plan_alias = validated_data.get("plan_alias", PLAN_TYPE_PM_ENTERPRISE)
         promo_code = validated_data.get("promo_code")
         duration = validated_data.get("duration", DURATION_MONTHLY)
         currency = validated_data.get("currency", CURRENCY_USD)
         # Calc payment
         result = self._calc_payment(
-            enterprise=enterprise, duration=duration, currency=currency, promo_code=promo_code
+            enterprise=enterprise, plan_alias=plan_alias, duration=duration, currency=currency, promo_code=promo_code
         )
         return Response(status=status.HTTP_200_OK, data=result)
 
@@ -240,12 +241,13 @@ class PaymentPwdViewSet(APIBaseViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
+        plan_alias = validated_data.get("plan_alias", PLAN_TYPE_PM_ENTERPRISE)
         promo_code = validated_data.get("promo_code")
         duration = validated_data.get("duration", DURATION_MONTHLY)
         currency = validated_data.get("currency", CURRENCY_USD)
         quantity = validated_data.get("quantity", 1)
         result = self._calc_payment_public(
-            quantity=quantity, duration=duration, currency=currency, promo_code=promo_code
+            plan_alias=plan_alias, quantity=quantity, duration=duration, currency=currency, promo_code=promo_code
         )
         return Response(status=status.HTTP_200_OK, data=result)
 
@@ -451,31 +453,35 @@ class PaymentPwdViewSet(APIBaseViewSet):
                 raise ValidationError(detail={"enterprise_country": ["The country does not exist"]})
             return Response(status=status.HTTP_200_OK, data=serializer.data)
 
-    def _calc_payment(self, enterprise: Enterprise, duration=DURATION_MONTHLY, currency=CURRENCY_USD, promo_code=None):
-        number_members = self.enterprise_member_service.count_enterprise_members(**{
+    def _calc_payment(self, enterprise: Enterprise, plan_alias: str, duration=DURATION_MONTHLY, currency=CURRENCY_USD,
+                      promo_code=None):
+        quantity = self.enterprise_member_service.count_enterprise_members(**{
             "enterprise_id": enterprise.enterprise_id,
             "status": E_MEMBER_STATUS_CONFIRMED,
             "is_activated": True
         })
+        if plan_alias == PLAN_TYPE_PM_ENTERPRISE_STARTUP:
+            quantity = 1
         try:
             result = self.payment_service.calc_payment(
                 user_id=self.request.user.user_id,
-                plan_alias=PLAN_TYPE_PM_ENTERPRISE,
+                plan_alias=plan_alias,
                 currency=currency,
                 duration=duration,
-                number_members=number_members,
+                number_members=quantity,
                 promo_code=promo_code
 
             )
-            result["quantity"] = number_members
+            result["quantity"] = quantity
         except PlanDoesNotExistException:
             raise ValidationError(detail={"plan_alias": ["This plan alias does not exist"]})
         return result
 
-    def _calc_payment_public(self, quantity: int, duration=DURATION_MONTHLY, currency=CURRENCY_USD, promo_code=None):
+    def _calc_payment_public(self, plan_alias: str, quantity: int, duration=DURATION_MONTHLY, currency=CURRENCY_USD,
+                             promo_code=None):
         try:
             result = self.payment_service.calc_payment_public(
-                plan_alias=PLAN_TYPE_PM_ENTERPRISE,
+                plan_alias=plan_alias,
                 quantity=quantity,
                 duration=duration,
                 currency=currency,
