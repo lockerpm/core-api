@@ -1044,12 +1044,12 @@ class PaymentService:
             CyLog.warning(**{"message": f"[!] Not found the enterprise plan of the code {saas_code}"})
             raise PlanDoesNotExistException
 
-        # Only allow free user and trial premium user
+        # # Only allow free user and trial premium user
         current_plan = self.user_plan_repository.get_user_plan(user_id=user_id)
-        if self.user_plan_repository.is_in_family_plan(user_plan=current_plan):
-            raise PaymentFailedByUserInFamilyException
-        if not (current_plan.pm_plan.alias == PLAN_TYPE_PM_FREE or current_plan.is_trialing()):
-            raise CurrentPlanDoesNotSupportOperatorException
+        # if self.user_plan_repository.is_in_family_plan(user_plan=current_plan):
+        #     raise PaymentFailedByUserInFamilyException
+        # if not (current_plan.pm_plan.alias == PLAN_TYPE_PM_FREE or current_plan.is_trialing()):
+        #     raise CurrentPlanDoesNotSupportOperatorException
 
         # Update remaining times of the promo code
         saas_code = self.payment_repository.update_promo_code_remaining_times(promo_code=saas_code)
@@ -1064,7 +1064,7 @@ class PaymentService:
         plan_metadata = {
             "start_period": now(),
             "end_period": end_period,
-            "extra_time": max(current_plan.end_period - now(), 0) if current_plan.end_period else None,
+            # "extra_time": max(current_plan.end_period - now(), 0) if current_plan.end_period else None,
         }
         self.user_plan_repository.update_plan(
             user_id=user_id, plan_type_alias=plan.alias, duration=upgrade_duration, scope=scope,
