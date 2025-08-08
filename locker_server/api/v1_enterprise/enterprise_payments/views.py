@@ -12,7 +12,9 @@ from rest_framework.exceptions import NotFound, ValidationError
 from locker_server.core.entities.enterprise.enterprise import Enterprise
 from locker_server.core.exceptions.country_exception import CountryDoesNotExistException
 from locker_server.core.exceptions.enterprise_exception import EnterpriseDoesNotExistException
-from locker_server.core.exceptions.payment_exception import PaymentInvoiceDoesNotExistException
+from locker_server.core.exceptions.enterprise_member_repository import EnterpriseMemberExistedException
+from locker_server.core.exceptions.payment_exception import PaymentInvoiceDoesNotExistException, \
+    PaymentPromoCodeInvalidException, PaymentFailedByUserInFamilyException, CurrentPlanDoesNotSupportOperatorException
 from locker_server.core.exceptions.plan_repository import PlanDoesNotExistException
 from locker_server.shared.constants.enterprise_members import E_MEMBER_STATUS_CONFIRMED, E_MEMBER_ROLE_MEMBER, \
     E_MEMBER_ROLE_ADMIN
@@ -46,6 +48,8 @@ class PaymentPwdViewSet(APIBaseViewSet):
             self.serializer_class = UpgradePlanPublicSerializer
         elif self.action == "billing_address":
             self.serializer_class = BillingAddressSerializer
+        elif self.action == "upgrade_by_code":
+            self.serializer_class = UpgradePlanByCodeSerializer
         return super().get_serializer_class()
 
     def get_enterprise(self):
@@ -99,8 +103,10 @@ class PaymentPwdViewSet(APIBaseViewSet):
     def current_plan(self, request, *args, **kwargs):
         enterprise = self.get_enterprise()
         primary_admin = self.enterprise_service.get_primary_member(enterprise_id=enterprise.enterprise_id).user
-        enterprise_plan = self.payment_service.get_pm_plan_by_alias(alias=PLAN_TYPE_PM_ENTERPRISE)
         current_plan = self.user_service.get_current_plan(user=primary_admin)
+        enterprise_plan = current_plan.pm_plan
+        if not enterprise_plan.is_team_plan:
+            enterprise_plan = self.payment_service.get_pm_plan_by_alias(alias=PLAN_TYPE_PM_ENTERPRISE)
         result = enterprise_plan.to_json()
         result.update({
             "start_period": current_plan.start_period,
@@ -160,14 +166,15 @@ class PaymentPwdViewSet(APIBaseViewSet):
         ).user
         primary_admin_plan = self.user_service.get_current_plan(user=primary_admin)
         stripe_subscription = primary_admin_plan.get_stripe_subscription()
-        # If the Enterprise plan doesn't have Stripe Subscription => Subscribe with stripe
+        # If the Enterprise plan doesn't have Stripe Subscription and the plan not in startUp => Subscribe with stripe
         if primary_admin_plan.pm_plan.is_team_plan and stripe_subscription is None and \
-                primary_admin_plan.end_period and primary_admin_plan.end_period > now():
+                primary_admin_plan.end_period and primary_admin_plan.end_period > now() and \
+                primary_admin_plan.pm_plan.alias not in [PLAN_TYPE_PM_ENTERPRISE_STARTUP]:
             number_members = self.enterprise_member_service.count_enterprise_members(**{
-                "enterprise_id": enterprise.enterprise_id,
-                "status": E_MEMBER_STATUS_CONFIRMED,
-                "is_activated": True
-            })
+                    "enterprise_id": enterprise.enterprise_id,
+                    "status": E_MEMBER_STATUS_CONFIRMED,
+                    "is_activated": True
+                })
             metadata = {
                 "currency": CURRENCY_USD,
                 "promo_code": None,
@@ -216,12 +223,13 @@ class PaymentPwdViewSet(APIBaseViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
+        plan_alias = validated_data.get("plan_alias", PLAN_TYPE_PM_ENTERPRISE)
         promo_code = validated_data.get("promo_code")
         duration = validated_data.get("duration", DURATION_MONTHLY)
         currency = validated_data.get("currency", CURRENCY_USD)
         # Calc payment
         result = self._calc_payment(
-            enterprise=enterprise, duration=duration, currency=currency, promo_code=promo_code
+            enterprise=enterprise, plan_alias=plan_alias, duration=duration, currency=currency, promo_code=promo_code
         )
         return Response(status=status.HTTP_200_OK, data=result)
 
@@ -230,12 +238,13 @@ class PaymentPwdViewSet(APIBaseViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
+        plan_alias = validated_data.get("plan_alias", PLAN_TYPE_PM_ENTERPRISE)
         promo_code = validated_data.get("promo_code")
         duration = validated_data.get("duration", DURATION_MONTHLY)
         currency = validated_data.get("currency", CURRENCY_USD)
         quantity = validated_data.get("quantity", 1)
         result = self._calc_payment_public(
-            quantity=quantity, duration=duration, currency=currency, promo_code=promo_code
+            plan_alias=plan_alias, quantity=quantity, duration=duration, currency=currency, promo_code=promo_code
         )
         return Response(status=status.HTTP_200_OK, data=result)
 
@@ -341,10 +350,10 @@ class PaymentPwdViewSet(APIBaseViewSet):
             "number_members": number_members,
             "enterprise_id": enterprise.enterprise_id,
         }
-        # Calc payment price of new plan
+        # Calc payment price of a new plan
         promo_code_value = promo_code_obj.code if promo_code_obj else None
         calc_payment = self._calc_payment(
-            enterprise=enterprise, duration=duration, currency=currency, promo_code=promo_code_value
+            enterprise=enterprise, plan_alias=plan_alias, duration=duration, currency=currency, promo_code=promo_code_value
         )
         immediate_payment = calc_payment.get("immediate_payment")
         current_plan = self.user_service.get_current_plan(user=user)
@@ -441,31 +450,35 @@ class PaymentPwdViewSet(APIBaseViewSet):
                 raise ValidationError(detail={"enterprise_country": ["The country does not exist"]})
             return Response(status=status.HTTP_200_OK, data=serializer.data)
 
-    def _calc_payment(self, enterprise: Enterprise, duration=DURATION_MONTHLY, currency=CURRENCY_USD, promo_code=None):
-        number_members = self.enterprise_member_service.count_enterprise_members(**{
+    def _calc_payment(self, enterprise: Enterprise, plan_alias: str, duration=DURATION_MONTHLY, currency=CURRENCY_USD,
+                      promo_code=None):
+        quantity = self.enterprise_member_service.count_enterprise_members(**{
             "enterprise_id": enterprise.enterprise_id,
             "status": E_MEMBER_STATUS_CONFIRMED,
             "is_activated": True
         })
+        if plan_alias == PLAN_TYPE_PM_ENTERPRISE_STARTUP:
+            quantity = 1
         try:
             result = self.payment_service.calc_payment(
                 user_id=self.request.user.user_id,
-                plan_alias=PLAN_TYPE_PM_ENTERPRISE,
+                plan_alias=plan_alias,
                 currency=currency,
                 duration=duration,
-                number_members=number_members,
+                number_members=quantity,
                 promo_code=promo_code
 
             )
-            result["quantity"] = number_members
+            result["quantity"] = quantity
         except PlanDoesNotExistException:
             raise ValidationError(detail={"plan_alias": ["This plan alias does not exist"]})
         return result
 
-    def _calc_payment_public(self, quantity: int, duration=DURATION_MONTHLY, currency=CURRENCY_USD, promo_code=None):
+    def _calc_payment_public(self, plan_alias: str, quantity: int, duration=DURATION_MONTHLY, currency=CURRENCY_USD,
+                             promo_code=None):
         try:
             result = self.payment_service.calc_payment_public(
-                plan_alias=PLAN_TYPE_PM_ENTERPRISE,
+                plan_alias=plan_alias,
                 quantity=quantity,
                 duration=duration,
                 currency=currency,
@@ -474,3 +487,29 @@ class PaymentPwdViewSet(APIBaseViewSet):
         except PlanDoesNotExistException:
             raise ValidationError(detail={"plan_alias": ["This plan alias does not exist"]})
         return result
+
+    @action(methods=["post"], detail=False)
+    def upgrade_by_code(self, request, *args, **kwargs):
+        user = self.request.user
+        if self.enterprise_service.is_in_enterprise(user_id=user.user_id):
+            raise ValidationError(detail={"non_field_errors": [gen_error("7015")]})
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        code = validated_data.get("code")
+
+        try:
+            self.payment_service.upgrade_enterprise_plan_by_code(
+                user_id=user.user_id, code=code, scope=settings.SCOPE_PWD_MANAGER
+            )
+        except EnterpriseMemberExistedException:
+            raise ValidationError(detail={"non_field_errors": [gen_error("7015")]})
+        except PaymentPromoCodeInvalidException:
+            raise ValidationError(detail={"code": ["This code is expired or invalid"]})
+        except PaymentFailedByUserInFamilyException:
+            raise ValidationError(detail={"non_field_errors": [gen_error("7016")]})
+        except CurrentPlanDoesNotSupportOperatorException:
+            raise ValidationError(detail={"non_field_errors": [gen_error("7014")]})
+        except PlanDoesNotExistException:
+            raise ValidationError(detail={"code": ["This code is expired or invalid"]})
+        return Response(status=status.HTTP_200_OK, data={"success": True})

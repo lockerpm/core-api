@@ -6,8 +6,7 @@ from rest_framework.response import Response
 from locker_server.api.v1_0.resources.views import ResourcePwdViewSet as ResourceV1PwdViewSet
 from locker_server.settings import locker_server_settings
 from locker_server.shared.constants.autofill_keys import AUTOFILL_CACHE, DEFAULT_AUTOFILL
-from locker_server.shared.constants.transactions import PLAN_TYPE_PM_ENTERPRISE, PLAN_TYPE_PM_ENTERPRISE_STARTUP, \
-    LIST_ENTERPRISE_PLAN
+from locker_server.shared.constants.transactions import LIST_ENTERPRISE_PLAN
 from .serializers import CountrySerializer, IndividualPlanSerializer, AutofillKeySerializer
 
 

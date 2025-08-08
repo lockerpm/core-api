@@ -9,7 +9,9 @@ from locker_server.api.permissions.locker_permissions.enterprise_permissions.gro
     GroupPwdPermission
 from locker_server.core.exceptions.enterprise_exception import EnterpriseDoesNotExistException
 from locker_server.core.exceptions.enterprise_group_exception import EnterpriseGroupDoesNotExistException
+from locker_server.core.exceptions.enterprise_member_exception import EnterpriseMemberPrimaryDoesNotExistException
 from locker_server.shared.constants.event import EVENT_E_GROUP_CREATED, EVENT_E_GROUP_UPDATED, EVENT_E_GROUP_DELETED
+from locker_server.shared.constants.transactions import PLAN_TYPE_PM_ENTERPRISE
 from locker_server.shared.error_responses.error import gen_error
 from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
 from locker_server.shared.external_services.locker_background.constants import BG_EVENT, BG_ENTERPRISE_GROUP
@@ -79,9 +81,16 @@ class GroupPwdViewSet(APIBaseViewSet):
             self.check_object_permissions(request=self.request, obj=enterprise)
             if enterprise.locked:
                 raise ValidationError({"non_field_errors": [gen_error("3003")]})
+            # Only allow Full-Enterprise plan
+            owner = self.enterprise_service.get_primary_member(enterprise_id=enterprise.enterprise_id)
+            current_plan = self.user_service.get_current_plan(user=owner.user)
+            if current_plan.pm_plan.alias not in [PLAN_TYPE_PM_ENTERPRISE]:
+                raise ValidationError({"non_field_errors": [gen_error("7002")]})
 
             return enterprise
         except EnterpriseDoesNotExistException:
+            raise NotFound
+        except EnterpriseMemberPrimaryDoesNotExistException:
             raise NotFound
 
     def list(self, request, *args, **kwargs):

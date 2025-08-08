@@ -1029,3 +1029,45 @@ class PaymentService:
             "output": ["slack_saas_license"]
         })
 
+    def upgrade_enterprise_plan_by_code(self, user_id: int, code: str, scope: str = None):
+        CyLog.debug(**{"message": f"[+] Starting upgrade enterprise plan by code::: {user_id} {code} {scope}"})
+        if self.enterprise_member_repository.is_in_enterprise(user_id=user_id):
+            raise EnterpriseMemberExistedException
+        saas_code = self.payment_repository.check_saas_promo_code(user_id=user_id, code=code)
+        if not saas_code:
+            raise PaymentPromoCodeInvalidException
+        plan_alias = saas_code.saas_plan
+        if not plan_alias:
+            raise PlanDoesNotExistException
+        plan = self.plan_repository.get_plan_by_alias(alias=plan_alias)
+        if not plan:
+            CyLog.warning(**{"message": f"[!] Not found the enterprise plan of the code {saas_code}"})
+            raise PlanDoesNotExistException
+
+        # # Only allow free user and trial premium user
+        current_plan = self.user_plan_repository.get_user_plan(user_id=user_id)
+        # if self.user_plan_repository.is_in_family_plan(user_plan=current_plan):
+        #     raise PaymentFailedByUserInFamilyException
+        # if not (current_plan.pm_plan.alias == PLAN_TYPE_PM_FREE or current_plan.is_trialing()):
+        #     raise CurrentPlanDoesNotSupportOperatorException
+
+        # Update remaining times of the promo code
+        saas_code = self.payment_repository.update_promo_code_remaining_times(promo_code=saas_code)
+        # Avoid race conditions - Make sure that this code is still available
+        if saas_code.remaining_times < 0:
+            raise PaymentPromoCodeInvalidException
+
+        # Cancel the current Free/Premium/Family
+        self.user_plan_repository.cancel_plan(user=current_plan.user, immediately=True)
+        upgrade_duration = DURATION_MONTHLY
+        end_period = now() + saas_code.saas_market.lifetime_duration
+        plan_metadata = {
+            "start_period": now(),
+            "end_period": end_period,
+            # "extra_time": max(current_plan.end_period - now(), 0) if current_plan.end_period else None,
+        }
+        self.user_plan_repository.update_plan(
+            user_id=user_id, plan_type_alias=plan.alias, duration=upgrade_duration, scope=scope,
+            **plan_metadata
+        )
+

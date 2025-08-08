@@ -104,7 +104,6 @@ class EnterpriseMemberService:
                 user_ids_param.append(member.get("user_id"))
         existed_enterprise_members = self.enterprise_member_repository.list_enterprise_members(**{
             "user_ids": user_ids_param
-
         })
         existed_enterprise_member_dict = {}
         for enterprise_member in existed_enterprise_members:
@@ -119,6 +118,21 @@ class EnterpriseMemberService:
                 existed_enterprise_member_dict[user_id].update({
                     enterprise_id: enterprise_member
                 })
+
+        # Check max number of members
+        enterprise_owner = self.enterprise_member_repository.get_primary_member(
+            enterprise_id=current_enterprise.enterprise_id
+        )
+        current_number_members = self.enterprise_member_repository.count_enterprise_members(**{
+            "enterprise_id": current_enterprise.enterprise_id
+        })
+        max_members = None
+        if enterprise_owner:
+            current_plan = self.user_plan_repository.get_user_plan(user_id=enterprise_owner.user.user_id)
+            max_allow_members = current_plan.get_max_allow_members()
+            if max_allow_members:
+                max_members = max(max_allow_members - current_number_members, 0)
+
         for member in members_data:
             user_id = member.get("user_id")
             if not user_id:
@@ -133,16 +147,21 @@ class EnterpriseMemberService:
             if user_id in added_members:
                 non_added_members.append(user_id)
                 continue
-            # create new member
-            user, is_created = self.user_repository.retrieve_or_create_by_id(user_id=user_id)
-            member_create_data = {
-                "role": member["role"],
-                "enterprise_id": current_enterprise.enterprise_id,
-                "user_id": user.user_id,
-                "status": E_MEMBER_STATUS_INVITED
-            }
-            members_create_data.append(member_create_data)
-            added_members.append(user.user_id)
+            # create a new member
+            if max_members is None or len(members_create_data) < max_members:
+                user, is_created = self.user_repository.retrieve_or_create_by_id(user_id=user_id)
+                member_create_data = {
+                    "role": member["role"],
+                    "enterprise_id": current_enterprise.enterprise_id,
+                    "user_id": user.user_id,
+                    "status": E_MEMBER_STATUS_INVITED
+                }
+                members_create_data.append(member_create_data)
+                added_members.append(user.user_id)
+            else:
+                non_added_members.append(user_id)
+                continue
+
         self.enterprise_member_repository.create_multiple_member(members_create_data=members_create_data)
         return added_members, list(set(non_added_members))
 
@@ -161,6 +180,21 @@ class EnterpriseMemberService:
         added_members = []
         non_added_members = []
         added_emails = []
+
+        # Check max number of members
+        enterprise_owner = self.enterprise_member_repository.get_primary_member(
+            enterprise_id=current_enterprise.enterprise_id
+        )
+        current_number_members = self.enterprise_member_repository.count_enterprise_members(**{
+            "enterprise_id": current_enterprise.enterprise_id
+        })
+        max_members = None
+        if enterprise_owner:
+            current_plan = self.user_plan_repository.get_user_plan(user_id=enterprise_owner.user.user_id)
+            max_allow_members = current_plan.get_max_allow_members()
+            if max_allow_members:
+                max_members = max(max_allow_members - current_number_members, 0)
+
         for member_data in members_data:
             member_email = member_data.get("email")
             if member_email in existed_email_members:
@@ -169,29 +203,37 @@ class EnterpriseMemberService:
             if member_email in added_emails:
                 non_added_members.append(member_email)
                 continue
-            token_value = self.create_invitation_token(
-                secret=secret,
-                email=member_email,
-                enterprise_id=current_enterprise.enterprise_id,
-                scope=scope
-            )
-            member_create_data = {
-                "enterprise_id": current_enterprise.enterprise_id,
-                "role_id": member_data.get("role"),
-                "email": member_email,
-                "status": E_MEMBER_STATUS_INVITED,
-                "token_invitation": token_value
-            }
-            new_member = self.enterprise_member_repository.create_member(
-                member_create_data=member_create_data
-            )
-            added_members.append({
-                "enterprise_id": current_enterprise.enterprise_id,
-                "enterprise_name": current_enterprise.name,
-                "token": new_member.token_invitation,
-                "email": member_email
-            })
-            added_emails.append(member_email)
+
+            # create a new member
+            if max_members is None or len(added_members) < max_members:
+                token_value = self.create_invitation_token(
+                    secret=secret,
+                    email=member_email,
+                    enterprise_id=current_enterprise.enterprise_id,
+                    scope=scope
+                )
+                member_create_data = {
+                    "enterprise_id": current_enterprise.enterprise_id,
+                    "role_id": member_data.get("role"),
+                    "email": member_email,
+                    "status": E_MEMBER_STATUS_INVITED,
+                    "token_invitation": token_value
+                }
+                new_member = self.enterprise_member_repository.create_member(
+                    member_create_data=member_create_data
+                )
+                added_members.append({
+                    "enterprise_id": current_enterprise.enterprise_id,
+                    "enterprise_name": current_enterprise.name,
+                    "token": new_member.token_invitation,
+                    "email": member_email
+                })
+                added_emails.append(member_email)
+
+            else:
+                non_added_members.append(member_email)
+                continue
+
         return added_members, non_added_members
 
     def update_enterprise_member(self,

@@ -293,6 +293,7 @@ urlpatterns += [
     url(r'^attachments/url$', views.AttachmentPwdViewSet.as_view({'post': 'url'})),
     url(r'^attachments/multiple_delete$', views.AttachmentPwdViewSet.as_view({'post': 'multiple_delete'})),
 ]
+
 # -------------------------------- Scam setting  ------------------------------------- #
 urlpatterns += [
     url(r'^scam_settings$', views.ScamSettingPwdViewSet.as_view({'get': 'list', 'put': 'update'})),

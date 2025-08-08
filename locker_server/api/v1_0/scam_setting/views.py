@@ -138,6 +138,7 @@ class ScamSettingPwdViewSet(APIBaseViewSet):
         instance = self.get_wl_url_object()
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
     def destroy_wl_url(self, request, *args, **kwargs):
         instance = self.get_wl_url_object()
         self.scam_setting_service.delete_wl_scam_url(instance.whitelist_scam_url_id)

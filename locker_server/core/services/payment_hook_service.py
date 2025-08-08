@@ -43,7 +43,7 @@ class PaymentHookService:
         currency = hook_data.get("currency", CURRENCY_USD)
         plan = hook_data.get("plan")
 
-        # Check this invoice with stripe_invoice_id existed                                           ?
+        # Check this invoice with stripe_invoice_id existed?
         stripe_invoice_exist = None
         stripe_subscription_obj = None
         stripe_card_id = None
