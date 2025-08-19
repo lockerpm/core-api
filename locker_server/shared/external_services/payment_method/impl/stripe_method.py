@@ -37,8 +37,10 @@ class StripePaymentMethod(PaymentMethod):
             real_stripe_plans["pm_premium_monthly"] = "locker_pm_premium_monthly"
             real_stripe_plans["pm_family_yearly"] = "locker_pm_family_yearly"
         elif os.getenv("PROD_ENV") == "prod":
-            real_stripe_plans["pm_family_yearly"] = "locker_pm_family_yearly"
+            real_stripe_plans["pm_enterprise_monthly"] = "lk_pm_enterprise_monthly"
+            real_stripe_plans["pm_enterprise_yearly"] = "lk_pm_enterprise_yearly"
             real_stripe_plans["pm_premium_monthly"] = "locker_pm_premium_monthly"
+            real_stripe_plans["pm_family_yearly"] = "lk_pm_family_yearly"
 
         return real_stripe_plans.get(stripe_plan_id, stripe_plan_id)
 
