@@ -47,5 +47,8 @@ LIST_DELETE_SYNC_CACHE_EVENTS = [
     SYNC_QUICK_SHARE,
 ]
 
-
 SYNC_ACTION_DELETE = "delete"
+SYNC_EVENT_SCAM_SETTING_UPDATE = 'scam_setting_update'
+SYNC_EVENT_WHITELIST_URL_UPDATE = 'whitelist_url_update'
+SYNC_EVENT_WHITELIST_URL_CREATE = 'whitelist_url_create'
+SYNC_EVENT_WHITELIST_URL_DELETE = 'whitelist_url_delete'
