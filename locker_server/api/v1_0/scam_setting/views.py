@@ -126,7 +126,7 @@ class ScamSettingPwdViewSet(APIBaseViewSet):
         except WhitelistScamUrlExistedException:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"details": ["Whitelist scam url already exists"]})
         PwdSync(event=SYNC_EVENT_WHITELIST_URL_UPDATE, user_ids=[request.user.user_id]).send(
-            data={"id": str(updated_wl_url.wl_url_id)}
+            data={"id": str(updated_wl_url.whitelist_scam_url_id)}
         )
         return Response(status=status.HTTP_200_OK, data=DetailWlScamUrlSerializer(updated_wl_url, many=False).data)
 
@@ -140,7 +140,7 @@ class ScamSettingPwdViewSet(APIBaseViewSet):
         })
         new_wl_url = self.scam_setting_service.create_wl_scam_url(**validated_data)
         PwdSync(event=SYNC_EVENT_WHITELIST_URL_CREATE, user_ids=[request.user.user_id]).send(
-            data={"id": str(new_wl_url.wl_url_id)}
+            data={"id": str(new_wl_url.whitelist_scam_url_id)}
         )
         return Response(status=status.HTTP_200_OK, data=DetailWlScamUrlSerializer(new_wl_url).data)
 
@@ -153,6 +153,6 @@ class ScamSettingPwdViewSet(APIBaseViewSet):
         instance = self.get_wl_url_object()
         self.scam_setting_service.delete_wl_scam_url(instance.whitelist_scam_url_id)
         PwdSync(event=SYNC_EVENT_WHITELIST_URL_DELETE, user_ids=[request.user.user_id]).send(
-            data={"id": str(instance.wl_url_id)}
+            data={"id": str(instance.whitelist_scam_url_id)}
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
