@@ -1,7 +1,6 @@
 import json
 import os
 import stripe
-import stripe.error
 from django.conf import settings
 from rest_framework import status
 
@@ -227,7 +226,7 @@ class UserRewardMissionPwdViewSet(APIBaseViewSet):
                     name=new_promo_code.code,
                     redeem_by=new_promo_code.expired_time
                 )
-            except stripe.error.StripeError:
+            except stripe.StripeError:
                 self.user_reward_mission_service.delete_promo_code_by_id(
                     promo_code_id=new_promo_code.promo_code_id
                 )

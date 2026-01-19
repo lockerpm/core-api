@@ -3,7 +3,6 @@ from typing import NoReturn, List
 
 import requests
 import stripe
-import stripe.error
 from django.core.exceptions import ObjectDoesNotExist
 
 from locker_server.core.entities.payment.payment import Payment
@@ -268,7 +267,7 @@ class CronTaskService:
                 try:
                     paid_invoice = stripe.Invoice.pay(new_change_member_invoice.get("id"))
                     print(paid_invoice)
-                except stripe.error.CardError:
+                except stripe.CardError:
                     # Payment failed => Disable members
                     disabled_members = self.enterprise_member_repository.update_batch_enterprise_members_by_user_ids(
                         user_ids=added_user_ids,

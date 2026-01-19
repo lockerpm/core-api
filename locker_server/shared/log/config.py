@@ -22,10 +22,10 @@ logging_config = {
         'medium': {'format': '%(asctime)s %(site)s %(levelname)s %(message)s'},
         'short': {'format': '%(message)s'},
         'django.server': DEFAULT_LOGGING['formatters']['django.server'],
-        'rq_console': {
-            'format': '%(asctime)s %(levelname)s %(message)s',
-            'datefmt': '%H:%M:%S',
-        },
+        # 'rq_console': {
+        #     'format': '%(asctime)s %(levelname)s %(message)s',
+        #     'datefmt': '%H:%M:%S',
+        # },
     },
     'handlers': {
         'null': {
@@ -64,12 +64,12 @@ logging_config = {
             'filters': ['site_filter']
         },
         'django.server': DEFAULT_LOGGING['handlers']['django.server'],
-        'rq_console': {
-            'level': 'DEBUG',
-            'class': 'rq.logutils.ColorizingStreamHandler',
-            'formatter': 'rq_console',
-            # 'exclude': ['%(asctime)s'],
-        },
+        # 'rq_console': {
+        #     'level': 'DEBUG',
+        #     'class': 'rq.logutils.ColorizingStreamHandler',
+        #     'formatter': 'rq_console',
+        #     # 'exclude': ['%(asctime)s'],
+        # },
     },
     'root': {
         'handlers': ['django.server'],
@@ -107,10 +107,10 @@ logging_config = {
         },
         # 'django.server': DEFAULT_LOGGING['loggers']['django.server'],
         'django.channels.server': DEFAULT_LOGGING['loggers']['django.server'],
-        'rq.worker': {
-            'level': 'DEBUG',
-            'handlers': ['rq_console'],
-        },
+        # 'rq.worker': {
+        #     'level': 'DEBUG',
+        #     'handlers': ['rq_console'],
+        # },
         'daphne': {
             'handlers': ['console'],
             'level': 'DEBUG',

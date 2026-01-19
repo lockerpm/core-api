@@ -1,7 +1,5 @@
 import traceback
-
 import stripe
-import stripe.error
 
 from django.conf import settings
 from rest_framework import status
@@ -330,7 +328,7 @@ class PaymentPwdViewSet(APIBaseViewSet):
                         si = items[0].get("id")
                         plans = [{"id": si, "quantity": 1}]
                         stripe.Subscription.modify(stripe_subscription.id, items=plans, proration_behavior='none')
-            except stripe.error.StripeError:
+            except stripe.StripeError:
                 tb = traceback.format_exc()
                 CyLog.error(**{"message": f"Set init seat error: {user} {stripe_subscription_id}: \n{tb}"})
 

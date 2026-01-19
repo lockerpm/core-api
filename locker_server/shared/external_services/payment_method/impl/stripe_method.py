@@ -1,8 +1,6 @@
 import os
 import traceback
-
 import stripe
-import stripe.error
 
 from locker_server.shared.constants.transactions import *
 from locker_server.shared.external_services.payment_method.payment_method import PaymentMethod
@@ -124,7 +122,7 @@ class StripePaymentMethod(PaymentMethod):
                         trial_end=billing_cycle_anchor,
                         proration_behavior='none'
                     )
-        except stripe.error.CardError as e:
+        except stripe.CardError as e:
             return {
                 "success": False,
                 "stripe_error": True,
@@ -199,7 +197,7 @@ class StripePaymentMethod(PaymentMethod):
                     'quantity': self.__get_new_quantity(**kwargs)
                 }]
             )
-        except stripe.error.CardError as e:
+        except stripe.CardError as e:
             CyLog.debug(**{"message": "Upgrade CardError {}".format(self.handle_error(e))})
             return {
                 "success": False,
@@ -251,7 +249,7 @@ class StripePaymentMethod(PaymentMethod):
         try:
             stripe.Subscription.delete(stripe_subscription.id)
             return True
-        except stripe.error.StripeError:
+        except stripe.StripeError:
             tb = traceback.format_exc()
             CyLog.error(**{"message": "cancel_immediately_recurring_subscription error: {}".format(tb)})
             return False
@@ -316,13 +314,13 @@ class StripePaymentMethod(PaymentMethod):
         try:
             paid_invoice = stripe.Invoice.pay(stripe_invoice_id)
             print(paid_invoice)
-        except stripe.error.CardError as e:
+        except stripe.CardError as e:
             return {
                 "success": False,
                 "stripe_error": True,
                 "error_details": self.handle_error(e)
             }
-        except stripe.error.InvalidRequestError as e:
+        except stripe.InvalidRequestError as e:
             if "already paid" in e.user_message:
                 pass
             else:
@@ -380,7 +378,7 @@ class StripePaymentMethod(PaymentMethod):
                 items=plans,
                 proration_behavior='none'
             )
-        except stripe.error.StripeError:
+        except stripe.StripeError:
             tb = traceback.format_exc()
             CyLog.error(**{"message": "[update_quantity_subscription] Stripe error: {} {}\n{}".format(
                 current_plan, plans, tb
@@ -394,7 +392,7 @@ class StripePaymentMethod(PaymentMethod):
         try:
             stripe.Subscription.modify(stripe_subscription.id, default_payment_method=new_source)
             return new_source
-        except stripe.error.StripeError:
+        except stripe.StripeError:
             tb = traceback.format_exc()
             CyLog.error(**{"message": "[update_default_payment] Stripe error: {} {}\n{}".format(
                 current_plan, new_source, tb
