@@ -315,15 +315,15 @@ class PaymentPwdViewSet(APIBaseViewSet):
             try:
                 stripe_subscription = stripe.Subscription.retrieve(stripe_subscription_id)
                 if stripe_subscription.status in ["trialing", "active"]:
+                    items = stripe_subscription.get("items", {}).get("data", [])
                     self.enterprise_service.update_enterprise(
                         enterprise_id=updated_enterprise.enterprise_id,
                         enterprise_update_data={
                             "init_seats": quantity,
-                            "init_seats_expired_time": stripe_subscription.current_period_end,
+                            "init_seats_expired_time": items[0].current_period_end,
                         }
                     )
                     # Then, set the quantity to 1
-                    items = stripe_subscription.get("items").get("data")
                     if items:
                         si = items[0].get("id")
                         plans = [{"id": si, "quantity": 1}]

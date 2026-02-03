@@ -237,9 +237,10 @@ class StripePaymentMethod(PaymentMethod):
             stripe_subscription.id,
             cancel_at_period_end=cancel_at_period_end
         )
-        # Return end time if cancel current stripe subscription
+        # Return end time if cancel the current stripe subscription
         if cancel_at_period_end is False:
-            return stripe_subscription.current_period_end
+            stripe_subscription_item = stripe_subscription.get("items", {}).get("data", [])[0]
+            return stripe_subscription_item.current_period_end
 
     def cancel_immediately_recurring_subscription(self, **kwargs):
         current_plan = self.get_current_plan()
