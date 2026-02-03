@@ -110,10 +110,7 @@ class PaymentHookService:
                         else pm_user_plan.personal_trial_web_applied
                     }
                 )
-                stripe_subscription_items = stripe_subscription_obj.items.data
-                if len(stripe_subscription_items) == 0:
-                    raise IndexError(f"No items found of the stripe subscription #{stripe_subscription_id}")
-                stripe_subscription_item = stripe_subscription_items[0]
+                stripe_subscription_item = stripe_subscription_obj.get("items", {}).get("data", [])[0]
                 start_period = stripe_subscription_item.current_period_start
                 end_period = stripe_subscription_item.current_period_end
                 # Upgrade the plan of this user
