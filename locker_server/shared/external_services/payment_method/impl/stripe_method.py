@@ -161,7 +161,7 @@ class StripePaymentMethod(PaymentMethod):
             self.user_plan.user.user_id, kwargs, plan_type, coupon, duration
         )})
         # Firstly, check old subscription has coupon? If the coupon exists, we will remove old coupon
-        if stripe_subscription.discounts is not None:
+        if stripe_subscription.discounts:
             stripe.Subscription.delete_discount(stripe_subscription.id)
 
         # Re-formatting Stripe coupon and Stripe plans
