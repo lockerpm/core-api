@@ -95,6 +95,7 @@ class StripePaymentMethod(PaymentMethod):
                 "number_members": kwargs.get("number_members", 1),
                 "click_uuid": kwargs.get("click_uuid") or None,
             }
+            discounts = [{"coupon": coupon}] if coupon else None
             if billing_cycle_anchor and billing_cycle_anchor_action == "set":
                 # Set billing_cycle_anchor to void 0 USD invoice from Stripe
                 # https://stripe.com/docs/billing/subscriptions/billing-cycle
@@ -103,7 +104,8 @@ class StripePaymentMethod(PaymentMethod):
                     default_payment_method=card.get("id_card"),
                     items=plans,
                     metadata=stripe_sub_metadata,
-                    coupon=coupon,
+                    # coupon=coupon,
+                    discounts=discounts,
                     billing_cycle_anchor=billing_cycle_anchor,
                     proration_behavior='none'
                 )
@@ -113,7 +115,8 @@ class StripePaymentMethod(PaymentMethod):
                     default_payment_method=card.get("id_card"),
                     items=plans,
                     metadata=stripe_sub_metadata,
-                    coupon=coupon,
+                    # coupon=coupon,
+                    discounts=discounts,
                     trial_end=trial_end
                 )
                 if billing_cycle_anchor:
@@ -172,6 +175,7 @@ class StripePaymentMethod(PaymentMethod):
             - Use proration_behavior='always_invoice' to invoice immediately for proration.
             """
             # First, update payment method and metadata
+            discounts = [{"coupon": coupon}] if coupon else None
             stripe.Subscription.modify(
                 stripe_subscription.id,
                 default_payment_method=card.get("id_card"),
@@ -184,7 +188,8 @@ class StripePaymentMethod(PaymentMethod):
                     "collection_name": kwargs.get("collection_name"),
                     "click_uuid": kwargs.get("click_uuid") or None,
                 },
-                coupon=coupon
+                discounts=discounts,
+                # coupon=coupon
             )
             # Update item plan
             new_stripe_subscription = stripe.Subscription.modify(
