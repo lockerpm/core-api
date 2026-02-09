@@ -198,7 +198,7 @@ class StripePaymentMethod(PaymentMethod):
                 proration_behavior='none',
                 items=[{
                     'id': stripe_subscription['items']['data'][0].id,
-                    'plan': stripe_plan_id,
+                    'price': stripe_plan_id,
                     'quantity': self.__get_new_quantity(**kwargs)
                 }]
             )
