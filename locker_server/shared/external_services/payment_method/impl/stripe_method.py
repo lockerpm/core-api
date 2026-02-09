@@ -147,10 +147,10 @@ class StripePaymentMethod(PaymentMethod):
         if not card or isinstance(card, dict) is False or not card.get("stripe_customer_id") or not card.get("id_card"):
             return {"success": False}
 
-        # First, get current user plan
+        # First, get the current user plan
         current_plan = self.get_current_plan()
         stripe_subscription = current_plan.get_stripe_subscription()
-        # Create stripe subscription if it does not exist
+        # Create a stripe subscription if it does not exist
         if not stripe_subscription:
             return self.create_recurring_subscription(amount, plan_type, coupon, duration, **kwargs)
         # Upgrade existed plan
@@ -158,7 +158,7 @@ class StripePaymentMethod(PaymentMethod):
             self.user_plan.user.user_id, kwargs, plan_type, coupon, duration
         )})
         # Firstly, check old subscription has coupon? If the coupon exists, we will remove old coupon
-        if stripe_subscription.discount is not None:
+        if stripe_subscription.discounts is not None:
             stripe.Subscription.delete_discount(stripe_subscription.id)
 
         # Re-formatting Stripe coupon and Stripe plans
