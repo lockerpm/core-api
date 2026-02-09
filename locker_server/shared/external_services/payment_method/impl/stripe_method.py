@@ -62,15 +62,15 @@ class StripePaymentMethod(PaymentMethod):
     def create_recurring_subscription(self, amount: float, plan_type: str, coupon=None,
                                       duration: str = DURATION_MONTHLY, **kwargs) -> dict:
         """
-        Create new recurring subscription for user
-        :param amount: (float) Money need pay
+        Create a new recurring subscription for user
+        :param amount: (float) Money needs pay
         :param plan_type: (str) Plan alias
         :param coupon: (obj) PromoCode object
         :param duration: (str) duration: monthly/half_yearly/yearly
         :param kwargs: (dict) Metadata: card, bank_id
         :return: (dict) {"success": true/false, "stripe_error": ""}
         """
-        # If user does not have card => False
+        # If the user does not have any card => False
         card = kwargs.get("card")
         if not card or isinstance(card, dict) is False or not card.get("stripe_customer_id"):
             return {"success": False}
@@ -107,7 +107,9 @@ class StripePaymentMethod(PaymentMethod):
                     # coupon=coupon,
                     discounts=discounts,
                     billing_cycle_anchor=billing_cycle_anchor,
-                    proration_behavior='none'
+                    billing_mode={"type": "classic"},
+                    proration_behavior='none',
+
                 )
             else:
                 stripe_sub = stripe.Subscription.create(
@@ -117,7 +119,8 @@ class StripePaymentMethod(PaymentMethod):
                     metadata=stripe_sub_metadata,
                     # coupon=coupon,
                     discounts=discounts,
-                    trial_end=trial_end
+                    trial_end=trial_end,
+                    billing_mode={"type": "classic"},
                 )
                 if billing_cycle_anchor:
                     stripe.Subscription.modify(
