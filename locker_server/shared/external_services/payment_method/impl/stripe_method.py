@@ -199,6 +199,7 @@ class StripePaymentMethod(PaymentMethod):
                 stripe_subscription.id,
                 payment_behavior='pending_if_incomplete',
                 proration_behavior='none',
+                billing_cycle_anchor='now',
                 items=[{
                     'id': stripe_subscription['items']['data'][0].id,
                     'price': stripe_plan_id,
