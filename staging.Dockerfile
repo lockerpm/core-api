@@ -1,8 +1,26 @@
-FROM python:3.10.0-alpine
+# FROM python:3.10.0-alpine
+
+FROM python:3.12.12-alpine
 
 WORKDIR /app
 
-RUN apk update && apk add --no-cache gcc musl-dev mysql-dev git shadow
+# RUN apk update && apk add --no-cache gcc musl-dev mysql-dev git shadow
+
+RUN apk update && apk add --no-cache \
+    gcc \
+    musl-dev \
+    mysql-dev \
+    git \
+    shadow \
+    cairo-dev \
+    cairo \
+    pango-dev \
+    gdk-pixbuf-dev \
+    libffi-dev \
+    jpeg-dev \
+    zlib-dev \
+    freetype-dev \
+    curl
 
 RUN groupadd -r cystack && useradd -r -g cystack -s /usr/sbin/nologin -c "CyStack user" cystack
 
