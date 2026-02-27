@@ -1,8 +1,6 @@
 import os
 import traceback
-
 import stripe
-import stripe.error
 
 from locker_server.shared.constants.transactions import *
 from locker_server.shared.external_services.payment_method.payment_method import PaymentMethod
@@ -64,15 +62,15 @@ class StripePaymentMethod(PaymentMethod):
     def create_recurring_subscription(self, amount: float, plan_type: str, coupon=None,
                                       duration: str = DURATION_MONTHLY, **kwargs) -> dict:
         """
-        Create new recurring subscription for user
-        :param amount: (float) Money need pay
+        Create a new recurring subscription for user
+        :param amount: (float) Money needs pay
         :param plan_type: (str) Plan alias
         :param coupon: (obj) PromoCode object
         :param duration: (str) duration: monthly/half_yearly/yearly
         :param kwargs: (dict) Metadata: card, bank_id
         :return: (dict) {"success": true/false, "stripe_error": ""}
         """
-        # If user does not have card => False
+        # If the user does not have any card => False
         card = kwargs.get("card")
         if not card or isinstance(card, dict) is False or not card.get("stripe_customer_id"):
             return {"success": False}
@@ -97,6 +95,7 @@ class StripePaymentMethod(PaymentMethod):
                 "number_members": kwargs.get("number_members", 1),
                 "click_uuid": kwargs.get("click_uuid") or None,
             }
+            discounts = [{"coupon": coupon}] if coupon else None
             if billing_cycle_anchor and billing_cycle_anchor_action == "set":
                 # Set billing_cycle_anchor to void 0 USD invoice from Stripe
                 # https://stripe.com/docs/billing/subscriptions/billing-cycle
@@ -105,9 +104,12 @@ class StripePaymentMethod(PaymentMethod):
                     default_payment_method=card.get("id_card"),
                     items=plans,
                     metadata=stripe_sub_metadata,
-                    coupon=coupon,
+                    # coupon=coupon,
+                    discounts=discounts,
                     billing_cycle_anchor=billing_cycle_anchor,
-                    proration_behavior='none'
+                    billing_mode={"type": "classic"},
+                    proration_behavior='none',
+
                 )
             else:
                 stripe_sub = stripe.Subscription.create(
@@ -115,8 +117,10 @@ class StripePaymentMethod(PaymentMethod):
                     default_payment_method=card.get("id_card"),
                     items=plans,
                     metadata=stripe_sub_metadata,
-                    coupon=coupon,
-                    trial_end=trial_end
+                    # coupon=coupon,
+                    discounts=discounts,
+                    trial_end=trial_end,
+                    billing_mode={"type": "classic"},
                 )
                 if billing_cycle_anchor:
                     stripe.Subscription.modify(
@@ -124,7 +128,7 @@ class StripePaymentMethod(PaymentMethod):
                         trial_end=billing_cycle_anchor,
                         proration_behavior='none'
                     )
-        except stripe.error.CardError as e:
+        except stripe.CardError as e:
             return {
                 "success": False,
                 "stripe_error": True,
@@ -149,10 +153,10 @@ class StripePaymentMethod(PaymentMethod):
         if not card or isinstance(card, dict) is False or not card.get("stripe_customer_id") or not card.get("id_card"):
             return {"success": False}
 
-        # First, get current user plan
+        # First, get the current user plan
         current_plan = self.get_current_plan()
         stripe_subscription = current_plan.get_stripe_subscription()
-        # Create stripe subscription if it does not exist
+        # Create a stripe subscription if it does not exist
         if not stripe_subscription:
             return self.create_recurring_subscription(amount, plan_type, coupon, duration, **kwargs)
         # Upgrade existed plan
@@ -160,7 +164,7 @@ class StripePaymentMethod(PaymentMethod):
             self.user_plan.user.user_id, kwargs, plan_type, coupon, duration
         )})
         # Firstly, check old subscription has coupon? If the coupon exists, we will remove old coupon
-        if stripe_subscription.discount is not None:
+        if stripe_subscription.discounts:
             stripe.Subscription.delete_discount(stripe_subscription.id)
 
         # Re-formatting Stripe coupon and Stripe plans
@@ -174,6 +178,7 @@ class StripePaymentMethod(PaymentMethod):
             - Use proration_behavior='always_invoice' to invoice immediately for proration.
             """
             # First, update payment method and metadata
+            discounts = [{"coupon": coupon}] if coupon else None
             stripe.Subscription.modify(
                 stripe_subscription.id,
                 default_payment_method=card.get("id_card"),
@@ -186,20 +191,22 @@ class StripePaymentMethod(PaymentMethod):
                     "collection_name": kwargs.get("collection_name"),
                     "click_uuid": kwargs.get("click_uuid") or None,
                 },
-                coupon=coupon
+                discounts=discounts,
+                # coupon=coupon
             )
             # Update item plan
             new_stripe_subscription = stripe.Subscription.modify(
                 stripe_subscription.id,
                 payment_behavior='pending_if_incomplete',
                 proration_behavior='none',
+                billing_cycle_anchor='now',
                 items=[{
                     'id': stripe_subscription['items']['data'][0].id,
-                    'plan': stripe_plan_id,
+                    'price': stripe_plan_id,
                     'quantity': self.__get_new_quantity(**kwargs)
                 }]
             )
-        except stripe.error.CardError as e:
+        except stripe.CardError as e:
             CyLog.debug(**{"message": "Upgrade CardError {}".format(self.handle_error(e))})
             return {
                 "success": False,
@@ -239,9 +246,10 @@ class StripePaymentMethod(PaymentMethod):
             stripe_subscription.id,
             cancel_at_period_end=cancel_at_period_end
         )
-        # Return end time if cancel current stripe subscription
+        # Return end time if cancel the current stripe subscription
         if cancel_at_period_end is False:
-            return stripe_subscription.current_period_end
+            stripe_subscription_item = stripe_subscription.get("items", {}).get("data", [])[0]
+            return stripe_subscription_item.current_period_end
 
     def cancel_immediately_recurring_subscription(self, **kwargs):
         current_plan = self.get_current_plan()
@@ -251,7 +259,7 @@ class StripePaymentMethod(PaymentMethod):
         try:
             stripe.Subscription.delete(stripe_subscription.id)
             return True
-        except stripe.error.StripeError:
+        except stripe.StripeError:
             tb = traceback.format_exc()
             CyLog.error(**{"message": "cancel_immediately_recurring_subscription error: {}".format(tb)})
             return False
@@ -316,13 +324,13 @@ class StripePaymentMethod(PaymentMethod):
         try:
             paid_invoice = stripe.Invoice.pay(stripe_invoice_id)
             print(paid_invoice)
-        except stripe.error.CardError as e:
+        except stripe.CardError as e:
             return {
                 "success": False,
                 "stripe_error": True,
                 "error_details": self.handle_error(e)
             }
-        except stripe.error.InvalidRequestError as e:
+        except stripe.InvalidRequestError as e:
             if "already paid" in e.user_message:
                 pass
             else:
@@ -380,7 +388,7 @@ class StripePaymentMethod(PaymentMethod):
                 items=plans,
                 proration_behavior='none'
             )
-        except stripe.error.StripeError:
+        except stripe.StripeError:
             tb = traceback.format_exc()
             CyLog.error(**{"message": "[update_quantity_subscription] Stripe error: {} {}\n{}".format(
                 current_plan, plans, tb
@@ -394,7 +402,7 @@ class StripePaymentMethod(PaymentMethod):
         try:
             stripe.Subscription.modify(stripe_subscription.id, default_payment_method=new_source)
             return new_source
-        except stripe.error.StripeError:
+        except stripe.StripeError:
             tb = traceback.format_exc()
             CyLog.error(**{"message": "[update_default_payment] Stripe error: {} {}\n{}".format(
                 current_plan, new_source, tb

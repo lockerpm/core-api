@@ -326,7 +326,7 @@ class UserPlanORMRepository(UserPlanRepository):
         current_plan_orm = self._get_current_plan_orm(user_id=current_plan.user.user_id)
         # Get new plan price
         new_plan_price = new_plan.get_price(duration=new_duration, currency=currency)
-        # Number of month duration billing by new duration
+        # Amount of month duration billing by new duration
         duration_next_billing_month = PMUserPlan.get_duration_month_number(new_duration)
         # Calc discount
         error_promo = None

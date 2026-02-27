@@ -1,4 +1,4 @@
-from django.utils.encoding import smart_text
+from django.utils.encoding import smart_str
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
 
 
@@ -23,7 +23,7 @@ class AppGeneralAuthentication(BaseAuthentication):
                 return None
 
             # Check auth_header_prefix is `Bearer` token?
-            if smart_text(auth[0].lower()) != auth_header_prefix.lower():
+            if smart_str(auth[0].lower()) != auth_header_prefix.lower():
                 return None
 
             if len(auth) == 1:

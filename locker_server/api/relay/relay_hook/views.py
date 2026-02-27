@@ -10,8 +10,7 @@ from locker_server.api.api_base_view import APIBaseViewSet
 from locker_server.api.permissions.relay_permissions.relay_hook_permission import RelayHookPermission
 from locker_server.core.exceptions.relay_exceptions.reply_exception import *
 from locker_server.core.exceptions.user_exception import UserDoesNotExistException
-from locker_server.shared.constants.relay_address import *
-from locker_server.shared.external_services.rabbitmq.rabbitmq import RelayQueue
+from locker_server.shared.external_services.rabbitmq.cyqueue import RelayQueue
 from locker_server.shared.log.cylog import CyLog
 from .serializers import ReplySerializer, StatisticSerializer
 
