@@ -54,7 +54,7 @@ class DeviceAccessTokenORM(AbstractDeviceAccessTokenORM):
             "idp": "cystack",
             "email_verified": self.device.user.activated,
             "scope": ["api", "offline_access"],
-            "jti": self.id,
+            "jti": str(self.id),
             "device": self.device.device_identifier,
             "orgowner": "",
             "iat": created_time,

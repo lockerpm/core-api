@@ -170,7 +170,8 @@ class PMUserPlan(object):
         if stripe_subscription:
             if stripe_subscription.status == "trialing":
                 return stripe_subscription.trial_end
-            return stripe_subscription.current_period_end
+            stripe_subscription_item = stripe_subscription.get("items", {}).get("data", [])[0]
+            return stripe_subscription_item.current_period_end
         # If user subscribed a plan
         if self.end_period:
             return self.end_period

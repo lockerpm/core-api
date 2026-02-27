@@ -1,14 +1,11 @@
-import logging
 import os
 from datetime import datetime, timedelta
 from typing import Optional, List, Dict
 import stripe
-import stripe.error
-from django.conf import settings
 
-from django.db.models import F, OuterRef, Subquery, FloatField, CharField, Q, Sum, DateTimeField, Count, Min
-from django.db.models.expressions import RawSQL, Case, When, Value
-from django.db.models.functions import TruncYear
+from django.conf import settings
+from django.db.models import F, OuterRef, Subquery, FloatField, CharField, Q, Sum, Count, Min
+from django.db.models.expressions import RawSQL
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models import CustomerORM, SaasMarketORM
@@ -21,6 +18,7 @@ from locker_server.shared.constants.transactions import *
 from locker_server.shared.external_services.requester.retry_requester import requester
 from locker_server.shared.log.cylog import CyLog
 from locker_server.shared.utils.app import now, random_n_digit
+
 
 PaymentORM = get_payment_model()
 UserORM = get_user_model()
@@ -565,7 +563,7 @@ class PaymentORMRepository(PaymentRepository):
                     name=code,
                     redeem_by=expired_time
                 )
-            except stripe.error.StripeError:
+            except stripe.StripeError:
                 promo_code_orm.delete()
                 return None
         return ModelParser.payment_parser().parse_promo_code(promo_code_orm=promo_code_orm)
@@ -599,7 +597,7 @@ class PaymentORMRepository(PaymentRepository):
                     name=code,
                     redeem_by=expired_time
                 )
-            except stripe.error.StripeError:
+            except stripe.StripeError:
                 promo_code_orm.delete()
                 return None
         return ModelParser.payment_parser().parse_promo_code(promo_code_orm=promo_code_orm)
