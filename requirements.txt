@@ -6,7 +6,7 @@ bson==0.5.10
 # cffi==1.15.1
 
 # Django - Django REST
-Django==5.2.9
+Django==5.2.11
 django-cors-headers==4.9.0
 djangorestframework==3.16.1
 django-redis==6.0.0
@@ -49,7 +49,7 @@ pyotp==2.9.0
 user_agents==2.2.0
 
 # PyCrypto
-cryptography==46.0.3
+cryptography==46.0.5
 
 # PyHumps
 pyhumps==3.8.0
