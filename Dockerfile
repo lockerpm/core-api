@@ -27,9 +27,9 @@ RUN pip install --upgrade pip
 
 RUN pip install wheel==0.45.1
 
-COPY requirements.txt ./
+COPY requirements.txt /tmp/
 
-RUN pip install -r requirements.txt
+RUN pip install -r /tmp/requirements.txt
 
 EXPOSE 8000
 
