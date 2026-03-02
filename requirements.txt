@@ -88,7 +88,7 @@ webauthn==2.7.0
 XlsxWriter==3.2.9
 
 # Pillow
-Pillow==12.1.0
+Pillow==12.1.1
 
 # Notion
 notion-client==2.7.0
