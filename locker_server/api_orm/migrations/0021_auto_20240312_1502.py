@@ -2,7 +2,8 @@
 import os
 import json
 
-from django.db import migrations, models
+from django.conf import settings
+from django.db import migrations
 
 
 FIXTURE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../fixtures'))
@@ -10,8 +11,11 @@ FIXTURE_FILENAMES = ['plan.json']
 
 
 def update_records(apps, schema_editor):
-    from locker_server.api_orm.models import wrapper
-    model_orm = wrapper.get_plan_model()
+    if settings.SELF_HOSTED:
+        model_orm = apps.get_model('api_orm', 'PMPlanORM')
+    else:
+        from locker_server.api_orm.models import wrapper
+        model_orm = wrapper.get_plan_model()
 
     for fixture_filename in FIXTURE_FILENAMES:
         fixture_file = os.path.join(FIXTURE_DIR, fixture_filename)

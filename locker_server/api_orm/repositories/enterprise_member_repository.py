@@ -377,8 +377,8 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
             return False
         user_id = enterprise_member_orm.user_id
         enterprise_member_orm.delete()
-        if completely is True:
-            # Delete user account
+        if completely:
+            # Delete the user account
             try:
                 user_orm = UserORM.objects.get(user_id=user_id)
                 user_orm.delete()

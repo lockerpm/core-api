@@ -43,12 +43,41 @@ def get_swappable_model(fixture_filename):
         return SaasMarketORM
 
 
+def get_raw_model(apps, fixture_filename):
+    if fixture_filename == "country.json":
+        return apps.get_model("api_orm", "CountryORM")
+    elif fixture_filename == "e_member_role.json":
+        return apps.get_model("api_orm", "EnterpriseMemberRoleORM")
+    elif fixture_filename == "e_ownership.json":
+        return apps.get_model("api_orm", "OwnershipORM")
+    elif fixture_filename == "member_role.json":
+        return apps.get_model("api_orm", "MemberRoleORM")
+    elif fixture_filename == "mission.json":
+        return apps.get_model("api_orm", "MissionORM")
+    elif fixture_filename == "notification_category.json":
+        return apps.get_model("api_orm", "NotificationCategoryORM")
+    elif fixture_filename == "plan_type.json":
+        return apps.get_model("api_orm", "PlanTypeORM")
+    elif fixture_filename == "plan.json":
+        return apps.get_model("api_orm", "PMPlanORM")
+    elif fixture_filename == "promo_code_type.json":
+        return apps.get_model("api_orm", "PromoCodeTypeORM")
+    elif fixture_filename == "relay_domain.json":
+        return apps.get_model("api_orm", "RelayDomainORM")
+    elif fixture_filename == "saas_market.json":
+        return apps.get_model("api_orm", "SaasMarketORM")
+    return None
+
+
 def load_fixtures(apps, schema_editor):
     for fixture_filename in FIXTURE_FILENAMES:
         fixture_file = os.path.join(FIXTURE_DIR, fixture_filename)
         fixture = open(fixture_file, 'rb')
         data = json.loads(fixture.read())
-        model_orm = get_swappable_model(fixture_filename=fixture_filename)
+        if settings.SELF_HOSTED:
+            model_orm = get_raw_model(fixture_filename=fixture_filename, apps=apps)
+        else:
+            model_orm = get_swappable_model(fixture_filename=fixture_filename)
         if not model_orm:
             continue
         objs = []
@@ -74,7 +103,11 @@ def load_fixtures(apps, schema_editor):
         for d in data:
             objs.append(model_orm(**d.get("fields")))
 
+        # try:
         results = model_orm.objects.bulk_create(objs, ignore_conflicts=True, batch_size=100)
+        # except django.db.utils.OperationalError:
+        #     model_orm = get_raw_model(fixture_filename=fixture_filename, apps=apps)
+        #     results = model_orm.objects.bulk_create(objs, ignore_conflicts=True, batch_size=100)
         print(f"[+] Done load {len(results)} objects from {fixture_filename}")
 
 
