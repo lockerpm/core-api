@@ -1,11 +1,11 @@
-import ssl
+# import ssl
 import traceback
 import os
 import stripe
 import logging.config
 from pathlib import Path
 
-from locker_server.shared.channel.redis_channel import CustomSSLConnection
+# from locker_server.shared.channel.redis_channel import CustomSSLConnection
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -40,13 +40,14 @@ try:
     CHANNEL_REDIS_LOCATION = os.getenv("CHANNEL_REDIS_LOCATION")
     default_channel_host = {
         'address': CHANNEL_REDIS_LOCATION,
+        'max_connections': 300,
     }
-    if CHANNEL_REDIS_LOCATION and CHANNEL_REDIS_LOCATION.startswith("rediss://"):
-        ssl_context = ssl.SSLContext()
-        ssl_context.check_hostname = False
-        default_channel_host.update({
-            "ssl": ssl_context
-        })
+    # if CHANNEL_REDIS_LOCATION and CHANNEL_REDIS_LOCATION.startswith("rediss://"):
+    #     ssl_context = ssl.SSLContext()
+    #     ssl_context.check_hostname = False
+    #     default_channel_host.update({
+    #         "ssl": ssl_context
+    #     })
 
     CHANNEL_LAYERS = {
         'default': {
