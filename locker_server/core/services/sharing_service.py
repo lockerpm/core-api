@@ -710,8 +710,6 @@ class SharingService:
                     "id": member.team_member_id,
                     "access_time": member.access_time,
                     "email": member.email,
-
-
                     "role": member.role.name,
                     "status": member.status,
                     "hide_passwords": member.hide_passwords,

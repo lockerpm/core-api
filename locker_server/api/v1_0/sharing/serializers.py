@@ -51,6 +51,7 @@ class GroupMemberShareSerializer(serializers.Serializer):
     user_id = serializers.IntegerField(allow_null=True, required=False)
     email = serializers.EmailField(allow_null=True, required=False)
     key = serializers.CharField(allow_null=True, required=False)
+    hide_passwords = serializers.BooleanField(default=False)
 
     def validate(self, data):
         user_id = data.get("user_id")
@@ -67,6 +68,7 @@ class GroupShareSerializer(serializers.Serializer):
     id = serializers.CharField(max_length=128)
     role = serializers.ChoiceField(choices=[MEMBER_ROLE_ADMIN, MEMBER_ROLE_MEMBER])
     members = GroupMemberShareSerializer(many=True)
+    hide_passwords = serializers.BooleanField(default=False)
 
     def validate(self, data):
         return data
