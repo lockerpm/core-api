@@ -19,7 +19,7 @@ class UserORM(AbstractUserORM):
     language = models.CharField(max_length=4, blank=False, default=LANG_ENGLISH)
     # FA2
     is_factor2 = models.BooleanField(default=False)
-    base32_secret_factor2 = models.CharField(max_length=16, blank=True, default="")
+    base32_secret_factor2 = models.CharField(max_length=64, blank=True, default="")
 
     is_super_admin = models.BooleanField(default=False)
     sync_all_platforms = models.BooleanField(default=False)
