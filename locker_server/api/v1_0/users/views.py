@@ -923,7 +923,6 @@ class UserPwdViewSet(APIBaseViewSet):
             }
         )
 
-
     @action(methods=["post"], detail=False)
     def reset_password(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -941,7 +940,9 @@ class UserPwdViewSet(APIBaseViewSet):
                 login_method=login_method,
                 secret=settings.SECRET_KEY,
                 **{
-                    "full_name": full_name
+                    "full_name": full_name,
+                    "kdf": validated_data.get("kdf"),
+                    "kdf_iterations": validated_data.get("kdf_iterations"),
                 }
             )
         except UserResetPasswordTokenInvalidException:

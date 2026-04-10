@@ -238,8 +238,22 @@ class UserResetPasswordSerializer(serializers.Serializer):
     new_password = serializers.CharField(max_length=256)
     new_key = serializers.CharField(required=False)
     keys = EncryptedPairKey(many=False)
+    kdf = serializers.IntegerField(default=0)
+    kdf_iterations = serializers.IntegerField(default=DEFAULT_KDF_ITERATIONS, required=False)
     full_name = serializers.CharField(required=False, allow_blank=False)
     login_method = serializers.ChoiceField(choices=[LOGIN_METHOD_PASSWORD, LOGIN_METHOD_PASSWORDLESS])
+
+    def validate(self, data):
+        kdf_type = data.get("kdf_type", 0)
+        if not KDF_TYPE.get(kdf_type):
+            raise serializers.ValidationError(detail={"kdf": ["This KDF Type is not valid"]})
+        kdf_iterations = data.get("kdf_iterations")
+        if kdf_iterations and (kdf_iterations < 5000 or kdf_iterations > 1000000):
+            raise serializers.ValidationError(detail={
+                "kdf_iterations": ["KDF iterations must be between 5000 and 1000000"]
+            })
+
+        return data
 
 
 class UserAccessTokenSerializer(serializers.Serializer):
