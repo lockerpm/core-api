@@ -87,8 +87,9 @@ class SharingORMRepository(SharingRepository):
             "key": member_data.get("key"),
             "is_added_by_group": member_data.get("is_added_by_group", False),
             "status": member_data.get("status") or PM_MEMBER_STATUS_INVITED,
+            "hide_passwords": member_data.get("hide_passwords", False),
             "role_id": member_data.get("role"),
-            "group": member_data.get("group")
+            "group": member_data.get("group"),
         })
         # Update key:
         if is_created is False and member_data.get("key"):
@@ -102,9 +103,9 @@ class SharingORMRepository(SharingRepository):
                 hide_passwords=member_data.get("hide_passwords", False)
             )
         # DEPRECATED: Not use hide_passwords
-        # if shared_member.role_id in [MEMBER_ROLE_MEMBER]:
-        #     shared_member.hide_passwords = member.get("hide_passwords", False)
-        #     shared_member.save()
+        # if shared_member_orm.role_id in [MEMBER_ROLE_MEMBER]:
+        #     shared_member_orm.hide_passwords = member_data.get("hide_passwords", False)
+        #     shared_member_orm.save()
         return shared_member_orm
 
     @staticmethod
@@ -377,14 +378,10 @@ class SharingORMRepository(SharingRepository):
             except UserORM.DoesNotExist:
                 member_user_id = None
                 email = member.get("email")
-            # if member_user and member_user.user_id in existed_user_ids:
-            #     team.team_members.filter(user_id=member_user.user_id).update(is_added_by_group=False)
-            #     continue
-            # if email and email in existed_emails:
-            #     team.team_members.filter(email=email).update(is_added_by_group=False)
-            #     continue
-            member_data = {"user_id": member_user_id, "email": email, "role": member.get("role"),
-                           "key": member.get("key")}
+            member_data = member.copy()
+            member_data.update({"user_id": member_user_id, "email": email})
+            # member_data = {"user_id": member_user_id, "email": email, "role": member.get("role"),
+            #                "key": member.get("key")}
             shared_member_orm = self.__create_shared_member_orm(
                 team_orm=primary_member.team, member_data=member_data, shared_collection_id=shared_collection_id
             )
@@ -450,6 +447,7 @@ class SharingORMRepository(SharingRepository):
                     "email": email,
                     "role": member.get("role"),
                     "key": member.get("key"),
+                    "hide_passwords": member.get("hide_passwords", False),
                     "status": PM_MEMBER_STATUS_CONFIRMED if member.get("key") else PM_MEMBER_STATUS_INVITED,
                     "is_added_by_group": True,
                     "group": team_group_orm,
