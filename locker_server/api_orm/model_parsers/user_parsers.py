@@ -32,6 +32,8 @@ class UserParser:
             private_key=user_orm.private_key,
             kdf=user_orm.kdf,
             kdf_iterations=user_orm.kdf_iterations,
+            kdf_memory=user_orm.kdf_memory,
+            kdf_parallelism=user_orm.kdf_parallelism,
             api_key=user_orm.api_key,
             timeout=user_orm.timeout,
             timeout_action=user_orm.timeout_action,

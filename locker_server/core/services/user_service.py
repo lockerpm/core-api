@@ -176,6 +176,8 @@ class UserService:
         user_new_creation_data = {
             "kdf": kwargs.get("kdf", 0),
             "kdf_iterations": kwargs.get("kdf_iterations", 100000),
+            "kdf_memory": kwargs.get("kdf_memory"),
+            "kdf_parallelism": kwargs.get("kdf_parallelism"),
             "key": key,
             "public_key": keys.get("public_key"),
             "private_key": keys.get("encrypted_private_key"),
@@ -518,7 +520,8 @@ class UserService:
 
     def change_master_password(self, user: User, key: str, master_password_hash: str, new_master_password_hash: str,
                                new_master_password_hint: str = None, score: float = None, login_method: str = None,
-                               current_sso_token_id: str = None, kdf_iterations: int = None,
+                               current_sso_token_id: str = None, kdf_iterations: int = None, kdf: int = None,
+                               kdf_memory: int = None, kdf_parallelism: int = None,
                                require_enterprise_member_status: str = E_MEMBER_STATUS_CONFIRMED):
         if master_password_hash:
             if self.auth_repository.check_master_password(user=user, raw_password=master_password_hash) is False:
@@ -532,7 +535,8 @@ class UserService:
         self.user_repository.change_master_password(
             user=user, new_master_password_hash=new_master_password_hash,
             new_master_password_hint=new_master_password_hint,
-            key=key, score=score, login_method=login_method, kdf_iterations=kdf_iterations
+            key=key, score=score, login_method=login_method, kdf_iterations=kdf_iterations, kdf=kdf,
+            kdf_memory=kdf_memory, kdf_parallelism=kdf_parallelism
         )
         exclude_sso_token_ids = None
         client = None

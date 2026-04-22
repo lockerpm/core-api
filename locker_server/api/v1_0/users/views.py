@@ -26,6 +26,7 @@ from locker_server.core.exceptions.user_exception import UserDoesNotExistExcepti
     UserResetPasswordTokenInvalidException, UserFactor2IsNotActiveException, UserFactor2IsNotValidException
 from locker_server.settings import locker_server_settings
 from locker_server.shared.constants.account import *
+from locker_server.shared.constants.ciphers import KDF_TYPE_PBKDF2_SHA256
 from locker_server.shared.constants.enterprise_members import E_MEMBER_STATUS_CONFIRMED
 from locker_server.shared.error_responses.error import refer_error, gen_error
 from locker_server.api.v1_0.ciphers.serializers import VaultItemSerializer, UpdateVaultItemSerializer
@@ -155,8 +156,10 @@ class UserPwdViewSet(APIBaseViewSet):
                 default_plan_time=locker_server_settings.DEFAULT_PLAN_TIME,
                 **{
                     "full_name": validated_data.get("full_name") or validated_data.get("email"),
-                    "kdf": validated_data.get("kdf", 0),
+                    "kdf": validated_data.get("kdf", KDF_TYPE_PBKDF2_SHA256),
                     "kdf_iterations": validated_data.get("kdf_iterations", DEFAULT_KDF_ITERATIONS),
+                    "kdf_memory": validated_data.get("kdf_memory"),
+                    "kdf_parallelism": validated_data.get("kdf_parallelism"),
                     "master_password_hint": validated_data.get("master_password_hint", ""),
                     "score": validated_data.get("score", 0),
                     "trial_plan": validated_data.get("trial_plan"),
@@ -526,7 +529,10 @@ class UserPwdViewSet(APIBaseViewSet):
         key = validated_data.get("key")
         score = validated_data.get("score", user.master_password_score)
         login_method = validated_data.get("login_method", user.login_method)
+        kdf = validated_data.get("kdf")
         kdf_iterations = validated_data.get("kdf_iterations")
+        kdf_memory = validated_data.get("kdf_memory")
+        kdf_parallelism = validated_data.get("kdf_parallelism")
 
         try:
             sso_token_id = self.get_sso_token_id()
@@ -540,7 +546,8 @@ class UserPwdViewSet(APIBaseViewSet):
                 new_master_password_hint=new_master_password_hint,
                 score=score, login_method=login_method,
                 current_sso_token_id=sso_token_id,
-                kdf_iterations=kdf_iterations,
+                kdf_iterations=kdf_iterations, kdf=kdf,
+                kdf_memory=kdf_memory, kdf_parallelism=kdf_parallelism,
                 require_enterprise_member_status=require_enterprise_member_status,
             )
         except UserAuthFailedPasswordlessRequiredException:
@@ -890,8 +897,11 @@ class UserPwdViewSet(APIBaseViewSet):
                     "is_password_changed": user.is_password_changed,
                     "require_2fa": require_2fa,
                     "is_factor2": user.is_factor2,
+                    "kdf_version": user.get_kdf_version(),
                     "kdf": user.kdf,
                     "kdf_iterations": user.kdf_iterations,
+                    "kdf_memory": user.kdf_memory,
+                    "kdf_parallelism": user.kdf_parallelism,
                 }
             )
         except UserDoesNotExistException:
@@ -918,8 +928,11 @@ class UserPwdViewSet(APIBaseViewSet):
                 "is_password_changed": user.is_password_changed,
                 "require_2fa": require_2fa,
                 "is_factor2": user.is_factor2,
+                "kdf_version": user.get_kdf_version(),
                 "kdf": user.kdf,
                 "kdf_iterations": user.kdf_iterations,
+                "kdf_memory": user.kdf_memory,
+                "kdf_parallelism": user.kdf_parallelism,
             }
         )
 
@@ -943,6 +956,8 @@ class UserPwdViewSet(APIBaseViewSet):
                     "full_name": full_name,
                     "kdf": validated_data.get("kdf"),
                     "kdf_iterations": validated_data.get("kdf_iterations"),
+                    "kdf_memory": validated_data.get("kdf_memory"),
+                    "kdf_parallelism": validated_data.get("kdf_parallelism"),
                 }
             )
         except UserResetPasswordTokenInvalidException:

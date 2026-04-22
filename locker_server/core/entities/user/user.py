@@ -1,7 +1,7 @@
 from typing import List
 
 from locker_server.shared.constants.account import DEFAULT_KDF_ITERATIONS, LOGIN_METHOD_PASSWORD, \
-    DEFAULT_ONBOARDING_PROCESS
+    DEFAULT_ONBOARDING_PROCESS, DEFAULT_KDF_MEMORY, DEFAULT_KDF_PARALLELISM
 from locker_server.shared.constants.lang import LANG_ENGLISH
 from locker_server.shared.utils.avatar import get_avatar
 
@@ -14,6 +14,7 @@ class User(object):
                  master_password_score: float = 0, hide_master_password: bool = False,
                  security_stamp: str = None, key: str = None,
                  public_key: str = None, private_key: str = None, kdf: int = 0, kdf_iterations=DEFAULT_KDF_ITERATIONS,
+                 kdf_memory: int = DEFAULT_KDF_MEMORY, kdf_parallelism: int = DEFAULT_KDF_PARALLELISM,
                  api_key: str = None, timeout: int = 20160, timeout_action: str = "lock", is_leaked: bool = False,
                  use_relay_subdomain: bool = False, last_request_login: float = None, login_failed_attempts: int = 0,
                  login_block_until: float = None, login_method: str = LOGIN_METHOD_PASSWORD,
@@ -42,6 +43,8 @@ class User(object):
         self._private_key = private_key
         self._kdf = kdf
         self._kdf_iterations = kdf_iterations
+        self._kdf_memory = kdf_memory
+        self._kdf_parallelism = kdf_parallelism
         self._api_key = api_key
         self._timeout = timeout
         self._timeout_action = timeout_action
@@ -147,6 +150,14 @@ class User(object):
     @property
     def kdf_iterations(self):
         return self._kdf_iterations
+
+    @property
+    def kdf_memory(self):
+        return self._kdf_memory
+
+    @property
+    def kdf_parallelism(self):
+        return self._kdf_parallelism
 
     @property
     def api_key(self):
@@ -262,3 +273,8 @@ class User(object):
 
     def get_avatar(self):
         return get_avatar(self.email)
+
+    def get_kdf_version(self):
+        if self.user_id in [] or (self.email and self.email.endswith("@cystack.net")) or (self.username and self.username.endswith("@cystack.net")):
+            return 1
+        return 0

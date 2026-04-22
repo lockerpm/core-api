@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
 from locker_server.shared.constants.account import LOGIN_METHOD_PASSWORD, LOGIN_METHOD_PASSWORDLESS, \
-    DEFAULT_KDF_ITERATIONS
-from locker_server.shared.constants.ciphers import KDF_TYPE
+    DEFAULT_KDF_ITERATIONS, DEFAULT_KDF_MEMORY, DEFAULT_KDF_PARALLELISM
+from locker_server.shared.constants.ciphers import KDF_TYPE, KDF_TYPE_PBKDF2_SHA256, KDF_TYPE_ARGON2ID
 from locker_server.shared.constants.device_type import LIST_CLIENT_ID, LIST_DEVICE_TYPE
 from locker_server.shared.constants.factor2 import LIST_FA2_METHOD
 from locker_server.shared.constants.lang import LANG_ENGLISH, LANG_VIETNAM
@@ -75,8 +75,10 @@ class EncryptedPairKey(serializers.Serializer):
 class UserRegisterSerializer(serializers.Serializer):
     email = serializers.EmailField(max_length=255)
     full_name = serializers.CharField(max_length=255, required=False, allow_blank=True)
-    kdf = serializers.IntegerField(default=0)
+    kdf = serializers.IntegerField(default=KDF_TYPE_PBKDF2_SHA256)
     kdf_iterations = serializers.IntegerField(default=DEFAULT_KDF_ITERATIONS)
+    kdf_memory = serializers.IntegerField(required=False, allow_null=True)
+    kdf_parallelism = serializers.IntegerField(required=False, allow_null=True)
     key = serializers.CharField()
     keys = EncryptedPairKey(many=False)
     master_password_hash = serializers.CharField(allow_blank=False)
@@ -90,7 +92,7 @@ class UserRegisterSerializer(serializers.Serializer):
     enterprise_name = serializers.CharField(required=False, allow_null=True)
 
     def validate(self, data):
-        kdf_type = data.get("kdf_type", 0)
+        kdf_type = data.get("kdf_type", KDF_TYPE_PBKDF2_SHA256)
         if not KDF_TYPE.get(kdf_type):
             raise serializers.ValidationError(detail={"kdf": ["This KDF Type is not valid"]})
         kdf_iterations = data.get("kdf_iterations", DEFAULT_KDF_ITERATIONS)
@@ -98,6 +100,13 @@ class UserRegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(detail={
                 "kdf_iterations": ["KDF iterations must be between 5000 and 1000000"]
             })
+        kdf_memory = data.get("kdf_memory")
+        kdf_parallelism = data.get("kdf_parallelism")
+        if kdf_type == KDF_TYPE_ARGON2ID:
+            if not kdf_memory:
+                data["kdf_memory"] = DEFAULT_KDF_MEMORY
+            if not kdf_parallelism:
+                data["kdf_parallelism"] = DEFAULT_KDF_PARALLELISM
 
         return data
 
@@ -147,7 +156,10 @@ class UserChangePasswordSerializer(serializers.Serializer):
     new_master_password_hint = serializers.CharField(allow_blank=True, max_length=128, required=False)
     score = serializers.FloatField(required=False, allow_null=True)
     login_method = serializers.ChoiceField(choices=[LOGIN_METHOD_PASSWORD, LOGIN_METHOD_PASSWORDLESS], required=False)
+    kdf = serializers.IntegerField(required=False)
     kdf_iterations = serializers.IntegerField(required=False)
+    kdf_memory = serializers.IntegerField(required=False, allow_null=True)
+    kdf_parallelism = serializers.IntegerField(required=False, allow_null=True)
 
     def validate(self, data):
         kdf_iterations = data.get("kdf_iterations")
@@ -155,7 +167,16 @@ class UserChangePasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError(detail={
                 "kdf_iterations": ["KDF iterations must be between 5000 and 1000000"]
             })
-
+        kdf_type = data.get("kdf")
+        if kdf_type and not KDF_TYPE.get(kdf_type):
+            raise serializers.ValidationError(detail={"kdf": ["This KDF Type is not valid"]})
+        kdf_memory = data.get("kdf_memory")
+        kdf_parallelism = data.get("kdf_parallelism")
+        if kdf_type and kdf_type == KDF_TYPE_ARGON2ID:
+            if not kdf_memory:
+                data["kdf_memory"] = DEFAULT_KDF_MEMORY
+            if not kdf_parallelism:
+                data["kdf_parallelism"] = DEFAULT_KDF_PARALLELISM
         return data
 
 
@@ -238,13 +259,15 @@ class UserResetPasswordSerializer(serializers.Serializer):
     new_password = serializers.CharField(max_length=256)
     new_key = serializers.CharField(required=False)
     keys = EncryptedPairKey(many=False)
-    kdf = serializers.IntegerField(default=0)
+    kdf = serializers.IntegerField(default=KDF_TYPE_PBKDF2_SHA256)
     kdf_iterations = serializers.IntegerField(default=DEFAULT_KDF_ITERATIONS, required=False)
+    kdf_memory = serializers.IntegerField(required=False, allow_null=True)
+    kdf_parallelism = serializers.IntegerField(required=False, allow_null=True)
     full_name = serializers.CharField(required=False, allow_blank=False)
     login_method = serializers.ChoiceField(choices=[LOGIN_METHOD_PASSWORD, LOGIN_METHOD_PASSWORDLESS])
 
     def validate(self, data):
-        kdf_type = data.get("kdf_type", 0)
+        kdf_type = data.get("kdf_type", KDF_TYPE_PBKDF2_SHA256)
         if not KDF_TYPE.get(kdf_type):
             raise serializers.ValidationError(detail={"kdf": ["This KDF Type is not valid"]})
         kdf_iterations = data.get("kdf_iterations")
@@ -252,6 +275,13 @@ class UserResetPasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError(detail={
                 "kdf_iterations": ["KDF iterations must be between 5000 and 1000000"]
             })
+        kdf_memory = data.get("kdf_memory")
+        kdf_parallelism = data.get("kdf_parallelism")
+        if kdf_type == KDF_TYPE_ARGON2ID:
+            if not kdf_memory:
+                data["kdf_memory"] = DEFAULT_KDF_MEMORY
+            if not kdf_parallelism:
+                data["kdf_parallelism"] = DEFAULT_KDF_PARALLELISM
 
         return data
 

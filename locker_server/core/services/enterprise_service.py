@@ -23,6 +23,8 @@ from locker_server.core.repositories.enterprise_member_repository import Enterpr
 from locker_server.core.repositories.enterprise_policy_repository import EnterprisePolicyRepository
 from locker_server.core.repositories.enterprise_repository import EnterpriseRepository
 from locker_server.core.repositories.user_repository import UserRepository
+from locker_server.shared.constants.account import DEFAULT_KDF_ITERATIONS
+from locker_server.shared.constants.ciphers import KDF_TYPE_PBKDF2_SHA256
 from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_PRIMARY_ADMIN, E_MEMBER_STATUS_CONFIRMED, \
     E_MEMBER_STATUS_INVITED
 from locker_server.shared.constants.policy import LIST_POLICY_TYPE, POLICY_TYPE_PASSWORD_REQUIREMENT, \
@@ -264,8 +266,10 @@ class EnterpriseService:
             keys = member_data.get("keys")
             user_new_creation_data = {
                 "master_password_hash": member_data.get("master_password_hash"),
-                "kdf": member_data.get("kdf", 0),
-                "kdf_iterations": member_data.get("kdf_iterations", 100000),
+                "kdf": member_data.get("kdf", KDF_TYPE_PBKDF2_SHA256),
+                "kdf_iterations": member_data.get("kdf_iterations", DEFAULT_KDF_ITERATIONS),
+                "kdf_memory": member_data.get("kdf_memory"),
+                "kdf_parallelism": member_data.get("kdf_parallelism"),
                 "key": member_data.get("key"),
                 "public_key": keys.get("public_key"),
                 "private_key": keys.get("encrypted_private_key"),
