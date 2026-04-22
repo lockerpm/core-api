@@ -343,8 +343,11 @@ class EmergencyAccessService:
         result = {
             "obj": "emergencyAccessTakeover",
             "key_encrypted": emergency_access.key_encrypted,
+            "kdf_version": grantor.get_kdf_version(),
             "kdf": grantor.kdf,
-            "kdf_iterations": grantor.kdf_iterations
+            "kdf_iterations": grantor.kdf_iterations,
+            "kdf_memory": grantor.kdf_memory,
+            "kdf_parallelism": grantor.kdf_parallelism,
         }
         return result
 
