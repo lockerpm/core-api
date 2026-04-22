@@ -14,7 +14,7 @@ class User(object):
                  master_password_score: float = 0, hide_master_password: bool = False,
                  security_stamp: str = None, key: str = None,
                  public_key: str = None, private_key: str = None, kdf: int = 0, kdf_iterations=DEFAULT_KDF_ITERATIONS,
-                 kdf_memory: int = DEFAULT_KDF_MEMORY, kdf_parallelism: int = DEFAULT_KDF_PARALLELISM,
+                 kdf_memory: int = None, kdf_parallelism: int = None,
                  api_key: str = None, timeout: int = 20160, timeout_action: str = "lock", is_leaked: bool = False,
                  use_relay_subdomain: bool = False, last_request_login: float = None, login_failed_attempts: int = 0,
                  login_block_until: float = None, login_method: str = LOGIN_METHOD_PASSWORD,
@@ -218,6 +218,10 @@ class User(object):
     @property
     def email(self):
         return self._email
+
+    @email.setter
+    def email(self, email_value):
+        self._email = email_value
 
     @property
     def username(self):
