@@ -337,6 +337,7 @@ class UserService:
                      device_name: str = None, device_type: int = None, is_factor2: bool = False,
                      token_auth_value: str = None, secret: str = None,
                      ip: str = None, ua: str = None, require_enterprise_member_status: str = E_MEMBER_STATUS_CONFIRMED):
+        kdf_version = user.get_kdf_version()
         # Check login block
         if user.login_block_until and user.login_block_until > now():
             wait = user.login_block_until - now()
@@ -495,7 +496,7 @@ class UserService:
             "public_key": user.public_key,
             "private_key": user.private_key,
             "key": user.key if credential_backup is None else credential_backup.key,
-            "kdf_version": user.get_kdf_version(),
+            "kdf_version": kdf_version,
             "kdf": user.kdf if credential_backup is None else credential_backup.kdf,
             "kdf_iterations": user.kdf_iterations if credential_backup is None else credential_backup.kdf_iterations,
             "kdf_memory": user.kdf_memory if credential_backup is None else credential_backup.kdf_memory,
