@@ -495,8 +495,11 @@ class UserService:
             "public_key": user.public_key,
             "private_key": user.private_key,
             "key": user.key if credential_backup is None else credential_backup.key,
+            "kdf_version": user.get_kdf_version(),
             "kdf": user.kdf if credential_backup is None else credential_backup.kdf,
             "kdf_iterations": user.kdf_iterations if credential_backup is None else credential_backup.kdf_iterations,
+            "kdf_memory": user.kdf_memory if credential_backup is None else credential_backup.kdf_memory,
+            "kdf_parallelism": user.kdf_parallelism if credential_backup is None else credential_backup.kdf_parallelism,
             "not_sync": not_sync_sso_token_ids,
             "has_no_master_pw_item": not self.user_repository.has_master_pw_item(user_id=user.user_id),
             "is_super_admin": user.is_super_admin

@@ -146,6 +146,8 @@ class UserParser:
             fd_transports=backup_credential_orm.get_fd_transports(),
             kdf_iterations=backup_credential_orm.kdf_iterations,
             kdf=backup_credential_orm.kdf,
+            kdf_memory=backup_credential_orm.kdf_memory,
+            kdf_parallelism=backup_credential_orm.kdf_parallelism,
             user=cls.parse_user(user_orm=backup_credential_orm.user),
             name=backup_credential_orm.name,
             type=backup_credential_orm.type,
