@@ -46,6 +46,11 @@ class PasswordlessPwdViewSet(APIBaseViewSet):
                     "type": backup_credential.type,
                     "creation_date": backup_credential.creation_date,
                     "last_use_date": backup_credential.last_use_date,
+                    "kdf_version": backup_credential.user.get_kdf_version(),
+                    "kdf": backup_credential.kdf,
+                    "kdf_iterations": backup_credential.kdf_iterations,
+                    "kdf_memory": backup_credential.kdf_memory,
+                    "kdf_parallelism": backup_credential.kdf_parallelism,
                 })
             return Response(status=status.HTTP_200_OK, data={
                 "credential_id": user.fd_credential_id,
@@ -55,6 +60,11 @@ class PasswordlessPwdViewSet(APIBaseViewSet):
                 "type": user.fd_type,
                 "creation_date": user.fd_creation_date,
                 "last_use_date": user.fd_last_use_date,
+                "kdf_version": user.get_kdf_version(),
+                "kdf": user.kdf,
+                "kdf_iterations": user.kdf_iterations,
+                "kdf_memory": user.kdf_memory,
+                "kdf_parallelism": user.kdf_parallelism,
                 "backup_keys": user_backup_credentials_data
             })
 
