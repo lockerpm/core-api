@@ -6,6 +6,7 @@ from django.db import models
 
 from locker_server.shared.constants.account import *
 from locker_server.shared.constants.backup_credential import CREDENTIAL_TYPE_HMAC
+from locker_server.shared.constants.ciphers import KDF_TYPE_PBKDF2_SHA256
 
 
 class AbstractUserORM(models.Model):
@@ -26,8 +27,10 @@ class AbstractUserORM(models.Model):
     key = models.TextField(null=True)
     public_key = models.TextField(null=True)
     private_key = models.TextField(null=True)
-    kdf = models.IntegerField(default=0)
+    kdf = models.IntegerField(default=KDF_TYPE_PBKDF2_SHA256)
     kdf_iterations = models.IntegerField(default=DEFAULT_KDF_ITERATIONS)
+    kdf_memory = models.IntegerField(default=None, null=True)
+    kdf_parallelism = models.IntegerField(default=None, null=True)
     api_key = models.CharField(max_length=32, null=True)
     timeout = models.IntegerField(default=20160)
     timeout_action = models.CharField(default="lock", max_length=16)

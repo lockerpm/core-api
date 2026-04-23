@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
 from locker_server.core.entities.enterprise.member.enterprise_member import EnterpriseMember
-from locker_server.shared.constants.account import DEFAULT_KDF_ITERATIONS
-from locker_server.shared.constants.ciphers import KDF_TYPE
+from locker_server.shared.constants.account import DEFAULT_KDF_ITERATIONS, DEFAULT_KDF_MEMORY, DEFAULT_KDF_PARALLELISM
+from locker_server.shared.constants.ciphers import KDF_TYPE, KDF_TYPE_PBKDF2_SHA256, KDF_TYPE_ARGON2ID
 from locker_server.shared.constants.enterprise_members import ENTERPRISE_LIST_ROLE, E_MEMBER_ROLE_MEMBER
 
 
@@ -69,22 +69,31 @@ class CreateMemberSerializer(serializers.Serializer):
     role = serializers.ChoiceField(choices=ENTERPRISE_LIST_ROLE, default=E_MEMBER_ROLE_MEMBER)
     master_password_hash = serializers.CharField(allow_blank=False)
     full_name = serializers.CharField(max_length=255, required=False, allow_blank=True)
-    kdf = serializers.IntegerField(default=0)
+    kdf = serializers.IntegerField(default=KDF_TYPE_PBKDF2_SHA256)
     kdf_iterations = serializers.IntegerField(default=DEFAULT_KDF_ITERATIONS)
+    kdf_memory = serializers.IntegerField(required=False, allow_null=True)
+    kdf_parallelism = serializers.IntegerField(required=False, allow_null=True)
     key = serializers.CharField()
     keys = EncryptedPairKey(many=False)
     master_password_hint = serializers.CharField(required=False, allow_blank=True, max_length=128)
     master_password_score = serializers.FloatField(required=False, allow_null=True, default=0)
 
     def validate(self, data):
-        kdf_type = data.get("kdf", 0)
+        kdf_type = data.get("kdf", KDF_TYPE_PBKDF2_SHA256)
         if not KDF_TYPE.get(kdf_type):
             raise serializers.ValidationError(detail={"kdf": ["This KDF Type is not valid"]})
         kdf_iterations = data.get("kdf_iterations", DEFAULT_KDF_ITERATIONS)
-        if kdf_iterations < 5000 or kdf_iterations > 1000000:
+        if kdf_iterations < 1 or kdf_iterations > 1000000:
             raise serializers.ValidationError(detail={
-                "kdf_iterations": ["KDF iterations must be between 5000 and 1000000"]
+                "kdf_iterations": ["KDF iterations must be between 1 and 1000000"]
             })
+        kdf_memory = data.get("kdf_memory")
+        kdf_parallelism = data.get("kdf_parallelism")
+        if kdf_type == KDF_TYPE_ARGON2ID:
+            if not kdf_memory:
+                data["kdf_memory"] = DEFAULT_KDF_MEMORY
+            if not kdf_parallelism:
+                data["kdf_parallelism"] = DEFAULT_KDF_PARALLELISM
 
         return data
 

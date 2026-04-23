@@ -819,6 +819,8 @@ class UserORMRepository(UserRepository):
 
         user_orm.kdf = user_update_data.get("kdf", user_orm.kdf)
         user_orm.kdf_iterations = user_update_data.get("kdf_iterations", user_orm.kdf_iterations)
+        user_orm.kdf_memory = user_update_data.get("kdf_memory", user_orm.kdf_memory)
+        user_orm.kdf_parallelism = user_update_data.get("kdf_parallelism", user_orm.kdf_parallelism)
         user_orm.key = user_update_data.get("key", user_orm.key)
         user_orm.public_key = user_update_data.get("public_key", user_orm.public_key)
         user_orm.private_key = user_update_data.get("private_key", user_orm.private_key)
@@ -905,7 +907,8 @@ class UserORMRepository(UserRepository):
         return ModelParser.user_parser().parse_user(user_orm=user_orm)
 
     def change_master_password(self, user: User, new_master_password_hash: str, new_master_password_hint: str = None,
-                               key: str = None, score=None, login_method: str = None, kdf_iterations=None):
+                               key: str = None, score=None, login_method: str = None, kdf_iterations=None,
+                               kdf: int = None, kdf_memory: int = None, kdf_parallelism: int = None):
         try:
             user_orm = UserORM.objects.get(user_id=user.user_id)
         except UserORM.DoesNotExist:
@@ -921,6 +924,12 @@ class UserORMRepository(UserRepository):
             user_orm.login_method = login_method
         if kdf_iterations is not None:
             user_orm.kdf_iterations = kdf_iterations
+        if kdf is not None:
+            user_orm.kdf = kdf
+        if kdf_memory is not None:
+            user_orm.kdf_memory = kdf_memory
+        if kdf_parallelism is not None:
+            user_orm.kdf_parallelism = kdf_parallelism
         user_orm.save()
 
     def update_user_factor2(self, user_id: int, is_factor2: bool) -> Optional[User]:

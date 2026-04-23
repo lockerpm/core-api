@@ -6,6 +6,7 @@ from django.db import models
 from locker_server.settings import locker_server_settings
 from locker_server.shared.constants.account import DEFAULT_KDF_ITERATIONS
 from locker_server.shared.constants.backup_credential import CREDENTIAL_TYPE_HMAC
+from locker_server.shared.constants.ciphers import KDF_TYPE_PBKDF2_SHA256
 
 
 class AbstractBackupCredentialORM(models.Model):
@@ -17,8 +18,10 @@ class AbstractBackupCredentialORM(models.Model):
     private_key = models.TextField(null=True)
     creation_date = models.FloatField()
     last_use_date = models.FloatField(null=True)
-    kdf = models.IntegerField(default=0)
+    kdf = models.IntegerField(default=KDF_TYPE_PBKDF2_SHA256)
     kdf_iterations = models.IntegerField(default=DEFAULT_KDF_ITERATIONS)
+    kdf_memory = models.IntegerField(default=None, null=True)
+    kdf_parallelism = models.IntegerField(default=None, null=True)
     # Passwordless config
     fd_credential_id = models.CharField(max_length=300, null=True)
     fd_random = models.CharField(max_length=128, null=True)

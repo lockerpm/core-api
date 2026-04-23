@@ -148,7 +148,8 @@ class UserRepository(ABC):
 
     @abstractmethod
     def change_master_password(self, user: User, new_master_password_hash: str, new_master_password_hint: str = None,
-                               key: str = None, score=None, login_method: str = None, kdf_iterations: int = None):
+                               key: str = None, score=None, login_method: str = None, kdf_iterations: int = None,
+                               kdf: int = None, kdf_memory: int = None, kdf_parallelism: int = None):
         pass
 
     @abstractmethod
