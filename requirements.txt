@@ -6,7 +6,7 @@ bson==0.5.10
 # cffi==1.15.1
 
 # Django - Django REST
-Django==5.2.12
+Django==5.2.13
 django-cors-headers==4.9.0
 djangorestframework==3.16.1
 django-redis==6.0.0
