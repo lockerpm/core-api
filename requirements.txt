@@ -49,7 +49,7 @@ pyotp==2.9.0
 user_agents==2.2.0
 
 # PyCrypto
-cryptography==46.0.6
+cryptography==46.0.7
 
 # PyHumps
 pyhumps==3.8.0
@@ -88,7 +88,7 @@ webauthn==2.7.0
 XlsxWriter==3.2.9
 
 # Pillow
-Pillow==12.1.1
+Pillow==12.2.0
 
 # Notion
 notion-client==2.7.0
