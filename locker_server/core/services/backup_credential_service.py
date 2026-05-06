@@ -61,3 +61,11 @@ class BackupCredentialService:
         if not deleted_backup_credential:
             raise BackupCredentialDoesNotExistException
         return deleted_backup_credential
+
+    def update_backup_credential(self, backup_credential_id: str, update_data: Dict) -> Optional[BackupCredential]:
+        backup_credential = self.backup_credential_repository.update_backup_credential(
+            backup_credential_id=backup_credential_id, update_data=update_data
+        )
+        if not backup_credential:
+            raise BackupCredentialDoesNotExistException
+        return backup_credential

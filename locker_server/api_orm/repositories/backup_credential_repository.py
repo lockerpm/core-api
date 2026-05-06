@@ -55,6 +55,35 @@ class BackupCredentialORMRepository(BackupCredentialRepository):
         return ModelParser.user_parser().parse_backup_credential(backup_credential_orm=backup_credential_orm)
 
     # ------------------------ Update BackupCredential resource --------------------- #
+    def update_backup_credential(self, backup_credential_id: str, update_data: Dict) -> Optional[BackupCredential]:
+        try:
+            backup_credential_orm = BackupCredentialORM.objects.get(
+                id=backup_credential_id
+            )
+        except BackupCredentialORM.DoesNotExist:
+            return None
+        if "master_password_hash" in update_data:
+            backup_credential_orm.master_password_hash = update_data.get(
+                "master_password_hash", backup_credential_orm.master_password_hash
+            )
+        if "key" in update_data:
+            backup_credential_orm.key = update_data.get("key", backup_credential_orm.key)
+        if "kdf" in update_data:
+            backup_credential_orm.kdf = update_data.get("kdf", backup_credential_orm.kdf)
+        if "kdf_iterations" in update_data:
+            backup_credential_orm.kdf_iterations = update_data.get(
+                "kdf_iterations", backup_credential_orm.kdf_iterations
+            )
+        if "kdf_memory" in update_data:
+            backup_credential_orm.kdf_memory = update_data.get(
+                "kdf_memory", backup_credential_orm.kdf_memory
+            )
+        if "kdf_parallelism" in update_data:
+            backup_credential_orm.kdf_parallelism = update_data.get(
+                "kdf_parallelism", backup_credential_orm.kdf_parallelism
+            )
+        backup_credential_orm.save()
+        return ModelParser.user_parser().parse_backup_credential(backup_credential_orm=backup_credential_orm)
 
     # ------------------------ Delete BackupCredential resource --------------------- #
     def delete_backup_credential(self, backup_credential_id: str) -> bool:

@@ -39,6 +39,7 @@ class PasswordlessPwdViewSet(APIBaseViewSet):
             })
             for backup_credential in user_backup_credentials:
                 user_backup_credentials_data.append({
+                    "id": backup_credential.backup_credential_id,
                     "credential_id": backup_credential.fd_credential_id,
                     "random": backup_credential.fd_random,
                     "transports": backup_credential.fd_transports,
