@@ -25,6 +25,9 @@ class BackupCredentialRepository(ABC):
         pass
 
     # ------------------------ Update BackupCredential resource --------------------- #
+    @abstractmethod
+    def update_backup_credential(self, backup_credential_id: str, update_data: Dict) -> Optional[BackupCredential]:
+        pass
 
     # ------------------------ Delete BackupCredential resource --------------------- #
     @abstractmethod

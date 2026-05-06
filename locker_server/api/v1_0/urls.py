@@ -72,7 +72,7 @@ urlpatterns += [
     re_path(r'^users/access_token$', views.UserPwdViewSet.as_view({'post': 'access_token'})),
     re_path(r'^users/backup_credentials$', views.BackupCredentialPwdViewSet.as_view({'get': 'list', 'post': 'create'})),
     re_path(r'^users/backup_credentials/(?P<pk>[a-zA-Z0-9\-]+)$',
-        views.BackupCredentialPwdViewSet.as_view({'get': 'retrieve', 'delete': "destroy"})),
+        views.BackupCredentialPwdViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': "destroy"})),
 
 ]
 

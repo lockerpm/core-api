@@ -9,7 +9,6 @@ from locker_server.core.exceptions.backup_credential_exception import BackupCred
     BackupCredentialMaximumReachedException
 from locker_server.core.exceptions.user_exception import UserDoesNotExistException
 from locker_server.shared.error_responses.error import gen_error
-
 from .serializers import *
 
 
@@ -27,6 +26,8 @@ class BackupCredentialPwdViewSet(APIBaseViewSet):
             self.serializer_class = DetailBackupCredentialSerializer
         elif self.action == "create":
             self.serializer_class = CreateBackupCredentialSerializer
+        elif self.action == "update":
+            self.serializer_class = UpdateBackupCredentialSerializer
         return super().get_serializer_class()
 
     def get_queryset(self):
@@ -81,6 +82,20 @@ class BackupCredentialPwdViewSet(APIBaseViewSet):
                 "id": new_backup_credential.backup_credential_id
             }
         )
+
+    def update(self, request, *args, **kwargs):
+        backup_credential = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        try:
+            self.backup_credential_service.update_backup_credential(
+                backup_credential_id=backup_credential.backup_credential_id,
+                update_data=validated_data,
+            )
+        except BackupCredentialDoesNotExistException:
+            raise NotFound
+        return Response(status=status.HTTP_200_OK, data={"success": True})
 
     def destroy(self, request, *args, **kwargs):
         backup_credential = self.get_object()

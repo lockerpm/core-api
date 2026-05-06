@@ -72,3 +72,30 @@ class CreateBackupCredentialSerializer(serializers.Serializer):
             if not kdf_parallelism:
                 data["kdf_parallelism"] = DEFAULT_KDF_PARALLELISM
         return data
+
+
+class UpdateBackupCredentialSerializer(serializers.Serializer):
+    master_password_hash = serializers.CharField(allow_blank=False)
+    key = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    kdf = serializers.IntegerField(required=False)
+    kdf_iterations = serializers.IntegerField(required=False)
+    kdf_memory = serializers.IntegerField(required=False, allow_null=True)
+    kdf_parallelism = serializers.IntegerField(required=False, allow_null=True)
+
+    def validate(self, data):
+        kdf_iterations = data.get("kdf_iterations")
+        if kdf_iterations and (kdf_iterations < 1 or kdf_iterations > 1000000):
+            raise serializers.ValidationError(detail={
+                "kdf_iterations": ["KDF iterations must be between 1 and 1000000"]
+            })
+        kdf_type = data.get("kdf")
+        if kdf_type and not KDF_TYPE.get(kdf_type):
+            raise serializers.ValidationError(detail={"kdf": ["This KDF Type is not valid"]})
+        kdf_memory = data.get("kdf_memory")
+        kdf_parallelism = data.get("kdf_parallelism")
+        if kdf_type and kdf_type == KDF_TYPE_ARGON2ID:
+            if not kdf_memory:
+                data["kdf_memory"] = DEFAULT_KDF_MEMORY
+            if not kdf_parallelism:
+                data["kdf_parallelism"] = DEFAULT_KDF_PARALLELISM
+        return data
