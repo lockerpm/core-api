@@ -1,5 +1,7 @@
 from typing import Optional, Dict
 
+from django.contrib.auth.hashers import make_password
+
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_backup_credential_model
 from locker_server.core.entities.user.backup_credential import BackupCredential
@@ -62,10 +64,9 @@ class BackupCredentialORMRepository(BackupCredentialRepository):
             )
         except BackupCredentialORM.DoesNotExist:
             return None
-        if "master_password_hash" in update_data:
-            backup_credential_orm.master_password_hash = update_data.get(
-                "master_password_hash", backup_credential_orm.master_password_hash
-            )
+        raw_master_password = update_data.get("master_password") or update_data.get("master_password_hash")
+        if raw_master_password is not None:
+            backup_credential_orm.master_password = make_password(raw_master_password)
         if "key" in update_data:
             backup_credential_orm.key = update_data.get("key", backup_credential_orm.key)
         if "kdf" in update_data:
@@ -81,6 +82,10 @@ class BackupCredentialORMRepository(BackupCredentialRepository):
         if "kdf_parallelism" in update_data:
             backup_credential_orm.kdf_parallelism = update_data.get(
                 "kdf_parallelism", backup_credential_orm.kdf_parallelism
+            )
+        if "master_password_hint" in update_data:
+            backup_credential_orm.master_password_hint = update_data.get(
+                "master_password_hint", backup_credential_orm.master_password_hint
             )
         backup_credential_orm.save()
         return ModelParser.user_parser().parse_backup_credential(backup_credential_orm=backup_credential_orm)
