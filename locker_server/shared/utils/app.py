@@ -207,7 +207,7 @@ def convert_readable_date(timestamp, datetime_format="%Y-%m-%dT%H:%M:%S.%fZ"):
     """
     if timestamp is None or timestamp < 0:
         return None
-    return datetime.utcfromtimestamp(timestamp).strftime(datetime_format)
+    return datetime.fromtimestamp(timestamp).strftime(datetime_format)
 
 
 def md5_encode(text):

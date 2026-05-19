@@ -156,7 +156,7 @@ class Payment(object):
         return self._saas_market
 
     def get_created_time_str(self, time_format='%H:%M:%S %d-%m-%Y'):
-        return datetime.utcfromtimestamp(self.created_time).strftime(time_format) if self.created_time else None
+        return datetime.fromtimestamp(self.created_time).strftime(time_format) if self.created_time else None
 
     def get_customer_dict(self):
         if not self.customer:

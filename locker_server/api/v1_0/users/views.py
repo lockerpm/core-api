@@ -323,24 +323,30 @@ class UserPwdViewSet(APIBaseViewSet):
         else:
             require_enterprise_member_status = E_MEMBER_STATUS_CONFIRMED
 
-        if is_factor2:
-            try:
-                # check device in white list
-                device_existed = self.device_service.get_device_factor2_by_device_identifier(
-                    user_id=user.user_id, device_identifier=device_identifier
-                )
-            except (DeviceDoesNotExistException, DeviceFactor2DoesNotExistException):
-                active_factor2_methods = self.factor2_service.list_user_factor2_methods(
-                    user_id=user.user_id,
-                    **{
-                        "is_activate": True
-                    }
-                )
-                active_methods = [factor2.method for factor2 in active_factor2_methods]
-                active_methods = list(set(active_methods))
-                active_methods_data = [{"method": method, "is_active": True} for method in active_methods]
-                return Response(status=status.HTTP_200_OK, data={'is_factor2': True, 'methods': active_methods_data})
         try:
+            if is_factor2:
+                try:
+                    # check device in white list
+                    self.device_service.get_device_factor2_by_device_identifier(
+                        user_id=user.user_id, device_identifier=device_identifier
+                    )
+                except (DeviceDoesNotExistException, DeviceFactor2DoesNotExistException):
+                    self.user_service.check_user_session_auth(
+                        user=user, password=password, ip=ip,
+                        require_enterprise_member_status=require_enterprise_member_status
+                    )
+                    active_factor2_methods = self.factor2_service.list_user_factor2_methods(
+                        user_id=user.user_id,
+                        **{
+                            "is_activate": True
+                        }
+                    )
+                    active_methods = [factor2.method for factor2 in active_factor2_methods]
+                    active_methods = list(set(active_methods))
+                    active_methods_data = [{"method": method, "is_active": True} for method in active_methods]
+                    return Response(
+                        status=status.HTTP_200_OK, data={'is_factor2': True, 'methods': active_methods_data}
+                    )
             result = self.user_service.user_session(
                 user=user, password=password, client_id=client_id, device_identifier=device_identifier,
                 device_name=device_name, device_type=device_type,
@@ -619,7 +625,7 @@ class UserPwdViewSet(APIBaseViewSet):
                     func_name="notify_sending", **{
                         "user": user,
                         "job": PWD_MASTER_PASSWORD_CHANGED,
-                        "changed_time": datetime.utcfromtimestamp(now()).strftime('%H:%M:%S %d-%m-%Y') + " (UTC+00)",
+                        "changed_time": datetime.fromtimestamp(now()).strftime('%H:%M:%S %d-%m-%Y') + " (UTC+00)",
                         "account": user.email,
                         "location": user_location,
                         "ip": ip_location.get("ip", ""),

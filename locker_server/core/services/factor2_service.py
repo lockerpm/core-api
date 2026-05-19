@@ -71,7 +71,7 @@ class Factor2Service:
             "job": ID_FACTOR2_MAIL_LOGIN,
             "scope": "id",
             "code": mail_otp.activate_code,
-            "login_time": datetime.utcfromtimestamp(now()).strftime('%Y-%m-%d %H:%M:%S +00'),
+            "login_time": datetime.fromtimestamp(now()).strftime('%Y-%m-%d %H:%M:%S +00'),
             "login_email": user.email,
             "login_location": ip_location.get("location"),
             "login_ip": ip_location.get("ip", ""),

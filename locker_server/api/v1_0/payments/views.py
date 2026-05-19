@@ -581,7 +581,7 @@ class PaymentPwdViewSet(APIBaseViewSet):
         if end_time:
             return Response(status=status.HTTP_200_OK, data={
                 "user_ids": [user.user_id],
-                "expired_date": datetime.utcfromtimestamp(end_time).strftime('%d/%m/%Y'),
+                "expired_date": datetime.fromtimestamp(end_time).strftime('%d/%m/%Y'),
                 "current_plan": current_plan_name
             })
         return Response(status=status.HTTP_200_OK, data={"success": True})

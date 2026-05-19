@@ -66,4 +66,4 @@ class AbstractPaymentORM(models.Model):
         return ast.literal_eval(str(self.metadata))
 
     def get_created_time_str(self):
-        return datetime.utcfromtimestamp(self.created_time).strftime('%H:%M:%S %d-%m-%Y')
+        return datetime.fromtimestamp(self.created_time).strftime('%H:%M:%S %d-%m-%Y')
