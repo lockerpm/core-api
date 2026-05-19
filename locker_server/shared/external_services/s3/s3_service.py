@@ -74,7 +74,7 @@ class S3Service:
             return
         # if is_cdn:
         #     expired = kwargs.get("expired", DEFAULT_S3_EXPIRED)
-        #     expire_date = datetime.utcfromtimestamp(now() + expired)  # 1 minute
+        #     expire_date = datetime.fromtimestamp(now() + expired)  # 1 minute
         #     cloudfront_signer = CloudFrontSigner(settings.AWS_CLOUDFRONT_PUBLIC_KEY_ID, self._rsa_signer)
         #     if not file_path.startswith("https://") and not file_path.startswith("http://"):
         #         file_path = "{}/{}".format(settings.CDN_ATTACHMENT_URL, file_path)

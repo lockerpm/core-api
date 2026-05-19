@@ -333,12 +333,8 @@ class UserService:
     def count_failed_login_event(self, user_id: int) -> int:
         return self.user_repository.count_failed_login_event(user_id=user_id)
 
-    def user_session(self, user: User, password: str, client_id: str = None, device_identifier: str = None,
-                     device_name: str = None, device_type: int = None, is_factor2: bool = False,
-                     token_auth_value: str = None, secret: str = None,
-                     ip: str = None, ua: str = None, require_enterprise_member_status: str = E_MEMBER_STATUS_CONFIRMED):
-        kdf_version = user.get_kdf_version()
-        # Check login block
+    def check_user_session_auth(self, user: User, password: str, ip: str = None,
+                                require_enterprise_member_status: str = E_MEMBER_STATUS_CONFIRMED):
         if user.login_block_until and user.login_block_until > now():
             wait = user.login_block_until - now()
             raise UserAuthBlockingEnterprisePolicyException(wait=wait)
@@ -348,7 +344,6 @@ class UserService:
         )
         user_enterprise_ids = [enterprise.enterprise_id for enterprise in user_enterprises]
         check_master_password = self.auth_repository.check_master_password(user=user, raw_password=password)
-        # Login failed
         if check_master_password is False:
             if user_enterprise_ids:
                 BackgroundFactory.get_background(bg_name=BG_EVENT).run(func_name="create_by_enterprise_ids", **{
@@ -373,14 +368,12 @@ class UserService:
                     )
                     if user.login_failed_attempts >= failed_login_attempts and \
                             latest_request_login and now() - latest_request_login < failed_login_duration:
-                        # Lock login of this member
                         user = self.user_repository.update_login_time_user(
                             user_id=user.user_id,
                             update_data={
                                 "login_block_until": now() + failed_login_block_time
                             }
                         )
-                        # Create block failed login event
                         BackgroundFactory.get_background(bg_name=BG_EVENT).run(
                             func_name="create_by_enterprise_ids", **{
                                 "enterprise_ids": user_enterprise_ids, "user_id": user.user_id,
@@ -394,10 +387,10 @@ class UserService:
                             failed_login_owner_email=block_failed_login_policy.failed_login_owner_email,
                             owner=owner,
                             lock_time="{} (UTC+00)".format(
-                                datetime.utcfromtimestamp(now()).strftime('%H:%M:%S %d-%m-%Y')
+                                datetime.fromtimestamp(now()).strftime('%H:%M:%S %d-%m-%Y')
                             ),
                             unlock_time="{} (UTC+00)".format(
-                                datetime.utcfromtimestamp(user.login_block_until).strftime('%H:%M:%S %d-%m-%Y')
+                                datetime.fromtimestamp(user.login_block_until).strftime('%H:%M:%S %d-%m-%Y')
                             ),
                             ip=ip
                         )
@@ -409,6 +402,17 @@ class UserService:
             raise UserBelongEnterpriseException
         if [e for e in user_enterprises if e.locked is True]:
             raise UserEnterprisePlanExpiredException
+
+        return user_enterprises, user_enterprise_ids, check_master_password
+
+    def user_session(self, user: User, password: str, client_id: str = None, device_identifier: str = None,
+                     device_name: str = None, device_type: int = None, is_factor2: bool = False,
+                     token_auth_value: str = None, secret: str = None,
+                     ip: str = None, ua: str = None, require_enterprise_member_status: str = E_MEMBER_STATUS_CONFIRMED):
+        kdf_version = user.get_kdf_version()
+        user_enterprises, user_enterprise_ids, check_master_password = self.check_user_session_auth(
+            user=user, password=password, ip=ip, require_enterprise_member_status=require_enterprise_member_status
+        )
 
         # Check 2FA policy
         if is_factor2 is False:
@@ -802,77 +806,9 @@ class UserService:
                             device_name: str = None, device_type: int = None, is_factor2: bool = False,
                             token_auth_value: str = None, secret: str = None,
                             ip: str = None, ua: str = None, save_device: bool = False):
-        # Check login block
-        if user.login_block_until and user.login_block_until > now():
-            wait = user.login_block_until - now()
-            raise UserAuthBlockingEnterprisePolicyException(wait=wait)
-
-        user_enterprises = self.enterprise_repository.list_user_enterprises(
-            user_id=user.user_id, **{"status": E_MEMBER_STATUS_CONFIRMED}
+        user_enterprises, user_enterprise_ids, check_master_password = self.check_user_session_auth(
+            user=user, password=password, ip=ip
         )
-        user_enterprise_ids = [enterprise.enterprise_id for enterprise in user_enterprises]
-        check_master_password = self.auth_repository.check_master_password(user=user, raw_password=password)
-        # Login failed
-        if check_master_password is False:
-            if user_enterprise_ids:
-                BackgroundFactory.get_background(bg_name=BG_EVENT).run(func_name="create_by_enterprise_ids", **{
-                    "enterprise_ids": user_enterprise_ids, "user_id": user.user_id, "acting_user_id": user.user_id,
-                    "type": EVENT_USER_LOGIN_FAILED, "ip_address": ip
-                })
-                block_failed_login_policy = self.enterprise_policy_repository.get_block_failed_login_policy(
-                    user_id=user.user_id
-                )
-                if block_failed_login_policy:
-                    failed_login_attempts = block_failed_login_policy.failed_login_attempts
-                    failed_login_duration = block_failed_login_policy.failed_login_duration
-                    failed_login_block_time = block_failed_login_policy.failed_login_block_time
-                    latest_request_login = user.last_request_login
-
-                    user = self.user_repository.update_login_time_user(
-                        user_id=user.user_id,
-                        update_data={
-                            "login_failed_attempts": user.login_failed_attempts + 1,
-                            "last_request_login": now()
-                        }
-                    )
-                    if user.login_failed_attempts >= failed_login_attempts and \
-                            latest_request_login and now() - latest_request_login < failed_login_duration:
-                        # Lock login of this member
-                        user = self.user_repository.update_login_time_user(
-                            user_id=user.user_id,
-                            update_data={
-                                "login_block_until": now() + failed_login_block_time
-                            }
-                        )
-                        # Create block failed login event
-                        BackgroundFactory.get_background(bg_name=BG_EVENT).run(
-                            func_name="create_by_enterprise_ids", **{
-                                "enterprise_ids": user_enterprise_ids, "user_id": user.user_id,
-                                "type": EVENT_USER_BLOCK_LOGIN, "ip_address": ip
-                            }
-                        )
-                        owner = self.enterprise_member_repository.get_primary_member(
-                            enterprise_id=block_failed_login_policy.enterprise.enterprise_id
-                        ).user.user_id
-                        raise UserAuthBlockedEnterprisePolicyException(
-                            failed_login_owner_email=block_failed_login_policy.failed_login_owner_email,
-                            owner=owner,
-                            lock_time="{} (UTC+00)".format(
-                                datetime.utcfromtimestamp(now()).strftime('%H:%M:%S %d-%m-%Y')
-                            ),
-                            unlock_time="{} (UTC+00)".format(
-                                datetime.utcfromtimestamp(user.login_block_until).strftime('%H:%M:%S %d-%m-%Y')
-                            ),
-                            ip=ip
-                        )
-            raise UserAuthFailedException
-
-        if self.enterprise_repository.list_user_enterprises(user_id=user.user_id, **{"is_activated": False}):
-            raise UserIsLockedByEnterpriseException
-        if self.enterprise_member_repository.lock_login_account_belong_enterprise(user_id=user.user_id) is True:
-            raise UserBelongEnterpriseException
-        if [e for e in user_enterprises if e.locked is True]:
-            raise UserEnterprisePlanExpiredException
         factor2_method = self.factor2_method_repository.get_factor2_method_by_method(
             user_id=user.user_id,
             method=method

@@ -539,7 +539,7 @@ class EmergencyAccessPwdViewSet(APIBaseViewSet):
                     func_name="notify_sending", **{
                         "user_ids": [grantor_user_id],
                         "job": PWD_MASTER_PASSWORD_CHANGED,
-                        "changed_time": datetime.utcfromtimestamp(now()).strftime('%H:%M:%S %d-%m-%Y') + " (UTC+00)",
+                        "changed_time": datetime.fromtimestamp(now()).strftime('%H:%M:%S %d-%m-%Y') + " (UTC+00)",
                     }
                 )
             return Response(status=status.HTTP_200_OK, data={"success": True})

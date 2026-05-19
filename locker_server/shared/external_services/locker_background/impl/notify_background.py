@@ -50,7 +50,7 @@ class NotifyBackground(LockerBackground):
                 try:
                     user_obj = user_service.retrieve_by_id(user_id=user_id)
                     downgrade_time_str = "{} (UTC)".format(
-                        datetime.utcfromtimestamp(downgrade_time).strftime('%H:%M:%S %d-%m-%Y')
+                        datetime.fromtimestamp(downgrade_time).strftime('%H:%M:%S %d-%m-%Y')
                     )
                     NotificationSender(job=PWD_ACCOUNT_DOWNGRADE, scope=scope, services=[SENDING_SERVICE_MAIL]).send(**{
                         "user_ids": [user_id],
@@ -112,10 +112,10 @@ class NotifyBackground(LockerBackground):
                         "plan": current_plan,
                         "email": user_obj.email,
                         "start_date": "{} (UTC)".format(
-                            datetime.utcfromtimestamp(start_period).strftime('%H:%M:%S %d-%m-%Y')
+                            datetime.fromtimestamp(start_period).strftime('%H:%M:%S %d-%m-%Y')
                         ),
                         "expire_date": "{} (UTC)".format(
-                            datetime.utcfromtimestamp(end_period).strftime('%H:%M:%S %d-%m-%Y')
+                            datetime.fromtimestamp(end_period).strftime('%H:%M:%S %d-%m-%Y')
                         ),
                         "payment_method": payment_method,
                         "payment_url": payment_url
@@ -229,7 +229,7 @@ class NotifyBackground(LockerBackground):
                 "scope": data.get("scope"),
                 "user_id": data.get("user_id"),
                 "check_time": "{} (UTC)".format(
-                    datetime.utcfromtimestamp(now()).strftime('%H:%M:%S %d-%m-%Y')
+                    datetime.fromtimestamp(now()).strftime('%H:%M:%S %d-%m-%Y')
                 ),
                 "current_attempt": data.get("current_attempt"),
                 "next_attempt": data.get("next_attempt"),

@@ -302,7 +302,7 @@ class ManagementCommandPwdViewSet(APIBaseViewSet):
     # def _time_from_ts(ts):
     #     try:
     #         ts = int(ts)
-    #         return datetime.utcfromtimestamp(ts).strftime('%H:%M:%S %d-%m-%Y')
+    #         return datetime.fromtimestamp(ts).strftime('%H:%M:%S %d-%m-%Y')
     #     except (AttributeError, TypeError, ValueError):
     #         return None
     #
