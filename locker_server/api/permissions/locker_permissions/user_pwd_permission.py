@@ -8,7 +8,7 @@ class UserPwdPermission(APIPermission):
                            "access_token"]:
             return True
         elif view.action in ["me", "passwordless_require", "onboarding_process",
-                             "block_by_2fa_policy", "login_method_me"]:
+                             "block_by_2fa_policy", "login_method_me", "prelogin_me"]:
             return self.is_auth(request)
         elif view.action in ["register"]:
             return self.is_auth(request) is False or request.user.activated is False
