@@ -621,18 +621,19 @@ class UserPwdViewSet(APIBaseViewSet):
                     user_location = ", ".join(city_country)
                 else:
                     user_location = ""
-                BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
-                    func_name="notify_sending", **{
-                        "user": user,
-                        "job": PWD_MASTER_PASSWORD_CHANGED,
-                        "changed_time": datetime.fromtimestamp(now()).strftime('%H:%M:%S %d-%m-%Y') + " (UTC+00)",
-                        "account": user.email,
-                        "location": user_location,
-                        "ip": ip_location.get("ip", ""),
-                        "os": os,
-                        "browser": browser,
-                    }
-                )
+                if result.get("notification") is True:
+                    BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+                        func_name="notify_sending", **{
+                            "user": user,
+                            "job": PWD_MASTER_PASSWORD_CHANGED,
+                            "changed_time": datetime.fromtimestamp(now()).strftime('%H:%M:%S %d-%m-%Y') + " (UTC+00)",
+                            "account": user.email,
+                            "location": user_location,
+                            "ip": ip_location.get("ip", ""),
+                            "os": os,
+                            "browser": browser,
+                        }
+                    )
 
             # Update member status if user in enterprise
             if not is_password_changed_before:

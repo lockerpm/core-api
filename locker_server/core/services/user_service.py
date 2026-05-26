@@ -540,12 +540,18 @@ class UserService:
                     require_enterprise_member_status=require_enterprise_member_status
                 ) is True:
             raise UserAuthFailedPasswordlessRequiredException
+        is_changed_master_password = True
         self.user_repository.change_master_password(
             user=user, new_master_password_hash=new_master_password_hash,
             new_master_password_hint=new_master_password_hint,
             key=key, score=score, login_method=login_method, kdf_iterations=kdf_iterations, kdf=kdf,
             kdf_memory=kdf_memory, kdf_parallelism=kdf_parallelism
         )
+        # Only change kdf
+        if user.kdf_iterations != kdf_iterations or user.kdf != kdf or \
+                user.kdf_memory != kdf_memory or user.kdf_parallelism != kdf_parallelism:
+            is_changed_master_password = False
+
         exclude_sso_token_ids = None
         client = None
         if login_method:
@@ -559,7 +565,7 @@ class UserService:
             category_id=NOTIFY_CHANGE_MASTER_PASSWORD, user_ids=[user.user_id]
         )
         return {
-            "notification": True if user.user_id in mail_user_ids else False,
+            "notification": True if user.user_id in mail_user_ids and is_changed_master_password else False,
             "mail_user_ids": mail_user_ids,
             "client": client
         }
