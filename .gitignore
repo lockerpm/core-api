@@ -61,3 +61,5 @@ crashlytics-build.properties
 fabric.properties
 log.txt
 
+#
+.DS_Store
