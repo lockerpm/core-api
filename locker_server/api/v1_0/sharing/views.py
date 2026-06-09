@@ -439,6 +439,8 @@ class SharingPwdViewSet(APIBaseViewSet):
         # Retrieve member that accepted
         try:
             member = self.sharing_service.get_shared_member(sharing_member_id=member_id)
+            if str(member.team.team_id) != str(kwargs.get("pk")):
+                raise NotFound
         except TeamMemberDoesNotExistException:
             raise NotFound
 

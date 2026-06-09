@@ -224,7 +224,7 @@ urlpatterns += [
 
     re_path(r'^payments/invoices$', views.PaymentPwdViewSet.as_view({'get': 'invoices'})),
     re_path(r'^payments/invoices/(?P<pk>[A-Z0-9]+)$',
-        views.PaymentPwdViewSet.as_view({'get': 'retrieve_invoice', 'post': 'retry_invoice'})),
+        views.PaymentPwdViewSet.as_view({'get': 'retrieve_invoice',})),
 ]
 
 # -------------------------------- Family Plan members  ------------------------------------- #
