@@ -1,9 +1,19 @@
+from django.conf import settings
+
 from locker_server.api.permissions.app import APIPermission
 
 
 class UserPwdPermission(APIPermission):
     def has_permission(self, request, view):
-        if view.action in ["password_hint", "invitation_confirmation", "delete_multiple",
+        if view.action in ["invitation_confirmation", "clear_cache"]:
+            auth_header = request.META.get("HTTP_AUTHORIZATION")
+            try:
+                auth_token = auth_header.split()[1]
+                return auth_token == settings.MANAGEMENT_COMMAND_TOKEN
+            except (AttributeError, IndexError):
+                return False
+
+        elif view.action in ["password_hint", "delete_multiple",
                            "session", "session_by_otp", "check_password", "exist", "prelogin", "reset_password",
                            "access_token"]:
             return True
