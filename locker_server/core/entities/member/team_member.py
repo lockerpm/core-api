@@ -5,7 +5,8 @@ from locker_server.shared.constants.members import PM_MEMBER_STATUS_CONFIRMED
 
 
 class TeamMember(object):
-    def __init__(self, team_member_id: str, external_id: str = None, access_time: int = None, is_default: bool = False,
+    def __init__(self, team_member_id: str, external_id: str = None, access_time: int = None,
+                 accepted_time: int = None, is_default: bool = False,
                  is_primary: bool = False, is_added_by_group: bool = False, hide_passwords: bool = False,
                  key: str = None, reset_password_key: str = None, status: str = PM_MEMBER_STATUS_CONFIRMED,
                  email: str = None, token_invitation: str = None, user: User = None, team: Team = None,
@@ -13,6 +14,7 @@ class TeamMember(object):
         self._team_member_id = team_member_id
         self._external_id = external_id
         self._access_time = access_time
+        self._accepted_time = accepted_time
         self._is_default = is_default
         self._is_primary = is_primary
         self._is_added_by_group = is_added_by_group
@@ -37,6 +39,14 @@ class TeamMember(object):
     @property
     def access_time(self):
         return self._access_time
+
+    @property
+    def accepted_time(self):
+        return self._accepted_time
+
+    @accepted_time.setter
+    def accepted_time(self, accepted_time_value):
+        self._accepted_time = accepted_time_value
 
     @property
     def is_default(self):
