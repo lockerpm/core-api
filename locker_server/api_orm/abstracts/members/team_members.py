@@ -11,6 +11,7 @@ class AbstractTeamMemberORM(models.Model):
     id = models.CharField(primary_key=True, max_length=128, default=uuid.uuid4)
     external_id = models.CharField(max_length=300, null=True)
     access_time = models.IntegerField()
+    accepted_time = models.IntegerField(null=True, default=None)
     is_default = models.BooleanField(default=False)
     is_primary = models.BooleanField(default=False)
     is_added_by_group = models.BooleanField(default=False)

@@ -55,6 +55,7 @@ class SyncOrgDetailSerializer(serializers.Serializer):
             "key": instance.key,
             "name": instance.team.name,
             "status": MAP_MEMBER_STATUS_TO_INT.get(instance.status),
+            "accepted_time": instance.accepted_time,
             "type": real_role,
         }
         return team_member_data

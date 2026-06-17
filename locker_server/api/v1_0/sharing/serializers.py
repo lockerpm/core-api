@@ -17,6 +17,7 @@ class SharingInvitationSerializer(serializers.Serializer):
         data = {
             "id": instance.team_member_id,
             "access_time": instance.access_time,
+            "accepted_time": instance.accepted_time,
             "role": instance.role.name,
             "status": instance.status,
             "team": {

@@ -315,9 +315,11 @@ class SharingORMRepository(SharingRepository):
         # Else, set status ACCEPTED
         else:
             member_orm.status = PM_MEMBER_STATUS_ACCEPTED
+        member_orm.accepted_time = now()
         member_orm.save()
         bump_account_revision_date(user=member_orm.user)
         member.status = member_orm.status
+        member.accepted_time = member_orm.accepted_time
         return member
 
     def reject_invitation(self, member: TeamMember):
@@ -333,12 +335,14 @@ class SharingORMRepository(SharingRepository):
         member_orm.email = None
         member_orm.key = key
         member_orm.status = PM_MEMBER_STATUS_CONFIRMED
+        member_orm.accepted_time = now()
         member_orm.save()
         bump_account_revision_date(user=member_orm.user)
 
         member.status = member_orm.status
         member.key = member_orm.key
         member.email = None
+        member.accepted_time = member_orm.accepted_time
         return member
 
     def update_role_invitation(self, member: TeamMember, role_id: str,

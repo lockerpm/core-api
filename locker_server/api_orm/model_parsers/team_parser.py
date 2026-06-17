@@ -37,6 +37,7 @@ class TeamParser:
             team_member_id=team_member_orm.id,
             external_id=team_member_orm.external_id,
             access_time=team_member_orm.access_time,
+            accepted_time=team_member_orm.accepted_time,
             is_default=team_member_orm.is_default,
             is_primary=team_member_orm.is_primary,
             is_added_by_group=team_member_orm.is_added_by_group,
