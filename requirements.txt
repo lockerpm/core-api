@@ -6,7 +6,7 @@ bson==0.5.10
 # cffi==1.15.1
 
 # Django - Django REST
-Django==5.2.13
+Django==5.2.15
 django-cors-headers==4.9.0
 djangorestframework==3.16.1
 django-redis==6.0.0
@@ -31,7 +31,7 @@ daphne==4.2.1
 dependency-injector==4.48.3
 
 # JWT Token
-PyJWT==2.12.1
+PyJWT==2.13.0
 
 # Schedule tasks
 schedule==1.2.2
@@ -49,7 +49,7 @@ pyotp==2.9.0
 user_agents==2.2.0
 
 # PyCrypto
-cryptography==46.0.7
+cryptography==48.0.1
 
 # PyHumps
 pyhumps==3.8.0
