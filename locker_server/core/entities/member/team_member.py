@@ -1,7 +1,7 @@
 from locker_server.core.entities.member.member_role import MemberRole
 from locker_server.core.entities.team.team import Team
 from locker_server.core.entities.user.user import User
-from locker_server.shared.constants.members import PM_MEMBER_STATUS_CONFIRMED
+from locker_server.shared.constants.members import PM_MEMBER_STATUS_CONFIRMED, PM_MEMBER_STATUS_ACCEPTED
 
 
 class TeamMember(object):
@@ -42,6 +42,8 @@ class TeamMember(object):
 
     @property
     def accepted_time(self):
+        if self.status in [PM_MEMBER_STATUS_ACCEPTED, PM_MEMBER_STATUS_CONFIRMED]:
+            return self._accepted_time or self.access_time
         return self._accepted_time
 
     @accepted_time.setter
