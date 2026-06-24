@@ -983,7 +983,9 @@ class SharingService:
             raise CollectionDoesNotExistException
 
         cipher_obj = self.cipher_repository.get_by_id(cipher_id=cipher.get("id"))
-        if not cipher_obj or collection_obj.team.team_id != sharing_id:
+        if not cipher_obj or (cipher_obj.team and cipher_obj.team.team_id != sharing.team_id) or \
+                (cipher_obj.user and cipher_obj.user.user_id != user.user_id) or \
+                collection_obj.team.team_id != sharing_id:
             raise CipherDoesNotExistException
 
         cipher["team_id"] = None
