@@ -138,6 +138,8 @@ class SharingPwdViewSet(APIBaseViewSet):
             raise ValidationError(detail={"status": ["This status is not valid"]})
         try:
             sharing_invitation = self.sharing_service.get_shared_member(sharing_member_id=kwargs.get("pk"))
+            if sharing_invitation.user and sharing_invitation.user.user_id != user.user_id:
+                raise NotFound
             if sharing_invitation.status != PM_MEMBER_STATUS_INVITED or sharing_invitation.team.key is None or \
                     sharing_invitation.user.activated is False:
                 raise NotFound
