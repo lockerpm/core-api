@@ -11,6 +11,9 @@ from locker_server.core.exceptions.cipher_exception import *
 from locker_server.core.exceptions.quick_share_exception import QuickShareDoesNotExistException, \
     QuickShareNotValidAccessException, QuickShareRequireOTPException
 from locker_server.shared.error_responses.error import gen_error
+from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
+from locker_server.shared.external_services.locker_background.constants import BG_NOTIFY
+from locker_server.shared.external_services.user_notification.list_jobs import PWD_QUICK_SHARE_OTP
 from locker_server.shared.utils.app import camel_snake_data
 from .serializers import CreateQuickShareSerializer, ListQuickShareSerializer, DetailQuickShareSerializer, \
     PublicQuickShareSerializer, CheckAccessQuickShareSerializer, PublicAccessQuickShareSerializer
@@ -185,4 +188,19 @@ class QuickSharePwdViewSet(APIBaseViewSet):
             code = self.quick_share_service.set_email_otp(quick_share=quick_share, email=email)
         except QuickShareDoesNotExistException:
             raise ValidationError(detail={"email": ["The email is not valid"]})
-        return Response(status=status.HTTP_200_OK, data={"code": code, "email": email})
+        try:
+            language = quick_share.cipher.created_by.language
+        except (ValueError, AttributeError, TypeError):
+            language = "en"
+        BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
+            func_name="notify_locker_mail", **{
+                "destinations": [{
+                    "email": email,
+                    "name": "bạn" if language == "en" else "there",
+                    "language": language
+                }],
+                "job": PWD_QUICK_SHARE_OTP,
+                "code": code
+            }
+        )
+        return Response(status=status.HTTP_200_OK, data={"success": True})

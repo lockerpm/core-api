@@ -353,6 +353,13 @@ class NotifyBackground(LockerBackground):
         services = kwargs.get("services", [SENDING_SERVICE_MAIL])
         if not services:
             return
+        # if not settings.SELF_HOSTED:
+        #     if "scope" not in kwargs:
+        #         kwargs.update({"scope": settings.SCOPE_PWD_MANAGER})
+        #     requester(
+        #         method="POST", url=API_NOTIFY_LOCKER, headers=HEADERS, data_send=kwargs,
+        #         retry=True, max_retries=3, timeout=5
+        #     )
         try:
             job = kwargs.get("job")
             NotificationSender(job=job, services=services, background=False).send(**kwargs)
