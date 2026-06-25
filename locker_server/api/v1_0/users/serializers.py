@@ -92,7 +92,7 @@ class UserRegisterSerializer(serializers.Serializer):
     enterprise_name = serializers.CharField(required=False, allow_null=True)
 
     def validate(self, data):
-        kdf_type = data.get("kdf_type", KDF_TYPE_PBKDF2_SHA256)
+        kdf_type = data.get("kdf", KDF_TYPE_PBKDF2_SHA256)
         if not KDF_TYPE.get(kdf_type):
             raise serializers.ValidationError(detail={"kdf": ["This KDF Type is not valid"]})
         kdf_iterations = data.get("kdf_iterations", DEFAULT_KDF_ITERATIONS)
@@ -267,7 +267,7 @@ class UserResetPasswordSerializer(serializers.Serializer):
     login_method = serializers.ChoiceField(choices=[LOGIN_METHOD_PASSWORD, LOGIN_METHOD_PASSWORDLESS])
 
     def validate(self, data):
-        kdf_type = data.get("kdf_type", KDF_TYPE_PBKDF2_SHA256)
+        kdf_type = data.get("kdf", KDF_TYPE_PBKDF2_SHA256)
         if not KDF_TYPE.get(kdf_type):
             raise serializers.ValidationError(detail={"kdf": ["This KDF Type is not valid"]})
         kdf_iterations = data.get("kdf_iterations")

@@ -28,7 +28,8 @@ from locker_server.core.repositories.team_repository import TeamRepository
 from locker_server.core.repositories.user_plan_repository import UserPlanRepository
 from locker_server.core.repositories.user_repository import UserRepository
 from locker_server.shared.caching.sync_cache import get_sync_cache_key
-from locker_server.shared.constants.account import LOGIN_METHOD_PASSWORD
+from locker_server.shared.constants.account import LOGIN_METHOD_PASSWORD, DEFAULT_KDF_ITERATIONS
+from locker_server.shared.constants.ciphers import KDF_TYPE_PBKDF2_SHA256
 from locker_server.shared.constants.enterprise_members import *
 from locker_server.shared.constants.event import EVENT_USER_LOGIN_FAILED, EVENT_USER_LOGIN, EVENT_USER_BLOCK_LOGIN
 from locker_server.shared.constants.factor2 import FA2_METHOD_MAIL_OTP
@@ -174,8 +175,8 @@ class UserService:
         is_password_changed = True if default_plan == PLAN_TYPE_PM_ENTERPRISE else False
         master_password_score = kwargs.get("score") or kwargs.get("master_password_score") or user.master_password_score
         user_new_creation_data = {
-            "kdf": kwargs.get("kdf", 0),
-            "kdf_iterations": kwargs.get("kdf_iterations", 100000),
+            "kdf": kwargs.get("kdf", KDF_TYPE_PBKDF2_SHA256),
+            "kdf_iterations": kwargs.get("kdf_iterations", DEFAULT_KDF_ITERATIONS),
             "kdf_memory": kwargs.get("kdf_memory"),
             "kdf_parallelism": kwargs.get("kdf_parallelism"),
             "key": key,
