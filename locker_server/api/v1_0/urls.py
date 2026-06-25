@@ -273,8 +273,9 @@ urlpatterns += [
 
 # ------------------------------- Management Command ----------------------------- #
 urlpatterns += [
-    re_path(r'^managements/commands/(?P<pk>[a-z_]+)$', views.ManagementCommandPwdViewSet.as_view({'post': 'commands'})),
-    re_path(r'^managements/statistics/users$', views.ManagementCommandPwdViewSet.as_view({'get': 'users'})),
+    # Remove unused managment commands
+    # re_path(r'^managements/commands/(?P<pk>[a-z_]+)$', views.ManagementCommandPwdViewSet.as_view({'post': 'commands'})),
+    # re_path(r'^managements/statistics/users$', views.ManagementCommandPwdViewSet.as_view({'get': 'users'})),
 ]
 
 # ----------------------------------- User Reward missions ----------------- ------------ #

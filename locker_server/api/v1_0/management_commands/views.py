@@ -24,7 +24,7 @@ class ManagementCommandPwdViewSet(APIBaseViewSet):
 
     def check_perms(self):
         token = self.request.META.get("HTTP_TOKEN", None)
-        if token != settings.MANAGEMENT_COMMAND_TOKEN:
+        if not token or not settings.MANAGEMENT_COMMAND_TOKEN or token != settings.MANAGEMENT_COMMAND_TOKEN:
             raise PermissionDenied
         return True
 
