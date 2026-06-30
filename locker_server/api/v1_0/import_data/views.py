@@ -1,9 +1,13 @@
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from locker_server.api.api_base_view import APIBaseViewSet
 from locker_server.api.permissions.locker_permissions.import_pwd_permission import ImportPwdPermission
+from locker_server.core.exceptions.collection_exception import CollectionDoesNotExistException
+from locker_server.core.exceptions.team_exception import TeamDoesNotExistException, TeamLockedException
+from locker_server.shared.error_responses.error import gen_error
 from locker_server.shared.external_services.pm_sync import PwdSync, SYNC_EVENT_VAULT
 from .serializers import ImportFolderSerializer, ImportCipherSerializer
 
@@ -42,7 +46,16 @@ class ImportDataPwdViewSet(APIBaseViewSet):
         validated_data = serializer.validated_data
         ciphers = validated_data.get("ciphers", [])
 
-        self.cipher_service.import_multiple_ciphers(user=user, ciphers=ciphers)
+        try:
+            self.cipher_service.import_multiple_ciphers(user=user, ciphers=ciphers)
+        except TeamDoesNotExistException:
+            raise ValidationError(detail={"organizationId": ["This team does not exist"]})
+        except TeamLockedException:
+            raise ValidationError({"non_field_errors": [gen_error("3003")]})
+        except CollectionDoesNotExistException as e:
+            raise ValidationError(detail={
+                "collectionIds": ["The team collection id {} does not exist".format(e.collection_id)]
+            })
         self.user_service.delete_sync_cache_data(user_id=user.user_id)
         PwdSync(event=SYNC_EVENT_VAULT, user_ids=[user.user_id]).send()
         return Response(status=status.HTTP_200_OK, data={"success": True})

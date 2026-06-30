@@ -12,6 +12,14 @@ class TeamRepository(ABC):
         pass
 
     @abstractmethod
+    def list_team_collection_ids_by_teams(self, team_ids: List[str]) -> Dict[str, List[str]]:
+        pass
+
+    @abstractmethod
+    def list_default_collection_ids_by_teams(self, team_ids: List[str]) -> Dict[str, str]:
+        pass
+
+    @abstractmethod
     def list_owner_sharing_ids(self, user_id: int) -> List[str]:
         pass
 

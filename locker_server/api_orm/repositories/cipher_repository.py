@@ -511,13 +511,6 @@ class CipherORMRepository(CipherRepository):
         user_id = user.user_id
         user_orm = self._get_user_orm(user_id=user_id)
         existed_folder_ids = list(user_orm.folders.values_list('id', flat=True))
-
-        # # Check limit ciphers
-        # existed_ciphers_orm = CipherORM.objects.filter(created_by_id=user_id).values('type').annotate(
-        #     count=Count('type')
-        # )
-        # existed_ciphers_count = {item["type"]: item["count"] for item in list(existed_ciphers_orm)}
-
         # Check limit ciphers
         totp_ciphers_count = CipherORM.objects.filter(created_by_id=user_id, type=CIPHER_TYPE_TOTP).count()
         other_ciphers_count = CipherORM.objects.filter(created_by_id=user_id).exclude(
@@ -541,12 +534,6 @@ class CipherORMRepository(CipherRepository):
                 continue
             import_ciphers_count[check_type] = import_ciphers_count.get(check_type) + 1
 
-            # Check limit ciphers
-            # if allow_cipher_type and allow_cipher_type.get(cipher_type) and import_ciphers_count.get(cipher_type, 0) + \
-            #         existed_ciphers_count.get(cipher_type, 0) >= allow_cipher_type.get(cipher_type):
-            #     continue
-            # import_ciphers_count[cipher_type] = import_ciphers_count.get(cipher_type) + 1
-
             # Get folder id
             folder_id = None
             if cipher_data.get("folderId") and cipher_data.get("folderId") in existed_folder_ids:
@@ -568,11 +555,95 @@ class CipherORMRepository(CipherRepository):
                     user_id=user_id,
                     created_by_id=user_id,
                     folders=folders,
-                    team_id=cipher_data.get("organizationId")
+                    # Updated: Currently, DON't support import team_id
+                    team_id=None,
+                    # team_id=cipher_data.get("organizationId")
                 )
             )
         CipherORM.objects.bulk_create(import_ciphers, batch_size=100, ignore_conflicts=True)
         bump_account_revision_date(user=user_orm)
+
+    def import_multiple_ciphers_with_teams(self, user: User, ciphers: List, allow_cipher_type: Dict = None):
+        user_id = user.user_id
+        user_orm = self._get_user_orm(user_id=user_id)
+        existed_folder_ids = set(user_orm.folders.values_list('id', flat=True))
+
+        # Check limit ciphers
+        totp_ciphers_count = CipherORM.objects.filter(created_by_id=user_id, type=CIPHER_TYPE_TOTP).count()
+        other_ciphers_count = CipherORM.objects.filter(created_by_id=user_id).exclude(
+            type__in=[CIPHER_TYPE_TOTP, CIPHER_TYPE_MASTER_PASSWORD]
+        ).count()
+        existed_ciphers_count = {CIPHER_TYPE_TOTP: totp_ciphers_count, "limit_total": other_ciphers_count}
+
+        # Create multiple ciphers
+        import_ciphers = []
+        import_ciphers_count = {CIPHER_TYPE_TOTP: 0, "limit_total": 0}
+        # Collection associations to create for team ciphers + per-team collection ids to bump
+        import_collection_ciphers = []
+        team_collection_ids = {}  # team_id -> set(collection_ids)
+
+        for cipher_data in ciphers:
+            # Only accepts ciphers which have name
+            if not cipher_data.get("name"):
+                continue
+            cipher_type = cipher_data.get("type")
+            check_type = "limit_total" if cipher_type != CIPHER_TYPE_TOTP else cipher_type
+            if allow_cipher_type and allow_cipher_type.get(check_type) and import_ciphers_count.get(check_type, 0) + \
+                    existed_ciphers_count.get(check_type, 0) >= allow_cipher_type.get(check_type):
+                continue
+            import_ciphers_count[check_type] = import_ciphers_count.get(check_type) + 1
+
+            # Team ciphers: organizationId / collection_ids were authorized by the service layer
+            team_id = cipher_data.get("organizationId")
+            collection_ids = cipher_data.get("collection_ids") or []
+
+            # Get folder id (personal ciphers only; folders are personal)
+            folder_id = None
+            if not team_id and cipher_data.get("folderId") and cipher_data.get("folderId") in existed_folder_ids:
+                folder_id = cipher_data.get("folderId")
+            folders = "{%d: '%s'}" % (user.user_id, folder_id) if folder_id else ""
+
+            # Get cipher data
+            cipher_data["data"] = get_cipher_detail_data(cipher=cipher_data)
+            cipher_data = json.loads(json.dumps(cipher_data))
+            cipher_orm = CipherORM(
+                creation_date=cipher_data.get("creation_date", now()),
+                revision_date=cipher_data.get("revision_date", now()),
+                deleted_date=cipher_data.get("deleted_date"),
+                reprompt=cipher_data.get("reprompt", 0) or 0,
+                score=cipher_data.get("score", 0),
+                type=cipher_data.get("type"),
+                data=cipher_data.get("data"),
+                # A team cipher must not also be a personal cipher (team_id => user_id is null)
+                user_id=None if team_id else user_id,
+                created_by_id=user_id,
+                folders=folders,
+                team_id=team_id
+            )
+            import_ciphers.append(cipher_orm)
+            if team_id:
+                for collection_id in collection_ids:
+                    import_collection_ciphers.append(
+                        CollectionCipherORM(cipher_id=cipher_orm.id, collection_id=collection_id)
+                    )
+                team_collection_ids.setdefault(team_id, set()).update(collection_ids)
+
+        CipherORM.objects.bulk_create(import_ciphers, batch_size=100, ignore_conflicts=True)
+        if import_collection_ciphers:
+            CollectionCipherORM.objects.bulk_create(
+                import_collection_ciphers, batch_size=100, ignore_conflicts=True
+            )
+
+        # Bump revision date of the importing user (personal) and of each team's relevant members
+        bump_account_revision_date(user=user_orm)
+        # if team_collection_ids:
+        #     for team_orm in TeamORM.objects.filter(id__in=list(team_collection_ids.keys())):
+        #         bump_account_revision_date(
+        #             team=team_orm,
+        #             collection_ids=list(team_collection_ids[team_orm.id]),
+        #             role_name=[MEMBER_ROLE_OWNER, MEMBER_ROLE_ADMIN],
+        #         )
+
 
     # ------------------------ Update Cipher resource --------------------- #
     def update_cipher(self, cipher_id: str, cipher_data: Dict) -> Cipher:

@@ -103,6 +103,36 @@ class TeamMemberORMRepository(TeamMemberRepository):
             CollectionMemberORM.objects.filter(member_id=team_member_id).values_list('collection_id', flat=True)
         )
 
+    def get_user_teams_authz_map(self, user_id: int, team_ids: List[str]) -> Dict[str, Dict]:
+        rows = TeamMemberORM.objects.filter(user_id=user_id, team_id__in=team_ids).values(
+            "team_id", "id", "role_id", "team__key", "team__locked"
+        )
+        return {
+            row["team_id"]: {
+                "member_id": row["id"],
+                "role": row["role_id"],
+                "key": row["team__key"],
+                "locked": row["team__locked"],
+            }
+            for row in rows
+        }
+
+    def list_group_member_roles_by_members(self, member_ids: List[str]) -> Dict[str, List[str]]:
+        roles_map = {}
+        for member_id, role_id in GroupMemberORM.objects.filter(
+            member_id__in=member_ids
+        ).values_list("member_id", "group__role_id"):
+            roles_map.setdefault(member_id, []).append(role_id)
+        return roles_map
+
+    def list_member_collection_ids_by_members(self, member_ids: List[str]) -> Dict[str, List[str]]:
+        collections_map = {}
+        for member_id, collection_id in CollectionMemberORM.objects.filter(
+            member_id__in=member_ids
+        ).values_list("member_id", "collection_id"):
+            collections_map.setdefault(member_id, []).append(collection_id)
+        return collections_map
+
     def list_team_ids_owner_family_plan(self, user_id: int) -> List[str]:
         team_ids = TeamMemberORM.objects.filter(user_id=user_id, status=PM_MEMBER_STATUS_CONFIRMED).filter(
             user__pm_user_plan__pm_plan__alias=PLAN_TYPE_PM_FAMILY,
