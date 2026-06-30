@@ -26,7 +26,7 @@ urlpatterns += [
 
     re_path(r'^(?P<pk>[0-9a-z]+)/members_groups/search$',
         views.MemberPwdViewSet.as_view({'post': 'search_members_groups'})),
-    re_path(r'^members/invitation/confirmation$', views.MemberPwdViewSet.as_view({'get': 'invitation_confirmation'})),
+    # re_path(r'^members/invitation/confirmation$', views.MemberPwdViewSet.as_view({'get': 'invitation_confirmation'})),
     re_path(r'^members/invitations$', views.MemberPwdViewSet.as_view({'get': 'user_invitations'})),
     re_path(r'^members/invitations/(?P<pk>[a-z0-9\-]+)$',
         views.MemberPwdViewSet.as_view({'put': 'user_invitation_update'})),
