@@ -2,7 +2,8 @@ from rest_framework.exceptions import PermissionDenied
 
 from locker_server.api.permissions.app import APIPermission
 from locker_server.core.exceptions.enterprise_member_exception import EnterpriseMemberDoesNotExistException
-from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_PRIMARY_ADMIN, E_MEMBER_ROLE_ADMIN
+from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_PRIMARY_ADMIN, E_MEMBER_ROLE_ADMIN, \
+    E_MEMBER_STATUS_CONFIRMED
 from locker_server.containers.containers import enterprise_member_service
 
 
@@ -40,3 +41,8 @@ class EnterprisePwdPermission(APIPermission):
             return enterprise_member
         except EnterpriseMemberDoesNotExistException:
             raise PermissionDenied
+
+    @staticmethod
+    def is_activated_member(member):
+        # An active, fully-joined member: confirmed invitation and not deactivated/suspended.
+        return member.status == E_MEMBER_STATUS_CONFIRMED and member.is_activated
