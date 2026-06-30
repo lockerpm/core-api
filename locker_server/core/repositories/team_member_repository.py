@@ -36,6 +36,18 @@ class TeamMemberRepository(ABC):
         pass
 
     @abstractmethod
+    def get_user_teams_authz_map(self, user_id: int, team_ids: List[str]) -> Dict[str, Dict]:
+        pass
+
+    @abstractmethod
+    def list_group_member_roles_by_members(self, member_ids: List[str]) -> Dict[str, List[str]]:
+        pass
+
+    @abstractmethod
+    def list_member_collection_ids_by_members(self, member_ids: List[str]) -> Dict[str, List[str]]:
+        pass
+
+    @abstractmethod
     def list_team_ids_owner_family_plan(self, user_id: int) -> List[str]:
         pass
 

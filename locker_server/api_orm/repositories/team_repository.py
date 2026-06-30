@@ -27,6 +27,22 @@ class TeamORMRepository(TeamRepository):
     def list_team_collection_ids(self, team_id: str) -> List[str]:
         return list(CollectionORM.objects.filter(team_id=team_id).values_list('id', flat=True))
 
+    def list_team_collection_ids_by_teams(self, team_ids: List[str]) -> Dict[str, List[str]]:
+        collections_map = {}
+        for team_id, collection_id in CollectionORM.objects.filter(
+            team_id__in=team_ids
+        ).values_list("team_id", "id"):
+            collections_map.setdefault(team_id, []).append(collection_id)
+        return collections_map
+
+    def list_default_collection_ids_by_teams(self, team_ids: List[str]) -> Dict[str, str]:
+        return {
+            team_id: collection_id
+            for team_id, collection_id in CollectionORM.objects.filter(
+                team_id__in=team_ids, is_default=True
+            ).values_list("team_id", "id")
+        }
+
     def list_owner_sharing_ids(self, user_id: int) -> List[str]:
         try:
             default_team_orm = TeamMemberORM.objects.get(user_id=user_id, is_default=True).team

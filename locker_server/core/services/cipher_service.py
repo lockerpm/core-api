@@ -302,6 +302,79 @@ class CipherService:
         allow_cipher_type = self.user_plan_repository.get_max_allow_cipher_type(user=user)
         self.cipher_repository.import_multiple_ciphers(user=user, ciphers=ciphers, allow_cipher_type=allow_cipher_type)
 
+    # TODO: Use this func if the user needs to import ciphers with sharing teams
+    def import_multiple_ciphers_with_teams(self, user: User, ciphers: List):
+        allow_cipher_type = self.user_plan_repository.get_max_allow_cipher_type(user=user)
+        # Authorize every referenced organization before importing. This mirrors the create flow's
+        # _validated_team (membership + OWNER/ADMIN role + unlocked team + collection validation) but
+        # validates all referenced orgs in a constant number of batched queries instead of per cipher.
+        self._validate_import_teams(user=user, ciphers=ciphers)
+        self.cipher_repository.import_multiple_ciphers_with_teams(user=user, ciphers=ciphers, allow_cipher_type=allow_cipher_type)
+
+    def _validate_import_teams(self, user: User, ciphers: List):
+        allow_roles = [MEMBER_ROLE_OWNER, MEMBER_ROLE_ADMIN]
+        org_ids = list({cipher.get("organizationId") for cipher in ciphers if cipher.get("organizationId")})
+
+        org_access = {}  # org_id -> {"allowed": set[str], "default": str|None}
+        if org_ids:
+            authz = self.team_member_repository.get_user_teams_authz_map(user_id=user.user_id, team_ids=org_ids)
+            # Any referenced org the user is not a member of => reject the whole import
+            for org_id in org_ids:
+                if org_id not in authz:
+                    raise TeamDoesNotExistException
+
+            # Only escalate-check group roles for members whose direct role is insufficient
+            need_group = [a["member_id"] for a in authz.values() if a["role"] not in allow_roles]
+            group_roles = self.team_member_repository.list_group_member_roles_by_members(
+                member_ids=need_group
+            ) if need_group else {}
+
+            owner_admin_team_ids = []
+            member_member_ids = []
+            for org_id, a in authz.items():
+                role_ok = a["role"] in allow_roles or any(
+                    r in allow_roles for r in group_roles.get(a["member_id"], [])
+                )
+                if not role_ok or not a["key"]:
+                    raise TeamDoesNotExistException
+                if a["locked"]:
+                    raise TeamLockedException
+                if a["role"] in allow_roles:
+                    owner_admin_team_ids.append(org_id)
+                else:
+                    member_member_ids.append(a["member_id"])
+
+            team_cols = self.team_repository.list_team_collection_ids_by_teams(team_ids=owner_admin_team_ids)
+            member_cols = self.team_member_repository.list_member_collection_ids_by_members(
+                member_ids=member_member_ids
+            )
+            defaults = self.team_repository.list_default_collection_ids_by_teams(team_ids=org_ids)
+            for org_id, a in authz.items():
+                allowed = set(
+                    team_cols.get(org_id, []) if a["role"] in allow_roles
+                    else member_cols.get(a["member_id"], [])
+                )
+                org_access[org_id] = {"allowed": allowed, "default": defaults.get(org_id)}
+
+        # Resolve each cipher's collections in memory (no queries)
+        for cipher in ciphers:
+            org_id = cipher.get("organizationId")
+            if not org_id:
+                cipher["organizationId"] = None
+                cipher["collection_ids"] = []
+                continue
+            access = org_access[org_id]
+            requested = cipher.get("collectionIds") or []
+            if not requested:
+                if not access["default"]:
+                    raise TeamDoesNotExistException
+                cipher["collection_ids"] = [access["default"]]
+            else:
+                for collection_id in requested:
+                    if collection_id not in access["allowed"]:
+                        raise CollectionDoesNotExistException(collection_id=collection_id)
+                cipher["collection_ids"] = list(set(requested))
+
     def statistic_created_ciphers(self, user_id: int) -> Dict:
         return self.cipher_repository.statistic_created_ciphers(
             user_id=user_id

@@ -103,6 +103,9 @@ class CipherRepository(ABC):
     def import_multiple_ciphers(self, user: User, ciphers: List, allow_cipher_type: Dict = None):
         pass
 
+    def import_multiple_ciphers_with_teams(self, user: User, ciphers: List, allow_cipher_type: Dict = None):
+        pass
+
     # ------------------------ Update Cipher resource --------------------- #
     @abstractmethod
     def update_cipher(self, cipher_id: str, cipher_data: Dict) -> Cipher:
