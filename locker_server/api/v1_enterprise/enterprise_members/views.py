@@ -511,14 +511,15 @@ class MemberPwdViewSet(APIBaseViewSet):
             }
         )
 
-    @action(methods=["get"], detail=False)
-    def invitation_confirmation(self, request, *args, **kwargs):
-        email = self.request.query_params.get("email")
-        user_id = self.request.query_params.get("user_id")
-        if not email or not user_id:
-            raise NotFound
-        enterprise_ids = self.enterprise_member_service.confirm_invitation(user_id=user_id, email=email)
-        return Response(status=status.HTTP_200_OK, data={"enterprise_ids": enterprise_ids})
+    # This API is unused - So removed
+    # @action(methods=["get"], detail=False)
+    # def invitation_confirmation(self, request, *args, **kwargs):
+    #     email = self.request.query_params.get("email")
+    #     user_id = self.request.query_params.get("user_id")
+    #     if not email or not user_id:
+    #         raise NotFound
+    #     enterprise_ids = self.enterprise_member_service.confirm_invitation(user_id=user_id, email=email)
+    #     return Response(status=status.HTTP_200_OK, data={"enterprise_ids": enterprise_ids})
 
     @action(methods=["post"], detail=False)
     def search_members_groups(self, request, *args, **kwargs):
