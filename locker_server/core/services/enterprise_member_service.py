@@ -14,7 +14,7 @@ from locker_server.core.repositories.enterprise_repository import EnterpriseRepo
 from locker_server.core.repositories.user_plan_repository import UserPlanRepository
 from locker_server.core.repositories.user_repository import UserRepository
 from locker_server.shared.constants.enterprise_members import E_MEMBER_STATUS_INVITED, E_MEMBER_STATUS_REQUESTED, \
-    E_MEMBER_STATUS_CONFIRMED
+    E_MEMBER_STATUS_CONFIRMED, E_MEMBER_ROLE_PRIMARY_ADMIN
 from locker_server.shared.constants.event import EVENT_E_MEMBER_UPDATED_ROLE
 from locker_server.shared.constants.token import TOKEN_EXPIRED_TIME_INVITE_MEMBER, TOKEN_TYPE_INVITE_MEMBER, \
     TOKEN_PREFIX
@@ -244,7 +244,8 @@ class EnterpriseMemberService:
         change_role = False
         member_update_data = update_data.copy()
         if role:
-            if enterprise_member.user and enterprise_member.user.user_id == current_user.user_id or enterprise_member.is_primary:
+            if (enterprise_member.user and enterprise_member.user.user_id == current_user.user_id) or \
+                    enterprise_member.is_primary or enterprise_member.role.name == E_MEMBER_ROLE_PRIMARY_ADMIN:
                 raise EnterpriseMemberUpdatedFailedException
             member_update_data.update({
                 "role": role
