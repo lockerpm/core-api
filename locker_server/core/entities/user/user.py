@@ -279,6 +279,8 @@ class User(object):
         return get_avatar(self.email)
 
     def get_kdf_version(self):
-        if self.user_id in [805, 2033, 31434, 31421, 4756, 31686] or (self.email and self.email.endswith("@cystack.net")) or (self.username and self.username.endswith("@cystack.net")):
-            return 1
-        return 0
+        # Update 15 Jul 2026 => Allow for all users
+        return 1
+        # if self.user_id in [805, 2033, 31434, 31421, 4756, 31686] or (self.email and self.email.endswith("@cystack.net")) or (self.username and self.username.endswith("@cystack.net")):
+        #     return 1
+        # return 0
