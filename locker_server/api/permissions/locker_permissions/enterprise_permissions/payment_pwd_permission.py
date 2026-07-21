@@ -19,7 +19,7 @@ class EnterprisePaymentPwdPermission(EnterprisePwdPermission):
         if view.action in ["cards"]:
             if request.method == "POST":
                 return role_name in [E_MEMBER_ROLE_PRIMARY_ADMIN]
-        elif view.action in ["upgrade_plan", "calc", "card_set_default"]:
+        elif view.action in ["upgrade_plan", "calc", "card_set_default", "add_card_subscription"]:
             return role_name in [E_MEMBER_ROLE_PRIMARY_ADMIN]
         elif view.action in ["billing_address"]:
             if request.method == "PUT":

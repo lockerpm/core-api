@@ -25,7 +25,9 @@ class EnterprisePwdPermission(APIPermission):
         role_name = role.name
         if view.action in ["dashboard", "update", "destroy", "avatar", "add_members"]:
             return role_name in [E_MEMBER_ROLE_PRIMARY_ADMIN, E_MEMBER_ROLE_ADMIN]
-        return member
+        elif view.action in ["list", "retrieve"]:
+            return member
+        return False
 
     def get_role_pattern(self, view):
         role_pattern = "{}.{}".format(self.scope, view.action)
