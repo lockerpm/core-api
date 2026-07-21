@@ -16,6 +16,6 @@ class ActivityLogPwdPermission(EnterprisePwdPermission):
         member = self.get_enterprise_member(user=request.user, obj=obj)
         role = member.role
         role_name = role.name
-        if view.action in ['list']:
-            return role_name in [E_MEMBER_ROLE_PRIMARY_ADMIN, E_MEMBER_ROLE_ADMIN, E_MEMBER_ROLE_MEMBER]
+        # if view.action in ['list']:
+        #     return role_name in [E_MEMBER_ROLE_PRIMARY_ADMIN, E_MEMBER_ROLE_ADMIN, E_MEMBER_ROLE_MEMBER]
         return role_name in [E_MEMBER_ROLE_PRIMARY_ADMIN, E_MEMBER_ROLE_ADMIN]

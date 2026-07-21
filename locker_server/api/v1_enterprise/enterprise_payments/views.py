@@ -156,7 +156,7 @@ class PaymentPwdViewSet(APIBaseViewSet):
             }
         )
 
-    @action(methods=["get"], detail=False)
+    @action(methods=["post"], detail=False)
     def add_card_subscription(self, request, *args, **kwargs):
         enterprise = self.get_enterprise()
         primary_admin = self.enterprise_service.get_primary_member(
