@@ -45,7 +45,7 @@ class EnterpriseGroupORMRepository(EnterpriseGroupRepository):
 
         if user_id_param:
             enterprise_groups_orm = enterprise_groups_orm.filter(
-                groups_members__member__user_id=user_id_param
+                group_members__member__user_id=user_id_param
             )
         return [
             ModelParser.enterprise_parser().parse_enterprise_group(enterprise_group_orm=enterprise_group_orm)
