@@ -4,7 +4,7 @@ from locker_server.core.entities.team.team import Team
 from locker_server.core.exceptions.team_member_exception import TeamMemberDoesNotExistException
 from locker_server.shared.constants.members import *
 from locker_server.shared.permissions.app import AppBasePermission
-from locker_server.containers.containers import team_member_service, cipher_service
+from locker_server.containers.containers import team_member_service, cipher_service, enterprise_service
 
 
 class APIPermission(AppBasePermission):
@@ -122,3 +122,9 @@ class APIPermission(AppBasePermission):
         # team_repository = CORE_CONFIG["repositories"]["ITeamRepository"]()
         # check_policy = team_repository.check_team_policy(request=request, team=cipher.team)
         # return check_policy
+
+    @staticmethod
+    def is_locked_by_enterprise(user):
+        if enterprise_service.list_user_enterprises(user_id=user.user_id, **{"is_activated": False}):
+            return True
+        return False
