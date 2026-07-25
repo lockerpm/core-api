@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.core.cache import cache
-from django.core.paginator import Paginator, EmptyPage
 from rest_framework import status
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
