@@ -196,11 +196,20 @@ class MemberPwdViewSet(APIBaseViewSet):
         member_id = kwargs.get("member_id")
         enterprise_member = self.get_enterprise_member(enterprise=enterprise, member_id=member_id)
 
+        try:
+            enterprise_admin = self.enterprise_member_service.get_member_by_user(
+                user_id=user.user_id, enterprise_id=enterprise.enterprise_id
+            )
+        except EnterpriseMemberDoesNotExistException:
+            raise PermissionDenied
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
         role = validated_data.get("role")
         member_status = validated_data.get("status")
+        if role and role == E_MEMBER_ROLE_PRIMARY_ADMIN and enterprise_admin.role.name == E_MEMBER_ROLE_ADMIN:
+            raise ValidationError(detail={"role": ["The role is not valid"]})
         try:
             change_status, change_role, updated_member = self.enterprise_member_service.update_enterprise_member(
                 current_user=user,
