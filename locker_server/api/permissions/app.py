@@ -2,9 +2,10 @@ from rest_framework.exceptions import PermissionDenied
 
 from locker_server.core.entities.team.team import Team
 from locker_server.core.exceptions.team_member_exception import TeamMemberDoesNotExistException
+from locker_server.shared.constants.enterprise_members import E_MEMBER_STATUS_CONFIRMED
 from locker_server.shared.constants.members import *
 from locker_server.shared.permissions.app import AppBasePermission
-from locker_server.containers.containers import team_member_service, cipher_service, enterprise_service
+from locker_server.containers.containers import team_member_service, cipher_service, enterprise_service, enterprise_member_service
 
 
 class APIPermission(AppBasePermission):
@@ -125,6 +126,13 @@ class APIPermission(AppBasePermission):
 
     @staticmethod
     def is_locked_by_enterprise(user):
-        if enterprise_service.list_user_enterprises(user_id=user.user_id, **{"is_activated": False}):
-            return True
+        enterprise_members = enterprise_member_service.list_enterprise_members(**{
+            "user_id": user.user_id,
+            "status": E_MEMBER_STATUS_CONFIRMED,
+        })
+        for enterprise_member in enterprise_members:
+            if not enterprise_member.is_activated:
+                return True
+            if enterprise_member.enterprise.locked:
+                return True
         return False
