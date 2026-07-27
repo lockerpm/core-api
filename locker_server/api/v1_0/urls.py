@@ -160,7 +160,7 @@ urlpatterns += [
 urlpatterns += [
     re_path(r'^quick_shares$', views.QuickSharePwdViewSet.as_view({'get': 'list', 'post': 'create'})),
     re_path(r'^quick_shares/(?P<pk>[0-9a-z-]+)$',
-        views.QuickSharePwdViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'})),
+        views.QuickSharePwdViewSet.as_view({'get': 'retrieve', 'delete': 'destroy'})),
     re_path(r'^quick_shares/(?P<pk>[0-9A-Z]+)/public$', views.QuickSharePwdViewSet.as_view({'post': 'public'})),
     re_path(r'^quick_shares/(?P<pk>[0-9A-Z]+)/access$',
         views.QuickSharePwdViewSet.as_view({'get': 'access', 'post': 'access'})),

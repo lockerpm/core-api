@@ -135,7 +135,8 @@ class QuickShareORMRepository(QuickShareRepository):
         quick_share_orm.password = quick_share_data.get("password") or quick_share_orm.password
         quick_share_orm.max_access_count = quick_share_data.get("max_access_count") or quick_share_orm.max_access_count
         quick_share_orm.expiration_date = quick_share_data.get("expiration_date") or quick_share_orm.expiration_date
-        quick_share_orm.is_public = quick_share_data.get("is_public") or quick_share_orm.is_public
+        if quick_share_data.get("is_public") is not None:
+            quick_share_orm.is_public = quick_share_data.get("is_public")
         quick_share_orm.disabled = quick_share_data.get("disabled") or quick_share_orm.disabled
         quick_share_orm.require_otp = quick_share_data.get("require_otp") or quick_share_orm.require_otp
         quick_share_orm.save()
