@@ -21,14 +21,14 @@ from .serializers import CreateQuickShareSerializer, ListQuickShareSerializer, D
 
 class QuickSharePwdViewSet(APIBaseViewSet):
     permission_classes = (QuickSharePwdPermission,)
-    http_method_names = ["head", "options", "get", "post", "put", "delete"]
+    http_method_names = ["head", "options", "get", "post", "delete"]
     lookup_value_regex = r'[0-9a-z-]+'
 
     def get_throttles(self):
         return super().get_throttles()
 
     def get_serializer_class(self):
-        if self.action in ["create", "update"]:
+        if self.action in ["create"]:
             self.serializer_class = CreateQuickShareSerializer
         elif self.action == "list":
             self.serializer_class = ListQuickShareSerializer
@@ -106,24 +106,24 @@ class QuickSharePwdViewSet(APIBaseViewSet):
         response.data = camel_snake_data(response.data, snake_to_camel=True)
         return response
 
-    def update(self, request, *args, **kwargs):
-        quick_share = self.get_object()
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        validated_data = serializer.save()
-        validated_data = json.loads(json.dumps(validated_data))
-
-        try:
-            quick_share = self.quick_share_service.update_user_quick_share(
-                quick_share=quick_share, **validated_data
-            )
-        except QuickShareDoesNotExistException:
-            raise NotFound
-        return Response(status=status.HTTP_200_OK, data={
-            "id": quick_share.quick_share_id,
-            "cipher_id": quick_share.cipher.cipher_id,
-            "access_id": quick_share.access_id
-        })
+    # def update(self, request, *args, **kwargs):
+    #     quick_share = self.get_object()
+    #     serializer = self.get_serializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     validated_data = serializer.save()
+    #     validated_data = json.loads(json.dumps(validated_data))
+    #
+    #     try:
+    #         quick_share = self.quick_share_service.update_user_quick_share(
+    #             quick_share=quick_share, **validated_data
+    #         )
+    #     except QuickShareDoesNotExistException:
+    #         raise NotFound
+    #     return Response(status=status.HTTP_200_OK, data={
+    #         "id": quick_share.quick_share_id,
+    #         "cipher_id": quick_share.cipher.cipher_id,
+    #         "access_id": quick_share.access_id
+    #     })
 
     def destroy(self, request, *args, **kwargs):
         quick_share = self.get_object()
