@@ -4,6 +4,7 @@ from typing import Dict, Optional, List, Tuple, Union
 
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned
+from django.db import transaction
 from django.db.models import F, Count
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
@@ -17,6 +18,8 @@ from locker_server.core.entities.user_plan.pm_plan import PMPlan
 from locker_server.core.entities.user_plan.pm_user_plan import PMUserPlan
 from locker_server.core.entities.user_plan.pm_user_plan_family import PMUserPlanFamily
 from locker_server.core.exceptions.payment_exception import PaymentMethodNotSupportException
+from locker_server.core.exceptions.user_plan_exception import MaxUserPlanFamilyReachedException, \
+    UserIsInOtherFamilyException
 from locker_server.core.repositories.user_plan_repository import UserPlanRepository
 from locker_server.shared.constants.attachments import LIMIT_TOTAL_SIZE_ATTACHMENT
 from locker_server.shared.constants.ciphers import *
@@ -97,6 +100,45 @@ class UserPlanORMRepository(UserPlanRepository):
             user_id = family_member.get("user_id")
             self.add_to_family_sharing(family_user_plan_id=user_plan_orm.user_id, user_id=user_id, email=email)
         return user_plan_orm
+
+    def __upgrade_family_member_plan(self, family_user_plan_id: int, member_user_id: int):
+        """
+        Cancel the current subscription of the family member and then upgrade the member plan.
+
+        NOTE: This method calls an external payment service (Stripe) and - for the wallet method -
+        re-entrantly updates the plan of other users. It must NEVER run inside a transaction:
+        see the note in `add_multiple_to_family_sharing`.
+        """
+        family_user_plan_orm = self._get_current_plan_orm(user_id=family_user_plan_id)
+        current_member_plan_orm = self._get_current_plan_orm(user_id=member_user_id)
+        current_member_plan = ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=current_member_plan_orm)
+        # Cancel current plan
+        try:
+            PaymentMethodFactory.get_method(
+                user_plan=current_member_plan,
+                scope=settings.SCOPE_PWD_MANAGER,
+                payment_method=current_member_plan.default_payment_method
+            ).cancel_immediately_recurring_subscription()
+        except PaymentMethodNotSupportException as e:
+            CyLog.warning(**{"message": "cancel_immediately_recurring_subscription user {} {} failed".format(
+                member_user_id, e.payment_method
+            )})
+
+        # Then upgrade to Premium or Premium Lifetime
+        if family_user_plan_orm.pm_plan.alias in [PLAN_TYPE_PM_LIFETIME_FAMILY, PLAN_TYPE_PM_LIFETIME_TEAM]:
+            plan_type_alias = PLAN_TYPE_PM_LIFETIME
+        else:
+            plan_type_alias = PLAN_TYPE_PM_PREMIUM
+        self.update_plan(
+            user_id=member_user_id,
+            plan_type_alias=plan_type_alias,
+            duration=family_user_plan_orm.duration,
+            scope=settings.SCOPE_PWD_MANAGER, **{
+                "start_period": family_user_plan_orm.start_period,
+                "end_period": family_user_plan_orm.end_period,
+                "number_members": 1
+            }
+        )
 
     def __create_enterprise(self, user_id, enterprise_name):
         enterprise = self.get_default_enterprise(
@@ -511,60 +553,144 @@ class UserPlanORMRepository(UserPlanRepository):
         return False
 
     # ------------------------ Create PMUserPlan resource --------------------- #
-    def add_to_family_sharing(self, family_user_plan_id: int, user_id: int = None,
-                              email: str = None) -> Optional[PMUserPlan]:
+    @staticmethod
+    def _lock_family_user_plan_orm(family_user_plan_id: int):
+        """
+        Lock the PMUserPlan row of the family plan owner: this row is the mutex of every seat
+        allocation of that family plan.
+
+        Do NOT use select_related() here: MySQL does not support `SELECT ... FOR UPDATE OF`, so
+        joining cs_pm_plan would lock the pm_family plan row as well - the single row shared by
+        every family owner of the system. The relations are loaded after the lock is acquired.
+        """
+        return PMUserPlanORM.objects.select_for_update().filter(
+            user_id=family_user_plan_id
+        ).values_list('user_id', flat=True).first()
+
+    def add_multiple_to_family_sharing(self, family_user_plan_id: int,
+                                       family_members: List[Dict]) -> List[Dict]:
+        """
+        Add multiple members to the family plan of `family_user_plan_id`.
+
+        The PMUserPlan row of the owner is locked, so the
+        "count the used seats -> check the max number -> insert the member rows"
+        sequence of two concurrent requests of the same owner can not interleave anymore.
+        Because cs_pm_user_plan_family.root_user_plan_id is a FK to that row, InnoDB also takes a
+        shared lock on it for every insert into cs_pm_user_plan_family - so the other writer of
+        this table (`__create_family_members` of the payment webhook) waits for us as well.
+
+        Only fast local queries run inside the transaction: cancelling the subscription of the
+        members and upgrading their plan call an external payment service, so they run after the
+        commit - see `__upgrade_family_member_plan`.
+
+        :return: The family members which really get a seat of the family plan
+        """
+        added_members = []
+        upgrade_member_ids = []
         family_user_plan_orm = self._get_current_plan_orm(user_id=family_user_plan_id)
-        if user_id and family_user_plan_orm.pm_plan_family.filter(user_id=user_id).exists():
-            return ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=family_user_plan_orm)
-        if email and family_user_plan_orm.pm_plan_family.filter(email=email).exists():
-            return ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=family_user_plan_orm)
+        with transaction.atomic():
+            self._lock_family_user_plan_orm(family_user_plan_id=family_user_plan_orm.user_id)
+            # Re-read the plan inside the lock: the owner can be downgraded by a concurrent request
+            family_user_plan_orm.refresh_from_db()
+            if family_user_plan_orm.pm_plan.is_family_plan is False:
+                return added_members
 
-        # Retrieve user
-        try:
-            family_member_user_orm = UserORM.objects.get(user_id=user_id, activated=True)
-        except UserORM.DoesNotExist:
-            family_member_user_orm = None
+            # Check max number is reached? The used seats are counted while holding the lock
+            family_user_plan = ModelParser.user_plan_parser().parse_user_plan(
+                user_plan_orm=family_user_plan_orm
+            )
+            max_number = family_user_plan.get_max_allow_members()
+            if len(family_members) > max_number - family_user_plan_orm.pm_plan_family.count():
+                raise MaxUserPlanFamilyReachedException
 
-        if family_member_user_orm:
-            current_member_plan_orm = self._get_current_plan_orm(user_id=family_member_user_orm.user_id)
-            current_member_plan = ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=current_member_plan_orm)
-            # If the member user has a plan => Cancel this plan if this plan is not a team plan
-            if current_member_plan_orm.pm_plan.is_family_plan is False and \
-                    current_member_plan_orm.pm_plan.is_team_plan is False:
-                # Cancel current plan
+            for family_member in family_members:
+                member_user_id = family_member.get("user_id")
+                email = family_member.get("email")
+                # Is the member in this family plan already? These queries also see the rows
+                # inserted by this transaction => a member duplicated in a single request is
+                # skipped here as well.
+                if member_user_id and family_user_plan_orm.pm_plan_family.filter(user_id=member_user_id).exists():
+                    continue
+                if email and family_user_plan_orm.pm_plan_family.filter(email=email).exists():
+                    continue
+
+                # Retrieve user
                 try:
-                    PaymentMethodFactory.get_method(
-                        user_plan=current_member_plan,
-                        scope=settings.SCOPE_PWD_MANAGER,
-                        payment_method=current_member_plan.default_payment_method
-                    ).cancel_immediately_recurring_subscription()
-                except PaymentMethodNotSupportException as e:
-                    CyLog.warning(**{"message": "cancel_immediately_recurring_subscription user {} {} failed".format(
-                        family_member_user_orm, e.payment_method
-                    )})
+                    family_member_user_orm = UserORM.objects.get(user_id=member_user_id, activated=True)
+                except UserORM.DoesNotExist:
+                    family_member_user_orm = None
 
-                # Add to family plan
-                family_user_plan_orm.pm_plan_family.model.create(
+                # The member does not have an activated account => Invite by email
+                if not family_member_user_orm:
+                    PMUserPlanFamilyORM.create(family_user_plan_orm.user_id, None, email)
+                    added_members.append(family_member)
+                    continue
+
+                current_member_plan_orm = self._get_current_plan_orm(user_id=family_member_user_orm.user_id)
+                # If the member user has a family/team plan => Not add this member. Raising here
+                # rolls the whole transaction back, so the request stays all-or-nothing.
+                if current_member_plan_orm.pm_plan.is_family_plan or \
+                        current_member_plan_orm.pm_plan.is_team_plan:
+                    raise UserIsInOtherFamilyException(email=email)
+
+                # Reserve the seat of this member. The subscription of the member is cancelled
+                # after the commit: if that fails, the member keeps a seat instead of losing both
+                # the seat and the subscription.
+                PMUserPlanFamilyORM.create(
                     family_user_plan_orm.user_id, family_member_user_orm.user_id, None
                 )
+                added_members.append(family_member)
+                upgrade_member_ids.append(family_member_user_orm.user_id)
 
-                # Then upgrade to Premium or Premium Lifetime
-                if family_user_plan_orm.pm_plan.alias in [PLAN_TYPE_PM_LIFETIME_FAMILY, PLAN_TYPE_PM_LIFETIME_TEAM]:
-                    plan_type_alias = PLAN_TYPE_PM_LIFETIME
-                else:
-                    plan_type_alias = PLAN_TYPE_PM_PREMIUM
-                self.update_plan(
-                    user_id=family_member_user_orm.user_id,
-                    plan_type_alias=plan_type_alias,
-                    duration=family_user_plan_orm.duration,
-                    scope=settings.SCOPE_PWD_MANAGER, **{
-                        "start_period": family_user_plan_orm.start_period,
-                        "end_period": family_user_plan_orm.end_period,
-                        "number_members": 1
-                    }
-                )
-        else:
-            family_user_plan_orm.pm_plan_family.model.create(family_user_plan_orm.user_id, None, email)
+        # The transaction is committed and the lock is released => Run the external jobs here
+        for member_user_id in upgrade_member_ids:
+            self.__upgrade_family_member_plan(
+                family_user_plan_id=family_user_plan_orm.user_id, member_user_id=member_user_id
+            )
+        return added_members
+
+    def add_to_family_sharing(self, family_user_plan_id: int, user_id: int = None,
+                              email: str = None) -> Optional[PMUserPlan]:
+        """
+        Add a single member to a family plan.
+
+        The check-then-insert runs while the PMUserPlan row of the owner is locked, and the
+        external payment service calls run after the commit - see `add_multiple_to_family_sharing`.
+        """
+        upgrade_member_id = None
+        family_user_plan_orm = self._get_current_plan_orm(user_id=family_user_plan_id)
+        with transaction.atomic():
+            self._lock_family_user_plan_orm(family_user_plan_id=family_user_plan_orm.user_id)
+            family_user_plan_orm.refresh_from_db()
+            if user_id and family_user_plan_orm.pm_plan_family.filter(user_id=user_id).exists():
+                return ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=family_user_plan_orm)
+            if email and family_user_plan_orm.pm_plan_family.filter(email=email).exists():
+                return ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=family_user_plan_orm)
+
+            # Retrieve user
+            try:
+                family_member_user_orm = UserORM.objects.get(user_id=user_id, activated=True)
+            except UserORM.DoesNotExist:
+                family_member_user_orm = None
+
+            if family_member_user_orm:
+                current_member_plan_orm = self._get_current_plan_orm(user_id=family_member_user_orm.user_id)
+                # If the member user has a plan => Cancel this plan if this plan is not a team plan
+                if current_member_plan_orm.pm_plan.is_family_plan is False and \
+                        current_member_plan_orm.pm_plan.is_team_plan is False:
+                    # Add to family plan
+                    PMUserPlanFamilyORM.create(
+                        family_user_plan_orm.user_id, family_member_user_orm.user_id, None
+                    )
+                    upgrade_member_id = family_member_user_orm.user_id
+            else:
+                PMUserPlanFamilyORM.create(family_user_plan_orm.user_id, None, email)
+
+        # Cancel the current plan of the member and upgrade the member plan after the commit
+        if upgrade_member_id:
+            self.__upgrade_family_member_plan(
+                family_user_plan_id=family_user_plan_orm.user_id, member_user_id=upgrade_member_id
+            )
         return ModelParser.user_plan_parser().parse_user_plan(user_plan_orm=family_user_plan_orm)
 
     # ------------------------ Update PMUserPlan resource --------------------- #

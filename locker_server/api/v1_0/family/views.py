@@ -73,7 +73,7 @@ class FamilyPwdViewSet(APIBaseViewSet):
                 if not user_invited.activated:
                     continue
                 family_members.append({
-                    "user_id": user_invited.id,
+                    "user_id": user_invited.user_id,
                     "email": user_invited.email,
                     "name": user_invited.full_name,
                     "language": user_invited.language,

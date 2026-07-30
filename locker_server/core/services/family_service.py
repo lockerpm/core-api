@@ -22,40 +22,13 @@ class FamilyService:
     def list_family_members(self, user_id: int) -> Dict:
         return self.user_plan_repository.get_family_members(user_id=user_id)
 
-    def create_multiple_family_members(self, user_id: int, family_members: List[Dict]):
-        current_family_plan = self.user_plan_repository.get_user_plan(user_id=user_id)
-        pm_plan = current_family_plan.pm_plan
-
-        # Check max number is reached?
-        max_number = current_family_plan.get_max_allow_members()
-        if len(family_members) > max_number - self.user_plan_repository.count_family_members(user_id=user_id):
-            raise MaxUserPlanFamilyReachedException
-
-        for family_member in family_members:
-            user_id = family_member.get("user_id")
-            email = family_member.get("email")
-            if user_id:
-                user = self.user_repository.get_user_by_id(user_id=user_id)
-                if not user:
-                    continue
-                if not user.activated:
-                    continue
-                current_plan = self.user_plan_repository.get_user_plan(user_id=user_id)
-                if current_plan.pm_plan.is_family_plan or current_plan.pm_plan.is_team_plan:
-                    raise UserIsInOtherFamilyException(email=email)
-
-                # current_plan = user_repository.get_current_plan(user=user, scope=settings.SCOPE_PWD_MANAGER)
-                # if current_plan.get_plan_obj().is_family_plan or current_plan.get_plan_obj().is_team_plan:
-                #     raise serializers.ValidationError(detail={
-                #         "family_members": ["The user {} is in other family plan".format(email)]
-                #     })
-
-        for family_member in family_members:
-            email = family_member.get("email")
-            user_id = family_member.get("user_id")
-            self.user_plan_repository.add_to_family_sharing(
-                family_user_plan_id=current_family_plan.user.user_id, user_id=user_id, email=email
-            )
+    def create_multiple_family_members(self, user_id: int, family_members: List[Dict]) -> List[Dict]:
+        # Checking the max number and adding the members must not interleave with a concurrent
+        # request of the same owner, so both of them run in a single locked transaction of the
+        # repository - the layer which is allowed to open a transaction.
+        return self.user_plan_repository.add_multiple_to_family_sharing(
+            family_user_plan_id=user_id, family_members=family_members
+        )
 
     def destroy_family_member(self, user_id: int, family_member_id: int):
         family_member = self.user_plan_repository.get_family_member(
