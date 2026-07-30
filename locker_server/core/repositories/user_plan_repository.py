@@ -92,6 +92,11 @@ class UserPlanRepository(ABC):
 
     # ------------------------ Create PMUserPlan resource --------------------- #
     @abstractmethod
+    def add_multiple_to_family_sharing(self, family_user_plan_id: int,
+                                       family_members: List[Dict]) -> List[Dict]:
+        pass
+
+    @abstractmethod
     def add_to_family_sharing(self, family_user_plan_id: int, user_id: int = None,
                               email: str = None) -> Optional[PMUserPlan]:
         pass

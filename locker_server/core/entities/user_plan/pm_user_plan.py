@@ -208,6 +208,8 @@ class PMUserPlan(object):
                 return self.pm_plan.max_number
             return self.number_members
         elif self.pm_plan.is_family_plan:
+            if self.pm_plan.max_number is None:
+                return self.number_members
             return max(self.pm_plan.max_number, self.number_members)
         return self.pm_plan.max_number
 
