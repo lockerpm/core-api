@@ -51,10 +51,13 @@ class FCMSenderService:
         fcm_message_data = fcm_message.get("data")
         if "data" in fcm_message_data:
             fcm_message_data["data"] = json.dumps(fcm_message_data["data"])
-        fcm_message_notification = None
+        fcm_notification = None
         if "notification" in fcm_message_data:
-            fcm_message_notification = json.dumps(fcm_message_data["notification"])
-
+            fcm_message_notification = fcm_message_data.pop("notification", None)
+            fcm_notification = messaging.Notification(
+                title=fcm_message_notification.get("title"),
+                body=fcm_message_notification.get("body")
+            ) if fcm_message_notification else None
         failed_fcm_ids = []
         success_fcm_ids = fcm_ids.copy()
 
@@ -63,7 +66,7 @@ class FCMSenderService:
             batch_fcm_ids = fcm_ids[i:i+batch_size]
             message = messaging.MulticastMessage(
                 data=fcm_message_data,
-                notification=fcm_message_notification,
+                notification=fcm_notification,
                 tokens=batch_fcm_ids,
                 android=messaging.AndroidConfig(
                     priority=fcm_message.get("priority") or "high",
