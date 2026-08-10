@@ -76,12 +76,10 @@ class FCMSenderService:
                 ),
                 apns=messaging.APNSConfig(
                     headers={
-                        'apns-push-type': 'background',
                         'apns-priority': '10',
-                        'apns-topic': 'com.cystack.lockerapp'
                     },
-                    payload=messaging.APNSPayload(
-                        aps=messaging.Aps(content_available=True)
+                    payload=messaging.Aps(
+                        sound="default",
                     )
                 )
             )
