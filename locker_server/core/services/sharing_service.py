@@ -33,7 +33,7 @@ from locker_server.shared.constants.event import EVENT_ITEM_SHARE_CREATED
 from locker_server.shared.constants.members import *
 from locker_server.shared.constants.user_notification import NOTIFY_SHARING
 from locker_server.shared.external_services.fcm.constants import FCM_TYPE_CONFIRM_SHARE, FCM_TYPE_ACCEPT_SHARE, \
-    FCM_TYPE_REJECT_SHARE, FCM_TYPE_NEW_SHARE, FCM_TYPE_NEW_SHARE_AFTER_OWNER_CONFIRMED
+    FCM_TYPE_REJECT_SHARE, FCM_TYPE_NEW_SHARE, FCM_TYPE_NEW_SHARE_AFTER_OWNER_CONFIRMED, FCM_NOTIFICATIONS
 from locker_server.shared.external_services.fcm.fcm_request_entity import FCMRequestEntity
 from locker_server.shared.external_services.fcm.fcm_sender import FCMSenderService
 from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
