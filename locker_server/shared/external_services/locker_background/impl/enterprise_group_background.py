@@ -3,8 +3,7 @@ from django.conf import settings
 from django.db import connection
 
 from locker_server.shared.external_services.fcm.constants import FCM_TYPE_CONFIRM_SHARE_GROUP_MEMBER_ADDED
-from locker_server.shared.external_services.fcm.fcm_request_entity import FCMRequestEntity
-from locker_server.shared.external_services.fcm.fcm_sender import FCMSenderService
+from locker_server.shared.external_services.fcm.notification_builder import send_localized_fcm
 from locker_server.shared.external_services.locker_background.background import LockerBackground
 from locker_server.shared.external_services.locker_background.impl import NotifyBackground
 from locker_server.shared.external_services.requester.retry_requester import requester
@@ -40,21 +39,18 @@ class EnterpriseGroupBackground(LockerBackground):
                         pass
                 # Sending mobile notification
                 if emails:
-                    fcm_ids = device_service.list_fcm_ids(user_ids=[confirm_data.get("owner")])
-                    fcm_message = FCMRequestEntity(
-                        fcm_ids=fcm_ids, priority="high",
+                    send_localized_fcm(
+                        lang_fcm_ids=device_service.list_lang_fcm_ids(user_ids=[confirm_data.get("owner")]),
+                        event=FCM_TYPE_CONFIRM_SHARE_GROUP_MEMBER_ADDED,
                         data={
-                            "event": FCM_TYPE_CONFIRM_SHARE_GROUP_MEMBER_ADDED,
-                            "data": {
-                                "share_type": confirm_data.get("shared_type_name"),
-                                "group_id": confirm_data.get("group_id"),
-                                "group_name": confirm_data.get("group_name"),
-                                "owner_name": confirm_data.get("name"),
-                                "emails": emails
-                            }
-                        }
+                            "share_type": confirm_data.get("shared_type_name"),
+                            "group_id": confirm_data.get("group_id"),
+                            "group_name": confirm_data.get("group_name"),
+                            "owner_name": confirm_data.get("name"),
+                            "emails": emails
+                        },
+                        is_background=False
                     )
-                    FCMSenderService(is_background=False).run("send_message", **{"fcm_message": fcm_message})
 
             if settings.SELF_HOSTED:
                 for team in confirmed_data:

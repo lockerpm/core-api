@@ -33,9 +33,8 @@ from locker_server.shared.constants.event import EVENT_ITEM_SHARE_CREATED
 from locker_server.shared.constants.members import *
 from locker_server.shared.constants.user_notification import NOTIFY_SHARING
 from locker_server.shared.external_services.fcm.constants import FCM_TYPE_CONFIRM_SHARE, FCM_TYPE_ACCEPT_SHARE, \
-    FCM_TYPE_REJECT_SHARE, FCM_TYPE_NEW_SHARE, FCM_TYPE_NEW_SHARE_AFTER_OWNER_CONFIRMED, FCM_NOTIFICATIONS
-from locker_server.shared.external_services.fcm.fcm_request_entity import FCMRequestEntity
-from locker_server.shared.external_services.fcm.fcm_sender import FCMSenderService
+    FCM_TYPE_REJECT_SHARE, FCM_TYPE_NEW_SHARE, FCM_TYPE_NEW_SHARE_AFTER_OWNER_CONFIRMED
+from locker_server.shared.external_services.fcm.notification_builder import send_localized_fcm
 from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
 from locker_server.shared.external_services.locker_background.constants import BG_EVENT
 from locker_server.shared.external_services.pm_sync import PwdSync, SYNC_EVENT_MEMBER_ACCEPTED, \
@@ -177,21 +176,17 @@ class SharingService:
         else:
             fcm_event = FCM_TYPE_REJECT_SHARE
 
-        fcm_ids = self.device_repository.get_fcm_ids_by_user_ids(user_ids=notification_user_ids)
-        fcm_message = FCMRequestEntity(
-            fcm_ids=list(fcm_ids), priority="high",
+        send_localized_fcm(
+            lang_fcm_ids=self.device_repository.get_lang_fcm_ids_by_user_ids(user_ids=notification_user_ids),
+            event=fcm_event,
             data={
-                "event": fcm_event,
-                "data": {
-                    "id": sharing_id,
-                    "share_type": shared_type_name,
-                    "pwd_user_ids": [primary_owner.user.user_id],
-                    "name": user_fullname,
-                    "recipient_name": user_fullname,
-                }
+                "id": sharing_id,
+                "share_type": shared_type_name,
+                "pwd_user_ids": [primary_owner.user.user_id],
+                "name": user_fullname,
+                "recipient_name": user_fullname,
             }
         )
-        FCMSenderService(is_background=True).run("send_message", **{"fcm_message": fcm_message})
         return {
             "status": status,
             "owner": primary_owner.user.user_id,
@@ -363,23 +358,19 @@ class SharingService:
             category_id=NOTIFY_SHARING, user_ids=existed_member_users
         )
         # Push mobile notification
-        fcm_ids = self.device_repository.get_fcm_ids_by_user_ids(user_ids=notification_user_ids)
         try:
             owner_name = user.full_name
         except AttributeError:
             pass
-        fcm_message = FCMRequestEntity(
-            fcm_ids=fcm_ids, priority="high",
+        send_localized_fcm(
+            lang_fcm_ids=self.device_repository.get_lang_fcm_ids_by_user_ids(user_ids=notification_user_ids),
+            event=FCM_TYPE_NEW_SHARE,
             data={
-                "event": FCM_TYPE_NEW_SHARE,
-                "data": {
-                    "pwd_user_ids": notification_user_ids,
-                    "share_type": shared_type_name,
-                    "owner_name": owner_name
-                }
+                "pwd_user_ids": notification_user_ids,
+                "share_type": shared_type_name,
+                "owner_name": owner_name
             }
         )
-        FCMSenderService(is_background=True).run("send_message", **{"fcm_message": fcm_message})
 
         # Update activity logs:
         user_enterprise_ids = self.enterprise_repository.list_user_enterprise_ids(user_id=user.user_id, **{
@@ -539,19 +530,15 @@ class SharingService:
             category_id=NOTIFY_SHARING, user_ids=existed_member_users
         )
         # Send mobile notification
-        fcm_ids = self.device_repository.get_fcm_ids_by_user_ids(user_ids=notification_user_ids)
-        fcm_message = FCMRequestEntity(
-            fcm_ids=fcm_ids, priority="high",
+        send_localized_fcm(
+            lang_fcm_ids=self.device_repository.get_lang_fcm_ids_by_user_ids(user_ids=notification_user_ids),
+            event=FCM_TYPE_NEW_SHARE,
             data={
-                "event": FCM_TYPE_NEW_SHARE,
-                "data": {
-                    "pwd_user_ids": notification_user_ids,
-                    "count": len(ciphers),
-                    "owner_name": owner_name
-                }
+                "pwd_user_ids": notification_user_ids,
+                "count": len(ciphers),
+                "owner_name": owner_name
             }
         )
-        FCMSenderService(is_background=True).run("send_message", **{"fcm_message": fcm_message})
 
         return {
             "shared_type_name": share_type,
@@ -598,19 +585,15 @@ class SharingService:
         notification_user_ids = self.notification_setting_repository.get_user_notification(
             category_id=NOTIFY_SHARING, user_ids=[member.user.user_id]
         )
-        fcm_ids = self.device_repository.get_fcm_ids_by_user_ids(user_ids=notification_user_ids)
-        fcm_message = FCMRequestEntity(
-            fcm_ids=list(fcm_ids), priority="high",
+        send_localized_fcm(
+            lang_fcm_ids=self.device_repository.get_lang_fcm_ids_by_user_ids(user_ids=notification_user_ids),
+            event=FCM_TYPE_NEW_SHARE_AFTER_OWNER_CONFIRMED,
             data={
-                "event": FCM_TYPE_NEW_SHARE_AFTER_OWNER_CONFIRMED,
-                "data": {
-                    "id": member.team_member_id,
-                    "share_type": shared_type_name,
-                    "pwd_user_ids": [member.user.user_id],
-                }
+                "id": member.team_member_id,
+                "share_type": shared_type_name,
+                "pwd_user_ids": [member.user.user_id],
             }
         )
-        FCMSenderService(is_background=True).run("send_message", **{"fcm_message": fcm_message})
         return {
             "mail_user_ids": mail_user_ids,
             "notification_user_ids": notification_user_ids,

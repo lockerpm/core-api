@@ -50,6 +50,20 @@ class DeviceORMRepository(DeviceRepository):
         ).exclude(fcm_id__isnull=True).exclude(fcm_id="").values_list('fcm_id', flat=True)
         return list(set(fcm_ids))
 
+    def get_lang_fcm_ids_by_user_ids(self, user_ids: List[int]) -> Dict[str, List[str]]:
+        lang_fcm_ids_orm = DeviceORM.objects.filter(
+            user_id__in=user_ids
+        ).exclude(fcm_id__isnull=True).exclude(fcm_id="").values_list('user__language', 'fcm_id')
+        lang_fcm_ids = {}
+        added_fcm_ids = set()
+        for language, fcm_id in lang_fcm_ids_orm:
+            # Keep the de-duplication of `get_fcm_ids_by_user_ids`: one device receives one message
+            if fcm_id in added_fcm_ids:
+                continue
+            added_fcm_ids.add(fcm_id)
+            lang_fcm_ids.setdefault(language, []).append(fcm_id)
+        return lang_fcm_ids
+
     def is_active(self, device_id) -> bool:
         return DeviceAccessTokenORM.objects.filter(device_id=device_id).exists()
 

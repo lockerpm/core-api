@@ -93,31 +93,31 @@ FCM_NOTIFICATIONS = {
     FCM_TYPE_EMERGENCY_INITIATE: {
         "vi": {
             "title": "Locker",
-            "body": "{grantee_name} đã yêu cầu {{type}} tài khoản Locker của bạn"
+            "body": "{grantee_name} đã yêu cầu {type} tài khoản Locker của bạn"
         },
         "en": {
             "title": "Locker",
-            "body": "{grantee_name} has requested to {{type}} your Locker account"
+            "body": "{grantee_name} has requested to {type} your Locker account"
         }
     },
     FCM_TYPE_EMERGENCY_APPROVE_REQUEST: {
         "vi": {
             "title": "Locker",
-            "body": "{grantor_name} đã chấp nhận yêu cầu {{type}} tài khoản Locker của bạn"
+            "body": "{grantor_name} đã chấp nhận yêu cầu {type} tài khoản Locker của bạn"
         },
         "en": {
             "title": "Locker",
-            "body": "{grantor_name}} approved your request to {{type}} their Locker account"
+            "body": "{grantor_name} approved your request to {type} their Locker account"
         }
     },
     FCM_TYPE_EMERGENCY_REJECT_REQUEST: {
         "vi": {
             "title": "Locker",
-            "body": "{grantor_name} đã từ chối yêu cầu {{type}} tài khoản Locker của bạn"
+            "body": "{grantor_name} đã từ chối yêu cầu {type} tài khoản Locker của bạn"
         },
         "en": {
             "title": "Locker",
-            "body": "{grantor_name} has rejected your request to {{type}} their Locker account"
+            "body": "{grantor_name} has rejected your request to {type} their Locker account"
         }
     },
     FCM_TYPE_PWD_TIP_TRICK: {

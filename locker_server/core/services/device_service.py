@@ -28,6 +28,9 @@ class DeviceService:
     def list_fcm_ids(self, user_ids: List[int]) -> List[str]:
         return self.device_repository.get_fcm_ids_by_user_ids(user_ids=user_ids)
 
+    def list_lang_fcm_ids(self, user_ids: List[int]) -> Dict[str, List[str]]:
+        return self.device_repository.get_lang_fcm_ids_by_user_ids(user_ids=user_ids)
+
     def fetch_device_access_token(self, device: Device, credential_key: str, renewal: bool = True,
                                   sso_token_id: str = None) -> Optional[DeviceAccessToken]:
         access_token = self.device_access_token_repository.fetch_device_access_token(
