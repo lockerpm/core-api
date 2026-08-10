@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 from typing import List, Optional, Tuple
 
 import jwt
@@ -8,10 +7,10 @@ from django.db.models import F
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_quick_share_model, get_quick_share_email_model
 from locker_server.core.entities.quick_share.quick_share import QuickShare
-from locker_server.core.entities.release.release import Release
 from locker_server.core.repositories.quick_share_repository import QuickShareRepository
 from locker_server.shared.constants.token import TOKEN_TYPE_QUICK_SHARE_ACCESS
 from locker_server.shared.utils.app import now, diff_list
+
 
 QuickShareORM = get_quick_share_model()
 QuickShareEmailORM = get_quick_share_email_model()
@@ -20,14 +19,14 @@ ModelParser = get_model_parser()
 
 class QuickShareORMRepository(QuickShareRepository):
     @staticmethod
-    def _get_quick_share_orm(quick_share_id: str) -> Optional[QuickShareORM]:
+    def _get_quick_share_orm(quick_share_id: str):
         try:
             return QuickShareORM.objects.get(id=quick_share_id)
         except QuickShareORM.DoesNotExist:
             return None
 
     @staticmethod
-    def validate_public_access_token(email, token):
+    def validate_public_access_token(quick_share_id, email, token):
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
             if payload.get("token_type") != TOKEN_TYPE_QUICK_SHARE_ACCESS:
@@ -35,6 +34,8 @@ class QuickShareORMRepository(QuickShareRepository):
             if payload.get("email") != email:
                 return False
             if payload.get("expired_time") < now():
+                return False
+            if payload.get("access_id") != quick_share_id:
                 return False
             return True
         except (jwt.InvalidSignatureError, jwt.DecodeError, jwt.InvalidAlgorithmError):
@@ -85,7 +86,9 @@ class QuickShareORMRepository(QuickShareRepository):
                 return False
             if code and (quick_share_email_orm.code != code or quick_share_email_orm.code_expired_time < now()):
                 return False
-            if token and self.validate_public_access_token(email=quick_share_email_orm.email, token=token) is False:
+            if token and self.validate_public_access_token(
+                quick_share_id=quick_share.quick_share_id, email=quick_share_email_orm.email, token=token
+            ) is False:
                 return False
         if quick_share.max_access_count and quick_share.access_count >= quick_share.max_access_count:
             return False
