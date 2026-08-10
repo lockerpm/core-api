@@ -17,8 +17,7 @@ from locker_server.shared.constants.user_notification import NOTIFY_EMERGENCY_AC
 from locker_server.shared.external_services.fcm.constants import FCM_TYPE_EMERGENCY_REJECT_INVITATION, \
     FCM_TYPE_EMERGENCY_INVITE, FCM_TYPE_EMERGENCY_ACCEPT_INVITATION, FCM_TYPE_EMERGENCY_INITIATE, \
     FCM_TYPE_EMERGENCY_REJECT_REQUEST, FCM_TYPE_EMERGENCY_APPROVE_REQUEST
-from locker_server.shared.external_services.fcm.fcm_request_entity import FCMRequestEntity
-from locker_server.shared.external_services.fcm.fcm_sender import FCMSenderService
+from locker_server.shared.external_services.fcm.notification_builder import send_localized_fcm
 from locker_server.shared.external_services.pm_sync import PwdSync, SYNC_EMERGENCY_ACCESS
 
 
@@ -49,12 +48,10 @@ class EmergencyAccessService:
     def send_mobile_notification(self, notification_user_ids, event, data):
         if not notification_user_ids:
             return
-        fcm_ids = self.device_repository.get_fcm_ids_by_user_ids(user_ids=notification_user_ids)
-        fcm_message = FCMRequestEntity(
-            fcm_ids=list(fcm_ids), priority="high",
-            data={"event": event, "data": data}
+        send_localized_fcm(
+            lang_fcm_ids=self.device_repository.get_lang_fcm_ids_by_user_ids(user_ids=notification_user_ids),
+            event=event, data=data
         )
-        FCMSenderService(is_background=True).run("send_message", **{"fcm_message": fcm_message})
 
     def list_by_grantor_id(self, grantor_id: int) -> List[EmergencyAccess]:
         return self.emergency_access_repository.list_by_grantor_id(grantor_id=grantor_id)

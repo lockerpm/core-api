@@ -7,10 +7,12 @@ from django.db import models
 from locker_server.shared.constants.account import *
 from locker_server.shared.constants.backup_credential import CREDENTIAL_TYPE_HMAC
 from locker_server.shared.constants.ciphers import KDF_TYPE_PBKDF2_SHA256
+from locker_server.shared.constants.lang import LANG_ENGLISH
 
 
 class AbstractUserORM(models.Model):
     user_id = models.IntegerField(primary_key=True)
+    language = models.CharField(max_length=4, blank=False, default=LANG_ENGLISH)
     internal_id = models.CharField(max_length=64, null=True, default=uuid.uuid4)
     creation_date = models.FloatField()
     revision_date = models.FloatField(null=True)

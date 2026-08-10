@@ -25,6 +25,14 @@ class DeviceRepository(ABC):
         pass
 
     @abstractmethod
+    def get_lang_fcm_ids_by_user_ids(self, user_ids: List[int]) -> Dict[str, List[str]]:
+        """
+        The same fcm ids as `get_fcm_ids_by_user_ids`, grouped by the language of their owner. Each fcm id belongs
+        to exactly one group
+        """
+        pass
+
+    @abstractmethod
     def is_active(self, device_id) -> bool:
         pass
 
