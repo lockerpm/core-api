@@ -78,8 +78,10 @@ class FCMSenderService:
                     headers={
                         'apns-priority': '10',
                     },
-                    payload=messaging.Aps(
-                        sound="default",
+                    payload=messaging.APNSPayload(
+                        aps=messaging.Aps(
+                            sound="default",
+                        )
                     )
                 )
             )
