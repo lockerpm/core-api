@@ -90,8 +90,10 @@ class FCMSenderService:
                 responses = response.responses
                 for idx, resp in enumerate(responses):
                     if not resp.success:
-                        failed_fcm_ids.append(fcm_ids[idx])
-                        success_fcm_ids.remove(fcm_ids[idx])
+                        failed_fcm_id = batch_fcm_ids[idx]
+                        failed_fcm_ids.append(failed_fcm_id)
+                        if failed_fcm_id in success_fcm_ids:
+                            success_fcm_ids.remove(failed_fcm_id)
 
         print("success; ", success_fcm_ids, failed_fcm_ids)
         return success_fcm_ids, failed_fcm_ids
