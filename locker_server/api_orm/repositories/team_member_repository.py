@@ -19,11 +19,6 @@ TeamORM = get_team_model()
 TeamMemberORM = get_team_member_model()
 GroupMemberORM = get_group_member_model()
 CollectionMemberORM = get_collection_member_model()
-# PMPlanORM = get_plan_model()
-# PMUserPlanORM = get_user_plan_model()
-# EnterpriseMemberRoleORM = get_enterprise_member_role_model()
-# EnterpriseMemberORM = get_enterprise_member_model()
-# EnterpriseORM = get_enterprise_model()
 ModelParser = get_model_parser()
 
 
@@ -189,13 +184,6 @@ class TeamMemberORMRepository(TeamMemberRepository):
         sharing_invitations.update(email=None, token_invitation=None, user=user_orm)
         return user
 
-    def reject_invitation(self, team_member_id: int):
-        team_member_orm = self._get_team_member_orm(team_member_id=team_member_id)
-        if not team_member_orm:
-            return False
-        team_member_orm.delete()
-        return True
-
     def confirm_invitation(self, team_member_id: int, key: str) -> Optional[TeamMember]:
         team_member_orm = self._get_team_member_orm(team_member_id=team_member_id)
         if not team_member_orm:
@@ -203,18 +191,6 @@ class TeamMemberORMRepository(TeamMemberRepository):
         team_member_orm.email = None
         team_member_orm.key = key
         team_member_orm.status = PM_MEMBER_STATUS_CONFIRMED
-        team_member_orm.save()
-        bump_account_revision_date(user=team_member_orm.user)
-        return ModelParser.team_parser().parse_team_member(team_member_orm=team_member_orm)
-
-    def accept_invitation(self, team_member_id: int) -> Optional[TeamMember]:
-        team_member_orm = self._get_team_member_orm(team_member_id=team_member_id)
-        if not team_member_orm:
-            return None
-        if team_member_orm.key:
-            team_member_orm.status = PM_MEMBER_STATUS_CONFIRMED
-        else:
-            team_member_orm.status = PM_MEMBER_STATUS_ACCEPTED
         team_member_orm.save()
         bump_account_revision_date(user=team_member_orm.user)
         return ModelParser.team_parser().parse_team_member(team_member_orm=team_member_orm)

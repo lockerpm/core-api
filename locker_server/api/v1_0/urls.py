@@ -64,8 +64,6 @@ urlpatterns += [
     re_path(r'^users/session/otp$', views.UserPwdViewSet.as_view({'post': 'session_by_otp'})),
     re_path(r'^users/session/revoke_all$', views.UserPwdViewSet.as_view({'post': 'revoke_all_sessions'})),
     # re_path(r'^users/invitations/confirmation$', views.UserPwdViewSet.as_view({'get': 'invitation_confirmation'})),
-    re_path(r'^users/invitations$', views.UserPwdViewSet.as_view({'get': 'invitations'})),
-    re_path(r'^users/invitations/(?P<pk>[a-z0-9\-]+)$', views.UserPwdViewSet.as_view({'put': 'invitation_update'})),
     re_path(r'^users/exist$', views.UserPwdViewSet.as_view({'get': 'exist'})),
     re_path(r'^users/prelogin$', views.UserPwdViewSet.as_view({'post': 'prelogin'})),
     re_path(r'^users/reset_password$', views.UserPwdViewSet.as_view({'post': 'reset_password'})),

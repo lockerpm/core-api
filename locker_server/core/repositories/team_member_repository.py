@@ -76,15 +76,7 @@ class TeamMemberRepository(ABC):
         pass
 
     @abstractmethod
-    def reject_invitation(self, team_member_id: int):
-        pass
-
-    @abstractmethod
     def confirm_invitation(self, team_member_id: int, key: str) -> Optional[TeamMember]:
-        pass
-
-    @abstractmethod
-    def accept_invitation(self, team_member_id: int) -> Optional[TeamMember]:
         pass
 
     # ------------------------ Delete TeamMember resource --------------------- #

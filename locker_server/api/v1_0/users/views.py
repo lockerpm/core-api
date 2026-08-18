@@ -17,8 +17,7 @@ from locker_server.core.exceptions.collection_exception import CollectionDoesNot
 from locker_server.core.exceptions.device_exception import DeviceDoesNotExistException, \
     DeviceFactor2DoesNotExistException
 from locker_server.core.exceptions.team_exception import TeamDoesNotExistException, TeamLockedException
-from locker_server.core.exceptions.team_member_exception import TeamMemberDoesNotExistException, \
-    OnlyAllowOwnerUpdateException
+from locker_server.core.exceptions.team_member_exception import OnlyAllowOwnerUpdateException
 from locker_server.core.exceptions.user_exception import UserDoesNotExistException, \
     UserAuthBlockingEnterprisePolicyException, UserAuthFailedException, UserAuthBlockedEnterprisePolicyException, \
     UserIsLockedByEnterpriseException, UserEnterprisePlanExpiredException, UserBelongEnterpriseException, \
@@ -34,14 +33,13 @@ from locker_server.shared.external_services.locker_background.background_factory
 from locker_server.shared.external_services.locker_background.constants import BG_NOTIFY
 from locker_server.shared.external_services.pm_sync import PwdSync, SYNC_EVENT_CIPHER_UPDATE
 from locker_server.shared.external_services.user_notification.list_jobs import PWD_MASTER_PASSWORD_CHANGED, \
-    PWD_NO_MASTER_PASSWORD_HINT, PWD_HINT_FOR_MASTER_PASSWORD, PWD_ACCOUNT_DELETED, PWD_DELETE_SHARE_ITEM, \
-    PWD_CONFIRM_INVITATION
+    PWD_NO_MASTER_PASSWORD_HINT, PWD_HINT_FOR_MASTER_PASSWORD, PWD_ACCOUNT_DELETED, PWD_DELETE_SHARE_ITEM
 from locker_server.shared.paginator.paginator import CustomCountPageNumberPagination
 from locker_server.shared.utils.app import now, get_ip_location
 from locker_server.shared.utils.network import get_ip_by_request, detect_device
 from .serializers import UserMeSerializer, UserUpdateMeSerializer, UserRegisterSerializer, UserSessionSerializer, \
     DeviceFcmSerializer, UserChangePasswordSerializer, UserNewPasswordSerializer, UserCheckPasswordSerializer, \
-    UserMasterPasswordHashSerializer, UpdateOnboardingProcessSerializer, UserPwdInvitationSerializer, \
+    UserMasterPasswordHashSerializer, UpdateOnboardingProcessSerializer, \
     UserDeviceSerializer, PreloginSerializer, UserResetPasswordSerializer, UserSessionByOtpSerializer, \
     UserAccessTokenSerializer, DetailUserSerializer, ListUserSerializer
 
@@ -84,8 +82,6 @@ class UserPwdViewSet(APIBaseViewSet):
             self.serializer_class = UserMasterPasswordHashSerializer
         elif self.action == "onboarding_process":
             self.serializer_class = UpdateOnboardingProcessSerializer
-        elif self.action == "invitations":
-            self.serializer_class = UserPwdInvitationSerializer
         elif self.action == "devices":
             self.serializer_class = UserDeviceSerializer
         elif self.action == "prelogin":
@@ -781,47 +777,6 @@ class UserPwdViewSet(APIBaseViewSet):
                 "onboarding_process": onboarding_process
             })
             return Response(status=200, data=user.onboarding_process)
-
-    @action(methods=["get"], detail=False)
-    def invitations(self, request, *args, **kwargs):
-        user = self.request.user
-        self.check_pwd_session_auth(request=request)
-        member_invitations = self.user_service.list_sharing_invitations(user=user)
-        serializer = self.get_serializer(member_invitations, many=True)
-        return Response(status=status.HTTP_200_OK, data=serializer.data)
-
-    @action(methods=["put"], detail=False)
-    def invitation_update(self, request, *args, **kwargs):
-        self.check_pwd_session_auth(request=request)
-        user = self.request.user
-        status_param = request.data.get("status")
-        if status_param not in ["accept", "reject"]:
-            raise ValidationError(detail={"status": ["This status is not valid"]})
-        try:
-            result = self.user_service.update_sharing_invitation(
-                user=user,
-                member_id=kwargs.get("pk"),
-                status=status_param
-            )
-        except TeamMemberDoesNotExistException:
-            return NotFound
-        if settings.SELF_HOSTED and result.get("status") == "accept":
-            owner_user_id = result.get("owner")
-            try:
-                owner = self.user_service.retrieve_by_id(user_id=owner_user_id)
-                BackgroundFactory.get_background(bg_name=BG_NOTIFY).run(
-                    func_name="notify_sending", **{
-                        "user": owner,
-                        "job": PWD_CONFIRM_INVITATION,
-                        "team_name": result.get("team_name"),
-                        "member_email": user.email,
-                        "member_name": user.full_name
-                    }
-                )
-            except UserDoesNotExistException:
-                pass
-            return Response(status=status.HTTP_200_OK, data={"success": True})
-        return Response(status=status.HTTP_200_OK, data=result)
 
     @action(methods=["get"], detail=False)
     def family(self, request, *args, **kwargs):

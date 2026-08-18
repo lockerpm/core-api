@@ -219,22 +219,6 @@ class UpdateOnboardingProcessSerializer(serializers.Serializer):
         return data
 
 
-class UserPwdInvitationSerializer(serializers.Serializer):
-    def to_representation(self, instance):
-        data = {
-            "id": instance.team_member_id,
-            "access_time": instance.access_time,
-            "role": instance.role.name,
-            "status": instance.status,
-            "team": {
-                "id": instance.team.team_id,
-                "organization_id": instance.team.team_id,
-                "name": instance.team.name
-            }
-        }
-        return data
-
-
 class UserDeviceSerializer(serializers.Serializer):
     def to_representation(self, instance):
         data = {
