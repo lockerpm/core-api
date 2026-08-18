@@ -125,6 +125,9 @@ class CipherService:
         if cipher_type == CIPHER_TYPE_TOTP:
             allow = cipher_type
             params.update({"type": cipher_type})
+        elif cipher_type == CIPHER_TYPE_MASTER_PASSWORD:
+            allow = cipher_type
+            params.update({"type": cipher_type})
         else:
             allow = "limit_total"
             params.update({"exclude_types": [CIPHER_TYPE_TOTP, CIPHER_TYPE_MASTER_PASSWORD]})
