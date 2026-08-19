@@ -168,6 +168,9 @@ class UserService:
             user = self.retrieve_or_create_by_id(user_id=user_id)
         else:
             user = self.retrieve_or_create_by_email(email=user_id)
+        # Clear sync-cache data
+        self.user_repository.delete_sync_cache_data(user_id=user.user_id)
+        # Update keys
         is_super_admin = True if default_plan == PLAN_TYPE_PM_ENTERPRISE else False
         is_password_changed = True if default_plan == PLAN_TYPE_PM_ENTERPRISE else False
         master_password_score = kwargs.get("score") or kwargs.get("master_password_score") or user.master_password_score
