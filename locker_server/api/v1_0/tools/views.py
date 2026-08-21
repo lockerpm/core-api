@@ -6,13 +6,18 @@ from rest_framework import status
 from locker_server.api.api_base_view import APIBaseViewSet
 from locker_server.api.permissions.locker_permissions.tool_pwd_permission import ToolPwdPermission
 from locker_server.shared.error_responses.error import gen_error
-from locker_server.shared.external_services.hibp.hibp_service import HibpService
-from locker_server.shared.utils.app import camel_snake_data
+from locker_server.shared.external_services.xposedornot.xposedornot_service import XposedOrNotService
 from .serializers import BreachSerializer
 
 
 class ToolPwdViewSet(APIBaseViewSet):
     permission_classes = (ToolPwdPermission,)
+
+    def get_throttles(self):
+        throttles = super().get_throttles()
+        if self.action in ["breach", "public_breach"]:
+            self.throttle_scope = f"tools.{self.action}"
+        return throttles
 
     def get_serializer_class(self):
         if self.action in ["breach", "public_breach"]:
@@ -39,12 +44,8 @@ class ToolPwdViewSet(APIBaseViewSet):
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
         email = validated_data.get("email")
-        # Request to https://haveibeenpwned.com/api/v3/breachedaccount
-        hibp_check = HibpService(retries_number=1).check_breach(email=email)
-        if not hibp_check:
-            return Response(status=status.HTTP_200_OK, data=[])
-        hibp_check = camel_snake_data(hibp_check, camel_to_snake=True)
-        return Response(status=status.HTTP_200_OK, data=hibp_check)
+        breach_check = XposedOrNotService(retries_number=1).check_breach(email=email)
+        return Response(status=status.HTTP_200_OK, data=breach_check or [])
 
     @action(methods=["post"], detail=False)
     def public_breach(self, request, *args, **kwargs):
@@ -52,8 +53,5 @@ class ToolPwdViewSet(APIBaseViewSet):
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
         email = validated_data.get("email")
-        hibp_check = HibpService(retries_number=1).check_breach(email=email)
-        if not hibp_check:
-            return Response(status=status.HTTP_200_OK, data=[])
-        hibp_check = camel_snake_data(hibp_check, camel_to_snake=True)
-        return Response(status=status.HTTP_200_OK, data=hibp_check)
+        breach_check = XposedOrNotService(retries_number=1).check_breach(email=email)
+        return Response(status=status.HTTP_200_OK, data=breach_check or [])
