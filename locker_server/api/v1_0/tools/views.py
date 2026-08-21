@@ -14,6 +14,12 @@ from .serializers import BreachSerializer
 class ToolPwdViewSet(APIBaseViewSet):
     permission_classes = (ToolPwdPermission,)
 
+    def get_throttles(self):
+        throttles = super().get_throttles()
+        if self.action in ["breach", "public_breach"]:
+            self.throttle_scope = f"tools.{self.action}"
+        return throttles
+
     def get_serializer_class(self):
         if self.action in ["breach", "public_breach"]:
             self.serializer_class = BreachSerializer
