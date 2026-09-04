@@ -34,6 +34,7 @@ class Fido2CredentialSerializer(serializers.Serializer):
     counter = serializers.CharField(allow_null=True)
     rpName = serializers.CharField(allow_null=True)
     userDisplayName = serializers.CharField(allow_null=True)
+    prfKey = serializers.CharField(allow_null=True, required=False)
     discoverable = serializers.CharField(allow_null=True)
     creationDate = serializers.CharField(allow_null=True)
 
