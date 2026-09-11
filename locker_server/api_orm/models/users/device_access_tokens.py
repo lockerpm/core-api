@@ -39,7 +39,7 @@ class DeviceAccessTokenORM(AbstractDeviceAccessTokenORM):
     @classmethod
     def get_token_duration(cls, client_id):
         if client_id in [CLIENT_ID_MOBILE, CLIENT_ID_BROWSER, CLIENT_ID_DESKTOP]:
-            return 30 * 86400
+            return 60 * 86400
         return 4 * 3600
 
     def _gen_access_token_value(self, expired_time, credential_key):
