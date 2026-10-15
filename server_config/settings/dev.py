@@ -187,6 +187,7 @@ try:
             'user_authenticated': '600/min',
             'tools.breach': '20/min',
             'tools.public_breach': '10/min',
+            'attachments': '30/min',
             'users.auth': '20/hour',
             'users.update': '10/min',
         }

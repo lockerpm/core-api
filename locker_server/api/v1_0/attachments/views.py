@@ -24,6 +24,11 @@ class AttachmentPwdViewSet(APIBaseViewSet):
     permission_classes = (AttachmentPwdPermission, )
     http_method_names = ["head", "options", "post", ]
 
+    def get_throttles(self):
+        throttles = super().get_throttles()
+        self.throttle_scope = "attachments"
+        return throttles
+
     def get_serializer_class(self):
         if self.action == "create":
             self.serializer_class = AttachmentUploadSerializer
