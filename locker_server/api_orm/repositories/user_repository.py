@@ -13,6 +13,7 @@ from locker_server.api_orm.models import UserScoreORM, PMUserPlanFamilyORM
 from locker_server.api_orm.models.wrapper import get_user_model, get_enterprise_member_model, get_enterprise_model, \
     get_event_model, get_cipher_model, get_device_access_token_model, get_team_model, get_team_member_model, \
     get_device_model
+from locker_server.api_orm.utils.attachments import collect_attachment_keys, delete_attachment_keys
 from locker_server.api_orm.utils.revision_date import bump_account_revision_date
 from locker_server.core.entities.enterprise.policy.policy import EnterprisePolicy
 from locker_server.core.entities.user.user import User
@@ -950,6 +951,7 @@ class UserORMRepository(UserRepository):
         # Delete all their folders
         user_orm.folders.all().delete()
         # Delete all personal ciphers
+        attachment_keys = collect_attachment_keys(ciphers_orm=user_orm.ciphers.all())
         user_orm.ciphers.all().delete()
         # Delete all team ciphers
         owners_orm = user_orm.team_members.filter(role_id=MEMBER_ROLE_OWNER, team__personal_share=True)
@@ -961,7 +963,9 @@ class UserORMRepository(UserRepository):
         shared_ciphers_members_orm = shared_ciphers_orm.annotate(
             shared_member=Subquery(other_members_orm.values('user_id')[:1])
         ).exclude(shared_member__isnull=True).values('id', 'shared_member')
+        attachment_keys.update(collect_attachment_keys(ciphers_orm=shared_ciphers_orm))
         shared_ciphers_orm.delete()
+        delete_attachment_keys(attachment_keys=attachment_keys)
         TeamORM.objects.filter(id__in=team_ids).delete()
         # Bump revision date
         bump_account_revision_date(user=user_orm)
@@ -976,7 +980,9 @@ class UserORMRepository(UserRepository):
         # Then, delete related data: device sessions, folders, ciphers
         user_orm.user_devices.all().delete()
         user_orm.folders.all().delete()
+        attachment_keys = collect_attachment_keys(ciphers_orm=user_orm.ciphers.all())
         user_orm.ciphers.all().delete()
+        delete_attachment_keys(attachment_keys=attachment_keys)
         user_orm.exclude_domains.all().delete()
 
         # We only soft-delete this user. The plan of user is still available (but it will be canceled at the end period)

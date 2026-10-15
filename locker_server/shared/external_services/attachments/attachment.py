@@ -68,6 +68,9 @@ class AttachmentStorageService:
                    filter_type: str = None) -> tuple:
         raise NotImplementedError
 
+    def iter_keys(self, prefix: str, source: str = None, page_size: int = 1000):
+        raise NotImplementedError
+
     def generate_onetime_url(self, file_path: str, is_cdn=False, source: str = None, **kwargs) -> str:
         pass
 

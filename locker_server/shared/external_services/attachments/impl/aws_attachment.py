@@ -204,28 +204,43 @@ class AWSAttachmentService(AttachmentStorageService):
         Delete multiple s3 files
         :param file_paths: (list) List S3 key file
         :param source: (str) Bucket name
-        :return:
+        :return: True if all files are deleted, otherwise False
         """
-        for file_path in file_paths:
-            if not file_path or not file_path.strip():
-                continue
+        keys = list(dict.fromkeys(
+            file_path.strip() for file_path in file_paths if file_path and file_path.strip()
+        ))
+        if not keys:
+            return True
+        if not source:
+            return False
+        success = True
+        # The DeleteObjects API accepts up to 1000 keys per request
+        for i in range(0, len(keys), 1000):
+            chunk = keys[i:i + 1000]
             try:
-                self.s3_client.delete_object(Bucket=source, Key=file_path)
-            except ClientError:
-                continue
-        return True
+                response = self.s3_client.delete_objects(
+                    Bucket=source, Delete={"Objects": [{"Key": key} for key in chunk], "Quiet": True}
+                )
+                if response.get("Errors"):
+                    success = False
+            except Exception:
+                success = False
+        return success
 
     def delete_prefix(self, prefix: str, source: str = settings.AWS_S3_BUCKET) -> bool:
         """
         Delete a AWS S3 prefix
         :param prefix: (str) specific dir
         :param source: (str) AWS S3 bucket name
-        :return:
+        :return: True if the prefix is deleted, otherwise False
         """
+        # Never delete with an empty prefix: it would remove the whole bucket
+        if not prefix or not prefix.strip("/") or not source:
+            return False
         try:
             s3 = boto3.resource(
                 's3',
-                region_name=settings.AWS_S3_REGION_NAME,
+                region_name=self.region,
                 endpoint_url=self.endpoint_url,
                 aws_access_key_id=self.access_key,
                 aws_secret_access_key=self.secret_key,
@@ -237,8 +252,21 @@ class AWSAttachmentService(AttachmentStorageService):
             bucket = s3.Bucket(source)
             bucket.objects.filter(Prefix=prefix).delete()
             return True
-        except ClientError:
+        except Exception:
             return False
+
+    def iter_keys(self, prefix: str, source: str = settings.AWS_S3_BUCKET, page_size: int = 1000):
+        """
+        Iterate over all objects under a prefix
+        :param prefix: (str) specific dir
+        :param source: (str) AWS S3 bucket name
+        :param page_size: (int) The maximum number of keys per page
+        :return: generator of (key, size, last_modified timestamp)
+        """
+        paginator = self.s3_client.get_paginator("list_objects_v2")
+        for page in paginator.paginate(Bucket=source, Prefix=prefix, PaginationConfig={"PageSize": page_size}):
+            for obj in page.get("Contents", []):
+                yield obj.get("Key"), obj.get("Size"), obj.get("LastModified").timestamp()
 
     def list_files(self, prefix: str, source: str = settings.AWS_S3_BUCKET,
                    max_keys: int = 1000, marker: str = '', filter_type: str = None) -> tuple:
