@@ -5,7 +5,8 @@ from django.db.models import When, Value, Q, Case, IntegerField
 
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_user_model, get_enterprise_domain_model, \
-    get_enterprise_member_model, get_enterprise_group_member_model
+    get_enterprise_member_model, get_enterprise_group_member_model, get_cipher_model
+from locker_server.api_orm.utils.attachments import collect_attachment_keys, delete_attachment_keys
 from locker_server.core.entities.enterprise.member.enterprise_member import EnterpriseMember
 from locker_server.core.entities.user.user import User
 from locker_server.core.repositories.enterprise_member_repository import EnterpriseMemberRepository
@@ -20,6 +21,7 @@ UserORM = get_user_model()
 DomainORM = get_enterprise_domain_model()
 EnterpriseMemberORM = get_enterprise_member_model()
 EnterpriseGroupMemberORM = get_enterprise_group_member_model()
+CipherORM = get_cipher_model()
 ModelParser = get_model_parser()
 
 
@@ -381,7 +383,12 @@ class EnterpriseMemberORMRepository(EnterpriseMemberRepository):
             # Delete the user account
             try:
                 user_orm = UserORM.objects.get(user_id=user_id)
+                # The ciphers of this user (owned or created) are deleted by cascade => Delete their attachments too
+                attachment_keys = collect_attachment_keys(
+                    ciphers_orm=CipherORM.objects.filter(Q(user_id=user_id) | Q(created_by_id=user_id))
+                )
                 user_orm.delete()
+                delete_attachment_keys(attachment_keys=attachment_keys)
             except UserORM.DoesNotExist:
                 pass
         return True

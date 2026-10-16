@@ -1,28 +1,35 @@
 from django.conf import settings
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError, PermissionDenied
+from rest_framework.exceptions import ValidationError, PermissionDenied, NotFound
 from rest_framework.response import Response
 
 from locker_server.api.api_base_view import APIBaseViewSet
 from locker_server.api.permissions.locker_permissions.attachment_permission import AttachmentPwdPermission
 from locker_server.api.v1_0.attachments.serializers import AttachmentUploadSerializer, SignedAttachmentSerializer, \
     MultipleDeleteAttachmentSerializer
-from locker_server.core.exceptions.cipher_attachment_exception import CipherAttachmentDoesNotExistException, \
-    CipherAttachmentLimitSizeReachedException
+from locker_server.core.exceptions.cipher_attachment_exception import CipherAttachmentLimitSizeReachedException
 from locker_server.core.exceptions.cipher_exception import CipherDoesNotExistException
 from locker_server.shared.constants.attachments import DEFAULT_ATTACHMENT_EXPIRED, UPLOAD_ACTION_ATTACHMENT
+from locker_server.shared.constants.emergency_access import EMERGENCY_ACCESS_TYPE_VIEW, \
+    EMERGENCY_ACCESS_STATUS_RECOVERY_APPROVED
 from locker_server.shared.constants.transactions import PLAN_TYPE_PM_FREE
 from locker_server.shared.error_responses.error import gen_error
 from locker_server.shared.external_services.attachments.attachment_factory import AttachmentStorageFactory, \
     ATTACHMENT_AWS, ATTACHMENT_R2
 from locker_server.shared.external_services.attachments.exceptions import FileExtensionNotAllowedException, \
     AttachmentCreateUploadFormException
+from locker_server.shared.utils.attachments import parse_attachment_key
 
 
 class AttachmentPwdViewSet(APIBaseViewSet):
     permission_classes = (AttachmentPwdPermission, )
     http_method_names = ["head", "options", "post", ]
+
+    def get_throttles(self):
+        throttles = super().get_throttles()
+        self.throttle_scope = "attachments"
+        return throttles
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -52,13 +59,26 @@ class AttachmentPwdViewSet(APIBaseViewSet):
         except CipherDoesNotExistException:
             return None
 
-    def get_cipher_attachment_by_path(self, path: str):
-        try:
-            cipher_attachment = self.attachment_service.get_cipher_attachment_by_path(path=path)
-        except CipherAttachmentDoesNotExistException:
-            return None
-        self.check_object_permissions(request=self.request, obj=cipher_attachment)
-        return cipher_attachment
+    def can_view_cipher_attachments(self, cipher_id: str) -> bool:
+        """
+        The user can view the attachments of a cipher if the user can view the cipher in the vault
+        """
+        user = self.request.user
+        # The owner or the members of the sharing team (the same scope as the sync)
+        if self.cipher_service.get_multiple_by_user(user_id=user.user_id, filter_ids=[cipher_id]):
+            return True
+        # The grantee of an approved view emergency access (the same scope as the emergency access view)
+        for emergency_access in self.emergency_access_service.list_by_grantee_id(grantee_id=user.user_id):
+            if emergency_access.emergency_access_type != EMERGENCY_ACCESS_TYPE_VIEW or \
+                    emergency_access.status != EMERGENCY_ACCESS_STATUS_RECOVERY_APPROVED or \
+                    not emergency_access.grantor:
+                continue
+            if self.cipher_service.get_multiple_by_user(
+                user_id=emergency_access.grantor.user_id, filter_ids=[cipher_id]
+            ):
+                return True
+        # The quick shares do not grant the access: the quick share data does not contain the attachments
+        return False
 
     def create(self, request, *args, **kwargs):
         allow_upload_file = self.allow_attachments()
@@ -111,7 +131,14 @@ class AttachmentPwdViewSet(APIBaseViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
-        path = validated_data.get("path")
+        # Only sign the normalized key of an attachment which the user can view.
+        # The invalid paths and the denied paths return the same error, so the cipher ids can not be enumerated
+        attachment = parse_attachment_key(validated_data.get("path"))
+        if not attachment:
+            raise NotFound
+        path, cipher_id = attachment
+        if self.can_view_cipher_attachments(cipher_id=cipher_id) is False:
+            raise NotFound
         if settings.DEFAULT_CLOUD_STORAGE == ATTACHMENT_R2 and settings.CDN_ATTACHMENT_URL:
             is_cdn = True
         elif settings.AWS_CLOUDFRONT_PUBLIC_KEY_ID:

@@ -7,6 +7,7 @@ from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_team_model, get_team_member_model, get_cipher_model, \
     get_collection_model, get_folder_model, get_member_role_model, get_user_model, get_group_model, \
     get_group_member_model, get_enterprise_group_model
+from locker_server.api_orm.utils.attachments import collect_attachment_keys, delete_attachment_keys
 from locker_server.api_orm.utils.revision_date import bump_account_revision_date
 from locker_server.core.entities.cipher.cipher import Cipher
 from locker_server.core.entities.cipher.folder import Folder
@@ -581,8 +582,10 @@ class SharingORMRepository(SharingRepository):
         team_orm = self._get_team_orm(team_id=team_id)
         # Update revision date of user
         bump_account_revision_date(team=team_orm)
-        # Delete this team
+        # Delete this team. The remaining ciphers (not moved to the owner) are deleted with their attachments
+        attachment_keys = collect_attachment_keys(ciphers_orm=team_orm.ciphers.all())
         team_orm.ciphers.all().delete()
+        delete_attachment_keys(attachment_keys=attachment_keys)
         team_orm.collections.all().delete()
         team_orm.groups.all().delete()
         team_orm.delete()
@@ -635,8 +638,10 @@ class SharingORMRepository(SharingRepository):
 
         # Update revision date of user
         bump_account_revision_date(team=team_orm)
-        # Delete this team
+        # Delete this team. The remaining ciphers (not moved to the owner) are deleted with their attachments
+        attachment_keys = collect_attachment_keys(ciphers_orm=team_orm.ciphers.all())
         team_orm.ciphers.all().delete()
+        delete_attachment_keys(attachment_keys=attachment_keys)
         team_orm.collections.all().delete()
         team_orm.groups.all().delete()
         team_orm.delete()

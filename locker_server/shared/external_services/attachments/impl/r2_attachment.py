@@ -1,7 +1,7 @@
 import datetime
 import json
 import traceback
-from typing import Optional
+from typing import Optional, List
 import boto3
 from botocore.config import Config
 from botocore.exceptions import ClientError
@@ -117,3 +117,26 @@ class R2AttachmentService(AWSAttachmentService):
     
     def get_folder_size(self, folder_path: str, source: str = settings.R2_BUCKET) -> Optional[float]:
         return super().get_folder_size(folder_path=folder_path, source=source)
+
+    # The bucket is resolved at call time (not at import time) so these methods never fall back to the AWS bucket
+    def check_file_exist(self, file_path: str, source: str = None) -> bool:
+        return super().check_file_exist(file_path=file_path, source=source or settings.R2_BUCKET)
+
+    def get_file_size(self, file_path: str, source: str = None) -> Optional[float]:
+        return super().get_file_size(file_path=file_path, source=source or settings.R2_BUCKET)
+
+    def delete_files(self, file_paths: List[str], source: str = None) -> bool:
+        return super().delete_files(file_paths=file_paths, source=source or settings.R2_BUCKET)
+
+    def delete_prefix(self, prefix: str, source: str = None) -> bool:
+        return super().delete_prefix(prefix=prefix, source=source or settings.R2_BUCKET)
+
+    def iter_keys(self, prefix: str, source: str = None, page_size: int = 1000):
+        return super().iter_keys(prefix=prefix, source=source or settings.R2_BUCKET, page_size=page_size)
+
+    def list_files(self, prefix: str, source: str = None, max_keys: int = 1000, marker: str = '',
+                   filter_type: str = None) -> tuple:
+        return super().list_files(
+            prefix=prefix, source=source or settings.R2_BUCKET, max_keys=max_keys, marker=marker,
+            filter_type=filter_type
+        )

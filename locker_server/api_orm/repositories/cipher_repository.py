@@ -7,6 +7,7 @@ from django.db.models import Value, BooleanField, Q, Case, When, Count, F
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_cipher_model, get_folder_model, get_collection_cipher_model, \
     get_team_model, get_collection_member_model, get_team_member_model, get_user_model
+from locker_server.api_orm.utils.attachments import collect_attachment_keys, delete_attachment_keys
 from locker_server.api_orm.utils.revision_date import bump_account_revision_date
 from locker_server.core.entities.cipher.cipher import Cipher
 from locker_server.core.entities.cipher.folder import Folder
@@ -15,10 +16,8 @@ from locker_server.core.entities.user.user import User
 from locker_server.core.repositories.cipher_repository import CipherRepository
 from locker_server.shared.constants.ciphers import *
 from locker_server.shared.constants.members import *
-from locker_server.shared.external_services.attachments.attachment_factory import AttachmentStorageFactory, \
-    ATTACHMENT_AWS
 from locker_server.shared.paginations.app import paginate_queryset
-from locker_server.shared.utils.app import now, diff_list, get_cipher_detail_data, md5_encode
+from locker_server.shared.utils.app import now, diff_list, get_cipher_detail_data
 
 
 UserORM = get_user_model()
@@ -769,7 +768,10 @@ class CipherORMRepository(CipherRepository):
         :return:
         """
         teams_orm = TeamORM.objects.filter(id__in=team_ids)
-        CipherORM.objects.filter(team_id__in=team_ids).delete()
+        ciphers_orm = CipherORM.objects.filter(team_id__in=team_ids)
+        attachment_keys = collect_attachment_keys(ciphers_orm=ciphers_orm)
+        ciphers_orm.delete()
+        delete_attachment_keys(attachment_keys=attachment_keys)
         for team_orm in teams_orm:
             bump_account_revision_date(team=team_orm)
 
@@ -777,21 +779,15 @@ class CipherORMRepository(CipherRepository):
         ciphers_orm = self._get_multiple_ciphers_orm_by_user(user_id=user_id_deleted, only_deleted=True).filter(
             id__in=cipher_ids
         ).exclude(type__in=IMMUTABLE_CIPHER_TYPES)
-        team_ids = ciphers_orm.exclude(team__isnull=True).values_list('team_id', flat=True)
+        # Evaluate before deleting the ciphers, otherwise the team ids are empty
+        team_ids = list(ciphers_orm.exclude(team__isnull=True).values_list('team_id', flat=True))
+        deleted_cipher_ids = list(ciphers_orm.values_list('id', flat=True))
+        attachment_keys = collect_attachment_keys(ciphers_orm=ciphers_orm)
         # Delete ciphers objects
-        deleted_ciphers = list(ciphers_orm.values('id', 'created_by__internal_id'))
-        deleted_cipher_ids = [c.get("id") for c in deleted_ciphers]
         ciphers_orm.delete()
 
         # Delete cipher attachments
-        attachment_storage = AttachmentStorageFactory.get_attachment_service(service_name=ATTACHMENT_AWS)
-        deleted_attachment_keys = [
-            f'attachments/{md5_encode(text=c.get("created_by__internal_id"))}/{c.get("id")}'
-            for c in deleted_ciphers if c.get("created_by__internal_id")
-        ]
-        if deleted_attachment_keys:
-            for k in list(set(deleted_attachment_keys)):
-                attachment_storage.delete_prefix(prefix=k)
+        delete_attachment_keys(attachment_keys=attachment_keys)
 
         # Bump revision date: teams and user
         teams_orm = TeamORM.objects.filter(id__in=team_ids)
@@ -852,8 +848,17 @@ class CipherORMRepository(CipherRepository):
 
         return restored_cipher_ids
 
-    def delete_trash_ciphers(self, deleted_date_pivot: float) -> bool:
-        CipherORM.objects.filter(
+    def delete_trash_ciphers(self, deleted_date_pivot: float, batch_size: int = 500) -> bool:
+        trash_ciphers_orm = CipherORM.objects.filter(
             deleted_date__isnull=False
-        ).filter(deleted_date__lte=deleted_date_pivot).delete()
+        ).filter(deleted_date__lte=deleted_date_pivot)
+        # Delete by batches: collect the attachment keys, delete the ciphers, then delete the attachment files
+        while True:
+            batch_cipher_ids = list(trash_ciphers_orm.order_by('id').values_list('id', flat=True)[:batch_size])
+            if not batch_cipher_ids:
+                break
+            batch_ciphers_orm = CipherORM.objects.filter(id__in=batch_cipher_ids)
+            attachment_keys = collect_attachment_keys(ciphers_orm=batch_ciphers_orm)
+            batch_ciphers_orm.delete()
+            delete_attachment_keys(attachment_keys=attachment_keys, background=False)
         return deleted_date_pivot
