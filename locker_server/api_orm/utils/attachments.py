@@ -1,18 +1,13 @@
 import ast
-import re
 import traceback
 from typing import Iterable, List, Optional
-from urllib.parse import urlparse
 
 from locker_server.settings import locker_server_settings
 from locker_server.shared.background.i_background import BackgroundThread, background_exception_wrapper
 from locker_server.shared.external_services.attachments.attachment_factory import AttachmentStorageFactory
 from locker_server.shared.log.cylog import CyLog
 from locker_server.shared.utils.app import md5_encode
-
-
-# Attachment key format: attachments/{md5(user internal_id)}/{cipher_id}/{attachment_id}
-ATTACHMENT_KEY_PATTERN = re.compile(r"attachments/[0-9a-f]{32}/(?P<cipher_id>[^/]+)/\d+")
+from locker_server.shared.utils.attachments import ATTACHMENT_KEY_PATTERN, normalize_attachment_key
 
 
 class AttachmentKeys:
@@ -43,19 +38,6 @@ class AttachmentKeys:
 def get_cipher_attachment_prefix(user_internal_id, cipher_id) -> str:
     # The trailing slash prevents matching other ciphers whose id starts with this cipher id
     return f"attachments/{md5_encode(text=str(user_internal_id))}/{cipher_id}/"
-
-
-def normalize_attachment_key(url) -> Optional[str]:
-    """
-    Get the storage key from an attachment url. The url can be a key or a full url (with the bucket name)
-    """
-    if not url or not isinstance(url, str):
-        return None
-    path = urlparse(url).path if "://" in url else url
-    index = path.find("attachments/")
-    if index < 0:
-        return None
-    return path[index:]
 
 
 def _parse_cipher_data(data) -> dict:
