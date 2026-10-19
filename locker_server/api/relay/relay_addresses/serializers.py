@@ -32,7 +32,7 @@ class CreateRelayAddressSerializer(serializers.Serializer):
 
 
 class UpdateRelayAddressSerializer(serializers.Serializer):
-    address = serializers.CharField(max_length=64, min_length=6)
-    description = serializers.CharField(allow_blank=True, required=False)
+    address = serializers.CharField(max_length=64, min_length=6, required=False)
+    description = serializers.CharField(max_length=64, allow_blank=True, required=False)
     enabled = serializers.BooleanField(required=False)
     block_spam = serializers.BooleanField(required=False)
