@@ -70,7 +70,20 @@ class RelayAddressViewSet(APIBaseViewSet):
             self.pagination_class = None
         else:
             self.pagination_class.page_size = page_size_param or 10
-        return super().list(request, *args, **kwargs)
+
+        queryset = self.filter_queryset(self.get_queryset())
+        # The oldest address is always on top, the others are ordered by created time descending
+        if queryset:
+            oldest_relay_address = queryset[0]
+            other_relay_addresses = sorted(queryset[1:], key=lambda r: r.created_time or 0, reverse=True)
+            queryset = [oldest_relay_address] + other_relay_addresses
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         user = self.request.user
