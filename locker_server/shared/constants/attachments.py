@@ -1,5 +1,8 @@
 UPLOAD_ACTION_ATTACHMENT = "attachment"
 
+# The attachments are encrypted by the clients, so they are always binary data. This content type is signed in the
+# upload form, so the files can not be served as HTML/SVG... from the attachment domain
+ATTACHMENT_CONTENT_TYPE = "application/octet-stream"
 
 # -------------- Limit size ------------- #
 LIMIT_SIZE_ATTACHMENT = 52428800        # 50 MB

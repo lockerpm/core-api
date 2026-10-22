@@ -5,7 +5,7 @@ from locker_server.core.exceptions.cipher_attachment_exception import CipherAtta
 from locker_server.shared.caching.attachment_upload_cache import get_reserved_upload_size, reserve_upload
 from locker_server.shared.external_services.attachments.attachment import AttachmentStorageService
 from locker_server.shared.constants.attachments import UPLOAD_ACTION_ATTACHMENT, LIMIT_SIZE_ATTACHMENT, \
-    LIMIT_TOTAL_SIZE_ATTACHMENT, UPLOAD_FORM_EXPIRED
+    LIMIT_TOTAL_SIZE_ATTACHMENT, UPLOAD_FORM_EXPIRED, ATTACHMENT_CONTENT_TYPE
 
 
 class AttachmentService:
@@ -33,7 +33,8 @@ class AttachmentService:
         acl = "private"
         limit = metadata.get("limit", True)
         limit_size = None
-        content_type = None
+        # The file name is not trusted: the encrypted attachments are always uploaded as binary data
+        content_type = ATTACHMENT_CONTENT_TYPE
         attachment_id = self.generate_attachment_id()
         user_key = metadata.get("user_key")
         if limit:
@@ -100,4 +101,32 @@ class AttachmentService:
             result["sizes"][key] = size
         if execute and result["keys"]:
             self.attachment_storage.delete_files(file_paths=result["keys"])
+        return result
+
+    def fix_attachment_content_types(self, modified_after: float = None, execute: bool = True) -> Dict:
+        """
+        Replace the content type of the attachment files which are not uploaded as binary data.
+        The old upload forms did not sign the content type, so a file could be uploaded as HTML/SVG and served as a
+        web page from the attachment domain. The files are rewritten instead of deleted: the valid attachments are
+        encrypted data, so they still work with the binary content type
+        :param modified_after: (float) Only check the files which are modified after this timestamp
+        :param execute: (bool) Replace the content types or only report them (dry-run)
+        :return: (dict) The statistic, the invalid keys and their old content types
+        """
+        result = {"scanned": 0, "invalid": 0, "fixed": 0, "keys": [], "content_types": {}}
+        for key, size, last_modified in self.attachment_storage.iter_keys(prefix="attachments/"):
+            if modified_after is not None and last_modified < modified_after:
+                continue
+            result["scanned"] += 1
+            content_type = self.attachment_storage.get_content_type(file_path=key)
+            if content_type is not None and \
+                    content_type.split(";")[0].strip().lower() == ATTACHMENT_CONTENT_TYPE:
+                continue
+            result["invalid"] += 1
+            result["keys"].append(key)
+            result["content_types"][key] = content_type
+            if execute and self.attachment_storage.set_content_type(
+                file_path=key, content_type=ATTACHMENT_CONTENT_TYPE
+            ):
+                result["fixed"] += 1
         return result

@@ -15,8 +15,7 @@ from locker_server.shared.constants.emergency_access import EMERGENCY_ACCESS_TYP
     EMERGENCY_ACCESS_STATUS_RECOVERY_APPROVED
 from locker_server.shared.constants.transactions import PLAN_TYPE_PM_FREE
 from locker_server.shared.error_responses.error import gen_error
-from locker_server.shared.external_services.attachments.attachment_factory import AttachmentStorageFactory, \
-    ATTACHMENT_AWS, ATTACHMENT_R2
+from locker_server.shared.external_services.attachments.attachment_factory import ATTACHMENT_R2
 from locker_server.shared.external_services.attachments.exceptions import FileExtensionNotAllowedException, \
     AttachmentCreateUploadFormException
 from locker_server.shared.utils.attachments import parse_attachment_key
@@ -95,13 +94,6 @@ class AttachmentPwdViewSet(APIBaseViewSet):
         metadata.update({
             "user_key": self.user_service.get_hash_user_key(user=user),
         })
-        # Update content type
-        attachment_storage = AttachmentStorageFactory.get_attachment_service(
-            service_name=settings.DEFAULT_CLOUD_STORAGE
-        )
-        extension = attachment_storage.get_file_name(file_path=file_name)[1]
-        if extension.lower() in [".jpg", ".png", ".jpeg"]:
-            metadata.update({"content_type": 'image/jpeg'})
         # Validate data: Check permission
         limit_size = True
 
@@ -145,8 +137,9 @@ class AttachmentPwdViewSet(APIBaseViewSet):
             is_cdn = True
         else:
             is_cdn = False
+        # The attachments are downloaded (and decrypted by the clients), they are never rendered by the browser
         onetime_url = self.attachment_service.get_onetime_url(path=path, is_cdn=is_cdn, **{
-            "response_content_disposition": "inline",
+            "response_content_disposition": "attachment",
             "expired": DEFAULT_ATTACHMENT_EXPIRED
         })
         return Response(status=status.HTTP_200_OK, data={"url": onetime_url})
