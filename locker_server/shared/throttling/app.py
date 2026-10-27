@@ -10,22 +10,11 @@ class AppBaseThrottle(throttling.ScopedRateThrottle):
 
     def get_ident(self, request):
         """
-        This function to get ident for request, not using IP as default
-        We will use username as ident
+        Get the ident of an anonymous request by IP.
+        The ident must not come from the request body, the clients could change it to bypass the throttle
         :param request:
         :return:
         """
-
-        try:
-            username = request.data.get("username")
-        except AttributeError:
-            username = None
-        request_path = request.path
-        # Get ident by username
-        if username:
-            return username
-
-        # Else, ident by IP
         xff = request.META.get('HTTP_X_FORWARDED_FOR')
         remote_addr = request.META.get('REMOTE_ADDR')
         num_proxies = api_settings.NUM_PROXIES

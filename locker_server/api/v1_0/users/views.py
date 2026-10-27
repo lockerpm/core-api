@@ -50,7 +50,10 @@ class UserPwdViewSet(APIBaseViewSet):
     lookup_value_regex = r'[0-9a-z-]+'
 
     def get_throttles(self):
-        return super().get_throttles()
+        throttles = super().get_throttles()
+        if self.action == "check_password":
+            self.throttle_scope = "users.auth"
+        return throttles
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
