@@ -87,6 +87,38 @@ class AWSAttachmentService(AttachmentStorageService):
         except ClientError:
             return None
 
+    def get_content_type(self, file_path: str, source: str = settings.AWS_S3_BUCKET) -> Optional[str]:
+        """
+        Get the stored content type of the S3 file
+        :param file_path: (str) S3 file path
+        :param source: (str) S3 Bucket name
+        :return: The content type if the file exists
+        """
+        try:
+            response = self.s3_client.head_object(Bucket=source, Key=file_path)
+            return response.get('ContentType')
+        except ClientError:
+            return None
+
+    def set_content_type(self, file_path: str, content_type: str, source: str = settings.AWS_S3_BUCKET) -> bool:
+        """
+        Replace the stored content type of the S3 file by copying the file onto itself
+        :param file_path: (str) S3 file path
+        :param content_type: (str) The new content type
+        :param source: (str) S3 Bucket name
+        :return: True if the content type is replaced
+        """
+        try:
+            self.s3_client.copy_object(
+                Bucket=source, Key=file_path, CopySource={"Bucket": source, "Key": file_path},
+                ContentType=content_type, MetadataDirective="REPLACE"
+            )
+            return True
+        except ClientError:
+            tb = traceback.format_exc()
+            CyLog.warning(**{"message": "Exception set_content_type {}: {}".format(file_path, tb)})
+            return False
+
     def get_folder_size(self, folder_path: str, source: str = settings.AWS_S3_BUCKET) -> Optional[float]:
         try:
             s3 = boto3.resource(
@@ -145,11 +177,17 @@ class AWSAttachmentService(AttachmentStorageService):
                 }
                 if response_content_disposition:
                     bucket_params.update({"ResponseContentDisposition": response_content_disposition})
+                # The content type is signed (SignedHeaders=content-type;host), so the client can not upload the file
+                # with another content type
+                if content_type:
+                    bucket_params.update({"ContentType": content_type})
                 pre_signed_params = {
                     "Params": bucket_params,
                     "ExpiresIn": expires_in,
                 }
                 url = self.s3_client.generate_presigned_url('put_object', **pre_signed_params)
+                if content_type:
+                    return {"url": url, "headers": {"Content-Type": content_type}}
                 return {"url": url}
             response = self.s3_client.generate_presigned_post(
                 Bucket=destination,

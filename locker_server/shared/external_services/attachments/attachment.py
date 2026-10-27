@@ -48,6 +48,12 @@ class AttachmentStorageService:
     def get_file_size(self, file_path: str, source: str = None) -> Optional[float]:
         raise NotImplementedError
 
+    def get_content_type(self, file_path: str, source: str = None) -> Optional[str]:
+        raise NotImplementedError
+
+    def set_content_type(self, file_path: str, content_type: str, source: str = None) -> bool:
+        raise NotImplementedError
+
     def get_folder_size(self, folder_path: str, source: str = None) -> Optional[float]:
         pass
 

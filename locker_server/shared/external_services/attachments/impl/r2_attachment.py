@@ -125,6 +125,14 @@ class R2AttachmentService(AWSAttachmentService):
     def get_file_size(self, file_path: str, source: str = None) -> Optional[float]:
         return super().get_file_size(file_path=file_path, source=source or settings.R2_BUCKET)
 
+    def get_content_type(self, file_path: str, source: str = None) -> Optional[str]:
+        return super().get_content_type(file_path=file_path, source=source or settings.R2_BUCKET)
+
+    def set_content_type(self, file_path: str, content_type: str, source: str = None) -> bool:
+        return super().set_content_type(
+            file_path=file_path, content_type=content_type, source=source or settings.R2_BUCKET
+        )
+
     def delete_files(self, file_paths: List[str], source: str = None) -> bool:
         return super().delete_files(file_paths=file_paths, source=source or settings.R2_BUCKET)
 
