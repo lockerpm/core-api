@@ -59,12 +59,20 @@ class UserUpdateMeSerializer(serializers.Serializer):
     hide_master_password = serializers.BooleanField(required=False)
 
     def to_internal_value(self, data):
-        name = data.get("name")
+        # Only keep the declared fields, the other fields (is_super_admin, email, etc.) must not be updated
+        validated_data = super().to_internal_value(data)
+        # The repository reads the scores by the cipher types ("0".."7"), not by the serializer field names
+        scores = data.get("scores")
+        if isinstance(scores, dict):
+            validated_data["scores"] = {
+                key: value for key, value in scores.items()
+                if key in [str(i) for i in range(8)] and isinstance(value, int) and not isinstance(value, bool)
+                and value >= 0
+            }
+        name = validated_data.pop("name", None)
         if name:
-            data.update({
-                "full_name": name
-            })
-        return data
+            validated_data["full_name"] = name
+        return validated_data
 
 
 class EncryptedPairKey(serializers.Serializer):

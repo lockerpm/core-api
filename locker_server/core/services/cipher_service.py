@@ -179,7 +179,8 @@ class CipherService:
         )
         team = cipher_data.get("team")
 
-        if not team and cipher.team:
+        # Only the owner can move the cipher out of its team (to the personal vault or to another team)
+        if cipher.team and (not team or team.team_id != cipher.team.team_id):
             team_member = self.team_member_repository.get_user_team_member(user_id=user_id, team_id=cipher.team.team_id)
             if not team_member or team_member.role.name != MEMBER_ROLE_OWNER:
                 raise OnlyAllowOwnerUpdateException
