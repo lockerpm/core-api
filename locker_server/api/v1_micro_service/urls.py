@@ -5,7 +5,7 @@ from locker_server.api.v1_micro_service import views
 
 
 router = DefaultRouter(trailing_slash=False)
-router.register(r'users', views.UserViewSet, "users")
+# router.register(r'users', views.UserViewSet, "users")
 
 
 urlpatterns = [
