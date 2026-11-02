@@ -87,7 +87,7 @@ class QuickShareORMRepository(QuickShareRepository):
             if code and (quick_share_email_orm.code != code or quick_share_email_orm.code_expired_time < now()):
                 return False
             if token and self.validate_public_access_token(
-                quick_share_id=quick_share.quick_share_id, email=quick_share_email_orm.email, token=token
+                quick_share_id=quick_share.access_id, email=quick_share_email_orm.email, token=token
             ) is False:
                 return False
         if quick_share.max_access_count and quick_share.access_count >= quick_share.max_access_count:
@@ -181,6 +181,8 @@ class QuickShareORMRepository(QuickShareRepository):
             quick_share_email_orm.clear_code()
             quick_share_email_orm.access_count = F('access_count') + 1
             quick_share_email_orm.save()
+            # Reload the counter, so the next save does not apply the F() expression again
+            quick_share_email_orm.refresh_from_db()
         except QuickShareEmailORM.DoesNotExist:
             return None
         quick_share_email_orm.set_random_code()
