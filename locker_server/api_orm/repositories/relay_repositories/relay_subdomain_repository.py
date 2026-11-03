@@ -2,6 +2,7 @@ from typing import Optional, List
 
 from django.db import transaction
 from django.db.models import Count, Sum, Max
+from django.db.models.functions import Coalesce
 from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_relay_subdomain_model, get_user_model
 from locker_server.core.entities.relay.relay_subdomain import RelaySubdomain
@@ -46,8 +47,9 @@ class RelaySubdomainORMRepository(RelaySubdomainRepository):
         ]
 
     def list_unused_subdomain_relay_addresses(self, latest_used_time_pivot: float) -> List[RelaySubdomain]:
+        # A subdomain without any address falls back to its created time
         relay_subdomains_orm = RelaySubdomainORM.objects.filter(is_deleted=False).annotate(
-            latest_used_time=Max('relay_addresses__latest_used_time')
+            latest_used_time=Coalesce(Max('relay_addresses__latest_used_time'), 'created_time')
         ).filter(
             latest_used_time__lt=latest_used_time_pivot
         ).select_related('domain')
