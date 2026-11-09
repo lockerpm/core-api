@@ -7,7 +7,7 @@ from locker_server.api.permissions.locker_permissions.backup_credential_pwd_perm
     BackupCredentialPwdPermission
 from locker_server.core.exceptions.backup_credential_exception import BackupCredentialDoesNotExistException, \
     BackupCredentialMaximumReachedException
-from locker_server.core.exceptions.user_exception import UserDoesNotExistException
+from locker_server.core.exceptions.user_exception import UserDoesNotExistException, UserPasswordInvalidException
 from locker_server.shared.error_responses.error import gen_error
 from .serializers import *
 
@@ -66,14 +66,18 @@ class BackupCredentialPwdViewSet(APIBaseViewSet):
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
         keys = validated_data.get("keys", {})
+        main_master_password_hash = validated_data.pop("main_master_password_hash", None)
         try:
             new_backup_credential = self.backup_credential_service.create_backup_credential(
                 current_user=user,
                 keys=keys,
-                backup_credential_create_data=validated_data
+                backup_credential_create_data=validated_data,
+                main_master_password_hash=main_master_password_hash,
             )
         except UserDoesNotExistException:
             raise NotFound
+        except UserPasswordInvalidException:
+            raise ValidationError(detail={"main_master_password_hash": ["The master password is not correct"]})
         except BackupCredentialMaximumReachedException:
             raise ValidationError(detail={"non_field_errors": [gen_error("10000")]})
         return Response(
@@ -88,13 +92,17 @@ class BackupCredentialPwdViewSet(APIBaseViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
+        current_master_password_hash = validated_data.pop("current_master_password_hash", None)
         try:
             self.backup_credential_service.update_backup_credential(
                 backup_credential_id=backup_credential.backup_credential_id,
                 update_data=validated_data,
+                current_master_password_hash=current_master_password_hash,
             )
         except BackupCredentialDoesNotExistException:
             raise NotFound
+        except UserPasswordInvalidException:
+            raise ValidationError(detail={"current_master_password_hash": ["The master password is not correct"]})
         return Response(status=status.HTTP_200_OK, data={"success": True})
 
     def destroy(self, request, *args, **kwargs):

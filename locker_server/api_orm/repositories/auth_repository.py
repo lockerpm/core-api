@@ -52,3 +52,10 @@ class AuthORMRepository(AuthRepository):
             user_orm.fd_last_use_date = now()
         user_orm.save()
         return valid
+
+    def check_main_master_password(self, user: User, raw_password: str) -> bool:
+        try:
+            user_orm = UserORM.objects.get(user_id=user.user_id)
+        except UserORM.DoesNotExist:
+            return False
+        return user_orm.check_master_password(raw_password=raw_password) is True

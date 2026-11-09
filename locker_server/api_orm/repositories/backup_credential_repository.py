@@ -51,6 +51,15 @@ class BackupCredentialORMRepository(BackupCredentialRepository):
             return None
         return ModelParser.user_parser().parse_backup_credential(backup_credential_orm=backup_credential_orm)
 
+    def check_master_password(self, backup_credential_id: str, raw_password: str) -> bool:
+        try:
+            backup_credential_orm = BackupCredentialORM.objects.get(
+                id=backup_credential_id
+            )
+        except (BackupCredentialORM.DoesNotExist, ValueError):
+            return False
+        return backup_credential_orm.check_master_password(raw_password=raw_password)
+
     # ------------------------ Create BackupCredential resource --------------------- #
     def create_backup_credential(self, backup_credential_create_data: Dict) -> Optional[BackupCredential]:
         backup_credential_orm = BackupCredentialORM.create(**backup_credential_create_data)
