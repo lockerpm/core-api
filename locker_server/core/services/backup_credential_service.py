@@ -4,7 +4,8 @@ from locker_server.core.entities.user.backup_credential import BackupCredential
 from locker_server.core.entities.user.user import User
 from locker_server.core.exceptions.backup_credential_exception import BackupCredentialDoesNotExistException, \
     BackupCredentialMaximumReachedException
-from locker_server.core.exceptions.user_exception import UserDoesNotExistException
+from locker_server.core.exceptions.user_exception import UserDoesNotExistException, UserPasswordInvalidException
+from locker_server.core.repositories.auth_repository import AuthRepository
 from locker_server.core.repositories.backup_credential_repository import BackupCredentialRepository
 from locker_server.core.repositories.user_repository import UserRepository
 from locker_server.shared.constants.backup_credential import BACKUP_CREDENTIAL_MAX
@@ -16,10 +17,12 @@ class BackupCredentialService:
     """
 
     def __init__(self, user_repository: UserRepository,
-                 backup_credential_repository: BackupCredentialRepository
+                 backup_credential_repository: BackupCredentialRepository,
+                 auth_repository: AuthRepository,
                  ):
         self.user_repository = user_repository
         self.backup_credential_repository = backup_credential_repository
+        self.auth_repository = auth_repository
 
     def list_backup_credentials(self, **filters) -> List[BackupCredential]:
         return self.backup_credential_repository.list_backup_credentials(**filters)
@@ -36,10 +39,15 @@ class BackupCredentialService:
         return backup_credential
 
     def create_backup_credential(self, current_user: User, keys: Dict,
-                                 backup_credential_create_data: Dict) -> BackupCredential:
+                                 backup_credential_create_data: Dict,
+                                 main_master_password_hash: Optional[str] = None) -> Optional[BackupCredential]:
         user = self.user_repository.get_user_by_id(user_id=current_user.user_id)
         if not user:
             raise UserDoesNotExistException
+        # Optional: verify the main master password (backup credentials' master passwords are not accepted)
+        if main_master_password_hash is not None and \
+                not self.auth_repository.check_main_master_password(user=user, raw_password=main_master_password_hash):
+            raise UserPasswordInvalidException
         user_backup_credential_num = self.count_backup_credentials(**{
             "user_id": user.user_id
         })

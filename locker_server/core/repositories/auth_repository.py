@@ -16,3 +16,10 @@ class AuthRepository(ABC):
     @abstractmethod
     def check_master_password(self, user: User, raw_password: str) -> bool:
         pass
+
+    @abstractmethod
+    def check_main_master_password(self, user: User, raw_password: str) -> bool:
+        """
+        Check the raw password against the user's main master password only (no backup credentials, no side effects)
+        """
+        pass

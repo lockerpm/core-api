@@ -68,11 +68,16 @@ urlpatterns += [
     re_path(r'^users/prelogin$', views.UserPwdViewSet.as_view({'post': 'prelogin'})),
     re_path(r'^users/reset_password$', views.UserPwdViewSet.as_view({'post': 'reset_password'})),
     re_path(r'^users/access_token$', views.UserPwdViewSet.as_view({'post': 'access_token'})),
+]
+
+
+# ----------------------------------- User Backup credentials ----------------- ------------ #
+urlpatterns += [
     re_path(r'^users/backup_credentials$', views.BackupCredentialPwdViewSet.as_view({'get': 'list', 'post': 'create'})),
     re_path(r'^users/backup_credentials/(?P<pk>[a-zA-Z0-9\-]+)$',
-        views.BackupCredentialPwdViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': "destroy"})),
-
+            views.BackupCredentialPwdViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': "destroy"})),
 ]
+
 
 # ----------------------------------- Passwordless ----------------------------- #
 urlpatterns += [
