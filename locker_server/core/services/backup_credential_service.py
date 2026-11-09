@@ -70,7 +70,13 @@ class BackupCredentialService:
             raise BackupCredentialDoesNotExistException
         return deleted_backup_credential
 
-    def update_backup_credential(self, backup_credential_id: str, update_data: Dict) -> Optional[BackupCredential]:
+    def update_backup_credential(self, backup_credential_id: str, update_data: Dict,
+                                 current_master_password_hash: Optional[str] = None) -> Optional[BackupCredential]:
+        # Optional: verify the current master password of this backup credential
+        if current_master_password_hash is not None and not self.backup_credential_repository.check_master_password(
+                backup_credential_id=backup_credential_id, raw_password=current_master_password_hash
+        ):
+            raise UserPasswordInvalidException
         backup_credential = self.backup_credential_repository.update_backup_credential(
             backup_credential_id=backup_credential_id, update_data=update_data
         )

@@ -92,13 +92,17 @@ class BackupCredentialPwdViewSet(APIBaseViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
+        current_master_password_hash = validated_data.pop("current_master_password_hash", None)
         try:
             self.backup_credential_service.update_backup_credential(
                 backup_credential_id=backup_credential.backup_credential_id,
                 update_data=validated_data,
+                current_master_password_hash=current_master_password_hash,
             )
         except BackupCredentialDoesNotExistException:
             raise NotFound
+        except UserPasswordInvalidException:
+            raise ValidationError(detail={"current_master_password_hash": ["The master password is not correct"]})
         return Response(status=status.HTTP_200_OK, data={"success": True})
 
     def destroy(self, request, *args, **kwargs):

@@ -19,6 +19,13 @@ class BackupCredentialRepository(ABC):
     def get_by_id(self, backup_credential_id: str) -> Optional[BackupCredential]:
         pass
 
+    @abstractmethod
+    def check_master_password(self, backup_credential_id: str, raw_password: str) -> bool:
+        """
+        Check the raw password against the master password of this backup credential only
+        """
+        pass
+
     # ------------------------ Create BackupCredential resource --------------------- #
     @abstractmethod
     def create_backup_credential(self, backup_credential_create_data: Dict) -> Optional[BackupCredential]:

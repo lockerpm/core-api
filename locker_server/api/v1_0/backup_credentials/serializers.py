@@ -77,6 +77,7 @@ class CreateBackupCredentialSerializer(serializers.Serializer):
 
 class UpdateBackupCredentialSerializer(serializers.Serializer):
     master_password_hash = serializers.CharField(allow_blank=False)
+    current_master_password_hash = serializers.CharField(required=False, allow_blank=False)
     key = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     kdf = serializers.IntegerField(required=False)
     kdf_iterations = serializers.IntegerField(required=False)
