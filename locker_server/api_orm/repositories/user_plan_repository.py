@@ -125,7 +125,7 @@ class UserPlanORMRepository(UserPlanRepository):
             )})
 
         # Then upgrade to Premium or Premium Lifetime
-        if family_user_plan_orm.pm_plan.alias in [PLAN_TYPE_PM_LIFETIME_FAMILY, PLAN_TYPE_PM_LIFETIME_TEAM]:
+        if family_user_plan_orm.pm_plan.alias in LIST_LIFETIME_FAMILY_PLAN:
             plan_type_alias = PLAN_TYPE_PM_LIFETIME
         else:
             plan_type_alias = PLAN_TYPE_PM_PREMIUM
@@ -599,8 +599,9 @@ class UserPlanORMRepository(UserPlanRepository):
             family_user_plan = ModelParser.user_plan_parser().parse_user_plan(
                 user_plan_orm=family_user_plan_orm
             )
+            # The owner is not a row of pm_plan_family but still takes a seat of the max number
             max_number = family_user_plan.get_max_allow_members()
-            if len(family_members) > max_number - family_user_plan_orm.pm_plan_family.count():
+            if len(family_members) > max_number - 1 - family_user_plan_orm.pm_plan_family.count():
                 raise MaxUserPlanFamilyReachedException
 
             for family_member in family_members:
