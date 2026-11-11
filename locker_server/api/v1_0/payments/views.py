@@ -291,6 +291,8 @@ class PaymentPwdViewSet(APIBaseViewSet):
             raise ValidationError(detail={"code": ["This code is expired or invalid"]})
         except PaymentFailedByUserInFamilyException:
             raise ValidationError(detail={"non_field_errors": [gen_error("7016")]})
+        except MaxFamilyMemberReachedException:
+            raise ValidationError(detail={"non_field_errors": [gen_error("7012")]})
         return Response(status=status.HTTP_200_OK, data={"success": True})
 
     @action(methods=["post"], detail=False)

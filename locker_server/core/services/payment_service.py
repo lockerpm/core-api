@@ -259,12 +259,16 @@ class PaymentService:
 
         current_plan = self.user_plan_repository.get_user_plan(user_id=user_id)
 
-        if plan.alias in [PLAN_TYPE_PM_LIFETIME_FAMILY, PLAN_TYPE_PM_LIFETIME_TEAM]:
+        if plan.alias in LIST_LIFETIME_FAMILY_PLAN:
             if self.user_plan_repository.is_family_member(user_id=user_id):
                 raise PaymentFailedByUserInFamilyException
         else:
             if self.user_plan_repository.is_in_family_plan(user_plan=current_plan):
                 raise PaymentFailedByUserInFamilyException
+        # The current family members are kept by the new family plan => They must fit in it (the owner takes a seat)
+        if plan.is_family_plan and plan.max_number is not None:
+            if self.user_plan_repository.count_family_members(user_id=user_id) > plan.max_number - 1:
+                raise MaxFamilyMemberReachedException
 
         # Update remaining times of the promo code
         saas_code = self.payment_repository.update_promo_code_remaining_times(promo_code=saas_code)
@@ -274,7 +278,7 @@ class PaymentService:
 
         # Cancel the current Free/Premium/Family
         # If new plan is family lifetime => Only cancel stripe subscription
-        if plan.alias in [PLAN_TYPE_PM_LIFETIME_FAMILY, PLAN_TYPE_PM_LIFETIME_TEAM]:
+        if plan.alias in LIST_LIFETIME_FAMILY_PLAN:
             if current_plan.pm_stripe_subscription:
                 self.user_plan_repository.cancel_plan(user=current_plan.user, immediately=True)
         else:
@@ -458,7 +462,7 @@ class PaymentService:
 
         # Cancel the current Free/Premium/Family
         # If new plan is family lifetime => Only cancel stripe subscription
-        if plan.alias in [PLAN_TYPE_PM_LIFETIME_FAMILY, PLAN_TYPE_PM_LIFETIME_TEAM]:
+        if plan.alias in LIST_LIFETIME_FAMILY_PLAN:
             if current_plan.pm_stripe_subscription:
                 self.user_plan_repository.cancel_plan(user=current_plan.user, immediately=True)
         else:
@@ -570,7 +574,7 @@ class PaymentService:
         current_plan = self.user_plan_repository.get_user_plan(user_id=user_id)
         if current_plan.pm_plan.alias == plan_alias:
             raise PaymentFailedByUserInLifetimeException
-        if plan_alias in [PLAN_TYPE_PM_LIFETIME_FAMILY, PLAN_TYPE_PM_LIFETIME_TEAM]:
+        if plan_alias in LIST_LIFETIME_FAMILY_PLAN:
             if self.user_plan_repository.is_family_member(user_id=user_id):
                 raise PaymentFailedByUserInFamilyException
         else:
