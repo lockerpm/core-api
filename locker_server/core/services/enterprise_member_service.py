@@ -319,7 +319,8 @@ class EnterpriseMemberService:
             member_id=enterprise_member_id
         )
         if not member_invitation or \
-                (member_invitation.user and member_invitation.user.user_id != current_user.user_id) or \
+                member_invitation.user is None or \
+                member_invitation.user.user_id != current_user.user_id or \
                 member_invitation.status != E_MEMBER_STATUS_INVITED:
             raise EnterpriseMemberDoesNotExistException
         # If the member has a domain => Not allow reject
