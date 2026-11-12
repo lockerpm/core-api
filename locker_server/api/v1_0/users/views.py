@@ -38,7 +38,7 @@ from locker_server.shared.paginator.paginator import CustomCountPageNumberPagina
 from locker_server.shared.utils.app import now, get_ip_location
 from locker_server.shared.utils.network import get_ip_by_request, detect_device
 from .serializers import UserMeSerializer, UserUpdateMeSerializer, UserRegisterSerializer, UserSessionSerializer, \
-    DeviceFcmSerializer, UserChangePasswordSerializer, UserNewPasswordSerializer, UserCheckPasswordSerializer, \
+    DeviceFcmSerializer, UserChangePasswordSerializer, UserCheckPasswordSerializer, \
     UserMasterPasswordHashSerializer, UpdateOnboardingProcessSerializer, \
     UserDeviceSerializer, PreloginSerializer, UserResetPasswordSerializer, UserSessionByOtpSerializer, \
     UserAccessTokenSerializer, DetailUserSerializer, ListUserSerializer
@@ -77,8 +77,6 @@ class UserPwdViewSet(APIBaseViewSet):
             self.serializer_class = DeviceFcmSerializer
         elif self.action == "password":
             self.serializer_class = UserChangePasswordSerializer
-        elif self.action == "new_password":
-            self.serializer_class = UserNewPasswordSerializer
         elif self.action == "check_password":
             self.serializer_class = UserCheckPasswordSerializer
         elif self.action in ["delete_me", "purge_me", "revoke_all_sessions"]:
@@ -646,10 +644,6 @@ class UserPwdViewSet(APIBaseViewSet):
             "notification": result.get("notification"),
             "client": result.get("client")
         })
-
-    @action(methods=["post"], detail=False)
-    def new_password(self, request, *args, **kwargs):
-        return self.password(request, *args, **kwargs)
 
     @action(methods=["post"], detail=False)
     def check_password(self, request, *args, **kwargs):

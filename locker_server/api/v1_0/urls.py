@@ -54,7 +54,6 @@ urlpatterns += [
     re_path(r'^users/me/delete$', views.UserPwdViewSet.as_view({'post': 'delete_me'})),
     re_path(r'^users/me/purge$', views.UserPwdViewSet.as_view({'post': 'purge_me'})),
     re_path(r'^users/me/password$', views.UserPwdViewSet.as_view({'post': 'password'})),
-    re_path(r'^users/me/new_password$', views.UserPwdViewSet.as_view({'post': 'new_password'})),
     re_path(r'^users/me/check_password$', views.UserPwdViewSet.as_view({'post': 'check_password'})),
     re_path(r'^users/me/fcm_id$', views.UserPwdViewSet.as_view({'post': 'fcm_id'})),
     re_path(r'^users/me/devices$', views.UserPwdViewSet.as_view({'get': 'devices'})),
