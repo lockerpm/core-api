@@ -188,14 +188,6 @@ class UserChangePasswordSerializer(serializers.Serializer):
         return data
 
 
-class UserNewPasswordSerializer(serializers.Serializer):
-    key = serializers.CharField()
-    new_master_password_hash = serializers.CharField()
-    new_master_password_hint = serializers.CharField(allow_blank=True, max_length=128, required=False)
-    score = serializers.FloatField(required=False, allow_null=True)
-    login_method = serializers.ChoiceField(choices=[LOGIN_METHOD_PASSWORD, LOGIN_METHOD_PASSWORDLESS])
-
-
 class UserCheckPasswordSerializer(serializers.Serializer):
     master_password_hash = serializers.CharField()
     email = serializers.EmailField()
