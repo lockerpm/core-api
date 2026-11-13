@@ -103,11 +103,11 @@ class UpgradeTrialSerializer(serializers.Serializer):
 
 
 class UpgradeLifetimeSerializer(serializers.Serializer):
-    code = serializers.CharField(max_length=32)
+    code = serializers.CharField(max_length=36)
 
 
 class UpgradeSubscriptionByCodeSerializer(serializers.Serializer):
-    code = serializers.CharField(max_length=32)
+    code = serializers.CharField(max_length=36)
 
 
 class UpgradeThreePromoSerializer(serializers.Serializer):
