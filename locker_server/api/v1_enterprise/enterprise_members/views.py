@@ -12,7 +12,7 @@ from locker_server.core.exceptions.enterprise_member_exception import Enterprise
     EnterpriseMemberPrimaryDoesNotExistException
 from locker_server.core.exceptions.payment_exception import PaymentMethodNotSupportException
 from locker_server.shared.constants.enterprise_members import E_MEMBER_ROLE_PRIMARY_ADMIN, E_MEMBER_ROLE_ADMIN, \
-    E_MEMBER_STATUS_REQUESTED
+    E_MEMBER_ROLE_MEMBER, E_MEMBER_STATUS_REQUESTED
 from locker_server.shared.constants.event import EVENT_E_MEMBER_UPDATED_ROLE, EVENT_E_MEMBER_CONFIRMED, \
     EVENT_E_MEMBER_ENABLED, EVENT_E_MEMBER_REMOVED, EVENT_E_MEMBER_DISABLED
 from locker_server.shared.constants.transactions import PAYMENT_METHOD_CARD
@@ -86,6 +86,19 @@ class MemberPwdViewSet(APIBaseViewSet):
         except EnterpriseMemberDoesNotExistException:
             raise NotFound
 
+    def _validate_assigned_roles(self, enterprise: Enterprise, members_data: list):
+        try:
+            enterprise_admin = self.enterprise_member_service.get_member_by_user(
+                user_id=self.request.user.user_id, enterprise_id=enterprise.enterprise_id
+            )
+        except EnterpriseMemberDoesNotExistException:
+            raise PermissionDenied
+        if enterprise_admin.role.name == E_MEMBER_ROLE_ADMIN:
+            for member_data in members_data:
+                if not isinstance(member_data, dict) or \
+                        member_data.get("role") not in [E_MEMBER_ROLE_ADMIN, E_MEMBER_ROLE_MEMBER]:
+                    raise ValidationError(detail={"role": ["The role is not valid"]})
+
     def get_queryset(self):
         enterprise = self.get_object()
         query_params = self.request.query_params
@@ -136,6 +149,7 @@ class MemberPwdViewSet(APIBaseViewSet):
             raise ValidationError(detail={"members": ["Members are not valid. This field must be an array"]})
 
         enterprise = self.get_object()
+        self._validate_assigned_roles(enterprise=enterprise, members_data=members)
         added_members, non_added_members = self.enterprise_member_service.create_multiple_member(
             current_enterprise=enterprise,
             members_data=members
@@ -161,6 +175,7 @@ class MemberPwdViewSet(APIBaseViewSet):
         if not isinstance(members_data, list):
             raise ValidationError(detail={"members": ["Members are not valid. This field must be an array"]})
         enterprise = self.get_object()
+        self._validate_assigned_roles(enterprise=enterprise, members_data=members_data)
         added_members, non_added_members = self.enterprise_member_service.invite_multiple_member(
             secret=settings.SECRET_KEY,
             current_enterprise=enterprise,
