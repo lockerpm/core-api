@@ -37,6 +37,12 @@ class UserCreationDeniedException(UserException):
     """
 
 
+class UserAlreadyActivatedException(UserCreationDeniedException):
+    """
+    The account of this email is already activated. It can not be registered again.
+    """
+
+
 class UserResetPasswordTokenInvalidException(UserException):
     """
     The reset password token expired

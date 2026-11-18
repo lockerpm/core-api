@@ -168,6 +168,9 @@ class UserService:
             user = self.retrieve_or_create_by_id(user_id=user_id)
         else:
             user = self.retrieve_or_create_by_email(email=user_id)
+        # Do not overwrite the keys of an activated account
+        if user.activated:
+            raise UserAlreadyActivatedException
         # Clear sync-cache data
         self.user_repository.delete_sync_cache_data(user_id=user.user_id)
         # Update keys
