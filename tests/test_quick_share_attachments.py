@@ -29,12 +29,14 @@ CIPHER_ID = "b5316c03-5e88-4714-b7f4-2a02b54f7de3"
 OTHER_CIPHER_ID = "a540c59c-3e3c-4c00-8b87-a0b9005e39ae"
 USER_HASH = "15204d27717c9b239e97720aee8fc037"
 ATTACHMENT_KEY = f"attachments/{USER_HASH}/{CIPHER_ID}/12252476111598511924"
-OTHER_ATTACHMENT_KEY = f"attachments/{USER_HASH}/{CIPHER_ID}/99999999999999999999"
+OTHER_CIPHER_ATTACHMENT_KEY = f"attachments/{USER_HASH}/{OTHER_CIPHER_ID}/99999999999999999999"
+# The attachment urls (the storage keys) are encrypted by the clients
+ENC_URL = "2.o3gpfaphz92+fXiI0tS4nA==|CZYy25lAM9/Rw3gwGD/KXsNxWfP/WhL7K0j3V8QmMJJP=|CSJB2jU8RlJ3flXo/PtBYE="
 ACCESS_ID = "0123456789ABCDEF0123456789ABCDEF"
 EMAIL = "recipient@example.com"
 
 
-def attachment(attachment_id="a1", url=ATTACHMENT_KEY):
+def attachment(attachment_id="a1", url=ENC_URL):
     return {"id": attachment_id, "url": url, "size": 10.0, "fileName": "enc-name", "key": "enc-key"}
 
 
@@ -42,12 +44,11 @@ def cipher_mock(attachments=None, cipher_id=CIPHER_ID):
     return MagicMock(cipher_id=cipher_id, data={"name": "enc", "attachments": attachments})
 
 
-def quick_share_entity(attachments=None, cipher_attachments=None, is_public=True, emails=None, disabled=False,
+def quick_share_entity(attachments=None, is_public=True, emails=None, disabled=False,
                        expiration_date=None, max_access_count=None, access_count=0):
     attachments = [attachment()] if attachments is None else attachments
-    cipher_attachments = attachments if cipher_attachments is None else cipher_attachments
     return QuickShare(
-        quick_share_id="qs-1", cipher=cipher_mock(attachments=cipher_attachments), access_id=ACCESS_ID,
+        quick_share_id="qs-1", cipher=cipher_mock(attachments=[attachment()]), access_id=ACCESS_ID,
         quick_share_type=CIPHER_TYPE_LOGIN,
         data={"username": "enc", "name": "enc", "fields": None, "attachments": attachments},
         key="enc-key", is_public=is_public, emails=emails or [], disabled=disabled,
@@ -118,7 +119,6 @@ class QuickShareAttachmentServiceTestCase(SimpleTestCase):
     def setUp(self):
         self.cipher_repository = MagicMock()
         self.cipher_repository.get_multiple_by_user.return_value = [MagicMock()]
-        self.cipher_repository.get_by_id.return_value = cipher_mock(attachments=[attachment()])
         self.service = make_service(cipher_repository=self.cipher_repository)
 
     # ------------------------ Create ------------------------ #
@@ -126,32 +126,21 @@ class QuickShareAttachmentServiceTestCase(SimpleTestCase):
         quick_share_data = {"cipher_id": CIPHER_ID, "data": {"name": "enc", "attachments": attachments}}
         return self.service._validate_quick_share_attachments(user_id=USER_ID, quick_share_data=quick_share_data)
 
-    def test_create_normalizes_attachment_urls(self):
-        result = self._validate([attachment(url=f"https://files.locker.io/{ATTACHMENT_KEY}?X-Amz-Signature=x")])
-        self.assertEqual(result["data"]["attachments"], [attachment()])
+    def test_create_keeps_the_encrypted_attachment_urls(self):
+        # The server can not read the encrypted urls, they are checked when the recipients get the download urls
+        attachments = [attachment(), attachment("a2")]
+        result = self._validate(attachments)
+        self.assertEqual(result["data"]["attachments"], [attachment(), attachment("a2")])
         self.cipher_repository.get_multiple_by_user.assert_called_once_with(user_id=USER_ID, filter_ids=[CIPHER_ID])
+        self.cipher_repository.get_by_id.assert_not_called()
 
     def test_create_without_attachments_does_not_check_the_cipher(self):
         for attachments in [None, []]:
             self.assertEqual(self._validate(attachments)["data"]["attachments"], attachments)
         self.cipher_repository.get_multiple_by_user.assert_not_called()
 
-    def test_create_rejects_invalid_attachments(self):
-        invalid_attachments_list = [
-            # The attachment of another cipher
-            [attachment(url=f"attachments/{USER_HASH}/{OTHER_CIPHER_ID}/1")],
-            # The attachment is not in the cipher data (e.g. removed from the cipher)
-            [attachment(url=OTHER_ATTACHMENT_KEY)],
-            # Not an attachment key
-            [attachment(url="https://evil.com/anything")],
-            [attachment(url=f"attachments/{USER_HASH}/{CIPHER_ID}/../{OTHER_CIPHER_ID}/1")],
-            # The duplicated ids
-            [attachment(), attachment()],
-        ]
-        self.cipher_repository.get_by_id.return_value = cipher_mock(
-            attachments=[attachment(), attachment("a2", url=f"attachments/{USER_HASH}/{OTHER_CIPHER_ID}/1")]
-        )
-        for attachments in invalid_attachments_list:
+    def test_create_rejects_invalid_attachment_ids(self):
+        for attachments in [[attachment(), attachment()], [attachment(attachment_id="")]]:
             with self.assertRaises(QuickShareAttachmentNotValidException, msg=attachments):
                 self._validate(attachments)
 
@@ -173,7 +162,7 @@ class QuickShareAttachmentServiceTestCase(SimpleTestCase):
     def test_get_attachment_path(self):
         quick_share = quick_share_entity()
         path = self.service.get_attachment_path(
-            quick_share=quick_share, attachment_id="a1", attachment_token=self._token(quick_share)
+            quick_share=quick_share, path=ATTACHMENT_KEY, attachment_token=self._token(quick_share)
         )
         self.assertEqual(path, ATTACHMENT_KEY)
         self.service.quick_share_repository.update_access_count.assert_not_called()
@@ -182,52 +171,60 @@ class QuickShareAttachmentServiceTestCase(SimpleTestCase):
         # The access is counted when the token is issued
         quick_share = quick_share_entity(max_access_count=1, access_count=1)
         self.assertEqual(self.service.get_attachment_path(
-            quick_share=quick_share, attachment_id="a1", attachment_token=self._token(quick_share)
+            quick_share=quick_share, path=ATTACHMENT_KEY, attachment_token=self._token(quick_share)
         ), ATTACHMENT_KEY)
 
     def test_not_available_quick_share(self):
         for quick_share in [quick_share_entity(disabled=True), quick_share_entity(expiration_date=now() - 1)]:
             with self.assertRaises(QuickShareNotValidAccessException):
                 self.service.get_attachment_path(
-                    quick_share=quick_share, attachment_id="a1", attachment_token=self._token(quick_share)
+                    quick_share=quick_share, path=ATTACHMENT_KEY, attachment_token=self._token(quick_share)
                 )
 
     def test_private_quick_share_requires_the_email_in_the_token(self):
         quick_share = quick_share_entity(is_public=False, emails=[{"email": EMAIL}])
         self.assertEqual(self.service.get_attachment_path(
-            quick_share=quick_share, attachment_id="a1", attachment_token=self._token(quick_share, email=EMAIL)
+            quick_share=quick_share, path=ATTACHMENT_KEY, attachment_token=self._token(quick_share, email=EMAIL)
         ), ATTACHMENT_KEY)
         for email in [None, "other@example.com"]:
             with self.assertRaises(QuickShareNotValidAccessException):
                 self.service.get_attachment_path(
-                    quick_share=quick_share, attachment_id="a1", attachment_token=self._token(quick_share, email)
+                    quick_share=quick_share, path=ATTACHMENT_KEY, attachment_token=self._token(quick_share, email)
                 )
         # The email is removed from the quick share
         removed_email_share = quick_share_entity(is_public=False, emails=[{"email": "other@example.com"}])
         with self.assertRaises(QuickShareNotValidAccessException):
             self.service.get_attachment_path(
-                quick_share=removed_email_share, attachment_id="a1",
+                quick_share=removed_email_share, path=ATTACHMENT_KEY,
                 attachment_token=self._token(removed_email_share, email=EMAIL)
             )
 
     def test_invalid_token(self):
         quick_share = quick_share_entity()
         with self.assertRaises(QuickShareNotValidAccessException):
-            self.service.get_attachment_path(quick_share=quick_share, attachment_id="a1", attachment_token="invalid")
+            self.service.get_attachment_path(quick_share=quick_share, path=ATTACHMENT_KEY, attachment_token="invalid")
 
-    def test_attachment_does_not_belong_to_the_quick_share(self):
+    def test_get_attachment_path_normalizes_the_path(self):
         quick_share = quick_share_entity()
-        with self.assertRaises(QuickShareAttachmentNotValidException):
-            self.service.get_attachment_path(
-                quick_share=quick_share, attachment_id="unknown", attachment_token=self._token(quick_share)
-            )
+        self.assertEqual(self.service.get_attachment_path(
+            quick_share=quick_share, path=f"https://files.locker.io/{ATTACHMENT_KEY}?X-Amz-Signature=x",
+            attachment_token=self._token(quick_share)
+        ), ATTACHMENT_KEY)
 
-    def test_attachment_is_removed_from_the_cipher(self):
-        quick_share = quick_share_entity(cipher_attachments=[attachment("a2", url=OTHER_ATTACHMENT_KEY)])
+    def test_path_does_not_belong_to_the_quick_share_cipher(self):
+        quick_share = quick_share_entity()
+        token = self._token(quick_share)
+        for path in [OTHER_CIPHER_ATTACHMENT_KEY, ENC_URL, "https://evil.com/anything", "attachments/",
+                     f"attachments/{USER_HASH}/{CIPHER_ID}", f"attachments/{USER_HASH}/{CIPHER_ID}/../{OTHER_CIPHER_ID}/1",
+                     f"attachments/not-a-md5/{CIPHER_ID}/1"]:
+            with self.assertRaises(QuickShareAttachmentNotValidException, msg=path):
+                self.service.get_attachment_path(quick_share=quick_share, path=path, attachment_token=token)
+
+    def test_quick_share_without_attachments_does_not_sign_any_file(self):
+        quick_share = quick_share_entity(attachments=[])
+        token, _ = self.service.quick_share_repository.generate_attachment_access_token(quick_share=quick_share)
         with self.assertRaises(QuickShareAttachmentNotValidException):
-            self.service.get_attachment_path(
-                quick_share=quick_share, attachment_id="a1", attachment_token=self._token(quick_share)
-            )
+            self.service.get_attachment_path(quick_share=quick_share, path=ATTACHMENT_KEY, attachment_token=token)
 
     # ------------------------ Disabled ------------------------ #
     def test_get_email_access_of_disabled_quick_share(self):
@@ -253,12 +250,10 @@ class QuickShareSerializerTestCase(SimpleTestCase):
         result = ListQuickShareSerializer(quick_share_entity()).data
         self.assertEqual(result["cipher"]["attachments"], [attachment()])
 
-    def test_public_response_does_not_contain_the_attachment_urls(self):
+    def test_public_response_contains_the_encrypted_attachment_urls(self):
+        # The recipients decrypt the urls with the quick share key to get the storage keys
         result = PublicAccessQuickShareSerializer(quick_share_entity()).data
-        self.assertEqual(result["cipher"]["attachments"], [
-            {"id": "a1", "size": 10.0, "fileName": "enc-name", "key": "enc-key"}
-        ])
-        self.assertNotIn(ATTACHMENT_KEY, str(result))
+        self.assertEqual(result["cipher"]["attachments"], [attachment()])
 
 
 class QuickShareDisabledTestCase(SimpleTestCase):
@@ -330,7 +325,7 @@ class QuickShareAttachmentViewTestCase(SimpleTestCase):
     def _attachment_url(self, data=None):
         return self._call(
             {"post": "attachment_url"}, "post", f"/v3/cystack_platform/pm/quick_shares/{ACCESS_ID}/attachments/url",
-            data if data is not None else {"attachment_id": "a1", "attachment_token": "token"}
+            data if data is not None else {"path": ATTACHMENT_KEY, "attachment_token": "token"}
         )
 
     def test_anonymous_can_get_the_attachment_url(self):
@@ -338,7 +333,7 @@ class QuickShareAttachmentViewTestCase(SimpleTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, {"url": "https://files.locker.io/signed"})
         self.quick_share_service.get_attachment_path.assert_called_once_with(
-            quick_share=self.quick_share, attachment_id="a1", attachment_token="token"
+            quick_share=self.quick_share, path=ATTACHMENT_KEY, attachment_token="token"
         )
         # The CDN urls are not signed, so the quick share urls never use the CDN
         self.attachment_service.get_download_url.assert_called_once_with(

@@ -116,7 +116,7 @@ class QuickSharePwdViewSet(APIBaseViewSet):
         except CipherDoesNotExistException:
             raise NotFound
         except QuickShareAttachmentNotValidException:
-            raise ValidationError(detail={"cipher": {"attachments": ["The attachments are not valid"]}})
+            raise ValidationError(detail={"cipher": {"attachments": ["The attachment ids are not valid"]}})
         return Response(status=status.HTTP_200_OK, data={
             "id": quick_share.quick_share_id,
             "cipher_id": quick_share.cipher.cipher_id,
@@ -241,7 +241,7 @@ class QuickSharePwdViewSet(APIBaseViewSet):
         try:
             path = self.quick_share_service.get_attachment_path(
                 quick_share=quick_share,
-                attachment_id=validated_data.get("attachment_id"),
+                path=validated_data.get("path"),
                 attachment_token=validated_data.get("attachment_token")
             )
         except QuickShareNotValidAccessException:

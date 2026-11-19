@@ -144,27 +144,13 @@ class DetailQuickShareSerializer(ListQuickShareSerializer):
 
 
 class PublicAccessQuickShareSerializer(ListQuickShareSerializer):
-    # The public fields of the attachments. The storage urls are not public: the recipients get the download urls by
-    # the attachment ids
-    PUBLIC_ATTACHMENT_FIELDS = ["id", "size", "fileName", "key"]
-
     def to_representation(self, instance):
         data = super(PublicAccessQuickShareSerializer, self).to_representation(instance)
-        cipher = data.get("cipher") or {}
-        public_attachments = [
-            {field: attachment.get(field) for field in self.PUBLIC_ATTACHMENT_FIELDS}
-            for attachment in (cipher.get("attachments") or []) if isinstance(attachment, dict)
-        ]
-        # The detail data and the type data (login, secure_note...) of the cipher also contain the attachments
-        public_cipher = {}
-        for k, v in cipher.items():
-            if isinstance(v, dict):
-                v = {dk: dv for dk, dv in v.items() if dk != "attachments"}
-            public_cipher[k] = v
-        public_cipher["attachments"] = public_attachments
+        # The attachment urls (the storage keys) are encrypted with the quick share key. The recipients decrypt them,
+        # then get the download urls by the storage keys
         public_data = {
             "id": data.get("id"),
-            "cipher": public_cipher
+            "cipher": data.get("cipher")
         }
         return public_data
 
@@ -180,5 +166,6 @@ class CheckAccessQuickShareSerializer(serializers.Serializer):
 
 
 class QuickShareAttachmentUrlSerializer(serializers.Serializer):
-    attachment_id = serializers.CharField(max_length=255)
+    # The storage key, decrypted from the attachment url (with the quick share key)
+    path = serializers.CharField(max_length=1024)
     attachment_token = serializers.CharField(max_length=1024)

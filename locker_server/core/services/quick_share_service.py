@@ -1,6 +1,5 @@
 from typing import Dict, List, Optional, Tuple
 
-from locker_server.core.entities.cipher.cipher import Cipher
 from locker_server.core.entities.quick_share.quick_share import QuickShare
 from locker_server.core.exceptions.cipher_exception import CipherDoesNotExistException
 from locker_server.core.exceptions.quick_share_exception import QuickShareDoesNotExistException, \
@@ -16,7 +15,7 @@ from locker_server.shared.external_services.locker_background.background_factory
 from locker_server.shared.external_services.locker_background.constants import BG_EVENT
 from locker_server.shared.external_services.pm_sync import PwdSync, SYNC_QUICK_SHARE
 from locker_server.shared.utils.app import now
-from locker_server.shared.utils.attachments import normalize_attachment_key, parse_attachment_key
+from locker_server.shared.utils.attachments import parse_attachment_key
 
 
 class QuickShareService:
@@ -58,38 +57,13 @@ class QuickShareService:
             return []
         return [attachment for attachment in (data.get("attachments") or []) if isinstance(attachment, dict)]
 
-    @classmethod
-    def _list_attachment_keys(cls, data) -> List[str]:
-        """
-        The normalized storage keys of the attachments in the data of a cipher (or a quick share)
-        """
-        keys = [normalize_attachment_key(attachment.get("url")) for attachment in cls._list_attachments(data)]
-        return [key for key in keys if key]
-
-    @classmethod
-    def _normalize_attachments(cls, cipher: Cipher, attachments: List[Dict]) -> List[Dict]:
-        """
-        The quick share only refers the attachments of its cipher. The urls are normalized to the storage keys
-        :raise QuickShareAttachmentNotValidException: The attachment does not belong to the cipher
-        """
-        cipher_attachment_keys = set(cls._list_attachment_keys(cipher.data))
-        attachment_ids = set()
-        normalized_attachments = []
-        for attachment in attachments:
-            parsed_key = parse_attachment_key(attachment.get("url"))
-            if not parsed_key:
-                raise QuickShareAttachmentNotValidException
-            key, attachment_cipher_id = parsed_key
-            if attachment_cipher_id != cipher.cipher_id or key not in cipher_attachment_keys:
-                raise QuickShareAttachmentNotValidException
-            attachment_id = attachment.get("id")
-            if not attachment_id or attachment_id in attachment_ids:
-                raise QuickShareAttachmentNotValidException
-            attachment_ids.add(attachment_id)
-            normalized_attachments.append({**attachment, "url": key})
-        return normalized_attachments
-
     def _validate_quick_share_attachments(self, user_id: int, quick_share_data: Dict) -> Dict:
+        """
+        The attachment urls (the storage keys) are encrypted by the clients (with the quick share key), so the server
+        can not check them here. The storage keys are checked when the recipients get the download urls
+        :raise CipherDoesNotExistException: The user can not view the cipher in the vault
+        :raise QuickShareAttachmentNotValidException: The attachment ids are duplicated
+        """
         detail_data = quick_share_data.get("data")
         attachments = self._list_attachments(detail_data)
         if not attachments:
@@ -99,10 +73,9 @@ class QuickShareService:
         # E.g. a member created this cipher in a sharing folder, then left the sharing team
         if not self.cipher_repository.get_multiple_by_user(user_id=user_id, filter_ids=[cipher_id]):
             raise CipherDoesNotExistException
-        cipher = self.cipher_repository.get_by_id(cipher_id=cipher_id)
-        if not cipher:
-            raise CipherDoesNotExistException
-        detail_data["attachments"] = self._normalize_attachments(cipher=cipher, attachments=attachments)
+        attachment_ids = [attachment.get("id") for attachment in attachments]
+        if not all(attachment_ids) or len(set(attachment_ids)) != len(attachment_ids):
+            raise QuickShareAttachmentNotValidException
         return quick_share_data
 
     def create_user_quick_share(self, user_id: int, ip=None, **quick_share_data):
@@ -210,12 +183,13 @@ class QuickShareService:
             return None
         return self.quick_share_repository.generate_attachment_access_token(quick_share=quick_share, email=email)
 
-    def get_attachment_path(self, quick_share: QuickShare, attachment_id: str, attachment_token: str) -> str:
+    def get_attachment_path(self, quick_share: QuickShare, path: str, attachment_token: str) -> str:
         """
         Get the storage key of a quick share attachment. The access count is not increased: the access is counted when
         the quick share is accessed (the token is issued)
+        :param path: The storage key, decrypted from the attachment url (with the quick share key) by the recipient
         :raise QuickShareNotValidAccessException: The token is not valid or the quick share is not available anymore
-        :raise QuickShareAttachmentNotValidException: The attachment does not belong to the quick share (or its cipher)
+        :raise QuickShareAttachmentNotValidException: The path is not an attachment of the quick share cipher
         """
         payload = self.quick_share_repository.validate_attachment_access_token(
             quick_share=quick_share, token=attachment_token
@@ -232,13 +206,15 @@ class QuickShareService:
             if not email or email not in share_emails:
                 raise QuickShareNotValidAccessException
 
-        attachment = next(
-            (a for a in self._list_attachments(quick_share.data) if a.get("id") == attachment_id), None
-        )
-        if not attachment:
+        # The attachment urls are encrypted, so the server only knows the files of the cipher (the same scope as the
+        # vault attachment urls). The files are encrypted by the attachment keys, the recipient only has the keys of
+        # the shared attachments
+        if not self._list_attachments(quick_share.data):
             raise QuickShareAttachmentNotValidException
-        key = normalize_attachment_key(attachment.get("url"))
-        # The owner can remove the attachment from the cipher after sharing it
-        if not key or key not in self._list_attachment_keys(quick_share.cipher.data):
+        parsed_key = parse_attachment_key(path)
+        if not parsed_key:
+            raise QuickShareAttachmentNotValidException
+        key, cipher_id = parsed_key
+        if not quick_share.cipher or cipher_id != quick_share.cipher.cipher_id:
             raise QuickShareAttachmentNotValidException
         return key
