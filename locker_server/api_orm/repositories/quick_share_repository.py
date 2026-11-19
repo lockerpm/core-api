@@ -70,7 +70,7 @@ class QuickShareORMRepository(QuickShareRepository):
 
     def check_valid_access(self, quick_share: QuickShare, email: str = None, code: str = None,
                            token: str = None) -> bool:
-        if quick_share.disabled is True:
+        if quick_share.disabled:
             return False
         if quick_share.is_public is False:
             try:
@@ -138,22 +138,23 @@ class QuickShareORMRepository(QuickShareRepository):
         quick_share_orm.password = quick_share_data.get("password") or quick_share_orm.password
         quick_share_orm.max_access_count = quick_share_data.get("max_access_count") or quick_share_orm.max_access_count
         quick_share_orm.expiration_date = quick_share_data.get("expiration_date") or quick_share_orm.expiration_date
-        if quick_share_data.get("is_public") is not None:
-            quick_share_orm.is_public = quick_share_data.get("is_public")
-        quick_share_orm.disabled = quick_share_data.get("disabled") or quick_share_orm.disabled
-        quick_share_orm.require_otp = quick_share_data.get("require_otp") or quick_share_orm.require_otp
+        # The boolean flags are only updated when they are given, so they can be set back to False
+        for bool_field in ["is_public", "disabled", "require_otp"]:
+            if quick_share_data.get(bool_field) is not None:
+                setattr(quick_share_orm, bool_field, bool(quick_share_data.get(bool_field)))
         quick_share_orm.save()
 
-        quick_share_emails = list(quick_share_orm.quick_share_emails.values_list('email', flat=True))
-        emails_data = quick_share_data.get("emails", [])
-        emails = [email_data.get("email") for email_data in emails_data]
-        removed_emails = diff_list(quick_share_emails, emails)
-        added_emails = diff_list(emails, quick_share_emails)
-        if removed_emails:
-            quick_share_orm.quick_share_emails.filter(email__in=removed_emails).delete()
-        if added_emails:
-            added_emails_data = [{"email": e} for e in added_emails]
-            quick_share_orm.quick_share_emails.model.create_multiple(quick_share_orm, added_emails_data)
+        # Only sync the emails when they are given. Otherwise, all emails of the quick share would be removed
+        if quick_share_data.get("emails") is not None:
+            quick_share_emails = list(quick_share_orm.quick_share_emails.values_list('email', flat=True))
+            emails = [email_data.get("email") for email_data in quick_share_data.get("emails")]
+            removed_emails = diff_list(quick_share_emails, emails)
+            added_emails = diff_list(emails, quick_share_emails)
+            if removed_emails:
+                quick_share_orm.quick_share_emails.filter(email__in=removed_emails).delete()
+            if added_emails:
+                added_emails_data = [{"email": e} for e in added_emails]
+                quick_share_orm.quick_share_emails.model.create_multiple(quick_share_orm, added_emails_data)
 
         return ModelParser.quick_share_parser().parse_quick_share(quick_share_orm=quick_share_orm)
 

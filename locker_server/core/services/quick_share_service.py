@@ -114,6 +114,9 @@ class QuickShareService:
         return self.quick_share_repository.check_email_access(quick_share=quick_share, email=email)
 
     def get_email_access(self, quick_share: QuickShare) -> QuickShare:
+        # Check the disabled status first, so a disabled quick share does not reveal anything (even require_otp)
+        if quick_share.disabled:
+            raise QuickShareNotValidAccessException
         if quick_share.max_access_count and quick_share.access_count >= quick_share.max_access_count:
             raise QuickShareNotValidAccessException
         if quick_share.expiration_date and quick_share.expiration_date < now():
