@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import jwt
 from django.conf import settings
@@ -8,7 +8,8 @@ from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_quick_share_model, get_quick_share_email_model
 from locker_server.core.entities.quick_share.quick_share import QuickShare
 from locker_server.core.repositories.quick_share_repository import QuickShareRepository
-from locker_server.shared.constants.token import TOKEN_TYPE_QUICK_SHARE_ACCESS
+from locker_server.shared.constants.token import TOKEN_TYPE_QUICK_SHARE_ACCESS, TOKEN_TYPE_QUICK_SHARE_ATTACHMENT, \
+    TOKEN_EXPIRED_TIME_QUICK_SHARE_ATTACHMENT
 from locker_server.shared.utils.app import now, diff_list
 
 
@@ -126,6 +127,36 @@ class QuickShareORMRepository(QuickShareRepository):
         }
         token_value = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
         return token_value, expired_time
+
+    def generate_attachment_access_token(self, quick_share: QuickShare, email: str = None) -> Tuple:
+        """
+        Generate the short-lived token which allows downloading the attachments of the quick share
+        """
+        expired_time = int(now() + TOKEN_EXPIRED_TIME_QUICK_SHARE_ATTACHMENT)
+        payload = {
+            "token_type": TOKEN_TYPE_QUICK_SHARE_ATTACHMENT,
+            "access_id": quick_share.access_id,
+            "email": email,
+            "exp": expired_time,
+        }
+        token_value = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
+        return token_value, expired_time
+
+    def validate_attachment_access_token(self, quick_share: QuickShare, token: str) -> Optional[Dict]:
+        """
+        Validate the attachment token of the quick share
+        :return: (dict) The token payload, or None if the token is not valid
+        """
+        try:
+            # The `exp` claim is required, so PyJWT always checks the expiration
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"], options={"require": ["exp"]})
+        except jwt.PyJWTError:
+            return None
+        if payload.get("token_type") != TOKEN_TYPE_QUICK_SHARE_ATTACHMENT:
+            return None
+        if payload.get("access_id") != quick_share.access_id:
+            return None
+        return payload
 
     # ------------------------ Update QuickShare resource --------------------- #
     def update_quick_share(self, quick_share_id: str, **quick_share_data) -> Optional[QuickShare]:

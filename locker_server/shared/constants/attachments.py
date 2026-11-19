@@ -11,6 +11,10 @@ LIMIT_TOTAL_SIZE_ATTACHMENT = 1073741824    # 1GB
 
 DEFAULT_ATTACHMENT_EXPIRED = 3600
 
+# The download url of a quick share attachment is short-lived (the clients download the file right after getting it),
+# so the url does not outlive the access of the quick share
+QUICK_SHARE_ATTACHMENT_URL_EXPIRED = 300
+
 # The expiration of the upload form (presigned PUT url). The quota is reserved for this duration
 UPLOAD_FORM_EXPIRED = 600
 

@@ -23,3 +23,9 @@ class QuickShareRequireOTPException(QuickShareException):
     """
     The QuickShare is required OTP
     """
+
+
+class QuickShareAttachmentNotValidException(QuickShareException):
+    """
+    The attachment does not belong to the QuickShare (or its cipher)
+    """

@@ -1,8 +1,10 @@
-from typing import Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
+from locker_server.core.entities.cipher.cipher import Cipher
 from locker_server.core.entities.quick_share.quick_share import QuickShare
+from locker_server.core.exceptions.cipher_exception import CipherDoesNotExistException
 from locker_server.core.exceptions.quick_share_exception import QuickShareDoesNotExistException, \
-    QuickShareNotValidAccessException, QuickShareRequireOTPException
+    QuickShareNotValidAccessException, QuickShareRequireOTPException, QuickShareAttachmentNotValidException
 from locker_server.core.repositories.cipher_repository import CipherRepository
 from locker_server.core.repositories.enterprise_repository import EnterpriseRepository
 from locker_server.core.repositories.quick_share_repository import QuickShareRepository
@@ -14,6 +16,7 @@ from locker_server.shared.external_services.locker_background.background_factory
 from locker_server.shared.external_services.locker_background.constants import BG_EVENT
 from locker_server.shared.external_services.pm_sync import PwdSync, SYNC_QUICK_SHARE
 from locker_server.shared.utils.app import now
+from locker_server.shared.utils.attachments import normalize_attachment_key, parse_attachment_key
 
 
 class QuickShareService:
@@ -49,7 +52,65 @@ class QuickShareService:
         })
         return quick_shares
 
+    @staticmethod
+    def _list_attachments(data) -> List[Dict]:
+        if not isinstance(data, dict):
+            return []
+        return [attachment for attachment in (data.get("attachments") or []) if isinstance(attachment, dict)]
+
+    @classmethod
+    def _list_attachment_keys(cls, data) -> List[str]:
+        """
+        The normalized storage keys of the attachments in the data of a cipher (or a quick share)
+        """
+        keys = [normalize_attachment_key(attachment.get("url")) for attachment in cls._list_attachments(data)]
+        return [key for key in keys if key]
+
+    @classmethod
+    def _normalize_attachments(cls, cipher: Cipher, attachments: List[Dict]) -> List[Dict]:
+        """
+        The quick share only refers the attachments of its cipher. The urls are normalized to the storage keys
+        :raise QuickShareAttachmentNotValidException: The attachment does not belong to the cipher
+        """
+        cipher_attachment_keys = set(cls._list_attachment_keys(cipher.data))
+        attachment_ids = set()
+        normalized_attachments = []
+        for attachment in attachments:
+            parsed_key = parse_attachment_key(attachment.get("url"))
+            if not parsed_key:
+                raise QuickShareAttachmentNotValidException
+            key, attachment_cipher_id = parsed_key
+            if attachment_cipher_id != cipher.cipher_id or key not in cipher_attachment_keys:
+                raise QuickShareAttachmentNotValidException
+            attachment_id = attachment.get("id")
+            if not attachment_id or attachment_id in attachment_ids:
+                raise QuickShareAttachmentNotValidException
+            attachment_ids.add(attachment_id)
+            normalized_attachments.append({**attachment, "url": key})
+        return normalized_attachments
+
+    def _validate_quick_share_attachments(self, user_id: int, quick_share_data: Dict) -> Dict:
+        detail_data = quick_share_data.get("data")
+        attachments = self._list_attachments(detail_data)
+        if not attachments:
+            return quick_share_data
+        cipher_id = quick_share_data.get("cipher_id")
+        # The user must still be able to view the cipher in the vault (the same scope as the attachment urls).
+        # E.g. a member created this cipher in a sharing folder, then left the sharing team
+        if not self.cipher_repository.get_multiple_by_user(user_id=user_id, filter_ids=[cipher_id]):
+            raise CipherDoesNotExistException
+        cipher = self.cipher_repository.get_by_id(cipher_id=cipher_id)
+        if not cipher:
+            raise CipherDoesNotExistException
+        detail_data["attachments"] = self._normalize_attachments(cipher=cipher, attachments=attachments)
+        return quick_share_data
+
     def create_user_quick_share(self, user_id: int, ip=None, **quick_share_data):
+        """
+        :raise CipherDoesNotExistException: The user can not view the cipher of the shared attachments
+        :raise QuickShareAttachmentNotValidException: The shared attachments do not belong to the cipher
+        """
+        quick_share_data = self._validate_quick_share_attachments(user_id=user_id, quick_share_data=quick_share_data)
         quick_share = self.quick_share_repository.create_quick_share(**quick_share_data)
         self.user_repository.delete_sync_cache_data(user_id=user_id)
         PwdSync(event=SYNC_QUICK_SHARE, user_ids=[user_id]).send(
@@ -138,3 +199,46 @@ class QuickShareService:
         if not code:
             raise QuickShareDoesNotExistException
         return code
+
+    # ------------------------ QuickShare attachments --------------------- #
+    def issue_attachment_token(self, quick_share: QuickShare, email: str = None) -> Optional[Tuple]:
+        """
+        Issue the token to download the attachments, after the quick share is accessed successfully
+        :return: (tuple) (token, expired_time) or None if the quick share does not have any attachments
+        """
+        if not self._list_attachments(quick_share.data):
+            return None
+        return self.quick_share_repository.generate_attachment_access_token(quick_share=quick_share, email=email)
+
+    def get_attachment_path(self, quick_share: QuickShare, attachment_id: str, attachment_token: str) -> str:
+        """
+        Get the storage key of a quick share attachment. The access count is not increased: the access is counted when
+        the quick share is accessed (the token is issued)
+        :raise QuickShareNotValidAccessException: The token is not valid or the quick share is not available anymore
+        :raise QuickShareAttachmentNotValidException: The attachment does not belong to the quick share (or its cipher)
+        """
+        payload = self.quick_share_repository.validate_attachment_access_token(
+            quick_share=quick_share, token=attachment_token
+        )
+        if not payload:
+            raise QuickShareNotValidAccessException
+        if quick_share.disabled:
+            raise QuickShareNotValidAccessException
+        if quick_share.expiration_date and quick_share.expiration_date < now():
+            raise QuickShareNotValidAccessException
+        if not quick_share.is_public:
+            email = payload.get("email")
+            share_emails = [share_email.get("email") for share_email in quick_share.emails]
+            if not email or email not in share_emails:
+                raise QuickShareNotValidAccessException
+
+        attachment = next(
+            (a for a in self._list_attachments(quick_share.data) if a.get("id") == attachment_id), None
+        )
+        if not attachment:
+            raise QuickShareAttachmentNotValidException
+        key = normalize_attachment_key(attachment.get("url"))
+        # The owner can remove the attachment from the cipher after sharing it
+        if not key or key not in self._list_attachment_keys(quick_share.cipher.data):
+            raise QuickShareAttachmentNotValidException
+        return key

@@ -5,7 +5,7 @@ from locker_server.core.exceptions.cipher_attachment_exception import CipherAtta
 from locker_server.shared.caching.attachment_upload_cache import get_reserved_upload_size, reserve_upload
 from locker_server.shared.external_services.attachments.attachment import AttachmentStorageService
 from locker_server.shared.constants.attachments import UPLOAD_ACTION_ATTACHMENT, LIMIT_SIZE_ATTACHMENT, \
-    LIMIT_TOTAL_SIZE_ATTACHMENT, UPLOAD_FORM_EXPIRED, ATTACHMENT_CONTENT_TYPE
+    LIMIT_TOTAL_SIZE_ATTACHMENT, UPLOAD_FORM_EXPIRED, ATTACHMENT_CONTENT_TYPE, DEFAULT_ATTACHMENT_EXPIRED
 
 
 class AttachmentService:
@@ -74,6 +74,19 @@ class AttachmentService:
             file_path=path, is_cdn=is_cdn, **kwargs
         )
         return onetime_url
+
+    def get_download_url(self, path: str, is_cdn: bool = False, expired: int = DEFAULT_ATTACHMENT_EXPIRED) -> str:
+        """
+        Get the signed url to download an attachment
+        :param path: (str) The normalized attachment key
+        :param is_cdn: (bool) Sign the url via the CDN
+        :param expired: (int) The expiration of the url (seconds)
+        """
+        # The attachments are downloaded (and decrypted by the clients), they are never rendered by the browser
+        return self.get_onetime_url(path=path, is_cdn=is_cdn, **{
+            "response_content_disposition": "attachment",
+            "expired": expired
+        })
 
     def delete_multiple_attachments(self, paths: List[str]):
         self.attachment_storage.delete_files(file_paths=paths)

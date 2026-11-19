@@ -76,7 +76,8 @@ class AttachmentPwdViewSet(APIBaseViewSet):
                 user_id=emergency_access.grantor.user_id, filter_ids=[cipher_id]
             ):
                 return True
-        # The quick shares do not grant the access: the quick share data does not contain the attachments
+        # The quick shares do not grant the access here. The quick share recipients get the attachment urls via
+        # the quick share endpoint (POST quick_shares/<access_id>/attachments/url) with the attachment token
         return False
 
     def create(self, request, *args, **kwargs):
@@ -137,11 +138,9 @@ class AttachmentPwdViewSet(APIBaseViewSet):
             is_cdn = True
         else:
             is_cdn = False
-        # The attachments are downloaded (and decrypted by the clients), they are never rendered by the browser
-        onetime_url = self.attachment_service.get_onetime_url(path=path, is_cdn=is_cdn, **{
-            "response_content_disposition": "attachment",
-            "expired": DEFAULT_ATTACHMENT_EXPIRED
-        })
+        onetime_url = self.attachment_service.get_download_url(
+            path=path, is_cdn=is_cdn, expired=DEFAULT_ATTACHMENT_EXPIRED
+        )
         return Response(status=status.HTTP_200_OK, data={"url": onetime_url})
 
     @action(methods=["post"], detail=False)

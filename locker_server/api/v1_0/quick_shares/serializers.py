@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from locker_server.api.v1_0.ciphers.serializers import ItemFieldSerializer, LoginVaultSerializer, \
     SecurityNoteVaultSerializer, CardVaultSerializer, IdentityVaultSerializer, CryptoAccountSerializer, \
-    CryptoWalletSerializer
+    CryptoWalletSerializer, AttachmentSerializer
 from locker_server.shared.constants.ciphers import *
 from locker_server.shared.utils.app import get_cipher_detail_data, convert_readable_date
 
@@ -19,6 +19,8 @@ class CipherQuickShareSerializer(serializers.Serializer):
     identity = IdentityVaultSerializer(required=False, many=False, allow_null=True)
     cryptoAccount = CryptoAccountSerializer(required=False, many=False, allow_null=True)
     cryptoWallet = CryptoWalletSerializer(required=False, many=False, allow_null=True)
+    # The attachments of the cipher. The file names and the keys are encrypted by the quick share key
+    attachments = AttachmentSerializer(required=False, many=True, allow_null=True)
 
     def validate(self, data):
         # Validate vault data
@@ -115,6 +117,7 @@ class ListQuickShareSerializer(serializers.Serializer):
                 "secure_note": secure_note,
                 "crypto_account": crypto_account,
                 "crypto_wallet": crypto_wallet,
+                "attachments": data.get("attachments") or [],
             },
             "creation_date": convert_readable_date(instance.creation_date),
             "revision_date": convert_readable_date(instance.revision_date),
@@ -141,11 +144,27 @@ class DetailQuickShareSerializer(ListQuickShareSerializer):
 
 
 class PublicAccessQuickShareSerializer(ListQuickShareSerializer):
+    # The public fields of the attachments. The storage urls are not public: the recipients get the download urls by
+    # the attachment ids
+    PUBLIC_ATTACHMENT_FIELDS = ["id", "size", "fileName", "key"]
+
     def to_representation(self, instance):
         data = super(PublicAccessQuickShareSerializer, self).to_representation(instance)
+        cipher = data.get("cipher") or {}
+        public_attachments = [
+            {field: attachment.get(field) for field in self.PUBLIC_ATTACHMENT_FIELDS}
+            for attachment in (cipher.get("attachments") or []) if isinstance(attachment, dict)
+        ]
+        # The detail data and the type data (login, secure_note...) of the cipher also contain the attachments
+        public_cipher = {}
+        for k, v in cipher.items():
+            if isinstance(v, dict):
+                v = {dk: dv for dk, dv in v.items() if dk != "attachments"}
+            public_cipher[k] = v
+        public_cipher["attachments"] = public_attachments
         public_data = {
             "id": data.get("id"),
-            "cipher": data.get("cipher")
+            "cipher": public_cipher
         }
         return public_data
 
@@ -158,3 +177,8 @@ class PublicQuickShareSerializer(serializers.Serializer):
 
 class CheckAccessQuickShareSerializer(serializers.Serializer):
     email = serializers.EmailField(required=False)
+
+
+class QuickShareAttachmentUrlSerializer(serializers.Serializer):
+    attachment_id = serializers.CharField(max_length=255)
+    attachment_token = serializers.CharField(max_length=1024)
