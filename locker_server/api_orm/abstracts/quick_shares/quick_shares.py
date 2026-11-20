@@ -26,7 +26,7 @@ class AbstractQuickShareORM(models.Model):
     max_access_count = models.PositiveIntegerField(null=True)
     access_count = models.PositiveIntegerField(default=0)
     expiration_date = models.FloatField(null=True)
-    disabled = models.FloatField(default=False)
+    disabled = models.BooleanField(default=False)
     is_public = models.BooleanField(default=True)
     require_otp = models.BooleanField(default=True)
 

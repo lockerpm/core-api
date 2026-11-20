@@ -8,7 +8,7 @@ class QuickSharePwdPermission(APIPermission):
     # scope = 'quick_share'
 
     def has_permission(self, request, view):
-        if view.action in ["public", "access", "otp"]:
+        if view.action in ["public", "access", "otp", "attachment_url"]:
             return True
         is_authenticated = self.is_auth(request) and request.user.activated
         if not is_authenticated:

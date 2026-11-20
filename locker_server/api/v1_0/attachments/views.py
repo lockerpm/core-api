@@ -76,7 +76,8 @@ class AttachmentPwdViewSet(APIBaseViewSet):
                 user_id=emergency_access.grantor.user_id, filter_ids=[cipher_id]
             ):
                 return True
-        # The quick shares do not grant the access: the quick share data does not contain the attachments
+        # The quick shares do not grant the access here. The quick share recipients get the attachment urls via
+        # the quick share endpoint (POST quick_shares/<access_id>/attachments/url) with the attachment token
         return False
 
     def create(self, request, *args, **kwargs):
@@ -131,17 +132,17 @@ class AttachmentPwdViewSet(APIBaseViewSet):
         path, cipher_id = attachment
         if self.can_view_cipher_attachments(cipher_id=cipher_id) is False:
             raise NotFound
+        # The R2 CDN urls are signed (expire after the TTL of the Cloudflare WAF rule, 3600s). Without the HMAC
+        # secret, the R2 service returns the presigned url
         if settings.DEFAULT_CLOUD_STORAGE == ATTACHMENT_R2 and settings.CDN_ATTACHMENT_URL:
             is_cdn = True
         elif settings.AWS_CLOUDFRONT_PUBLIC_KEY_ID:
             is_cdn = True
         else:
             is_cdn = False
-        # The attachments are downloaded (and decrypted by the clients), they are never rendered by the browser
-        onetime_url = self.attachment_service.get_onetime_url(path=path, is_cdn=is_cdn, **{
-            "response_content_disposition": "attachment",
-            "expired": DEFAULT_ATTACHMENT_EXPIRED
-        })
+        onetime_url = self.attachment_service.get_download_url(
+            path=path, is_cdn=is_cdn, expired=DEFAULT_ATTACHMENT_EXPIRED
+        )
         return Response(status=status.HTTP_200_OK, data={"url": onetime_url})
 
     @action(methods=["post"], detail=False)

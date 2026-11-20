@@ -9,14 +9,16 @@ from locker_server.api.api_base_view import APIBaseViewSet
 from locker_server.api.permissions.locker_permissions.quick_share_pwd_permission import QuickSharePwdPermission
 from locker_server.core.exceptions.cipher_exception import *
 from locker_server.core.exceptions.quick_share_exception import QuickShareDoesNotExistException, \
-    QuickShareNotValidAccessException, QuickShareRequireOTPException
+    QuickShareNotValidAccessException, QuickShareRequireOTPException, QuickShareAttachmentNotValidException
+from locker_server.shared.constants.attachments import QUICK_SHARE_ATTACHMENT_URL_EXPIRED
 from locker_server.shared.error_responses.error import gen_error
 from locker_server.shared.external_services.locker_background.background_factory import BackgroundFactory
 from locker_server.shared.external_services.locker_background.constants import BG_NOTIFY
 from locker_server.shared.external_services.user_notification.list_jobs import PWD_QUICK_SHARE_OTP
 from locker_server.shared.utils.app import camel_snake_data
 from .serializers import CreateQuickShareSerializer, ListQuickShareSerializer, DetailQuickShareSerializer, \
-    PublicQuickShareSerializer, CheckAccessQuickShareSerializer, PublicAccessQuickShareSerializer
+    PublicQuickShareSerializer, CheckAccessQuickShareSerializer, PublicAccessQuickShareSerializer, \
+    QuickShareAttachmentUrlSerializer
 
 
 class QuickSharePwdViewSet(APIBaseViewSet):
@@ -25,7 +27,10 @@ class QuickSharePwdViewSet(APIBaseViewSet):
     lookup_value_regex = r'[0-9a-z-]+'
 
     def get_throttles(self):
-        return super().get_throttles()
+        throttles = super().get_throttles()
+        if self.action == "attachment_url":
+            self.throttle_scope = "attachments"
+        return throttles
 
     def get_serializer_class(self):
         if self.action in ["create"]:
@@ -38,6 +43,8 @@ class QuickSharePwdViewSet(APIBaseViewSet):
             self.serializer_class = PublicQuickShareSerializer
         elif self.action in ["access", "otp"]:
             self.serializer_class = CheckAccessQuickShareSerializer
+        elif self.action == "attachment_url":
+            self.serializer_class = QuickShareAttachmentUrlSerializer
         return super().get_serializer_class()
 
     def get_cipher(self, cipher_id):
@@ -66,6 +73,16 @@ class QuickSharePwdViewSet(APIBaseViewSet):
         except QuickShareDoesNotExistException:
             raise NotFound
 
+    def add_attachment_token(self, result, quick_share, email: str = None):
+        """
+        Add the token to download the attachments (if the quick share has attachments) to the access response
+        """
+        attachment_token = self.quick_share_service.issue_attachment_token(quick_share=quick_share, email=email)
+        if attachment_token:
+            token_value, expired_time = attachment_token
+            result["attachment_token"] = {"value": token_value, "expired_time": expired_time}
+        return result
+
     def get_queryset(self):
         user = self.request.user
         quick_shares = self.quick_share_service.list_user_quick_shares(user_id=user.user_id)
@@ -92,9 +109,14 @@ class QuickSharePwdViewSet(APIBaseViewSet):
         validated_data = json.loads(json.dumps(validated_data))
         cipher_id = validated_data.get("cipher_id")
         self.get_cipher(cipher_id=cipher_id)
-        quick_share = self.quick_share_service.create_user_quick_share(
-            user_id=user.user_id, ip=ip, **validated_data
-        )
+        try:
+            quick_share = self.quick_share_service.create_user_quick_share(
+                user_id=user.user_id, ip=ip, **validated_data
+            )
+        except CipherDoesNotExistException:
+            raise NotFound
+        except QuickShareAttachmentNotValidException:
+            raise ValidationError(detail={"cipher": {"attachments": ["The attachment ids are not valid"]}})
         return Response(status=status.HTTP_200_OK, data={
             "id": quick_share.quick_share_id,
             "cipher_id": quick_share.cipher.cipher_id,
@@ -150,6 +172,7 @@ class QuickSharePwdViewSet(APIBaseViewSet):
         result.pop("emails", None)
         if token:
             result["token"] = {"value": token, "expired_time": expired_time}
+        result = self.add_attachment_token(result=result, quick_share=quick_share, email=email)
         return Response(status=status.HTTP_200_OK, data=camel_snake_data(result, snake_to_camel=True))
 
     @action(methods=["get", "post"], detail=False)
@@ -175,6 +198,7 @@ class QuickSharePwdViewSet(APIBaseViewSet):
             except QuickShareRequireOTPException:
                 return Response(status=status.HTTP_200_OK, data={"require_otp": quick_share.require_otp})
             result = PublicAccessQuickShareSerializer(quick_share, many=False).data
+            result = self.add_attachment_token(result=result, quick_share=quick_share)
             return Response(status=status.HTTP_200_OK, data=camel_snake_data(result, snake_to_camel=True))
 
     @action(methods=["post"], detail=False)
@@ -204,3 +228,28 @@ class QuickSharePwdViewSet(APIBaseViewSet):
             }
         )
         return Response(status=status.HTTP_200_OK, data={"success": True})
+
+    @action(methods=["post"], detail=False)
+    def attachment_url(self, request, *args, **kwargs):
+        """
+        Get the download url of a quick share attachment by the attachment token (issued when accessing the quick share)
+        """
+        quick_share = self.get_quick_share_by_access_id()
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        try:
+            path = self.quick_share_service.get_attachment_path(
+                quick_share=quick_share,
+                path=validated_data.get("path"),
+                attachment_token=validated_data.get("attachment_token")
+            )
+        except QuickShareNotValidAccessException:
+            raise ValidationError({"non_field_errors": [gen_error("9000")]})
+        except QuickShareAttachmentNotValidException:
+            raise NotFound
+        # Do not use the CDN: the CDN urls (R2) are not signed, so they would outlive the quick share access
+        download_url = self.attachment_service.get_download_url(
+            path=path, is_cdn=False, expired=QUICK_SHARE_ATTACHMENT_URL_EXPIRED
+        )
+        return Response(status=status.HTTP_200_OK, data={"url": download_url})

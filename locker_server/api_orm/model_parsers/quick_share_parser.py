@@ -31,7 +31,7 @@ class QuickShareParser:
             max_access_count=quick_share_orm.max_access_count,
             access_count=quick_share_orm.access_count,
             expiration_date=quick_share_orm.expiration_date,
-            disabled=quick_share_orm.disabled,
+            disabled=bool(quick_share_orm.disabled),
             is_public=quick_share_orm.is_public,
             require_otp=quick_share_orm.require_otp,
             emails=emails

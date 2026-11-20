@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from locker_server.core.entities.quick_share.quick_share import QuickShare
 from locker_server.core.entities.release.release import Release
@@ -37,6 +37,14 @@ class QuickShareRepository(ABC):
 
     @abstractmethod
     def generate_public_access_token(self, quick_share: QuickShare, email: str) -> Tuple:
+        pass
+
+    @abstractmethod
+    def generate_attachment_access_token(self, quick_share: QuickShare, email: str = None) -> Tuple:
+        pass
+
+    @abstractmethod
+    def validate_attachment_access_token(self, quick_share: QuickShare, token: str) -> Optional[Dict]:
         pass
 
     # ------------------------ Update QuickShare resource --------------------- #

@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import jwt
 from django.conf import settings
@@ -8,7 +8,8 @@ from locker_server.api_orm.model_parsers.wrapper import get_model_parser
 from locker_server.api_orm.models.wrapper import get_quick_share_model, get_quick_share_email_model
 from locker_server.core.entities.quick_share.quick_share import QuickShare
 from locker_server.core.repositories.quick_share_repository import QuickShareRepository
-from locker_server.shared.constants.token import TOKEN_TYPE_QUICK_SHARE_ACCESS
+from locker_server.shared.constants.token import TOKEN_TYPE_QUICK_SHARE_ACCESS, TOKEN_TYPE_QUICK_SHARE_ATTACHMENT, \
+    TOKEN_EXPIRED_TIME_QUICK_SHARE_ATTACHMENT
 from locker_server.shared.utils.app import now, diff_list
 
 
@@ -70,7 +71,7 @@ class QuickShareORMRepository(QuickShareRepository):
 
     def check_valid_access(self, quick_share: QuickShare, email: str = None, code: str = None,
                            token: str = None) -> bool:
-        if quick_share.disabled is True:
+        if quick_share.disabled:
             return False
         if quick_share.is_public is False:
             try:
@@ -127,6 +128,36 @@ class QuickShareORMRepository(QuickShareRepository):
         token_value = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
         return token_value, expired_time
 
+    def generate_attachment_access_token(self, quick_share: QuickShare, email: str = None) -> Tuple:
+        """
+        Generate the short-lived token which allows downloading the attachments of the quick share
+        """
+        expired_time = int(now() + TOKEN_EXPIRED_TIME_QUICK_SHARE_ATTACHMENT)
+        payload = {
+            "token_type": TOKEN_TYPE_QUICK_SHARE_ATTACHMENT,
+            "access_id": quick_share.access_id,
+            "email": email,
+            "exp": expired_time,
+        }
+        token_value = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
+        return token_value, expired_time
+
+    def validate_attachment_access_token(self, quick_share: QuickShare, token: str) -> Optional[Dict]:
+        """
+        Validate the attachment token of the quick share
+        :return: (dict) The token payload, or None if the token is not valid
+        """
+        try:
+            # The `exp` claim is required, so PyJWT always checks the expiration
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"], options={"require": ["exp"]})
+        except jwt.PyJWTError:
+            return None
+        if payload.get("token_type") != TOKEN_TYPE_QUICK_SHARE_ATTACHMENT:
+            return None
+        if payload.get("access_id") != quick_share.access_id:
+            return None
+        return payload
+
     # ------------------------ Update QuickShare resource --------------------- #
     def update_quick_share(self, quick_share_id: str, **quick_share_data) -> Optional[QuickShare]:
         quick_share_orm = self._get_quick_share_orm(quick_share_id=quick_share_id)
@@ -138,22 +169,23 @@ class QuickShareORMRepository(QuickShareRepository):
         quick_share_orm.password = quick_share_data.get("password") or quick_share_orm.password
         quick_share_orm.max_access_count = quick_share_data.get("max_access_count") or quick_share_orm.max_access_count
         quick_share_orm.expiration_date = quick_share_data.get("expiration_date") or quick_share_orm.expiration_date
-        if quick_share_data.get("is_public") is not None:
-            quick_share_orm.is_public = quick_share_data.get("is_public")
-        quick_share_orm.disabled = quick_share_data.get("disabled") or quick_share_orm.disabled
-        quick_share_orm.require_otp = quick_share_data.get("require_otp") or quick_share_orm.require_otp
+        # The boolean flags are only updated when they are given, so they can be set back to False
+        for bool_field in ["is_public", "disabled", "require_otp"]:
+            if quick_share_data.get(bool_field) is not None:
+                setattr(quick_share_orm, bool_field, bool(quick_share_data.get(bool_field)))
         quick_share_orm.save()
 
-        quick_share_emails = list(quick_share_orm.quick_share_emails.values_list('email', flat=True))
-        emails_data = quick_share_data.get("emails", [])
-        emails = [email_data.get("email") for email_data in emails_data]
-        removed_emails = diff_list(quick_share_emails, emails)
-        added_emails = diff_list(emails, quick_share_emails)
-        if removed_emails:
-            quick_share_orm.quick_share_emails.filter(email__in=removed_emails).delete()
-        if added_emails:
-            added_emails_data = [{"email": e} for e in added_emails]
-            quick_share_orm.quick_share_emails.model.create_multiple(quick_share_orm, added_emails_data)
+        # Only sync the emails when they are given. Otherwise, all emails of the quick share would be removed
+        if quick_share_data.get("emails") is not None:
+            quick_share_emails = list(quick_share_orm.quick_share_emails.values_list('email', flat=True))
+            emails = [email_data.get("email") for email_data in quick_share_data.get("emails")]
+            removed_emails = diff_list(quick_share_emails, emails)
+            added_emails = diff_list(emails, quick_share_emails)
+            if removed_emails:
+                quick_share_orm.quick_share_emails.filter(email__in=removed_emails).delete()
+            if added_emails:
+                added_emails_data = [{"email": e} for e in added_emails]
+                quick_share_orm.quick_share_emails.model.create_multiple(quick_share_orm, added_emails_data)
 
         return ModelParser.quick_share_parser().parse_quick_share(quick_share_orm=quick_share_orm)
 

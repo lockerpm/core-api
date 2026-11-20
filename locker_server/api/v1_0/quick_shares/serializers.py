@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from locker_server.api.v1_0.ciphers.serializers import ItemFieldSerializer, LoginVaultSerializer, \
     SecurityNoteVaultSerializer, CardVaultSerializer, IdentityVaultSerializer, CryptoAccountSerializer, \
-    CryptoWalletSerializer
+    CryptoWalletSerializer, AttachmentSerializer
 from locker_server.shared.constants.ciphers import *
 from locker_server.shared.utils.app import get_cipher_detail_data, convert_readable_date
 
@@ -19,6 +19,8 @@ class CipherQuickShareSerializer(serializers.Serializer):
     identity = IdentityVaultSerializer(required=False, many=False, allow_null=True)
     cryptoAccount = CryptoAccountSerializer(required=False, many=False, allow_null=True)
     cryptoWallet = CryptoWalletSerializer(required=False, many=False, allow_null=True)
+    # The attachments of the cipher. The file names and the keys are encrypted by the quick share key
+    attachments = AttachmentSerializer(required=False, many=True, allow_null=True)
 
     def validate(self, data):
         # Validate vault data
@@ -115,6 +117,7 @@ class ListQuickShareSerializer(serializers.Serializer):
                 "secure_note": secure_note,
                 "crypto_account": crypto_account,
                 "crypto_wallet": crypto_wallet,
+                "attachments": data.get("attachments") or [],
             },
             "creation_date": convert_readable_date(instance.creation_date),
             "revision_date": convert_readable_date(instance.revision_date),
@@ -143,6 +146,8 @@ class DetailQuickShareSerializer(ListQuickShareSerializer):
 class PublicAccessQuickShareSerializer(ListQuickShareSerializer):
     def to_representation(self, instance):
         data = super(PublicAccessQuickShareSerializer, self).to_representation(instance)
+        # The attachment urls (the storage keys) are encrypted with the quick share key. The recipients decrypt them,
+        # then get the download urls by the storage keys
         public_data = {
             "id": data.get("id"),
             "cipher": data.get("cipher")
@@ -158,3 +163,9 @@ class PublicQuickShareSerializer(serializers.Serializer):
 
 class CheckAccessQuickShareSerializer(serializers.Serializer):
     email = serializers.EmailField(required=False)
+
+
+class QuickShareAttachmentUrlSerializer(serializers.Serializer):
+    # The storage key, decrypted from the attachment url (with the quick share key)
+    path = serializers.CharField(max_length=1024)
+    attachment_token = serializers.CharField(max_length=1024)

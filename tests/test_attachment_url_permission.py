@@ -54,7 +54,7 @@ class AttachmentUrlPermissionTestCase(SimpleTestCase):
         self.emergency_access_service = MagicMock()
         self.emergency_access_service.list_by_grantee_id.return_value = []
         self.attachment_service = MagicMock()
-        self.attachment_service.get_onetime_url.return_value = "https://files.locker.io/signed"
+        self.attachment_service.get_download_url.return_value = "https://files.locker.io/signed"
         self.quick_share_service = MagicMock()
 
     def _post_url(self, path):
@@ -78,11 +78,11 @@ class AttachmentUrlPermissionTestCase(SimpleTestCase):
     def assert_signed(self, response):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, {"url": "https://files.locker.io/signed"})
-        self.assertEqual(self.attachment_service.get_onetime_url.call_args.kwargs["path"], ATTACHMENT_KEY)
+        self.assertEqual(self.attachment_service.get_download_url.call_args.kwargs["path"], ATTACHMENT_KEY)
 
     def assert_not_found(self, response):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.attachment_service.get_onetime_url.assert_not_called()
+        self.attachment_service.get_download_url.assert_not_called()
 
     def test_owner_or_team_member_can_get_url(self):
         self.cipher_service.get_multiple_by_user.side_effect = self._vault_of(USER_ID)

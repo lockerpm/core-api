@@ -297,6 +297,8 @@ try:
 
     # AWS S3
     CDN_ATTACHMENT_URL = os.getenv("CDN_ATTACHMENT_URL")
+    # The HMAC secret to sign the CDN attachment urls (the same secret as the Cloudflare WAF rule)
+    CDN_ATTACHMENT_HMAC_SECRET = os.getenv("CDN_ATTACHMENT_HMAC_SECRET")
     AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
     AWS_S3_BUCKET = os.getenv("AWS_S3_BUCKET")
     AWS_S3_ACCESS_KEY = os.getenv("AWS_S3_ACCESS_KEY")

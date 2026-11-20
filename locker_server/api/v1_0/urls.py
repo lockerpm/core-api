@@ -167,6 +167,8 @@ urlpatterns += [
     re_path(r'^quick_shares/(?P<pk>[0-9A-Z]+)/access$',
         views.QuickSharePwdViewSet.as_view({'get': 'access', 'post': 'access'})),
     re_path(r'^quick_shares/(?P<pk>[0-9A-Z]+)/otp$', views.QuickSharePwdViewSet.as_view({'post': 'otp'})),
+    re_path(r'^quick_shares/(?P<pk>[0-9A-Z]+)/attachments/url$',
+        views.QuickSharePwdViewSet.as_view({'post': 'attachment_url'})),
 ]
 
 # -------------------------------- Folders ------------------------------- #
