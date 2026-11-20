@@ -132,6 +132,8 @@ class AttachmentPwdViewSet(APIBaseViewSet):
         path, cipher_id = attachment
         if self.can_view_cipher_attachments(cipher_id=cipher_id) is False:
             raise NotFound
+        # The R2 CDN urls are signed (expire after the TTL of the Cloudflare WAF rule, 3600s). Without the HMAC
+        # secret, the R2 service returns the presigned url
         if settings.DEFAULT_CLOUD_STORAGE == ATTACHMENT_R2 and settings.CDN_ATTACHMENT_URL:
             is_cdn = True
         elif settings.AWS_CLOUDFRONT_PUBLIC_KEY_ID:

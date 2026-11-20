@@ -13,6 +13,7 @@ from locker_server.shared.external_services.attachments.exceptions import Attach
 from locker_server.shared.external_services.attachments.impl.aws_attachment import AWSAttachmentService
 from locker_server.shared.log.cylog import CyLog
 from locker_server.shared.utils.app import now
+from locker_server.shared.utils.attachments import sign_cdn_url
 
 
 class R2AttachmentService(AWSAttachmentService):
@@ -93,10 +94,17 @@ class R2AttachmentService(AWSAttachmentService):
             raise AttachmentCopyException
 
     def generate_onetime_url(self, file_path: str, is_cdn=False, source: str = settings.R2_BUCKET, **kwargs) -> str:
+        """
+        :param is_cdn: (bool) Use the CDN url. The CDN urls are signed (Cloudflare token authentication), they expire
+        after the TTL of the WAF rule (not the `expired` param). Without the HMAC secret, the presigned url is returned
+        """
         if file_path.startswith("https://") or file_path.startswith("http://"):
             file_path = self.get_file_path(attachment_url=file_path).replace(f'{source}/', '', 1)
         if is_cdn and settings.CDN_ATTACHMENT_URL:
-            return f"{settings.CDN_ATTACHMENT_URL}/{file_path}"
+            cdn_secret = getattr(settings, "CDN_ATTACHMENT_HMAC_SECRET", None)
+            if cdn_secret:
+                return sign_cdn_url(base_url=settings.CDN_ATTACHMENT_URL, file_path=file_path, secret=cdn_secret)
+            # Never return an unsigned CDN url (it never expires). The presigned url still works (without the cache)
         expired_in = kwargs.get("expired_in") or kwargs.get("expired") or 120
         response_content_disposition = kwargs.get("response_content_disposition", None)
         bucket_params = {
