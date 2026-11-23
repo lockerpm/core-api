@@ -138,6 +138,9 @@ class EnterprisePwdViewSet(APIBaseViewSet):
         return Response(status=status.HTTP_200_OK, data=normalize_data)
 
     def destroy(self, request, *args, **kwargs):
+        # Self-hosted runs a single default enterprise; deleting it would orphan every account
+        if settings.SELF_HOSTED:
+            raise PermissionDenied
         enterprise = self.get_object()
         try:
             # Cancel the plan of the owner
