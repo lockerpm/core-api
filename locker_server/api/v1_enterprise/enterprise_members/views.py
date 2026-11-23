@@ -479,6 +479,9 @@ class MemberPwdViewSet(APIBaseViewSet):
         member_status = validated_data.get("status")
         if member_status not in ["confirmed", "reject"]:
             raise ValidationError(detail={"status": ["This status is not valid"]})
+        # Self-hosted: every account must belong to the enterprise, so invitations cannot be rejected
+        if settings.SELF_HOSTED and member_status == "reject":
+            raise ValidationError(detail={"status": ["You cannot reject this enterprise"]})
         try:
             member = self.enterprise_member_service.get_member_by_id(
                 member_id=kwargs.get("pk")
