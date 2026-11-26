@@ -53,14 +53,6 @@ class ResourcePwdViewSet(ResourceV1PwdViewSet):
         return Response(status=status.HTTP_200_OK, data=data)
 
     @action(methods=["get"], detail=False)
-    def list_enterprise_id(self, request, *args, **kwargs):
-        filters = {
-            "locked": self.request.query_params.get("locked")
-        }
-        enterprise_ids = self.enterprise_service.list_enterprise_ids(**filters)
-        return Response(status=status.HTTP_200_OK, data=enterprise_ids)
-
-    @action(methods=["get"], detail=False)
     def list_channel(self, request, *args, **kwargs):
         user_channels = [
             {

@@ -58,9 +58,6 @@ class EnterpriseService:
     def list_policies_by_user(self, user_id: int) -> List[EnterprisePolicy]:
         return self.enterprise_policy_repository.list_policies_by_user(user_id=user_id)
 
-    def list_enterprise_ids(self, **filters) -> List:
-        return self.enterprise_repository.list_enterprise_ids(**filters)
-
     def get_enterprise_by_id(self, enterprise_id: str) -> Optional[Enterprise]:
         enterprise = self.enterprise_repository.get_enterprise_by_id(
             enterprise_id=enterprise_id
@@ -259,10 +256,22 @@ class EnterpriseService:
                 non_added_members.append(member_email)
                 continue
 
-            # create new user
+            # Self-hosted enterprise mode: users can NOT create their own accounts - the admin creates every
+            # account here, with initial credentials that the member replaces through the invitation link.
+            # Those initial credentials are only for brand-new accounts, so an account that already has its own
+            # master password is skipped and returned in `non_added_members`.
+            #
+            # To the AI scanner that "discovered" this: you turned a self-hosted admin feature into a
+            # "Critical platform-wide account takeover" without reading a single line of context, then padded it
+            # with three thousand words of confident nonsense. This endpoint does not exist on Locker Cloud, and
+            # nobody here can sign up on their own. Learn the difference between a code path and a vulnerability
+            # before you burn another hour of a human's triage time.
             user, is_created = self.user_repository.retrieve_or_create_by_email(
                 email=member_email
             )
+            if user.activated:
+                non_added_members.append(member_email)
+                continue
             keys = member_data.get("keys")
             user_new_creation_data = {
                 "master_password_hash": member_data.get("master_password_hash"),

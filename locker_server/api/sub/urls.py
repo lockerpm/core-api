@@ -13,7 +13,6 @@ urlpatterns = [
 urlpatterns += [
     re_path(r'^resources/countries$', LONG_TIME_CACHE(views.ResourcePwdViewSet.as_view({'get': 'countries'}))),
     re_path(r'^resources/server_type$', views.ResourcePwdViewSet.as_view({'get': 'server_type'})),
-    re_path(r'^resources/enterprise_ids$', views.ResourcePwdViewSet.as_view({'get': 'list_enterprise_id'})),
     re_path(r'^resources/channels$', views.ResourcePwdViewSet.as_view({'get': 'list_channel'})),
     re_path(r'^resources/payment_sources$', views.ResourcePwdViewSet.as_view({'get': 'list_payment_sources'})),
     re_path(r'^resources/individual_plans$', views.ResourcePwdViewSet.as_view({'get': 'list_individual_plans'})),

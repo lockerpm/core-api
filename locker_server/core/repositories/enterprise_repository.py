@@ -11,10 +11,6 @@ class EnterpriseRepository(ABC):
         pass
 
     @abstractmethod
-    def list_enterprise_ids(self, **filters) -> List:
-        pass
-
-    @abstractmethod
     def list_user_enterprises(self, user_id: int, **filter_params) -> List[Enterprise]:
         pass
 
